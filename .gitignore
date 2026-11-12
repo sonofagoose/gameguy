@@ -1,0 +1,17 @@
+# local only: cross-compiler, Rockchip loader, SSH private key, firmware, golden image, backups (~23 GB)
+.tools/
+
+# build output
+probe/build/
+probe/dist/
+__pycache__/
+*.pyc
+
+# disk images and raw dumps never belong in git
+*.img
+*.bin
+
+# editor / OS litter
+*.swp
+*~
+.DS_Store
