@@ -1,0 +1,83 @@
+# root extras 20230216-111141
+cat: can't open '/sys/kernel/debug/clk/clk_summary': No such file or directory
+# dmesg (before probe)
+[    5.108270] systemd[1]: System time before build time, advancing clock.
+[    5.123883] systemd[1]: Failed to find module 'autofs4'
+[    5.142354] systemd[1]: systemd 252.6 running in system mode (-PAM -AUDIT -SELINUX -APPARMOR -IMA -SMACK -SECCOMP -GCRYPT -GNUTLS -OPENSSL -ACL +BLKID -CURL -ELFUTILS -FIDO2 +IDN2 -IDN -IPTC +KMOD -LIBCRYPTSETUP -LIBFDISK -PCRE2 -PWQUALITY -P11KIT -QRENCODE -TPM2 -BZIP2 -LZ4 -XZ -ZLIB +ZSTD -BPF_FRAMEWORK -XKBCOMMON +UTMP +SYSVINIT default-hierarchy=hybrid)
+[    5.142382] systemd[1]: Detected architecture arm64.
+[    5.390595] systemd[1]: multi-user.target: Wants dependency dropin /usr/lib/systemd/system/multi-user.target.wants/sixaxis@.service target ../sixaxis@.service has different name
+[    5.410509] systemd[1]: Configuration file /usr/lib/systemd/system/udt-hotkeys.service is marked executable. Please remove executable permission bits. Proceeding anyway.
+[    5.541162] systemd[1]: Queued start job for default target emuelec.target.
+[    5.560800] systemd[1]: Created slice system-modprobe.slice.
+[    5.562463] systemd[1]: Created slice system-sixaxis.slice.
+[    5.563589] systemd[1]: Created slice user.slice.
+[    5.563972] systemd[1]: Started systemd-ask-password-console.path.
+[    5.564220] systemd[1]: Started systemd-ask-password-wall.path.
+[    5.564484] systemd[1]: Reached target paths.target.
+[    5.564588] systemd[1]: Reached target slices.target.
+[    5.565084] systemd[1]: Listening on systemd-initctl.socket.
+[    5.566390] systemd[1]: Listening on systemd-journald-dev-log.socket.
+[    5.567394] systemd[1]: Listening on systemd-journald.socket.
+[    5.569428] systemd[1]: Listening on systemd-udevd-control.socket.
+[    5.570123] systemd[1]: Listening on systemd-udevd-kernel.socket.
+[    5.570683] systemd[1]: dev-mqueue.mount was skipped because of an unmet condition check (ConditionPathExists=/proc/sys/fs/mqueue).
+[    5.571131] systemd[1]: sys-kernel-debug.mount was skipped because of an unmet condition check (ConditionPathExists=/sys/kernel/debug).
+[    5.571472] systemd[1]: sys-kernel-tracing.mount was skipped because of an unmet condition check (ConditionPathExists=/sys/kernel/tracing).
+[    5.574904] systemd[1]: Mounting var.mount...
+[    5.575587] systemd[1]: kmod-static-nodes.service was skipped because of an unmet condition check (ConditionFileNotEmpty=/lib/modules/5.10.160/modules.devname).
+[    5.579592] systemd[1]: Starting modprobe@configfs.service...
+[    5.583845] systemd[1]: Starting modprobe@drm.service...
+[    5.588135] systemd[1]: Starting modprobe@fuse.service...
+[    5.593206] systemd[1]: Starting show-version.service...
+[    5.597388] systemd[1]: Starting storage-log.service...
+[    5.602019] systemd[1]: Starting swap.service...
+[    5.613229] systemd[1]: Starting systemd-modules-load.service...
+[    5.617003] systemd[1]: Starting systemd-timesyncd-setup.service...
+[    5.621612] systemd[1]: Starting systemd-udev-trigger.service...
+[    5.630596] systemd[1]: Mounted var.mount.
+[    5.632186] systemd[1]: modprobe@configfs.service: Deactivated successfully.
+[    5.632880] systemd[1]: Finished modprobe@configfs.service.
+[    5.634178] systemd[1]: modprobe@drm.service: Deactivated successfully.
+[    5.634889] systemd[1]: Finished modprobe@drm.service.
+[    5.636107] systemd[1]: modprobe@fuse.service: Deactivated successfully.
+[    5.636763] systemd[1]: Finished modprobe@fuse.service.
+[    5.637990] systemd[1]: Finished show-version.service.
+[    5.642509] systemd[1]: sys-fs-fuse-connections.mount was skipped because of an unmet condition check (ConditionPathExists=/sys/fs/fuse/connections).
+[    5.647250] systemd[1]: Mounting sys-kernel-config.mount...
+[    5.651209] systemd[1]: Finished systemd-timesyncd-setup.service.
+[    5.669086] systemd[1]: Finished systemd-modules-load.service.
+[    5.669984] systemd[1]: Mounted sys-kernel-config.mount.
+[    5.672086] systemd[1]: Finished storage-log.service.
+[    5.673954] systemd[1]: var-log.mount was skipped because no trigger condition checks were met.
+[    5.677890] systemd[1]: Starting systemd-sysctl.service...
+[    5.714959] systemd[1]: Finished systemd-sysctl.service.
+[    5.813334] systemd[1]: Finished swap.service.
+[    5.813863] systemd[1]: Reached target swap.target.
+[    5.817591] systemd[1]: Mounting tmp.mount...
+[    5.825124] systemd[1]: Mounted tmp.mount.
+[    5.825558] systemd[1]: Reached target local-fs.target.
+[    5.829101] systemd[1]: Starting machine-id.service...
+[    5.859770] systemd[1]: Finished machine-id.service.
+[    5.861031] systemd[1]: systemd-journald.service: unit configures an IP firewall, but the local system does not support BPF/cgroup firewalling.
+[    5.861052] systemd[1]: (This warning is only shown for the first unit using IP firewalling.)
+[    5.865722] systemd[1]: Starting systemd-journald.service...
+[    5.870450] systemd[1]: Starting systemd-tmpfiles-setup-dev.service...
+[    5.918697] systemd[1]: Finished systemd-tmpfiles-setup-dev.service.
+[    6.016161] systemd[1]: Started systemd-journald.service.
+[    6.039366] systemd-journald[231]: Received client request to flush runtime journal.
+[    8.098623] ttyFIQ ttyFIQ0: tty_port_close_start: tty->count = 1 port count = 2
+[    8.158481] systemd-journald[231]: Data hash table of /run/log/journal/3b4b1c6ef399b9e2c8f0c3e663ee71b1/system.journal has a fill level at 75.0 (1536 of 2047 items, 524288 file size, 341 bytes per hash table item), suggesting rotation.
+[    8.158510] systemd-journald[231]: /run/log/journal/3b4b1c6ef399b9e2c8f0c3e663ee71b1/system.journal: Journal header limits reached or header out-of-date, rotating.
+[    9.424410] ready to mount_romfs.sh
+[    9.987646] FAT-fs (mmcblk2p1): utf8 is not a recommended IO charset for FAT filesystems, filesystem will be case sensitive!
+[   10.024778] FAT-fs (mmcblk2p1): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
+[   10.152310] overlayfs: failed to resolve '/usr/bin/ports': -2
+[   10.167688] finished mount_romfs.sh
+[   10.199988] wait start.
+[   10.212155] sync start.
+[   10.235412] ------------------------
+[   10.320880]  start emustation begin-
+[   11.830333]  start emustation end-
+[   11.830668]  custom_start.sh begin-
+[   11.864953]  custom_start.sh end-
+[   16.384363] Freeing drm_logo memory: 3608K

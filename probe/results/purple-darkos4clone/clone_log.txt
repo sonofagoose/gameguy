@@ -1,0 +1,5 @@
+[clone.sh] Device: clone-r36s, 640x480, joy=2, hotkey=happy5, rot=0, led=unsupported
+[clone.sh] Console unchanged: clone-r36s
+[clone.sh] Copied: /home/ark/.quirks/asoundrc -> /home/ark/.asoundrc
+[clone.sh] lastgame.sh not found or not executable
+[clone.sh] Done. device=clone-r36s

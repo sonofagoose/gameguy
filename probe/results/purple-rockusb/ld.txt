@@ -1,0 +1,1 @@
+DevNo=1	Vid=0x2207,Pid=0x330d,LocationID=101	Loader

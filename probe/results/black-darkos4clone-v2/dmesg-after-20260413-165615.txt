@@ -1,0 +1,120 @@
+[    6.824515] systemd[1]: bpf-restrict-fs: BPF LSM hook not enabled in the kernel, BPF LSM not supported.
+[    6.934013] systemd-fstab-generator[247]: x-systemd.device-timeout ignored for /roms/tools
+[    7.217799] systemd[1]: Configuration file /etc/systemd/system/wifi_importer.service is marked executable. Please remove executable permission bits. Proceeding anyway.
+[    7.276799] systemd[1]: Configuration file /etc/systemd/system/351mp.service is marked executable. Please remove executable permission bits. Proceeding anyway.
+[    7.276867] systemd[1]: Configuration file /etc/systemd/system/351mp.service is marked world-writable. Please remove world writability permission bits. Proceeding anyway.
+[    7.555077] systemd[1]: Queued start job for default target multi-user.target.
+[    7.584155] Netfilter messages via NETLINK v0.30.
+[    7.593299] systemd[1]: Created slice system-modprobe.slice - Slice /system/modprobe.
+[    7.595460] systemd[1]: Created slice system-serial\x2dgetty.slice - Slice /system/serial-getty.
+[    7.597210] systemd[1]: Created slice system-systemd\x2dfsck.slice - Slice /system/systemd-fsck.
+[    7.598839] systemd[1]: Created slice system-xfs_scrub.slice - xfs_scrub background service slice.
+[    7.599515] systemd[1]: Created slice user.slice - User and Session Slice.
+[    7.600088] systemd[1]: Started systemd-ask-password-console.path - Dispatch Password Requests to Console Directory Watch.
+[    7.600596] systemd[1]: Started systemd-ask-password-wall.path - Forward Password Requests to Wall Directory Watch.
+[    7.601019] systemd[1]: proc-sys-fs-binfmt_misc.automount - Arbitrary Executable File Formats File System Automount Point skipped, unmet condition check ConditionPathExists=/proc/sys/fs/binfmt_misc
+[    7.601169] systemd[1]: Expecting device dev-mmcblk2p1.device - /dev/mmcblk2p1...
+[    7.601239] systemd[1]: Expecting device dev-mmcblk2p3.device - /dev/mmcblk2p3...
+[    7.601300] systemd[1]: Expecting device dev-ttyFIQ0.device - /dev/ttyFIQ0...
+[    7.601516] systemd[1]: Reached target paths.target - Path Units.
+[    7.601667] systemd[1]: Reached target remote-fs.target - Remote File Systems.
+[    7.601772] systemd[1]: Reached target slices.target - Slice Units.
+[    7.601908] systemd[1]: Reached target swap.target - Swaps.
+[    7.608437] systemd[1]: Listening on systemd-creds.socket - Credential Encryption/Decryption.
+[    7.609498] systemd[1]: Listening on systemd-initctl.socket - initctl Compatibility Named Pipe.
+[    7.610275] systemd[1]: Listening on systemd-journald-dev-log.socket - Journal Socket (/dev/log).
+[    7.611075] systemd[1]: Listening on systemd-journald.socket - Journal Sockets.
+[    7.611415] systemd[1]: systemd-pcrextend.socket - TPM PCR Measurements skipped, unmet condition check ConditionSecurity=measured-uki
+[    7.611546] systemd[1]: systemd-pcrlock.socket - Make TPM PCR Policy skipped, unmet condition check ConditionSecurity=measured-uki
+[    7.612507] systemd[1]: Listening on systemd-udevd-control.socket - udev Control Socket.
+[    7.613166] systemd[1]: Listening on systemd-udevd-kernel.socket - udev Kernel Socket.
+[    7.613918] systemd[1]: dev-hugepages.mount - Huge Pages File System skipped, unmet condition check ConditionPathExists=/sys/kernel/mm/hugepages
+[    7.614430] systemd[1]: dev-mqueue.mount - POSIX Message Queue File System skipped, unmet condition check ConditionPathExists=/proc/sys/fs/mqueue
+[    7.624847] systemd[1]: Mounting run-lock.mount - Legacy Locks Directory /run/lock...
+[    7.630168] systemd[1]: Mounting sys-kernel-debug.mount - Kernel Debug File System...
+[    7.631202] systemd[1]: sys-kernel-tracing.mount - Kernel Trace File System skipped, unmet condition check ConditionPathExists=/sys/kernel/tracing
+[    7.637434] systemd[1]: Mounting tmp.mount - Temporary Directory /tmp...
+[    7.646030] systemd[1]: Starting keyboard-setup.service - Set the console keyboard layout...
+[    7.653883] systemd[1]: Starting kmod-static-nodes.service - Create List of Static Device Nodes...
+[    7.660851] systemd[1]: Starting modprobe@configfs.service - Load Kernel Module configfs...
+[    7.674180] systemd[1]: Starting modprobe@drm.service - Load Kernel Module drm...
+[    7.698095] systemd[1]: Starting modprobe@efi_pstore.service - Load Kernel Module efi_pstore...
+[    7.715927] systemd[1]: Starting modprobe@fuse.service - Load Kernel Module fuse...
+[    7.716661] systemd[1]: systemd-hibernate-clear.service - Clear Stale Hibernate Storage Info skipped, unmet condition check ConditionPathExists=/sys/firmware/efi/efivars/HibernateLocation-8cf2644b-4b0b-428f-9387-6d876050dc67
+[    7.718537] systemd[1]: systemd-journald.service: unit configures an IP firewall, but the local system does not support BPF/cgroup firewalling.
+[    7.718592] systemd[1]: systemd-journald.service: (This warning is only shown for the first unit using IP firewalling.)
+[    7.744396] rk817-bat: hybrid: loaded vfull_chg=4162 vfull_dis=4000
+[    7.760816] systemd[1]: Starting systemd-journald.service - Journal Service...
+[    7.767057] systemd[1]: Starting systemd-modules-load.service - Load Kernel Modules...
+[    7.767210] systemd[1]: systemd-pcrmachine.service - TPM PCR Machine ID Measurement skipped, unmet condition check ConditionSecurity=measured-uki
+[    7.789302] systemd[1]: Starting systemd-remount-fs.service - Remount Root and Kernel File Systems...
+[    7.789669] systemd[1]: systemd-tpm2-setup-early.service - Early TPM SRK Setup skipped, unmet condition check ConditionSecurity=measured-uki
+[    7.811778] systemd[1]: Starting systemd-udev-load-credentials.service - Load udev Rules from Credentials...
+[    7.825397] systemd[1]: Starting systemd-udev-trigger.service - Coldplug All udev Devices...
+[    7.835276] systemd[1]: Mounted run-lock.mount - Legacy Locks Directory /run/lock.
+[    7.844066] systemd[1]: Mounted sys-kernel-debug.mount - Kernel Debug File System.
+[    7.850459] systemd[1]: Mounted tmp.mount - Temporary Directory /tmp.
+[    7.852084] systemd[1]: Finished kmod-static-nodes.service - Create List of Static Device Nodes.
+[    7.884213] systemd[1]: modprobe@configfs.service: Deactivated successfully.
+[    7.885838] systemd[1]: Finished modprobe@configfs.service - Load Kernel Module configfs.
+[    7.894861] systemd[1]: modprobe@drm.service: Deactivated successfully.
+[    7.895483] systemd[1]: Finished modprobe@drm.service - Load Kernel Module drm.
+[    7.897259] systemd[1]: modprobe@efi_pstore.service: Deactivated successfully.
+[    7.897771] systemd[1]: Finished modprobe@efi_pstore.service - Load Kernel Module efi_pstore.
+[    7.899269] systemd[1]: modprobe@fuse.service: Deactivated successfully.
+[    7.900563] systemd[1]: Finished modprobe@fuse.service - Load Kernel Module fuse.
+[    7.904536] systemd[1]: Finished systemd-modules-load.service - Load Kernel Modules.
+[    7.910649] systemd[1]: Mounting sys-fs-fuse-connections.mount - FUSE Control File System...
+[    7.925019] systemd[1]: Mounting sys-kernel-config.mount - Kernel Configuration File System...
+[    7.930292] systemd[1]: Starting systemd-sysctl.service - Apply Kernel Variables...
+[    7.943717] systemd[1]: Starting systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully...
+[    7.996368] systemd[1]: Finished systemd-udev-load-credentials.service - Load udev Rules from Credentials.
+[    8.136114] systemd[1]: Mounted sys-fs-fuse-connections.mount - FUSE Control File System.
+[    8.137128] systemd[1]: Mounted sys-kernel-config.mount - Kernel Configuration File System.
+[    8.165056] systemd-journald[267]: Collecting audit messages is disabled.
+[    8.470918] systemd[1]: Finished systemd-udev-trigger.service - Coldplug All udev Devices.
+[    8.514660] systemd[1]: Starting ifupdown-pre.service - Helper to synchronize boot up for ifupdown...
+[    8.517052] systemd[1]: Finished keyboard-setup.service - Set the console keyboard layout.
+[    8.555886] systemd[1]: systemd-remount-fs.service: Main process exited, code=exited, status=1/FAILURE
+[    8.557201] systemd[1]: systemd-remount-fs.service: Failed with result 'exit-code'.
+[    8.558012] systemd[1]: Failed to start systemd-remount-fs.service - Remount Root and Kernel File Systems.
+[    8.566598] systemd[1]: systemd-hwdb-update.service - Rebuild Hardware Database skipped, unmet condition check ConditionNeedsUpdate=/etc
+[    8.567202] systemd[1]: systemd-pstore.service - Platform Persistent Storage Archival skipped, unmet condition check ConditionDirectoryNotEmpty=/sys/fs/pstore
+[    8.573154] systemd[1]: Starting systemd-random-seed.service - Load/Save OS Random Seed...
+[    8.573410] systemd[1]: systemd-tpm2-setup.service - TPM SRK Setup skipped, unmet condition check ConditionSecurity=measured-uki
+[    8.596385] systemd[1]: Finished systemd-sysctl.service - Apply Kernel Variables.
+[    8.597723] systemd[1]: Finished ifupdown-pre.service - Helper to synchronize boot up for ifupdown.
+[    8.644370] systemd[1]: Finished systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully.
+[    8.645204] systemd[1]: systemd-sysusers.service - Create System Users skipped, no trigger condition checks were met.
+[    8.650145] systemd[1]: Starting systemd-timesyncd.service - Network Time Synchronization...
+[    8.655704] systemd[1]: Starting systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev...
+[    8.660517] systemd[1]: Finished systemd-random-seed.service - Load/Save OS Random Seed.
+[    8.775184] systemd[1]: Started systemd-journald.service - Journal Service.
+[    8.795286] proc: unrecognized mount option "hidepid=invisible" or missing value
+[    8.876934] systemd-journald[267]: Received client request to flush runtime journal.
+[   11.203608] FAT-fs (mmcblk2p1): utf8 is not a recommended IO charset for FAT filesystems, filesystem will be case sensitive!
+[   11.214327] phy phy-ff2c0000.syscon:usb2-phy@100.1: charger = USB_SDP_CHARGER
+[   12.967250] proc: unrecognized mount option "hidepid=invisible" or missing value
+[  330.834196] rockchip-pm-domain ff000000.power-management:power-controller: Looking up pd_vo-supply from device tree
+[  330.834230] rockchip-pm-domain ff000000.power-management:power-controller: Looking up pd_vo-supply property in node /power-management@ff000000/power-controller failed
+[  330.834561] rockchip-vop ff460000.vop: [drm:vop_crtc_enable] Update mode to 640x480p59, type: 16
+[  330.834738] dw-mipi-dsi ff450000.dsi: final DSI-Link bandwidth: 198 x 4 Mbps
+[  331.515251] using random self ethernet address
+[  331.515276] using random host ethernet address
+[  333.275128] usb0: HOST MAC 02:36:00:00:86:02
+[  333.281728] usb0: MAC 02:36:00:00:86:01
+[  333.281801] dwc2 ff300000.usb: bound driver configfs-gadget
+[  333.447591] dwc2 ff300000.usb: new device is high-speed
+[  333.559309] dwc2 ff300000.usb: new device is high-speed
+[  333.614215] dwc2 ff300000.usb: new address 39
+[  333.627415] configfs-gadget gadget: high-speed config #1: c
+[  336.718786] systemd-fstab-generator[20444]: x-systemd.device-timeout ignored for /roms/tools
+[  338.091558] systemd-fstab-generator[20480]: x-systemd.device-timeout ignored for /roms/tools
+[  345.147369] rockchip-vop ff460000.vop: [drm:vop_crtc_enable] Update mode to 640x480p59, type: 16
+[  345.147652] dw-mipi-dsi ff450000.dsi: final DSI-Link bandwidth: 198 x 4 Mbps
+[  885.518294] rockchip-vop ff460000.vop: [drm:vop_crtc_enable] Update mode to 640x480p59, type: 16
+[  885.518622] dw-mipi-dsi ff450000.dsi: final DSI-Link bandwidth: 198 x 4 Mbps
+[  927.316279] rockchip-vop ff460000.vop: [drm:vop_crtc_enable] Update mode to 640x480p60, type: 16
+[  927.316558] dw-mipi-dsi ff450000.dsi: final DSI-Link bandwidth: 198 x 4 Mbps
+[  930.285299] rockchip-vop ff460000.vop: [drm:vop_crtc_enable] Update mode to 640x480p59, type: 16
+[  930.285577] dw-mipi-dsi ff450000.dsi: final DSI-Link bandwidth: 198 x 4 Mbps

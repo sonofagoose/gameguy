@@ -1,0 +1,981 @@
+t_s,test,cpu0_mhz,dmc_mhz,ff400000.gpu_mhz,soc-thermal_c,gpu-thermal_c,battery_c,batt_pct,batt_v,batt_ma
+0.00,startup,816,328,200,41.8,42.7,18.8,72,3.876,-419
+0.25,startup,408,328,200,40.0,41.8,18.8,72,3.876,-419
+0.50,startup,1200,328,200,41.8,42.7,18.8,72,3.876,-418
+0.76,System information,816,328,200,41.8,43.2,18.8,72,3.876,-418
+1.01,System information,1008,328,200,40.9,42.3,18.8,72,3.876,-418
+1.26,System information,1200,328,200,42.3,43.6,18.8,72,3.876,-418
+1.51,System information,1200,328,200,40.5,44.1,18.8,72,3.876,-418
+1.76,CPU and memory,816,328,200,41.4,42.3,18.8,72,3.876,-418
+2.01,CPU and memory,1248,328,200,41.8,44.1,18.8,72,3.876,-418
+2.26,CPU and memory,1248,328,200,42.7,42.7,18.8,72,3.876,-418
+2.51,CPU and memory,1248,328,200,43.6,43.2,18.8,72,3.876,-418
+2.76,CPU and memory,1248,328,200,45.0,45.0,18.8,72,3.876,-418
+3.02,CPU and memory,1248,328,200,45.9,45.9,18.8,72,3.876,-418
+3.27,CPU and memory,1248,328,200,47.7,45.9,18.8,72,3.876,-418
+3.52,CPU and memory,1248,328,200,47.7,47.3,18.8,72,3.876,-418
+3.77,CPU and memory,1248,328,200,47.3,46.8,18.8,72,3.876,-418
+4.02,CPU and memory,1248,328,200,50.0,46.4,18.8,72,3.876,-418
+4.27,CPU and memory,1248,328,200,50.8,47.7,18.8,72,3.876,-418
+4.52,CPU and memory,1248,328,200,50.0,47.7,18.8,72,3.876,-418
+4.78,CPU and memory,1008,666,200,46.8,45.5,18.8,72,3.876,-418
+5.03,CPU and memory,1248,666,200,47.7,46.8,18.8,72,3.876,-418
+5.28,CPU and memory,816,666,200,46.8,47.3,18.8,72,3.876,-418
+5.53,CPU and memory,1248,328,200,46.4,46.4,18.8,72,3.859,-548
+5.78,CPU and memory,1248,328,200,46.4,45.5,18.8,72,3.859,-548
+6.04,CPU and memory,1248,328,200,45.9,45.0,18.8,72,3.859,-548
+6.29,CPU and memory,1248,328,200,45.5,45.9,18.8,72,3.859,-548
+6.54,CPU and memory,1248,328,200,45.9,45.0,18.8,72,3.859,-548
+6.79,CPU and memory,1248,328,200,45.5,45.0,18.8,72,3.859,-548
+7.04,CPU and memory,1248,328,200,44.5,44.5,18.8,72,3.859,-548
+7.29,CPU and memory,1248,328,200,45.0,44.5,18.8,72,3.859,-548
+7.54,CPU and memory,1248,328,200,45.0,45.5,18.8,72,3.859,-548
+7.79,CPU and memory,1248,328,200,45.5,45.5,18.8,72,3.859,-548
+8.04,CPU and memory,1248,666,200,45.9,45.9,18.8,72,3.859,-548
+8.30,CPU and memory,1248,328,200,46.4,46.4,18.8,72,3.859,-548
+8.55,CPU and memory,1248,328,200,45.0,45.9,18.8,72,3.859,-548
+8.80,CPU and memory,1248,328,200,45.0,45.5,18.8,72,3.859,-548
+9.05,CPU and memory,1248,328,200,45.0,45.0,18.8,72,3.859,-548
+9.30,CPU and memory,1200,328,200,44.5,45.9,18.8,72,3.859,-548
+9.55,Storage read/write (where the probe lives),1200,328,200,46.4,45.9,18.8,72,3.859,-548
+9.80,Storage read/write (where the probe lives),408,328,200,43.6,44.5,18.8,72,3.859,-548
+10.05,Storage read/write (where the probe lives),816,328,200,42.7,43.2,18.8,72,3.859,-548
+10.31,Storage read/write (where the probe lives),600,328,200,43.6,43.2,18.8,72,3.859,-548
+10.56,Storage read/write (where the probe lives),816,328,200,42.7,42.7,18.8,72,3.871,-447
+10.81,Storage read/write (where the probe lives),816,328,200,40.9,42.7,18.8,72,3.871,-447
+11.06,Storage read/write (where the probe lives),600,328,200,40.0,42.7,18.8,72,3.871,-447
+11.31,Storage read/write (where the probe lives),600,328,200,41.8,42.3,18.8,72,3.871,-447
+11.56,Storage read/write (where the probe lives),600,328,200,41.4,41.8,18.8,72,3.871,-447
+11.81,Storage read/write (where the probe lives),1008,328,200,42.7,42.7,18.8,72,3.871,-447
+12.06,Storage read/write (where the probe lives),816,328,200,40.9,43.2,18.8,72,3.871,-447
+12.32,Storage read/write (where the probe lives),600,328,200,42.7,43.2,18.8,72,3.871,-447
+12.57,Storage read/write (where the probe lives),816,328,200,40.0,44.1,18.8,72,3.871,-447
+12.82,Storage read/write (where the probe lives),1008,328,200,41.8,41.8,18.8,72,3.871,-447
+13.07,Storage read/write (where the probe lives),408,328,200,41.4,42.7,18.8,72,3.871,-447
+13.32,Storage read/write (where the probe lives),816,328,200,41.8,42.7,18.8,72,3.871,-447
+13.57,Storage read/write (where the probe lives),816,328,200,41.8,42.7,18.8,72,3.871,-447
+13.82,Storage read/write (where the probe lives),1248,328,200,43.2,43.2,18.8,72,3.871,-447
+14.08,Storage read/write (where the probe lives),600,328,200,41.4,42.7,18.8,72,3.871,-447
+14.33,Storage read/write (where the probe lives),600,328,200,40.9,41.8,18.8,72,3.871,-447
+14.58,Storage read/write (where the probe lives),600,328,200,40.5,42.7,18.8,72,3.871,-447
+14.83,GPU fill rate,1008,328,200,41.4,42.3,18.8,72,3.871,-447
+15.08,GPU fill rate,600,328,200,41.4,43.2,18.8,72,3.871,-447
+15.33,GPU fill rate,600,328,200,40.9,43.6,18.8,72,3.872,-432
+15.58,GPU fill rate,600,328,200,41.4,42.7,18.8,72,3.872,-432
+15.84,GPU fill rate,600,328,200,40.9,42.7,18.8,72,3.872,-432
+16.09,GPU fill rate,600,328,200,41.4,43.2,18.8,72,3.872,-432
+16.34,GPU fill rate,600,328,200,40.9,43.6,18.8,72,3.872,-432
+16.59,GPU fill rate,600,328,200,40.9,42.3,18.8,72,3.872,-432
+16.84,GPU fill rate,600,328,200,41.4,42.3,18.8,72,3.872,-432
+17.09,GPU fill rate,600,328,200,40.9,42.7,18.8,72,3.872,-432
+17.34,GPU fill rate,600,328,200,40.9,42.7,18.8,72,3.872,-432
+17.60,GPU fill rate,600,328,200,41.4,43.2,18.8,72,3.872,-432
+17.85,GPU fill rate,600,328,200,41.4,41.8,18.8,72,3.872,-432
+18.10,GPU fill rate,600,328,200,40.9,42.3,18.8,72,3.872,-432
+18.35,GPU fill rate,600,328,520,40.9,43.6,18.8,72,3.872,-432
+18.60,GPU texture sampling,1008,328,520,41.8,43.6,18.8,72,3.872,-432
+18.85,GPU texture sampling,600,328,520,42.3,44.1,18.8,72,3.872,-432
+19.11,GPU texture sampling,600,328,520,43.2,46.4,18.8,72,3.872,-432
+19.36,GPU texture sampling,1248,328,200,43.6,44.5,18.8,72,3.872,-432
+19.61,GPU texture sampling,1248,328,200,44.5,44.5,18.8,72,3.872,-432
+19.86,GPU texture sampling,600,666,200,43.2,45.5,18.8,72,3.872,-432
+20.11,GPU texture sampling,408,666,520,43.2,45.5,18.8,72,3.872,-432
+20.36,GPU texture sampling,600,328,400,42.7,46.8,18.8,72,3.866,-483
+20.61,GPU texture sampling,600,328,400,43.2,45.0,18.8,72,3.866,-483
+20.87,GPU texture sampling,600,328,400,43.2,45.9,18.8,72,3.866,-483
+21.12,GPU texture sampling,408,328,520,42.3,45.5,18.8,72,3.866,-483
+21.42,GPU texture sampling,408,328,520,43.6,44.5,18.8,72,3.866,-483
+21.67,GPU shader arithmetic,408,328,480,43.2,44.5,18.8,72,3.866,-483
+21.92,GPU shader arithmetic,408,328,300,41.8,44.1,18.8,72,3.866,-483
+22.17,GPU shader arithmetic,408,328,520,41.8,44.5,18.8,72,3.866,-483
+22.43,GPU shader arithmetic,600,328,520,42.3,43.6,18.8,72,3.866,-483
+22.68,GPU shader arithmetic,1200,328,520,43.2,44.1,18.8,72,3.866,-483
+22.93,GPU shader arithmetic,600,328,400,41.8,44.5,18.8,72,3.866,-483
+23.18,GPU shader arithmetic,600,328,520,41.8,44.1,18.8,72,3.866,-483
+23.43,GPU shader arithmetic,408,328,520,42.3,45.0,18.8,72,3.866,-483
+23.68,GPU draw-call overhead,1200,328,520,44.1,45.0,18.8,72,3.866,-483
+23.93,GPU draw-call overhead,1200,328,200,45.0,45.0,18.8,72,3.866,-483
+24.18,GPU draw-call overhead,1200,328,200,44.5,45.0,18.8,72,3.866,-483
+24.44,GPU draw-call overhead,1200,328,200,45.5,45.9,18.8,72,3.866,-483
+24.69,GPU draw-call overhead,1200,328,200,45.5,45.5,18.8,72,3.866,-483
+24.94,GPU draw-call overhead,1200,328,200,45.0,45.5,18.8,72,3.866,-483
+25.19,GPU draw-call overhead,1200,328,200,45.0,43.6,18.8,72,3.866,-483
+25.44,GPU draw-call overhead,1200,328,200,45.5,45.5,18.8,72,3.871,-441
+25.69,GPU draw-call overhead,600,328,200,43.2,45.0,18.8,72,3.871,-441
+25.94,GPU draw-call overhead,816,328,200,43.2,45.0,18.8,72,3.871,-441
+26.19,GPU render-pass cost (tile memory vs DRAM round trips),1008,328,200,42.3,45.0,18.8,72,3.871,-441
+26.45,GPU render-pass cost (tile memory vs DRAM round trips),408,328,520,42.3,45.5,18.8,72,3.871,-441
+26.70,GPU render-pass cost (tile memory vs DRAM round trips),1008,328,480,45.5,47.3,18.8,72,3.871,-441
+26.95,GPU render-pass cost (tile memory vs DRAM round trips),1008,328,480,46.4,47.3,18.8,72,3.871,-441
+27.20,GPU framebuffer fetch,1008,328,480,45.9,47.3,18.8,72,3.871,-441
+27.45,GPU framebuffer fetch,600,328,300,44.1,46.8,18.8,72,3.871,-441
+27.70,GPU framebuffer fetch,600,328,300,44.1,45.0,18.8,72,3.871,-441
+27.95,GPU framebuffer fetch,600,328,300,43.6,45.9,18.8,72,3.871,-441
+28.21,GPU framebuffer fetch,600,328,200,43.6,44.1,18.8,72,3.871,-441
+28.46,GPU deferred lighting: pixel local storage vs MRT vs forward,600,328,520,42.7,44.5,18.8,72,3.871,-441
+28.71,GPU deferred lighting: pixel local storage vs MRT vs forward,600,328,200,43.6,44.1,18.8,72,3.871,-441
+28.96,GPU deferred lighting: pixel local storage vs MRT vs forward,408,328,200,42.3,44.5,18.8,72,3.871,-441
+29.21,GPU deferred lighting: pixel local storage vs MRT vs forward,600,328,520,43.2,44.5,18.8,72,3.871,-441
+29.46,GPU deferred lighting: pixel local storage vs MRT vs forward,1200,328,200,46.4,45.9,18.8,72,3.871,-441
+29.72,GPU deferred lighting: pixel local storage vs MRT vs forward,600,328,200,43.6,45.0,18.8,72,3.871,-441
+29.97,GPU deferred lighting: pixel local storage vs MRT vs forward,600,328,520,44.1,45.9,18.8,72,3.871,-441
+30.22,GPU deferred lighting: pixel local storage vs MRT vs forward,600,328,520,43.6,46.4,18.8,72,3.871,-441
+30.47,GPU deferred lighting: pixel local storage vs MRT vs forward,600,328,400,42.7,44.5,18.8,72,3.869,-456
+30.72,GPU deferred lighting: pixel local storage vs MRT vs forward,600,328,400,43.6,45.5,18.8,72,3.869,-456
+30.97,GPU texture upload,1200,328,400,43.6,45.0,18.8,72,3.869,-456
+31.22,GPU texture upload,1008,328,200,45.0,45.0,18.8,72,3.869,-456
+31.47,GPU texture upload,1248,328,200,46.8,45.9,18.8,72,3.869,-456
+31.73,GPU texture upload,1248,328,200,43.2,46.4,18.8,72,3.869,-456
+31.98,Display refresh and present cost,600,328,200,42.7,44.5,18.8,72,3.869,-456
+32.23,Display refresh and present cost,600,328,200,42.7,43.2,18.8,72,3.869,-456
+32.48,Display refresh and present cost,600,328,200,42.3,43.6,18.8,72,3.869,-456
+32.74,Display refresh and present cost,600,328,200,43.6,43.6,18.8,72,3.869,-456
+32.99,Display refresh and present cost,600,328,200,42.3,43.2,18.8,72,3.869,-456
+33.24,Display refresh and present cost,600,328,200,41.8,43.6,18.8,72,3.869,-456
+33.49,Display refresh and present cost,600,328,200,41.8,43.2,18.8,72,3.869,-456
+33.74,Display refresh and present cost,600,328,200,42.3,43.6,18.8,72,3.869,-456
+33.99,Display refresh and present cost,600,328,200,41.8,42.7,18.8,72,3.869,-456
+34.25,Display refresh and present cost,600,328,200,42.3,43.2,18.8,72,3.869,-456
+34.50,Display refresh and present cost,600,328,200,41.8,42.7,18.8,72,3.869,-456
+34.75,Display refresh and present cost,600,328,200,42.3,43.2,18.8,72,3.869,-456
+35.00,Display refresh and present cost,600,328,200,41.8,43.2,18.8,72,3.869,-456
+35.25,Display refresh and present cost,600,328,200,40.9,43.2,18.8,72,3.869,-456
+35.50,Display refresh and present cost,600,328,200,41.4,42.3,18.8,72,3.881,-358
+35.76,Display refresh and present cost,600,328,200,41.8,42.3,18.8,72,3.881,-358
+36.01,Display refresh and present cost,600,328,200,42.3,43.2,18.8,72,3.881,-358
+36.26,Display refresh and present cost,600,328,200,40.9,42.7,18.8,72,3.881,-358
+36.51,Display refresh and present cost,600,328,200,40.9,42.7,18.8,72,3.881,-358
+36.76,Display refresh and present cost,600,328,200,40.9,41.8,18.8,72,3.881,-358
+37.01,Display refresh and present cost,600,328,200,40.5,41.8,18.8,72,3.881,-358
+37.26,Display refresh and present cost,600,328,200,42.3,42.7,18.8,72,3.881,-358
+37.52,Display refresh and present cost,600,328,200,41.8,42.3,18.8,72,3.881,-358
+37.77,Display refresh and present cost,600,328,200,40.9,42.3,18.8,72,3.881,-358
+38.03,Display refresh and present cost,408,328,200,40.5,42.3,18.8,72,3.881,-358
+38.28,Display refresh and present cost,408,328,200,41.8,43.2,18.8,72,3.881,-358
+38.53,Display refresh and present cost,600,328,200,40.0,42.7,18.8,72,3.881,-358
+38.78,Display refresh and present cost,600,328,200,40.9,40.9,18.8,72,3.881,-358
+39.03,Display refresh and present cost,600,328,200,41.4,42.3,18.8,72,3.881,-358
+39.28,Display refresh and present cost,600,328,200,40.9,42.7,18.8,72,3.881,-358
+39.54,Display refresh and present cost,600,328,200,40.9,42.3,18.8,72,3.881,-358
+39.79,Display refresh and present cost,600,328,200,40.5,42.7,18.8,72,3.881,-358
+40.04,Display refresh and present cost,600,328,200,40.9,40.9,18.8,72,3.881,-358
+40.29,Display refresh and present cost,600,328,200,40.9,42.7,18.8,72,3.881,-358
+40.54,Display refresh and present cost,600,328,200,41.4,40.9,18.8,72,3.881,-358
+40.79,Display refresh and present cost,600,328,200,40.0,42.3,18.8,72,3.881,-358
+41.05,Display refresh and present cost,600,328,200,40.9,41.8,18.8,72,3.881,-358
+41.30,Display refresh and present cost,816,328,200,40.5,42.7,18.8,72,3.881,-358
+41.55,Display refresh and present cost,600,328,200,40.9,41.8,18.8,72,3.881,-358
+41.80,Display refresh and present cost,600,328,200,40.5,42.3,18.8,72,3.881,-358
+42.05,Display refresh and present cost,600,328,200,40.9,42.3,18.8,72,3.881,-358
+42.30,Display refresh and present cost,600,328,200,40.9,42.7,18.8,72,3.881,-358
+42.55,Display refresh and present cost,600,328,200,41.8,42.3,18.8,72,3.881,-358
+42.81,Display refresh and present cost,600,328,200,40.5,41.8,18.8,72,3.881,-358
+43.06,Display refresh and present cost,600,328,200,40.0,43.2,18.8,72,3.881,-358
+43.31,Display refresh and present cost,600,328,200,40.9,42.3,18.8,72,3.881,-358
+43.56,Display refresh and present cost,600,328,200,40.5,41.8,18.8,72,3.881,-358
+43.81,Audio output,816,328,200,40.5,42.7,18.8,72,3.881,-358
+44.06,Audio output,600,328,200,40.9,41.8,18.8,72,3.881,-358
+44.32,Audio output,600,328,200,40.9,41.4,18.8,72,3.881,-358
+44.57,Audio output,600,328,200,40.9,42.3,18.8,72,3.881,-358
+44.82,Audio output,600,328,200,40.0,42.3,18.8,72,3.881,-358
+45.07,Audio output,408,328,200,41.4,42.3,18.8,72,3.881,-358
+45.32,Audio output,600,328,200,41.4,42.3,18.8,72,3.881,-358
+45.57,Audio output,816,328,200,40.5,41.8,18.8,72,3.880,-368
+45.83,Audio output,600,328,200,40.5,42.3,18.8,72,3.880,-368
+46.08,Audio output,600,328,200,40.5,42.3,18.8,72,3.880,-368
+46.33,Audio output,600,328,200,40.0,41.8,18.8,72,3.880,-368
+46.58,Audio output,600,328,200,40.9,41.8,18.8,72,3.880,-368
+46.83,Audio output,600,328,200,40.0,41.8,18.8,72,3.880,-368
+47.08,Audio output,600,328,200,40.9,42.3,18.8,72,3.880,-368
+47.34,Audio output,408,328,200,40.9,41.4,18.8,72,3.880,-368
+47.59,Audio output,600,328,200,40.0,42.7,18.8,72,3.880,-368
+47.84,Audio output,816,328,200,40.9,42.7,18.8,72,3.880,-368
+48.09,Audio output,600,328,200,40.9,42.3,18.8,72,3.880,-368
+48.34,Audio output,600,328,200,40.9,42.7,18.8,72,3.880,-368
+48.59,Audio output,600,328,200,41.4,41.4,18.8,72,3.880,-368
+48.84,Audio output,600,328,200,40.9,42.3,18.8,72,3.880,-368
+49.10,Audio output,816,328,200,41.8,41.4,18.8,72,3.880,-368
+49.35,Audio output,600,328,200,40.9,42.3,18.8,72,3.880,-368
+49.60,Audio output,600,328,200,40.9,42.7,18.8,72,3.880,-368
+49.85,Audio output,600,328,200,41.4,42.3,18.8,72,3.880,-368
+50.10,Audio output,600,328,200,40.9,42.7,18.8,72,3.880,-368
+50.35,Audio output,600,328,200,40.5,42.3,18.8,72,3.880,-368
+50.60,Controls (interactive),600,328,200,41.4,41.8,18.8,72,3.879,-376
+50.86,Controls (interactive),600,328,200,40.9,41.8,18.8,72,3.879,-376
+51.11,Controls (interactive),600,328,200,41.4,42.3,18.8,72,3.879,-376
+51.36,Controls (interactive),600,328,200,41.8,41.8,18.8,72,3.879,-376
+51.61,Controls (interactive),600,328,200,40.5,41.8,18.8,72,3.879,-376
+51.86,Controls (interactive),600,328,200,40.0,40.5,18.8,72,3.879,-376
+52.11,Controls (interactive),600,328,200,40.0,42.3,18.8,72,3.879,-376
+52.37,Controls (interactive),600,328,200,40.9,41.8,18.8,72,3.879,-376
+52.62,Controls (interactive),600,328,200,40.5,41.8,18.8,72,3.879,-376
+52.87,Controls (interactive),600,328,200,40.9,42.3,18.8,72,3.879,-376
+53.12,Controls (interactive),600,328,200,40.0,42.7,18.8,72,3.879,-376
+53.37,Controls (interactive),600,328,200,40.0,41.8,18.8,72,3.879,-376
+53.62,Controls (interactive),600,328,200,42.3,41.4,18.8,72,3.879,-376
+53.88,Controls (interactive),600,328,200,40.9,42.3,18.8,72,3.879,-376
+54.13,Controls (interactive),1008,328,200,41.8,42.7,18.8,72,3.879,-376
+54.38,Controls (interactive),816,328,200,42.7,42.7,18.8,72,3.879,-376
+54.63,Controls (interactive),1200,328,200,43.2,44.1,18.8,72,3.879,-376
+54.88,Controls (interactive),600,328,200,44.1,42.3,18.8,72,3.879,-376
+55.13,Controls (interactive),600,328,200,40.9,42.7,18.8,72,3.879,-376
+55.38,Controls (interactive),600,328,200,41.8,41.8,18.8,72,3.879,-376
+55.64,Controls (interactive),600,328,200,41.4,42.3,18.8,72,3.872,-427
+55.89,Controls (interactive),600,328,200,40.0,42.7,18.8,72,3.872,-427
+56.14,Controls (interactive),600,328,200,40.5,42.3,18.8,72,3.872,-427
+56.39,Controls (interactive),600,328,200,40.5,42.3,18.8,72,3.872,-427
+56.64,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.872,-427
+56.89,Controls (interactive),600,528,200,41.4,43.2,18.8,72,3.872,-427
+57.14,Controls (interactive),600,528,200,40.0,41.8,18.8,72,3.872,-427
+57.40,Controls (interactive),600,528,200,40.5,43.2,18.8,72,3.872,-427
+57.65,Controls (interactive),600,528,200,40.5,42.3,18.8,72,3.872,-427
+57.90,Controls (interactive),600,328,200,41.4,42.3,18.8,72,3.872,-427
+58.15,Controls (interactive),600,328,200,40.9,42.3,18.8,72,3.872,-427
+58.40,Controls (interactive),600,328,200,40.9,42.3,18.8,72,3.872,-427
+58.65,Controls (interactive),600,328,200,40.5,42.7,18.8,72,3.872,-427
+58.90,Controls (interactive),600,328,200,39.1,41.8,18.8,72,3.872,-427
+59.16,Controls (interactive),600,328,200,40.9,41.8,18.8,72,3.872,-427
+59.41,Controls (interactive),600,328,200,40.5,41.8,18.8,72,3.872,-427
+59.66,Controls (interactive),600,528,200,40.9,42.7,18.8,72,3.872,-427
+59.91,Controls (interactive),600,528,200,40.9,41.8,18.8,72,3.872,-427
+60.16,Controls (interactive),600,528,200,40.5,41.4,18.8,72,3.872,-427
+60.41,Controls (interactive),600,528,200,40.9,42.7,18.8,72,3.872,-427
+60.66,Controls (interactive),600,528,200,41.8,42.7,18.8,72,3.880,-366
+60.92,Controls (interactive),600,528,200,40.9,42.3,18.8,72,3.880,-366
+61.17,Controls (interactive),600,528,200,41.4,40.5,18.8,72,3.880,-366
+61.42,Controls (interactive),600,328,200,40.0,42.3,18.8,72,3.880,-366
+61.67,Controls (interactive),600,328,200,41.4,42.7,18.8,72,3.880,-366
+61.92,Controls (interactive),600,328,200,40.0,41.4,18.8,72,3.880,-366
+62.17,Controls (interactive),600,328,200,39.5,41.8,18.8,72,3.880,-366
+62.42,Controls (interactive),600,328,200,40.9,42.3,18.8,72,3.880,-366
+62.68,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.880,-366
+62.93,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.880,-366
+63.18,Controls (interactive),600,528,200,40.0,41.4,18.8,72,3.880,-366
+63.43,Controls (interactive),600,528,200,40.5,41.4,18.8,72,3.880,-366
+63.68,Controls (interactive),600,528,200,40.5,42.3,18.8,72,3.880,-366
+63.93,Controls (interactive),600,528,200,40.5,42.7,18.8,72,3.880,-366
+64.18,Controls (interactive),600,528,200,40.0,41.8,18.8,72,3.880,-366
+64.44,Controls (interactive),600,328,200,40.5,41.4,18.8,72,3.880,-366
+64.69,Controls (interactive),600,328,200,40.0,40.5,18.8,72,3.880,-366
+64.94,Controls (interactive),600,328,200,41.4,41.4,18.8,72,3.880,-366
+65.19,Controls (interactive),600,328,200,41.8,41.8,18.8,72,3.880,-366
+65.44,Controls (interactive),600,328,200,41.4,41.8,18.8,72,3.880,-366
+65.69,Controls (interactive),600,328,200,41.4,42.3,18.8,72,3.880,-365
+65.94,Controls (interactive),600,328,200,40.5,42.3,18.8,72,3.880,-365
+66.20,Controls (interactive),600,528,200,40.5,42.7,18.8,72,3.880,-365
+66.45,Controls (interactive),600,528,200,40.9,42.3,18.8,72,3.880,-365
+66.70,Controls (interactive),600,328,200,40.5,43.2,18.8,72,3.880,-365
+66.95,Controls (interactive),600,328,200,40.5,42.3,18.8,72,3.880,-365
+67.20,Controls (interactive),600,528,200,40.5,41.4,18.8,72,3.880,-365
+67.45,Controls (interactive),600,528,200,40.9,41.8,18.8,72,3.880,-365
+67.70,Controls (interactive),600,328,200,41.4,42.7,18.8,72,3.880,-365
+67.96,Controls (interactive),600,328,200,40.0,42.3,18.8,72,3.880,-365
+68.21,Controls (interactive),600,328,200,40.5,42.3,18.8,72,3.880,-365
+68.46,Controls (interactive),600,328,200,40.9,41.8,18.8,72,3.880,-365
+68.71,Controls (interactive),600,328,200,39.5,40.9,18.8,72,3.880,-365
+68.96,Controls (interactive),600,328,200,40.0,42.3,18.8,72,3.880,-365
+69.21,Controls (interactive),600,328,200,40.5,42.3,18.8,72,3.880,-365
+69.46,Controls (interactive),600,328,200,40.0,41.4,18.8,72,3.880,-365
+69.72,Controls (interactive),600,328,200,39.1,41.4,18.8,72,3.880,-365
+69.97,Controls (interactive),600,328,200,40.9,41.8,18.8,72,3.880,-365
+70.22,Controls (interactive),600,528,200,40.0,41.8,18.8,72,3.880,-365
+70.47,Controls (interactive),600,528,200,40.9,41.8,18.8,72,3.880,-363
+70.72,Controls (interactive),600,528,200,40.0,42.3,18.8,72,3.880,-363
+70.97,Controls (interactive),600,528,200,40.0,41.8,18.8,72,3.880,-363
+71.22,Controls (interactive),600,528,200,41.4,41.4,18.8,72,3.880,-363
+71.48,Controls (interactive),600,528,200,40.5,41.4,18.8,72,3.880,-363
+71.73,Controls (interactive),600,528,200,40.9,42.3,18.8,72,3.880,-363
+71.98,Controls (interactive),600,528,200,40.0,41.8,18.8,72,3.880,-363
+72.23,Controls (interactive),600,528,200,40.5,42.3,18.8,72,3.880,-363
+72.48,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.880,-363
+72.73,Controls (interactive),600,528,200,40.5,42.3,18.8,72,3.880,-363
+72.98,Controls (interactive),600,528,200,40.9,41.8,18.8,72,3.880,-363
+73.24,Controls (interactive),600,528,200,40.5,41.4,18.8,72,3.880,-363
+73.49,Controls (interactive),600,528,200,40.9,42.3,18.8,72,3.880,-363
+73.74,Controls (interactive),600,528,200,40.5,42.3,18.8,72,3.880,-363
+73.99,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.880,-363
+74.24,Controls (interactive),600,528,200,40.5,42.3,18.8,72,3.880,-363
+74.49,Controls (interactive),600,528,200,40.9,42.7,18.8,72,3.880,-363
+74.74,Controls (interactive),600,528,200,41.4,42.7,18.8,72,3.880,-363
+75.00,Controls (interactive),600,528,200,40.9,42.3,18.8,72,3.880,-363
+75.25,Controls (interactive),600,528,200,40.0,42.7,18.8,72,3.880,-363
+75.50,Controls (interactive),600,528,200,41.4,42.3,18.8,72,3.879,-372
+75.75,Controls (interactive),600,528,200,40.9,41.8,18.8,72,3.879,-372
+76.00,Controls (interactive),600,328,200,40.5,41.4,18.8,72,3.879,-372
+76.25,Controls (interactive),600,528,200,40.0,42.3,18.8,72,3.879,-372
+76.50,Controls (interactive),600,528,200,40.9,42.3,18.8,72,3.879,-372
+76.75,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.879,-372
+77.01,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.879,-372
+77.26,Controls (interactive),600,528,200,40.0,42.7,18.8,72,3.879,-372
+77.51,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.879,-372
+77.76,Controls (interactive),600,528,200,40.0,42.3,18.8,72,3.879,-372
+78.01,Controls (interactive),600,528,200,40.9,41.8,18.8,72,3.879,-372
+78.26,Controls (interactive),600,528,200,40.5,41.4,18.8,72,3.879,-372
+78.52,Controls (interactive),600,528,200,40.0,42.3,18.8,72,3.879,-372
+78.77,Controls (interactive),600,528,200,40.9,41.4,18.8,72,3.879,-372
+79.02,Controls (interactive),600,528,200,40.0,42.3,18.8,72,3.879,-372
+79.27,Controls (interactive),600,528,200,40.9,42.3,18.8,72,3.879,-372
+79.53,Controls (interactive),600,528,200,41.4,42.3,18.8,72,3.879,-372
+79.78,Controls (interactive),1008,528,200,40.9,43.2,18.8,72,3.879,-372
+80.03,Controls (interactive),1248,528,200,41.8,43.2,18.8,72,3.879,-372
+80.28,Controls (interactive),600,528,200,40.9,41.8,18.8,72,3.879,-372
+80.53,Controls (interactive),600,528,200,40.9,42.3,18.8,72,3.871,-431
+80.78,Controls (interactive),600,528,200,41.8,41.8,18.8,72,3.871,-431
+81.03,Controls (interactive),600,528,200,40.0,41.8,18.8,72,3.871,-431
+81.28,Controls (interactive),600,528,200,41.4,43.2,18.8,72,3.871,-431
+81.54,Controls (interactive),600,528,200,40.0,42.7,18.8,72,3.871,-431
+81.79,Controls (interactive),600,528,200,39.5,42.3,18.8,72,3.871,-431
+82.04,Controls (interactive),600,528,200,41.4,41.8,18.8,72,3.871,-431
+82.29,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.871,-431
+82.54,Controls (interactive),600,528,200,40.5,40.9,18.8,72,3.871,-431
+82.79,Controls (interactive),600,328,200,40.5,42.3,18.8,72,3.871,-431
+83.04,Controls (interactive),600,328,200,40.0,41.8,18.8,72,3.871,-431
+83.30,Controls (interactive),600,328,200,40.5,42.3,18.8,72,3.871,-431
+83.55,Controls (interactive),600,528,200,40.5,42.3,18.8,72,3.871,-431
+83.80,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.871,-431
+84.05,Controls (interactive),600,528,200,40.5,41.8,18.8,72,3.871,-431
+84.30,Controls (interactive),600,528,200,40.5,42.3,18.8,72,3.871,-431
+84.55,Controls (interactive),600,528,200,41.4,42.7,18.8,72,3.871,-431
+84.80,Controls (interactive),600,528,200,40.0,40.9,18.8,72,3.871,-431
+85.06,Controls (interactive),600,528,200,41.8,41.8,18.8,72,3.871,-431
+85.31,Controls (interactive),600,528,200,40.9,42.3,18.8,72,3.871,-431
+85.56,Controls (interactive),600,328,200,40.5,41.8,18.8,72,3.879,-372
+85.81,Controls (interactive),600,328,200,40.9,41.8,18.8,72,3.879,-372
+86.06,Controls (interactive),600,328,200,40.9,42.7,18.8,72,3.879,-372
+86.31,Controls (interactive),600,328,200,40.5,42.3,18.8,72,3.879,-372
+86.56,Controls (interactive),600,328,200,39.5,41.8,18.8,72,3.879,-372
+86.82,Controls (interactive),600,328,200,40.5,40.9,18.8,72,3.879,-372
+87.07,Controls (interactive),600,528,200,40.0,41.4,18.8,72,3.879,-372
+87.32,Controls (interactive),600,528,200,40.9,41.4,18.8,72,3.879,-372
+87.57,Controls (interactive),600,528,200,40.5,42.3,18.8,72,3.879,-372
+87.82,Controls (interactive),600,528,200,39.5,41.8,18.8,72,3.879,-372
+88.07,Controls (interactive),600,328,200,40.5,42.3,18.8,72,3.879,-372
+88.32,Controls (interactive),600,328,200,40.5,40.9,18.8,72,3.879,-372
+88.58,Controls (interactive),600,528,200,40.0,42.7,18.8,72,3.879,-372
+88.83,Controls (interactive),600,528,200,41.4,41.8,18.8,72,3.879,-372
+89.08,Controls (interactive),600,328,200,40.5,41.8,18.8,72,3.879,-372
+89.33,Controls (interactive),600,328,200,40.9,41.8,18.8,72,3.879,-372
+89.58,Controls (interactive),600,328,200,40.0,42.3,18.8,72,3.879,-372
+89.83,Controls (interactive),600,328,200,40.0,42.3,18.8,72,3.879,-372
+90.08,Stability under sustained load,816,328,200,40.9,42.7,18.8,72,3.879,-372
+90.34,Stability under sustained load,1248,528,520,47.3,47.7,18.8,72,3.879,-372
+90.59,Stability under sustained load,1248,528,480,48.2,50.4,18.8,72,3.880,-364
+90.84,Stability under sustained load,1248,450,480,52.1,49.5,18.8,72,3.880,-364
+91.09,Stability under sustained load,1248,450,480,54.2,50.8,18.8,72,3.880,-364
+91.34,Stability under sustained load,1248,450,400,52.9,52.5,18.8,72,3.880,-364
+91.59,Stability under sustained load,1248,450,400,55.0,52.5,18.8,72,3.880,-364
+91.84,Stability under sustained load,1248,450,400,54.6,51.7,18.8,72,3.880,-364
+92.09,Stability under sustained load,1248,450,400,54.6,53.3,18.8,72,3.880,-364
+92.34,Stability under sustained load,1248,450,400,55.5,54.2,18.8,72,3.880,-364
+92.59,Stability under sustained load,1248,450,400,54.2,53.3,18.8,72,3.880,-364
+92.84,Stability under sustained load,1248,450,400,55.0,55.0,18.8,72,3.880,-364
+93.10,Stability under sustained load,1248,450,400,56.8,53.8,18.8,72,3.880,-364
+93.35,Stability under sustained load,1248,450,400,55.5,54.2,18.8,72,3.880,-364
+93.60,Stability under sustained load,1248,450,400,55.9,54.6,18.8,72,3.880,-364
+93.85,Stability under sustained load,1248,450,400,55.9,55.0,18.8,72,3.880,-364
+94.10,Stability under sustained load,1248,450,400,55.9,57.3,18.8,72,3.880,-364
+94.35,Stability under sustained load,1248,450,400,57.7,55.0,18.8,72,3.880,-364
+94.60,Stability under sustained load,1248,450,400,57.7,57.3,18.8,72,3.880,-364
+94.85,Stability under sustained load,1248,450,400,60.0,55.9,18.8,72,3.880,-364
+95.10,Stability under sustained load,1248,450,400,57.3,55.5,18.8,72,3.880,-364
+95.35,Stability under sustained load,1248,450,400,58.2,55.0,18.8,72,3.880,-364
+95.61,Stability under sustained load,1248,450,400,59.1,55.5,18.8,72,3.831,-732
+95.86,Stability under sustained load,1248,450,400,59.1,56.4,18.8,72,3.831,-732
+96.11,Stability under sustained load,1248,450,400,60.4,57.3,18.8,72,3.831,-732
+96.36,Stability under sustained load,1248,450,400,61.2,56.8,18.8,72,3.831,-732
+96.61,Stability under sustained load,1248,450,400,61.2,56.4,18.8,72,3.831,-732
+96.86,Stability under sustained load,1248,450,400,60.8,56.8,18.8,72,3.831,-732
+97.11,Stability under sustained load,1248,450,400,61.7,56.4,18.8,72,3.831,-732
+97.36,Stability under sustained load,1248,450,400,60.4,56.4,18.8,72,3.831,-732
+97.61,Stability under sustained load,1248,450,400,61.2,56.4,18.8,72,3.831,-732
+97.86,Stability under sustained load,1248,450,400,60.8,57.3,18.8,72,3.831,-732
+98.12,Stability under sustained load,1248,450,400,61.2,57.3,18.8,72,3.831,-732
+98.37,Stability under sustained load,1248,450,400,62.5,57.3,18.8,72,3.831,-732
+98.62,Stability under sustained load,1248,450,400,61.2,57.3,18.8,72,3.831,-732
+98.87,Stability under sustained load,1248,450,400,60.8,57.7,18.8,72,3.831,-732
+99.12,Stability under sustained load,1248,450,400,61.2,58.2,18.8,72,3.831,-732
+99.37,Stability under sustained load,1248,450,400,60.4,56.4,18.8,72,3.831,-732
+99.62,Stability under sustained load,1248,450,400,61.7,58.6,18.8,72,3.831,-732
+99.87,Stability under sustained load,1248,450,400,62.1,58.2,18.8,72,3.831,-732
+100.12,Stability under sustained load,1248,450,400,61.7,59.1,18.8,72,3.831,-732
+100.37,Stability under sustained load,1248,450,400,62.5,59.1,18.8,72,3.831,-732
+100.62,Stability under sustained load,1248,450,400,62.5,58.6,18.8,72,3.828,-741
+100.87,Stability under sustained load,1248,450,400,63.3,58.6,18.8,72,3.828,-741
+101.13,Stability under sustained load,1248,450,400,63.8,60.0,18.8,72,3.828,-741
+101.38,Stability under sustained load,1248,450,400,62.5,57.7,18.8,72,3.828,-741
+101.63,Stability under sustained load,1248,450,400,61.7,58.6,18.8,72,3.828,-741
+101.88,Stability under sustained load,1248,450,400,63.3,57.3,18.8,72,3.828,-741
+102.13,Stability under sustained load,1248,450,400,62.5,60.0,18.8,72,3.828,-741
+102.38,Stability under sustained load,1248,450,400,63.3,58.6,18.8,72,3.828,-741
+102.63,Stability under sustained load,1248,450,400,62.9,59.5,18.8,72,3.828,-741
+102.88,Stability under sustained load,1248,450,400,62.5,59.5,18.8,72,3.828,-741
+103.13,Stability under sustained load,1248,450,400,63.3,61.7,18.8,72,3.828,-741
+103.38,Stability under sustained load,1248,450,400,62.1,59.5,18.8,72,3.828,-741
+103.63,Stability under sustained load,1248,450,400,62.5,60.0,18.8,72,3.828,-741
+103.89,Stability under sustained load,1248,450,400,62.9,58.2,18.8,72,3.828,-741
+104.14,Stability under sustained load,1248,450,400,64.6,60.8,18.8,72,3.828,-741
+104.39,Stability under sustained load,1248,450,400,62.9,60.0,18.8,72,3.828,-741
+104.64,Stability under sustained load,1248,450,400,63.8,60.0,18.8,72,3.828,-741
+104.89,Stability under sustained load,1248,450,400,64.2,60.4,18.8,72,3.828,-741
+105.14,Stability under sustained load,1248,450,400,64.2,60.4,18.8,72,3.828,-741
+105.39,Stability under sustained load,1248,450,400,62.9,60.8,18.8,72,3.828,-741
+105.64,Stability under sustained load,1248,450,400,63.8,61.7,18.8,72,3.826,-748
+105.89,Stability under sustained load,1248,450,400,64.2,61.2,18.8,72,3.826,-748
+106.14,Stability under sustained load,1248,450,400,62.9,62.1,18.8,72,3.826,-748
+106.39,Stability under sustained load,1248,450,400,62.9,60.4,18.8,72,3.826,-748
+106.65,Stability under sustained load,1248,450,400,65.0,59.5,18.8,72,3.826,-748
+106.90,Stability under sustained load,1248,450,400,63.3,60.8,18.8,72,3.826,-748
+107.15,Stability under sustained load,1248,450,400,62.5,60.4,18.8,72,3.826,-748
+107.40,Stability under sustained load,1248,450,400,62.9,60.0,18.8,72,3.826,-748
+107.65,Stability under sustained load,1248,450,400,64.2,61.7,18.8,72,3.826,-748
+107.90,Stability under sustained load,1248,450,400,62.5,60.8,18.8,72,3.826,-748
+108.15,Stability under sustained load,1248,450,400,64.2,61.7,18.8,72,3.826,-748
+108.40,Stability under sustained load,1248,450,400,64.2,62.1,18.8,72,3.826,-748
+108.65,Stability under sustained load,1248,450,400,65.4,60.4,18.8,72,3.826,-748
+108.90,Stability under sustained load,1248,450,400,64.6,60.8,18.8,72,3.826,-748
+109.15,Stability under sustained load,1248,450,400,65.0,62.9,18.8,72,3.826,-748
+109.41,Stability under sustained load,1248,450,400,64.6,61.7,18.8,72,3.826,-748
+109.66,Stability under sustained load,1248,450,400,65.4,61.7,18.8,72,3.826,-748
+109.91,Stability under sustained load,1248,450,400,65.4,62.5,18.8,72,3.826,-748
+110.16,Stability under sustained load,1248,450,400,65.8,61.7,18.8,72,3.826,-748
+110.41,Stability under sustained load,1248,450,400,64.6,61.7,18.8,72,3.826,-748
+110.66,Stability under sustained load,1248,450,400,65.4,62.1,18.8,72,3.825,-749
+110.91,Stability under sustained load,1248,450,400,64.2,61.7,18.8,72,3.825,-749
+111.16,Stability under sustained load,1248,450,400,65.0,62.1,18.8,72,3.825,-749
+111.41,Stability under sustained load,1248,450,400,65.4,61.7,18.8,72,3.825,-749
+111.66,Stability under sustained load,1248,450,400,66.9,61.7,18.8,72,3.825,-749
+111.91,Stability under sustained load,1248,450,400,65.4,62.1,18.8,72,3.825,-749
+112.17,Stability under sustained load,1248,450,400,65.8,62.5,18.8,72,3.825,-749
+112.42,Stability under sustained load,1248,450,400,65.0,62.1,18.8,72,3.825,-749
+112.67,Stability under sustained load,1248,450,400,65.4,61.7,18.8,72,3.825,-749
+112.92,Stability under sustained load,1248,450,400,66.2,62.1,18.8,72,3.825,-749
+113.17,Stability under sustained load,1248,450,400,66.5,62.5,18.8,72,3.825,-749
+113.42,Stability under sustained load,1248,450,400,65.0,62.5,18.8,72,3.825,-749
+113.67,Stability under sustained load,1248,450,400,65.4,62.5,18.8,72,3.825,-749
+113.92,Stability under sustained load,1248,450,400,65.8,61.7,18.8,72,3.825,-749
+114.17,Stability under sustained load,1248,450,400,65.8,60.8,18.8,72,3.825,-749
+114.42,Stability under sustained load,1248,450,400,66.2,61.7,18.8,72,3.825,-749
+114.68,Stability under sustained load,1248,450,400,65.0,60.8,18.8,72,3.825,-749
+114.93,Stability under sustained load,1248,450,400,65.0,62.5,18.8,72,3.825,-749
+115.18,Stability under sustained load,1248,450,400,65.8,61.2,18.8,72,3.825,-749
+115.43,Stability under sustained load,1248,450,400,66.2,62.5,18.8,72,3.825,-749
+115.68,Stability under sustained load,1248,450,400,65.0,61.7,18.8,72,3.823,-752
+115.93,Stability under sustained load,1248,450,400,65.0,62.9,18.8,72,3.823,-752
+116.18,Stability under sustained load,1248,450,400,67.3,62.1,18.8,72,3.823,-752
+116.43,Stability under sustained load,1248,450,400,65.0,60.8,18.8,72,3.823,-752
+116.68,Stability under sustained load,1248,450,400,65.8,62.5,18.8,72,3.823,-752
+116.93,Stability under sustained load,1248,450,400,67.3,61.2,18.8,72,3.823,-752
+117.18,Stability under sustained load,1248,450,400,65.8,62.1,18.8,72,3.823,-752
+117.44,Stability under sustained load,1248,450,400,66.5,62.1,18.8,72,3.823,-752
+117.69,Stability under sustained load,1248,450,400,65.0,60.4,18.8,72,3.823,-752
+117.94,Stability under sustained load,1248,450,400,66.5,62.5,18.8,72,3.823,-752
+118.19,Stability under sustained load,1248,450,400,66.5,61.7,18.8,72,3.823,-752
+118.44,Stability under sustained load,1248,450,400,67.7,62.5,18.8,72,3.823,-752
+118.69,Stability under sustained load,1248,450,400,66.9,61.7,18.8,72,3.823,-752
+118.94,Stability under sustained load,1248,450,400,66.9,62.5,18.8,72,3.823,-752
+119.19,Stability under sustained load,1248,450,400,65.4,62.1,18.8,72,3.823,-752
+119.44,Stability under sustained load,1248,450,400,67.7,61.7,18.8,72,3.823,-752
+119.69,Stability under sustained load,1248,450,400,66.9,62.5,18.8,72,3.823,-752
+119.94,Stability under sustained load,1248,450,400,68.1,62.9,18.8,72,3.823,-752
+120.20,Stability under sustained load,1248,450,400,66.5,62.5,18.8,72,3.823,-752
+120.45,Stability under sustained load,1248,450,400,66.2,64.2,18.8,72,3.823,-752
+120.70,Stability under sustained load,1248,450,400,66.9,61.7,18.8,72,3.822,-755
+120.95,Stability under sustained load,1248,450,400,67.7,62.1,18.8,72,3.822,-755
+121.20,Stability under sustained load,1248,450,400,65.8,62.1,18.8,72,3.822,-755
+121.45,Stability under sustained load,1248,450,400,66.5,62.9,18.8,72,3.822,-755
+121.70,Stability under sustained load,1248,450,400,68.1,62.9,18.8,72,3.822,-755
+121.95,Stability under sustained load,1248,450,400,65.8,63.3,18.8,72,3.822,-755
+122.20,Stability under sustained load,1248,450,400,66.5,62.1,18.8,72,3.822,-755
+122.45,Stability under sustained load,1248,450,400,65.4,63.3,18.8,72,3.822,-755
+122.70,Stability under sustained load,1248,450,400,67.3,63.3,18.8,72,3.822,-755
+122.96,Stability under sustained load,1248,450,400,66.9,62.5,18.8,72,3.822,-755
+123.21,Stability under sustained load,1248,450,400,64.6,63.3,18.8,72,3.822,-755
+123.46,Stability under sustained load,1248,450,400,65.4,64.2,18.8,72,3.822,-755
+123.71,Stability under sustained load,1248,450,400,67.7,62.9,18.8,72,3.822,-755
+123.96,Stability under sustained load,1248,450,400,67.3,63.3,18.8,72,3.822,-755
+124.21,Stability under sustained load,1248,450,400,66.9,62.1,18.8,72,3.822,-755
+124.46,Stability under sustained load,1248,450,400,66.9,63.8,18.8,72,3.822,-755
+124.71,Stability under sustained load,1248,450,400,67.3,63.3,18.8,72,3.822,-755
+124.96,Stability under sustained load,1248,450,400,67.3,63.8,18.8,72,3.822,-755
+125.21,Stability under sustained load,1248,450,400,66.9,62.5,18.8,72,3.822,-755
+125.46,Stability under sustained load,1248,450,400,67.3,64.2,18.8,72,3.822,-755
+125.72,Stability under sustained load,1248,450,400,67.7,64.2,18.8,72,3.821,-755
+125.97,Stability under sustained load,1248,450,400,66.5,63.3,18.8,72,3.821,-755
+126.22,Stability under sustained load,1248,450,400,67.3,62.9,18.8,72,3.821,-755
+126.47,Stability under sustained load,1248,450,400,66.9,63.8,18.8,72,3.821,-755
+126.72,Stability under sustained load,1248,450,400,67.3,63.8,18.8,72,3.821,-755
+126.97,Stability under sustained load,1248,450,400,66.9,62.5,18.8,72,3.821,-755
+127.22,Stability under sustained load,1248,450,400,67.7,63.8,18.8,72,3.821,-755
+127.47,Stability under sustained load,1248,450,400,68.5,63.3,18.8,72,3.821,-755
+127.72,Stability under sustained load,1248,450,400,67.3,64.2,18.8,72,3.821,-755
+127.97,Stability under sustained load,1248,450,400,66.9,64.2,18.8,72,3.821,-755
+128.22,Stability under sustained load,1248,450,400,67.3,64.2,18.8,72,3.821,-755
+128.48,Stability under sustained load,1248,450,400,66.9,62.5,18.8,72,3.821,-755
+128.73,Stability under sustained load,1248,450,400,67.3,64.2,18.8,72,3.821,-755
+128.98,Stability under sustained load,1248,450,400,67.7,65.8,18.8,72,3.821,-755
+129.23,Stability under sustained load,1248,450,400,68.8,65.0,18.8,72,3.821,-755
+129.48,Stability under sustained load,1248,450,400,66.9,62.9,18.8,72,3.821,-755
+129.73,Stability under sustained load,1248,450,400,66.9,64.2,18.8,72,3.821,-755
+129.98,Stability under sustained load,1248,450,400,67.7,64.6,18.8,72,3.821,-755
+130.23,Stability under sustained load,1248,450,400,68.1,64.2,18.8,72,3.821,-755
+130.48,Stability under sustained load,1248,450,400,68.1,63.8,18.8,72,3.821,-755
+130.73,Stability under sustained load,1248,450,400,68.1,63.8,18.8,72,3.819,-759
+130.98,Stability under sustained load,1248,450,400,67.7,63.3,18.8,72,3.819,-759
+131.24,Stability under sustained load,1248,450,400,67.3,63.3,18.8,72,3.819,-759
+131.49,Stability under sustained load,1248,450,400,68.1,64.6,18.8,72,3.819,-759
+131.74,Stability under sustained load,1248,450,400,67.7,64.2,18.8,72,3.819,-759
+131.99,Stability under sustained load,1248,450,400,68.1,65.0,18.8,72,3.819,-759
+132.24,Stability under sustained load,1248,450,400,68.1,65.0,18.8,72,3.819,-759
+132.49,Stability under sustained load,1248,450,400,67.3,65.0,18.8,72,3.819,-759
+132.74,Stability under sustained load,1248,450,400,68.8,63.3,18.8,72,3.819,-759
+132.99,Stability under sustained load,1248,450,400,68.8,63.8,18.8,72,3.819,-759
+133.24,Stability under sustained load,1248,450,400,67.3,63.8,18.8,72,3.819,-759
+133.49,Stability under sustained load,1248,450,400,67.7,65.0,18.8,72,3.819,-759
+133.74,Stability under sustained load,1248,450,400,70.4,64.6,18.8,72,3.819,-759
+134.00,Stability under sustained load,1248,450,400,68.1,63.8,18.8,72,3.819,-759
+134.25,Stability under sustained load,1248,450,400,68.8,63.8,18.8,72,3.819,-759
+134.50,Stability under sustained load,1248,450,400,68.5,65.4,18.8,72,3.819,-759
+134.75,Stability under sustained load,1248,450,400,68.1,64.6,18.8,72,3.819,-759
+135.00,Stability under sustained load,1248,450,400,68.1,63.8,18.8,72,3.819,-759
+135.25,Stability under sustained load,1248,450,400,66.9,64.2,18.8,72,3.819,-759
+135.50,Stability under sustained load,1248,450,400,66.5,65.0,18.8,72,3.819,-759
+135.75,Stability under sustained load,1248,450,400,66.2,64.2,18.8,72,3.819,-759
+136.01,Stability under sustained load,1248,450,400,67.3,63.8,18.8,72,3.819,-759
+136.26,Stability under sustained load,1248,450,400,68.8,65.4,18.8,72,3.819,-759
+136.51,Stability under sustained load,1248,450,400,68.5,63.8,18.8,72,3.819,-759
+136.76,Stability under sustained load,1248,450,400,68.5,64.6,18.8,72,3.819,-759
+137.01,Stability under sustained load,1248,450,400,68.1,64.2,18.8,72,3.819,-759
+137.26,Stability under sustained load,1248,450,400,68.8,64.6,18.8,72,3.819,-759
+137.51,Stability under sustained load,1248,450,400,69.2,64.6,18.8,72,3.819,-759
+137.76,Stability under sustained load,1248,450,400,68.1,64.6,18.8,72,3.819,-759
+138.02,Stability under sustained load,1248,450,400,68.1,65.4,18.8,72,3.819,-759
+138.27,Stability under sustained load,1248,450,400,68.5,63.8,18.8,72,3.819,-759
+138.52,Stability under sustained load,1248,450,400,69.2,65.0,18.8,72,3.819,-759
+138.77,Stability under sustained load,1248,450,400,70.4,65.8,18.8,72,3.819,-759
+139.02,Stability under sustained load,1248,450,400,68.1,64.2,18.8,72,3.819,-759
+139.27,Stability under sustained load,1248,450,400,68.5,63.8,18.8,72,3.819,-759
+139.52,Stability under sustained load,1248,450,400,68.5,65.4,18.8,72,3.819,-759
+139.77,Stability under sustained load,1248,450,400,67.7,64.6,18.8,72,3.819,-759
+140.02,Stability under sustained load,1248,450,400,70.0,65.4,18.8,72,3.819,-759
+140.27,Stability under sustained load,1248,450,400,68.1,63.8,18.8,72,3.819,-759
+140.52,Stability under sustained load,1248,450,400,69.2,65.4,18.8,72,3.819,-759
+140.78,Stability under sustained load,1248,450,400,69.6,65.0,18.8,71,3.817,-762
+141.03,Stability under sustained load,1248,450,400,69.6,64.2,18.8,71,3.817,-762
+141.28,Stability under sustained load,1248,450,400,68.8,65.4,18.8,71,3.817,-762
+141.53,Stability under sustained load,1248,450,400,68.8,65.4,18.8,71,3.817,-762
+141.78,Stability under sustained load,1248,450,400,68.5,63.3,18.8,71,3.817,-762
+142.03,Stability under sustained load,1248,450,400,70.4,65.0,18.8,71,3.817,-762
+142.28,Stability under sustained load,1248,450,400,67.7,64.6,18.8,71,3.817,-762
+142.53,Stability under sustained load,1248,450,400,69.6,65.4,18.8,71,3.817,-762
+142.78,Stability under sustained load,1248,450,400,69.6,64.6,18.8,71,3.817,-762
+143.03,Stability under sustained load,1248,450,400,69.2,64.6,18.8,71,3.817,-762
+143.28,Stability under sustained load,1248,450,400,69.6,64.6,18.8,71,3.817,-762
+143.54,Stability under sustained load,1248,450,400,68.8,66.2,18.8,71,3.817,-762
+143.79,Stability under sustained load,1248,450,400,69.6,64.6,18.8,71,3.817,-762
+144.04,Stability under sustained load,1248,450,400,70.0,65.4,18.8,71,3.817,-762
+144.29,Stability under sustained load,1248,450,400,70.0,65.0,18.8,71,3.817,-762
+144.54,Stability under sustained load,1248,450,400,69.2,66.5,18.8,71,3.817,-762
+144.79,Stability under sustained load,1248,450,400,69.2,65.4,18.8,71,3.817,-762
+145.04,Stability under sustained load,1248,450,400,68.8,63.8,18.8,71,3.817,-762
+145.29,Stability under sustained load,1248,328,300,70.4,67.7,18.8,71,3.817,-762
+145.55,Stability under sustained load,1248,328,300,70.4,64.6,18.8,71,3.817,-762
+145.80,Stability under sustained load,1248,328,300,68.8,65.4,18.8,71,3.817,-762
+146.05,Stability under sustained load,1248,328,300,68.1,64.6,18.8,71,3.817,-762
+146.30,Stability under sustained load,1248,328,300,69.2,66.2,18.8,71,3.817,-762
+146.55,Stability under sustained load,1248,328,300,69.2,65.0,18.8,71,3.817,-762
+146.80,Stability under sustained load,1248,328,300,68.5,65.8,18.8,71,3.817,-762
+147.05,Stability under sustained load,1248,328,300,69.6,65.4,18.8,71,3.817,-762
+147.30,Stability under sustained load,1248,328,300,68.8,66.5,18.8,71,3.817,-762
+147.55,Stability under sustained load,1248,328,300,67.7,64.6,18.8,71,3.817,-762
+147.81,Stability under sustained load,1248,328,300,69.6,64.6,18.8,71,3.817,-762
+148.06,Stability under sustained load,1248,328,300,66.5,66.2,18.8,71,3.817,-762
+148.31,Stability under sustained load,1248,328,300,68.8,63.3,18.8,71,3.817,-762
+148.56,Stability under sustained load,1248,328,520,68.1,64.6,18.8,71,3.817,-762
+148.81,Stability under sustained load,1248,328,400,68.8,65.8,18.8,71,3.817,-762
+149.06,Stability under sustained load,1248,328,400,68.5,65.4,18.8,71,3.817,-762
+149.31,Stability under sustained load,1248,328,400,70.0,65.0,18.8,71,3.817,-762
+149.56,Stability under sustained load,1248,450,400,69.6,65.4,18.8,71,3.817,-762
+149.81,Stability under sustained load,1248,450,400,69.2,65.4,18.8,71,3.817,-762
+150.07,Stability under sustained load,1248,450,400,70.8,65.4,18.8,71,3.817,-762
+150.32,Vulkan,1008,328,200,63.8,62.9,18.8,71,3.817,-762
+150.57,Vulkan,1008,328,200,60.8,61.7,18.8,71,3.817,-762
+150.82,Vulkan,816,328,200,61.7,60.0,18.8,71,3.817,-755
+151.07,Vulkan,1248,328,200,60.8,58.6,18.8,71,3.817,-755
+151.33,Vulkan,816,328,200,57.3,58.2,18.8,71,3.817,-755
+151.58,Vulkan,816,328,200,58.2,58.6,18.8,71,3.817,-755
+151.83,Vulkan,816,328,200,56.4,57.3,18.8,71,3.817,-755
+152.08,Vulkan,816,328,200,55.0,55.5,18.8,71,3.817,-755
+152.34,Vulkan,600,328,200,54.2,55.0,18.8,71,3.817,-755
+152.59,Vulkan,816,328,200,54.6,55.0,18.8,71,3.817,-755
+152.84,Vulkan,816,328,200,53.3,55.0,18.8,71,3.817,-755
+153.09,Vulkan,816,328,200,52.5,54.6,18.8,71,3.817,-755
+153.34,Vulkan,1008,328,200,55.9,55.0,18.8,71,3.817,-755
+153.59,Vulkan,1200,328,200,55.9,52.9,18.8,71,3.817,-755
+153.84,Kernel log tail,1200,328,200,54.6,55.5,18.8,71,3.817,-755
+154.09,Kernel log tail,600,328,200,52.5,53.8,18.8,71,3.817,-755
+154.35,Kernel log tail,600,328,200,51.7,53.8,18.8,71,3.817,-755
+154.60,Kernel log tail,600,328,200,51.7,52.9,18.8,71,3.817,-755
+154.85,Kernel log tail,600,328,200,52.1,52.1,18.8,71,3.817,-755
+155.10,Kernel log tail,600,328,200,50.4,53.3,18.8,71,3.817,-755
+155.35,Kernel log tail,600,328,200,50.0,52.9,18.8,71,3.817,-755
+155.60,Kernel log tail,600,328,200,51.7,52.9,18.8,71,3.817,-755
+155.85,Kernel log tail,600,328,200,50.8,52.1,18.8,71,3.866,-372
+156.11,Kernel log tail,600,328,200,50.4,50.8,18.8,71,3.866,-372
+156.36,Kernel log tail,600,328,200,50.0,51.7,18.8,71,3.866,-372
+156.61,Kernel log tail,600,328,200,49.5,51.7,18.8,71,3.866,-372
+156.86,Kernel log tail,600,328,200,50.0,51.2,18.8,71,3.866,-372
+157.11,Kernel log tail,600,328,200,49.5,51.7,18.8,71,3.866,-372
+157.36,Kernel log tail,600,328,200,50.0,51.2,18.8,71,3.866,-372
+157.61,Kernel log tail,600,328,200,49.5,50.8,18.8,71,3.866,-372
+157.87,Kernel log tail,600,328,200,49.1,50.8,18.8,71,3.866,-372
+158.12,Kernel log tail,600,328,200,50.0,50.8,18.8,71,3.866,-372
+158.37,Kernel log tail,600,328,200,49.5,50.0,18.8,71,3.866,-372
+158.62,Kernel log tail,600,328,200,49.1,50.4,18.8,71,3.866,-372
+158.87,Kernel log tail,600,328,200,48.6,50.4,18.8,71,3.866,-372
+159.12,Kernel log tail,600,328,200,48.6,50.0,18.8,71,3.866,-372
+159.37,Kernel log tail,600,328,200,49.1,50.4,18.8,71,3.866,-372
+159.63,Kernel log tail,600,328,200,48.2,50.0,18.8,71,3.866,-372
+159.88,Kernel log tail,600,328,200,49.1,50.0,18.8,71,3.866,-372
+160.13,Kernel log tail,600,328,200,48.2,49.5,18.8,71,3.866,-372
+160.38,Kernel log tail,600,328,200,47.7,49.1,18.8,71,3.866,-372
+160.63,Kernel log tail,600,328,200,48.2,49.5,18.8,71,3.866,-372
+160.88,Kernel log tail,600,328,200,47.7,50.0,18.8,71,3.868,-369
+161.13,Kernel log tail,600,328,200,48.2,49.1,18.8,71,3.868,-369
+161.39,Kernel log tail,600,328,200,48.2,49.1,18.8,71,3.868,-369
+161.64,Kernel log tail,600,328,200,48.6,49.5,18.8,71,3.868,-369
+161.89,Kernel log tail,600,328,200,46.8,49.1,18.8,71,3.868,-369
+162.14,Kernel log tail,600,328,200,47.7,49.5,18.8,71,3.868,-369
+162.39,Kernel log tail,600,328,200,47.3,48.2,18.8,71,3.868,-369
+162.64,Kernel log tail,600,328,200,47.3,50.0,18.8,71,3.868,-369
+162.89,Kernel log tail,600,328,200,46.4,48.6,18.8,71,3.868,-369
+163.15,Kernel log tail,600,328,200,48.2,48.6,18.8,71,3.868,-369
+163.40,Kernel log tail,600,328,200,47.3,49.1,18.8,71,3.868,-369
+163.65,Kernel log tail,600,328,200,46.8,48.2,18.8,71,3.868,-369
+163.90,Kernel log tail,600,328,200,46.8,50.4,18.8,71,3.868,-369
+164.15,Kernel log tail,600,328,200,46.8,48.6,18.8,71,3.868,-369
+164.40,Kernel log tail,600,328,200,48.2,47.7,18.8,71,3.868,-369
+164.65,Kernel log tail,600,328,200,46.4,49.1,18.8,71,3.868,-369
+164.91,Kernel log tail,600,328,200,47.7,48.6,18.8,71,3.868,-369
+165.16,Kernel log tail,600,328,200,46.8,48.2,18.8,71,3.868,-369
+165.41,Kernel log tail,600,328,200,47.3,48.2,18.8,71,3.868,-369
+165.66,Kernel log tail,600,328,200,46.4,48.2,18.8,71,3.868,-369
+165.91,Kernel log tail,600,328,200,46.8,47.3,18.8,71,3.869,-369
+166.16,Kernel log tail,600,328,200,46.8,47.7,18.8,71,3.869,-369
+166.41,Kernel log tail,600,328,200,46.8,47.7,18.8,71,3.869,-369
+166.67,Kernel log tail,600,328,200,46.4,47.3,18.8,71,3.869,-369
+166.92,Kernel log tail,600,328,200,45.9,47.7,18.8,71,3.869,-369
+167.17,Kernel log tail,600,328,200,45.9,47.3,18.8,71,3.869,-369
+167.42,Kernel log tail,600,328,200,46.4,48.2,18.8,71,3.869,-369
+167.67,Kernel log tail,600,328,200,45.5,47.3,18.8,71,3.869,-369
+167.92,Kernel log tail,600,328,200,46.4,47.3,18.8,71,3.869,-369
+168.18,Kernel log tail,600,328,200,46.4,47.7,18.8,71,3.869,-369
+168.43,Kernel log tail,600,328,200,46.4,47.7,18.8,71,3.869,-369
+168.68,Kernel log tail,600,328,200,46.8,48.2,18.8,71,3.869,-369
+168.93,Kernel log tail,600,328,200,45.9,47.3,18.8,71,3.869,-369
+169.18,Kernel log tail,600,328,200,46.4,47.7,18.8,71,3.869,-369
+169.43,Kernel log tail,600,328,200,45.9,46.4,18.8,71,3.869,-369
+169.68,Kernel log tail,600,328,200,45.9,46.8,18.8,71,3.869,-369
+169.94,Kernel log tail,600,328,200,46.8,47.7,18.8,71,3.869,-369
+170.19,Kernel log tail,600,328,200,45.9,48.2,18.8,71,3.869,-369
+170.44,Kernel log tail,600,328,200,46.8,46.8,18.8,71,3.869,-369
+170.69,Kernel log tail,600,328,200,45.9,47.7,18.8,71,3.869,-369
+170.94,Kernel log tail,600,328,200,45.9,48.2,18.8,71,3.869,-369
+171.19,Kernel log tail,600,328,200,44.5,46.8,18.8,71,3.869,-369
+171.44,Kernel log tail,600,328,200,45.9,46.4,18.8,71,3.869,-369
+171.70,Kernel log tail,600,328,200,46.4,46.4,18.8,71,3.869,-369
+171.95,Kernel log tail,600,328,200,45.5,46.8,18.8,71,3.869,-369
+172.20,Kernel log tail,600,328,200,45.9,47.3,18.8,71,3.869,-369
+172.45,Kernel log tail,600,328,200,45.9,46.4,18.8,71,3.869,-369
+172.70,Kernel log tail,600,328,200,45.9,46.8,18.8,71,3.869,-369
+172.95,Kernel log tail,600,328,200,45.9,47.3,18.8,71,3.869,-369
+173.21,Kernel log tail,600,328,200,46.4,47.7,18.8,71,3.869,-369
+173.46,Kernel log tail,600,328,200,45.9,46.8,18.8,71,3.869,-369
+173.71,Kernel log tail,600,328,200,45.5,47.3,18.8,71,3.869,-369
+173.96,Kernel log tail,600,328,200,44.5,47.3,18.8,71,3.869,-369
+174.21,Kernel log tail,600,328,200,45.0,46.8,18.8,71,3.869,-369
+174.46,Kernel log tail,600,328,200,44.5,46.8,18.8,71,3.869,-369
+174.71,Kernel log tail,600,328,200,45.9,46.8,18.8,71,3.869,-369
+174.97,Kernel log tail,600,328,200,44.1,46.8,18.8,71,3.869,-369
+175.22,Kernel log tail,600,328,200,45.9,47.7,18.8,71,3.869,-369
+175.47,Kernel log tail,600,328,200,46.4,45.5,18.8,71,3.869,-369
+175.72,Kernel log tail,600,328,200,45.9,46.4,18.8,71,3.870,-369
+175.97,Kernel log tail,600,328,200,45.0,46.4,18.8,71,3.870,-369
+176.22,Kernel log tail,600,328,200,45.5,46.4,18.8,71,3.870,-369
+176.48,Kernel log tail,600,328,200,45.0,46.8,18.8,71,3.870,-369
+176.73,Kernel log tail,600,328,200,45.0,46.4,18.8,71,3.870,-369
+176.98,Kernel log tail,600,328,200,45.0,45.9,18.8,71,3.870,-369
+177.23,Kernel log tail,600,328,200,45.0,47.3,18.8,71,3.870,-369
+177.48,Kernel log tail,600,328,200,45.0,46.4,18.8,71,3.870,-369
+177.73,Kernel log tail,600,328,200,45.9,46.4,18.8,71,3.870,-369
+177.98,Kernel log tail,600,328,200,44.5,45.9,18.8,71,3.870,-369
+178.24,Kernel log tail,600,328,200,45.0,45.5,18.8,71,3.870,-369
+178.49,Kernel log tail,600,328,200,45.0,47.3,18.8,71,3.870,-369
+178.74,Kernel log tail,600,328,200,45.5,46.4,18.8,71,3.870,-369
+178.99,Kernel log tail,600,328,200,44.5,46.4,18.8,71,3.870,-369
+179.24,Kernel log tail,600,328,200,44.5,46.4,18.8,71,3.870,-369
+179.49,Kernel log tail,600,328,200,44.5,46.4,18.8,71,3.870,-369
+179.74,Kernel log tail,600,328,200,45.0,46.4,18.8,71,3.870,-369
+180.00,Kernel log tail,600,328,200,44.5,47.3,18.8,71,3.870,-369
+180.25,Kernel log tail,600,328,200,44.5,45.0,18.8,71,3.870,-369
+180.50,Kernel log tail,600,328,200,45.5,46.4,18.8,71,3.870,-369
+180.75,Kernel log tail,600,328,200,45.5,46.8,18.8,71,3.870,-368
+181.00,Kernel log tail,600,328,200,45.0,45.9,18.8,71,3.870,-368
+181.25,Kernel log tail,600,328,200,43.6,46.4,18.8,71,3.870,-368
+181.50,Kernel log tail,600,328,200,45.0,45.5,18.8,71,3.870,-368
+181.76,Kernel log tail,600,328,200,45.0,46.4,18.8,71,3.870,-368
+182.01,Kernel log tail,600,328,200,44.1,46.4,18.8,71,3.870,-368
+182.26,Kernel log tail,600,328,200,44.1,45.9,18.8,71,3.870,-368
+182.51,Kernel log tail,600,328,200,45.0,45.0,18.8,71,3.870,-368
+182.76,Kernel log tail,600,328,200,43.6,45.9,18.8,71,3.870,-368
+183.01,Kernel log tail,600,328,200,44.5,46.8,18.8,71,3.870,-368
+183.26,Kernel log tail,600,328,200,45.5,46.4,18.8,71,3.870,-368
+183.52,Kernel log tail,600,328,200,44.1,45.5,18.8,71,3.870,-368
+183.77,Kernel log tail,600,328,200,44.5,45.5,18.8,71,3.870,-368
+184.02,Kernel log tail,600,328,200,44.5,45.9,18.8,71,3.870,-368
+184.27,Kernel log tail,600,328,200,44.5,45.5,18.8,71,3.870,-368
+184.52,Kernel log tail,600,328,200,43.6,45.5,18.8,71,3.870,-368
+184.77,Kernel log tail,600,328,200,44.5,46.8,18.8,71,3.870,-368
+185.02,Kernel log tail,600,328,200,45.0,45.9,18.8,71,3.870,-368
+185.28,Kernel log tail,600,328,200,44.1,45.5,18.8,71,3.870,-368
+185.53,Kernel log tail,600,328,200,44.1,45.9,18.8,71,3.870,-368
+185.78,Kernel log tail,600,328,200,43.6,45.9,18.8,71,3.871,-369
+186.03,Kernel log tail,600,328,200,44.1,45.5,18.8,71,3.871,-369
+186.28,Kernel log tail,600,328,200,44.5,45.9,18.8,71,3.871,-369
+186.53,Kernel log tail,600,328,200,44.5,45.0,18.8,71,3.871,-369
+186.78,Kernel log tail,600,328,200,44.5,46.4,18.8,71,3.871,-369
+187.04,Kernel log tail,600,328,200,43.6,45.5,18.8,71,3.871,-369
+187.29,Kernel log tail,600,328,200,44.1,45.5,18.8,71,3.871,-369
+187.54,Kernel log tail,600,328,200,43.6,44.5,18.8,71,3.871,-369
+187.79,Kernel log tail,600,328,200,43.2,45.5,18.8,71,3.871,-369
+188.04,Kernel log tail,600,328,200,44.5,45.5,18.8,71,3.871,-369
+188.29,Kernel log tail,600,328,200,44.1,45.0,18.8,71,3.871,-369
+188.54,Kernel log tail,600,328,200,44.1,45.5,18.8,71,3.871,-369
+188.80,Kernel log tail,600,328,200,44.1,46.4,18.8,71,3.871,-369
+189.05,Kernel log tail,600,328,200,44.1,45.5,18.8,71,3.871,-369
+189.30,Kernel log tail,600,328,200,45.0,46.4,18.8,71,3.871,-369
+189.55,Kernel log tail,600,328,200,44.1,46.4,18.8,71,3.871,-369
+189.80,Kernel log tail,600,328,200,44.1,44.5,18.8,71,3.871,-369
+190.05,Kernel log tail,600,328,200,44.5,45.0,18.8,71,3.871,-369
+190.30,Kernel log tail,600,328,200,44.5,45.5,18.8,71,3.871,-369
+190.56,Kernel log tail,600,328,200,44.1,45.0,18.8,71,3.871,-369
+190.81,Kernel log tail,600,328,200,43.6,45.0,18.8,71,3.871,-367
+191.06,Kernel log tail,600,328,200,43.6,45.9,18.8,71,3.871,-367
+191.31,Kernel log tail,600,328,200,44.1,45.5,18.8,71,3.871,-367
+191.56,Kernel log tail,600,328,200,44.1,45.5,18.8,71,3.871,-367
+191.81,Kernel log tail,600,328,200,43.6,45.5,18.8,71,3.871,-367
+192.06,Kernel log tail,600,328,200,43.6,45.9,18.8,71,3.871,-367
+192.32,Kernel log tail,600,328,200,44.1,46.4,18.8,71,3.871,-367
+192.57,Kernel log tail,600,328,200,44.1,45.9,18.8,71,3.871,-367
+192.82,Kernel log tail,600,328,200,44.1,45.9,18.8,71,3.871,-367
+193.07,Kernel log tail,600,328,200,44.1,45.0,18.8,71,3.871,-367
+193.32,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.871,-367
+193.57,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.871,-367
+193.82,Kernel log tail,600,328,200,43.6,45.0,18.8,71,3.871,-367
+194.08,Kernel log tail,600,328,200,42.7,45.5,18.8,71,3.871,-367
+194.33,Kernel log tail,600,328,200,43.6,45.5,18.8,71,3.871,-367
+194.58,Kernel log tail,600,328,200,43.6,45.9,18.8,71,3.871,-367
+194.83,Kernel log tail,600,328,200,44.1,45.5,18.8,71,3.871,-367
+195.08,Kernel log tail,600,328,200,45.5,45.0,18.8,71,3.871,-367
+195.33,Kernel log tail,600,328,200,44.1,45.9,18.8,71,3.871,-367
+195.58,Kernel log tail,600,328,200,43.6,45.0,18.8,71,3.871,-367
+195.84,Kernel log tail,600,328,200,44.5,45.5,18.8,71,3.871,-367
+196.09,Kernel log tail,600,328,200,44.1,45.0,18.8,71,3.871,-367
+196.34,Kernel log tail,600,328,200,44.1,45.0,18.8,71,3.871,-367
+196.59,Kernel log tail,600,328,200,43.6,45.0,18.8,71,3.871,-367
+196.84,Kernel log tail,600,328,200,44.5,45.0,18.8,71,3.871,-367
+197.09,Kernel log tail,600,328,200,43.2,45.5,18.8,71,3.871,-367
+197.34,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.871,-367
+197.60,Kernel log tail,600,328,200,43.6,45.0,18.8,71,3.871,-367
+197.85,Kernel log tail,600,328,200,43.6,44.5,18.8,71,3.871,-367
+198.10,Kernel log tail,600,328,200,43.2,45.5,18.8,71,3.871,-367
+198.35,Kernel log tail,600,328,200,44.1,43.6,18.8,71,3.871,-367
+198.60,Kernel log tail,600,328,200,43.6,45.0,18.8,71,3.871,-367
+198.85,Kernel log tail,600,328,200,44.5,45.0,18.8,71,3.871,-367
+199.11,Kernel log tail,600,328,200,43.2,45.5,18.8,71,3.871,-367
+199.36,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.871,-367
+199.61,Kernel log tail,600,328,200,44.5,44.1,18.8,71,3.871,-367
+199.86,Kernel log tail,600,328,200,42.3,45.0,18.8,71,3.871,-367
+200.11,Kernel log tail,600,328,200,42.7,45.0,18.8,71,3.871,-367
+200.36,Kernel log tail,600,328,200,44.1,44.1,18.8,71,3.871,-367
+200.61,Kernel log tail,600,328,200,43.2,44.5,18.8,71,3.871,-367
+200.87,Kernel log tail,600,328,200,42.7,45.9,18.8,71,3.872,-367
+201.12,Kernel log tail,600,328,200,43.2,44.5,18.8,71,3.872,-367
+201.37,Kernel log tail,600,328,200,44.5,45.5,18.8,71,3.872,-367
+201.62,Kernel log tail,600,328,200,44.1,45.0,18.8,71,3.872,-367
+201.87,Kernel log tail,600,328,200,43.6,44.5,18.8,71,3.872,-367
+202.12,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.872,-367
+202.37,Kernel log tail,600,328,200,43.6,44.5,18.8,71,3.872,-367
+202.63,Kernel log tail,600,328,200,43.2,44.5,18.8,71,3.872,-367
+202.88,Kernel log tail,600,328,200,44.1,45.5,18.8,71,3.872,-367
+203.13,Kernel log tail,600,328,200,43.6,44.5,18.8,71,3.872,-367
+203.38,Kernel log tail,600,328,200,43.2,45.9,18.8,71,3.872,-367
+203.63,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.872,-367
+203.88,Kernel log tail,600,328,200,43.2,44.5,18.8,71,3.872,-367
+204.13,Kernel log tail,600,328,200,42.7,45.5,18.8,71,3.872,-367
+204.39,Kernel log tail,600,328,200,43.2,45.5,18.8,71,3.872,-367
+204.64,Kernel log tail,600,328,200,43.6,44.5,18.8,71,3.872,-367
+204.89,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+205.14,Kernel log tail,600,328,200,44.1,45.0,18.8,71,3.872,-367
+205.39,Kernel log tail,600,328,200,44.1,44.5,18.8,71,3.872,-367
+205.64,Kernel log tail,600,328,200,46.4,45.5,18.8,71,3.872,-367
+205.90,Kernel log tail,1008,328,200,45.5,44.1,18.8,71,3.872,-367
+206.15,Kernel log tail,600,328,200,44.5,45.9,18.8,71,3.872,-367
+206.40,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-367
+206.65,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.872,-367
+206.90,Kernel log tail,600,328,200,43.2,45.5,18.8,71,3.872,-367
+207.15,Kernel log tail,600,328,200,43.6,43.6,18.8,71,3.872,-367
+207.40,Kernel log tail,600,328,200,44.5,44.5,18.8,71,3.872,-367
+207.66,Kernel log tail,600,328,200,43.6,45.0,18.8,71,3.872,-367
+207.91,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+208.16,Kernel log tail,600,328,200,42.3,45.0,18.8,71,3.872,-367
+208.41,Kernel log tail,600,328,200,43.6,44.5,18.8,71,3.872,-367
+208.66,Kernel log tail,600,328,200,43.6,45.0,18.8,71,3.872,-367
+208.91,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+209.16,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+209.42,Kernel log tail,600,328,200,43.2,44.5,18.8,71,3.872,-367
+209.67,Kernel log tail,600,328,200,44.1,44.5,18.8,71,3.872,-367
+209.92,Kernel log tail,600,328,200,43.6,44.5,18.8,71,3.872,-367
+210.17,Kernel log tail,600,328,200,43.2,44.5,18.8,71,3.872,-367
+210.42,Kernel log tail,600,328,200,43.6,45.0,18.8,71,3.872,-367
+210.67,Kernel log tail,600,328,200,43.6,44.1,18.8,71,3.872,-367
+210.92,Kernel log tail,600,328,200,43.6,44.5,18.8,71,3.872,-367
+211.18,Kernel log tail,600,328,200,43.2,45.5,18.8,71,3.872,-367
+211.43,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-367
+211.68,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+211.93,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+212.18,Kernel log tail,600,328,200,44.1,44.5,18.8,71,3.872,-367
+212.43,Kernel log tail,600,328,200,43.2,43.6,18.8,71,3.872,-367
+212.68,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.872,-367
+212.93,Kernel log tail,600,328,200,43.2,43.6,18.8,71,3.872,-367
+213.19,Kernel log tail,600,328,200,43.6,44.1,18.8,71,3.872,-367
+213.44,Kernel log tail,600,328,200,42.3,45.0,18.8,71,3.872,-367
+213.69,Kernel log tail,600,328,200,43.2,43.2,18.8,71,3.872,-367
+213.94,Kernel log tail,600,328,200,42.7,45.0,18.8,71,3.872,-367
+214.19,Kernel log tail,600,328,200,42.7,45.0,18.8,71,3.872,-367
+214.44,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-367
+214.69,Kernel log tail,600,328,200,43.6,43.6,18.8,71,3.872,-367
+214.95,Kernel log tail,600,328,200,42.7,45.0,18.8,71,3.872,-367
+215.20,Kernel log tail,600,328,200,43.2,45.5,18.8,71,3.872,-367
+215.45,Kernel log tail,600,328,200,43.2,45.5,18.8,71,3.872,-367
+215.70,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.872,-367
+215.95,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-368
+216.20,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-368
+216.45,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-368
+216.71,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.872,-368
+216.96,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-368
+217.21,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-368
+217.46,Kernel log tail,600,328,200,42.7,45.0,18.8,71,3.872,-368
+217.71,Kernel log tail,600,328,200,43.6,43.6,18.8,71,3.872,-368
+217.96,Kernel log tail,600,328,200,42.7,45.5,18.8,71,3.872,-368
+218.21,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-368
+218.47,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-368
+218.72,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-368
+218.97,Kernel log tail,600,328,200,42.7,43.6,18.8,71,3.872,-368
+219.22,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-368
+219.47,Kernel log tail,600,328,200,43.2,44.5,18.8,71,3.872,-368
+219.72,Kernel log tail,600,328,200,43.6,43.6,18.8,71,3.872,-368
+219.97,Kernel log tail,600,328,200,43.2,44.5,18.8,71,3.872,-368
+220.23,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-368
+220.48,Kernel log tail,600,328,200,42.3,45.5,18.8,71,3.872,-368
+220.73,Kernel log tail,600,328,200,43.6,43.6,18.8,71,3.872,-368
+220.98,Kernel log tail,600,328,200,44.1,45.0,18.8,71,3.872,-367
+221.23,Kernel log tail,600,328,200,42.3,43.6,18.8,71,3.872,-367
+221.48,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+221.73,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.872,-367
+221.99,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+222.24,Kernel log tail,600,328,200,42.3,43.6,18.8,71,3.872,-367
+222.49,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+222.74,Kernel log tail,600,328,200,42.7,45.0,18.8,71,3.872,-367
+222.99,Kernel log tail,600,328,200,43.2,43.6,18.8,71,3.872,-367
+223.24,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.872,-367
+223.49,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+223.75,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+224.00,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+224.25,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.872,-367
+224.50,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+224.75,Kernel log tail,600,328,200,42.7,45.0,18.8,71,3.872,-367
+225.00,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.872,-367
+225.26,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+225.51,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.872,-367
+225.76,Kernel log tail,600,328,200,42.3,43.6,18.8,71,3.872,-367
+226.01,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.872,-366
+226.26,Kernel log tail,600,328,200,42.7,45.0,18.8,71,3.872,-366
+226.51,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.872,-366
+226.76,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-366
+227.02,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-366
+227.27,Kernel log tail,600,328,200,42.7,43.6,18.8,71,3.872,-366
+227.52,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-366
+227.77,Kernel log tail,600,328,200,42.3,45.0,18.8,71,3.872,-366
+228.02,Kernel log tail,600,328,200,42.7,43.6,18.8,71,3.872,-366
+228.27,Kernel log tail,600,328,200,42.7,42.7,18.8,71,3.872,-366
+228.52,Kernel log tail,600,328,200,42.3,43.6,18.8,71,3.872,-366
+228.78,Kernel log tail,600,328,200,42.7,43.6,18.8,71,3.872,-366
+229.03,Kernel log tail,600,328,200,43.2,43.6,18.8,71,3.872,-366
+229.28,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-366
+229.53,Kernel log tail,600,328,200,41.8,44.1,18.8,71,3.872,-366
+229.78,Kernel log tail,600,328,200,42.7,43.2,18.8,71,3.872,-366
+230.03,Kernel log tail,600,328,200,42.3,43.2,18.8,71,3.872,-366
+230.29,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.872,-366
+230.54,Kernel log tail,600,328,200,43.2,43.6,18.8,71,3.872,-366
+230.79,Kernel log tail,600,328,200,42.3,43.6,18.8,71,3.872,-366
+231.04,Kernel log tail,600,328,200,41.8,44.5,18.8,71,3.872,-367
+231.29,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-367
+231.54,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.872,-367
+231.80,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+232.05,Kernel log tail,600,328,200,42.3,43.2,18.8,71,3.872,-367
+232.30,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-367
+232.55,Kernel log tail,600,328,200,42.7,43.6,18.8,71,3.872,-367
+232.80,Kernel log tail,600,328,200,41.8,44.5,18.8,71,3.872,-367
+233.05,Kernel log tail,600,328,200,42.7,43.6,18.8,71,3.872,-367
+233.30,Kernel log tail,600,328,200,42.3,43.2,18.8,71,3.872,-367
+233.56,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+233.81,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.872,-367
+234.06,Kernel log tail,600,328,200,42.3,43.6,18.8,71,3.872,-367
+234.31,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.872,-367
+234.56,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+234.81,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.872,-367
+235.06,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+235.32,Kernel log tail,600,328,200,41.8,44.1,18.8,71,3.872,-367
+235.57,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-367
+235.82,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+236.07,Kernel log tail,600,328,200,43.2,45.0,18.8,71,3.872,-367
+236.32,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+236.57,Kernel log tail,600,328,200,43.2,42.7,18.8,71,3.872,-367
+236.82,Kernel log tail,600,328,200,41.8,44.5,18.8,71,3.872,-367
+237.08,Kernel log tail,600,328,200,41.8,43.6,18.8,71,3.872,-367
+237.33,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.872,-367
+237.58,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.872,-367
+237.83,Kernel log tail,600,328,200,42.7,43.2,18.8,71,3.872,-367
+238.08,Kernel log tail,600,328,200,43.2,43.6,18.8,71,3.872,-367
+238.33,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.872,-367
+238.58,Kernel log tail,600,328,200,42.3,43.6,18.8,71,3.872,-367
+238.84,Kernel log tail,600,328,200,43.2,42.7,18.8,71,3.872,-367
+239.09,Kernel log tail,600,328,200,42.7,43.2,18.8,71,3.872,-367
+239.34,Kernel log tail,600,328,200,43.2,44.1,18.8,71,3.872,-367
+239.59,Kernel log tail,600,328,200,41.8,44.5,18.8,71,3.872,-367
+239.84,Kernel log tail,600,328,200,42.7,44.5,18.8,71,3.872,-367
+240.09,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.872,-367
+240.34,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.872,-367
+240.60,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.872,-367
+240.85,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.872,-367
+241.10,Kernel log tail,816,328,200,42.7,43.6,18.8,71,3.873,-366
+241.35,Kernel log tail,600,328,200,43.6,44.1,18.8,71,3.873,-366
+241.60,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.873,-366
+241.85,Kernel log tail,600,328,200,41.8,43.6,18.8,71,3.873,-366
+242.10,Kernel log tail,600,328,200,41.8,43.6,18.8,71,3.873,-366
+242.36,Kernel log tail,600,328,200,41.8,44.5,18.8,71,3.873,-366
+242.61,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.873,-366
+242.86,Kernel log tail,600,328,200,42.3,43.6,18.8,71,3.873,-366
+243.11,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.873,-366
+243.36,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.873,-366
+243.61,Kernel log tail,600,328,200,41.8,44.1,18.8,71,3.873,-366
+243.86,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.873,-366
+244.12,Kernel log tail,600,328,200,41.8,44.1,18.8,71,3.873,-366
+244.37,Kernel log tail,600,328,200,41.8,43.6,18.8,71,3.873,-366
+244.62,Kernel log tail,600,328,200,42.3,44.5,18.8,71,3.873,-366
+244.87,Kernel log tail,600,328,200,43.2,43.6,18.8,71,3.873,-366
+245.12,Kernel log tail,600,328,200,42.7,43.6,18.8,71,3.873,-366
+245.37,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.873,-366
+245.62,Kernel log tail,600,328,200,42.3,43.6,18.8,71,3.873,-366
+245.88,Kernel log tail,600,328,200,42.3,44.1,18.8,71,3.873,-366
+246.13,Kernel log tail,600,328,200,42.7,44.1,18.8,71,3.873,-366

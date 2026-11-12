@@ -1,0 +1,681 @@
+# gameguy hardware probe 1.0
+unit_id = 8ecf62
+started = 20230216-111141
+args = stress=60 input=30 windowed=0
+log = results/probe-8ecf62-20230216-111141.txt
+telemetry_csv = results/telemetry-8ecf62-20230216-111141.csv
+
+## SDL2 runtime
+sdl.library = /usr/lib/libSDL2-2.0.so.0
+sdl.version = 2.28.5
+sdl.platform = Linux
+sdl.cpu_count = 4
+sdl.has_neon = 1
+sdl.system_ram_mb = 977
+
+## Graphics init
+sdl.video_drivers_compiled = KMSDRM offscreen 
+sdl.video_driver = KMSDRM
+display.desktop_mode = 640x480 @ 59 Hz, format 0x16362004
+display.mode[0] = 640x480 @ 59 Hz
+gl.context_requested = OpenGL ES 3.2
+gl.drawable = 640x480
+gl.vendor = ARM
+gl.renderer = Mali-G31
+gl.version = OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+gl.glsl_version = OpenGL ES GLSL ES 3.20
+input.num_joysticks = 1
+
+## System information
+# begin System information | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 41.4 C
+uname = Linux 5.10.160 #1 SMP Tue Aug 27 15:07:53 CST 2024 aarch64
+--- /etc/os-release
+NAME="EmuELEC"
+VERSION="4.7-Nexus_devel_20241126163534"
+ID="emuelec"
+VERSION_ID="4.7"
+PRETTY_NAME="EmuELEC (Community - EmuELEC is FREE! NOT FOR SALE!): 4.7-Nexus_devel_20241126163534"
+HOME_URL="https://emuelec.org"
+BUG_REPORT_URL="http://192.168.0.55/emuelec/emuelec"
+BUILD_ID="9ac1ecf51898c97b53d07d703944abcaeac69f94"
+LIBREELEC_ARCH="OdroidGoAdvance.aarch64"
+LIBREELEC_BUILD="Community - EmuELEC is FREE! NOT FOR SALE!"
+LIBREELEC_PROJECT="Rockchip"
+COREELEC_ARCH="OdroidGoAdvance.aarch64"
+COREELEC_BUILD="Community - EmuELEC is FREE! NOT FOR SALE!"
+COREELEC_PROJECT="Rockchip"
+COREELEC_DEVICE="OdroidGoAdvance"
+--- /proc/device-tree/model
+Rockchip rk3326 evb lpddr3 v12 board for linux
+--- $ tr '\0' ' ' < /proc/device-tree/compatible; echo   # dt compatible
+rockchip,rk3326-evb-lp3-v12-linux rockchip,rk3326 
+--- /proc/cmdline
+boot=UUID=2611-3725 disk=UUID=8ce22f7f-adbc-4c77-bc30-69b6640d68b9 quiet console=ttyFIQ0 console=tty0 net.iframes=0 fbcon=rotate:3 ssh consoleblank=0 rw rootwait earlycon=uart8250,mmio32,0xff178000 root=PARTUUID=614e0000-0000 rootfstype=ext4 overlayroot=device:dev=PARTLABEL=STORAGE,fstype=ext4,mkfs=1,bootfromnand=1
+--- /proc/cpuinfo
+processor	: 0
+BogoMIPS	: 48.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 cpuid
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd04
+CPU revision	: 2
+
+processor	: 1
+BogoMIPS	: 48.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 cpuid
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd04
+CPU revision	: 2
+
+processor	: 2
+BogoMIPS	: 48.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 cpuid
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd04
+CPU revision	: 2
+
+processor	: 3
+BogoMIPS	: 48.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 cpuid
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd04
+CPU revision	: 2
+
+Serial		: 896feb95a8b958db
+--- /proc/meminfo
+MemTotal:        1000900 kB
+MemFree:          575548 kB
+MemAvailable:     784972 kB
+Buffers:           22056 kB
+Cached:           227804 kB
+SwapCached:            0 kB
+Active:            67604 kB
+Inactive:         272344 kB
+Active(anon):        340 kB
+Inactive(anon):    94324 kB
+Active(file):      67264 kB
+Inactive(file):   178020 kB
+Unevictable:        2416 kB
+Mlocked:               0 kB
+SwapTotal:             0 kB
+SwapFree:              0 kB
+Dirty:               100 kB
+Writeback:             0 kB
+AnonPages:         92464 kB
+Mapped:            62624 kB
+Shmem:              4572 kB
+KReclaimable:      18388 kB
+Slab:              41184 kB
+SReclaimable:      18388 kB
+SUnreclaim:        22796 kB
+KernelStack:        2368 kB
+PageTables:         1644 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:      500448 kB
+Committed_AS:     399776 kB
+VmallocTotal:   263061440 kB
+VmallocUsed:        5756 kB
+VmallocChunk:          0 kB
+Percpu:              480 kB
+CmaTotal:         131072 kB
+CmaAllocated:       1280 kB
+CmaReleased:      129792 kB
+CmaFree:           50564 kB
+--- $ free -m
+               total        used        free      shared  buff/cache   available
+Mem:             977         153         561           4         262         766
+Swap:              0           0           0
+--- $ for p in /sys/devices/system/cpu/cpufreq/policy*; do echo "$p"; for f in scaling_governor scaling_available_governors scaling_available_frequencies cpuinfo_min_freq cpuinfo_max_freq scaling_min_freq scaling_max_freq scaling_cur_freq related_cpus; do printf '  %s: ' $f; cat $p/$f 2>/dev/null || echo '-'; done; done   # cpufreq
+/sys/devices/system/cpu/cpufreq/policy0
+  scaling_governor: performance
+  scaling_available_governors: interactive conservative ondemand userspace powersave performance 
+  scaling_available_frequencies: 408000 600000 816000 1008000 1104000 1200000 1248000 1296000 1416000 1512000 
+  cpuinfo_min_freq: 408000
+  cpuinfo_max_freq: 1512000
+  scaling_min_freq: 408000
+  scaling_max_freq: 1296000
+  scaling_cur_freq: 1296000
+  related_cpus: 0 1 2 3
+--- $ for d in /sys/class/devfreq/*; do echo "$d"; for f in name governor available_frequencies available_governors min_freq max_freq cur_freq trans_stat; do printf '  %s: ' $f; cat $d/$f 2>/dev/null | head -20 || echo '-'; done; done   # devfreq (GPU, DDR)
+/sys/class/devfreq/dmc
+  name: dmc
+  governor: performance
+  available_frequencies: 194000000 328000000 450000000 528000000 666000000
+  available_governors: dmc_ondemand userspace powersave performance simple_ondemand
+  min_freq: 194000000
+  max_freq: 666000000
+  cur_freq: 666000000
+  trans_stat:      From  :   To
+           : 194000000 328000000 450000000 528000000 666000000   time(ms)
+  194000000:         0         0         0         0         0         0
+  328000000:         0         0         0         0         0         0
+  450000000:         0         0         0         0         0         0
+  528000000:         0         0         0         0         1      6496
+* 666000000:         0         0         0         0         0     41723
+Total transition : 1
+/sys/class/devfreq/ff400000.gpu
+  name: ff400000.gpu
+  governor: performance
+  available_frequencies: 520000000 480000000 400000000 300000000 200000000
+  available_governors: dmc_ondemand userspace powersave performance simple_ondemand
+  min_freq: 200000000
+  max_freq: 520000000
+  cur_freq: 520000000
+  trans_stat:      From  :   To
+           : 520000000 480000000 400000000 300000000 200000000   time(ms)
+* 520000000:         0         0         0         0         0         0
+  480000000:         0         0         0         0         0         0
+  400000000:         0         0         0         0         0         0
+  300000000:         0         0         0         0         0         0
+  200000000:         1         0         0         0         0      6520
+Total transition : 1
+--- $ for z in /sys/class/thermal/thermal_zone*; do printf '%s %s %s\n' "$z" "$(cat $z/type)" "$(cat $z/temp)"; for t in $z/trip_point_*_temp; do printf '   %s %s\n' "${t##*/}" "$(cat $t)"; done; done   # thermal
+/sys/class/thermal/thermal_zone0 soc-thermal 42272
+   trip_point_0_temp 70000
+   trip_point_1_temp 85000
+   trip_point_2_temp 115000
+/sys/class/thermal/thermal_zone1 gpu-thermal 42727
+cat: can't open '/sys/class/thermal/thermal_zone1/trip_point_*_temp': No such file or directory
+   trip_point_*_temp 
+/sys/class/thermal/thermal_zone2 battery 18800
+cat: can't open '/sys/class/thermal/thermal_zone2/trip_point_*_temp': No such file or directory
+   trip_point_*_temp 
+--- $ for d in /sys/class/power_supply/*; do echo "$d"; cat $d/uevent 2>/dev/null; done   # power supply
+/sys/class/power_supply/ac
+POWER_SUPPLY_NAME=ac
+POWER_SUPPLY_TYPE=Mains
+POWER_SUPPLY_ONLINE=0
+POWER_SUPPLY_STATUS=Discharging
+POWER_SUPPLY_VOLTAGE_MAX=4200000
+POWER_SUPPLY_CURRENT_MAX=500000
+/sys/class/power_supply/battery
+POWER_SUPPLY_NAME=battery
+POWER_SUPPLY_TYPE=Battery
+POWER_SUPPLY_STATUS=Discharging
+POWER_SUPPLY_CURRENT_NOW=-274000
+POWER_SUPPLY_VOLTAGE_NOW=4024000
+POWER_SUPPLY_HEALTH=Good
+POWER_SUPPLY_CAPACITY=94
+POWER_SUPPLY_CAPACITY_LEVEL=Full
+POWER_SUPPLY_TEMP=188
+POWER_SUPPLY_CHARGE_COUNTER=0
+POWER_SUPPLY_CHARGE_FULL=2800000
+POWER_SUPPLY_CHARGE_FULL_DESIGN=2800000
+POWER_SUPPLY_TIME_TO_FULL_NOW=169
+/sys/class/power_supply/usb
+POWER_SUPPLY_NAME=usb
+POWER_SUPPLY_TYPE=USB
+POWER_SUPPLY_ONLINE=0
+POWER_SUPPLY_STATUS=Discharging
+POWER_SUPPLY_VOLTAGE_MAX=4200
+POWER_SUPPLY_CURRENT_MAX=500
+--- $ cat /sys/class/misc/mali0/device/gpuinfo 2>/dev/null; for n in core_mask core_availability_policy power_policy dvfs_period utilisation model clock; do f=/sys/class/misc/mali0/device/$n; [ -e $f ] && printf '%s: %s\n' $f "$(cat $f 2>/dev/null | head -c 400)"; done; cat /sys/module/mali_kbase/version 2>/dev/null; ls /sys/module | grep -i -E 'mali|bifrost|panfrost'   # mali
+Mali-G31 1 cores r0p0 0x7093
+/sys/class/misc/mali0/device/core_mask: Current core mask (JS0) : 0x1
+Current core mask (JS1) : 0x1
+Current core mask (JS2) : 0x1
+Available core mask : 0x1
+/sys/class/misc/mali0/device/power_policy: [coarse_demand] always_on 
+/sys/class/misc/mali0/device/dvfs_period: 100
+/sys/class/misc/mali0/device/utilisation: 0
+bifrost_kbase
+mali
+--- $ ls -l /usr/lib/aarch64-linux-gnu/ 2>/dev/null | grep -i -E 'mali|libEGL|libGLES|libvulkan|libgbm|librga|rockchip_mpp|libSDL2|libasound' ; ls -l /usr/lib/aarch64-linux-gnu/mali/ 2>/dev/null; ls -l /usr/local/lib/aarch64-linux-gnu/ 2>/dev/null | head -40; for d in /etc/vulkan/icd.d /usr/share/vulkan/icd.d; do [ -d $d ] && { echo $d; cat $d/*.json; }; done   # GL/Vulkan userspace
+--- $ for c in /sys/class/drm/card*-*; do printf '%s status=%s\n' "$c" "$(cat $c/status 2>/dev/null)"; cat $c/modes 2>/dev/null; done   # DRM
+/sys/class/drm/card0-DSI-1 status=connected
+640x480
+--- $ for b in /sys/block/mmcblk*; do printf '%s size_sectors=%s ' "$b" "$(cat $b/size)"; printf 'type=%s name=%s manfid=%s date=%s\n' "$(cat $b/device/type 2>/dev/null)" "$(cat $b/device/name 2>/dev/null)" "$(cat $b/device/manfid 2>/dev/null)" "$(cat $b/device/date 2>/dev/null)"; done; cat /proc/partitions; grep -E 'mmcblk|/roms' /proc/mounts; df -h 2>/dev/null | grep -v -E 'tmpfs|udev'   # storage
+/sys/block/mmcblk0 size_sectors=15269888 type=MMC name=Q72SMB manfid=0x000015 date=07/2015
+/sys/block/mmcblk0boot0 size_sectors=8192 type= name= manfid= date=
+/sys/block/mmcblk0boot1 size_sectors=8192 type= name= manfid= date=
+/sys/block/mmcblk2 size_sectors=122138624 type=SD name=SD16G manfid=0x000000 date=03/2024
+major minor  #blocks  name
+
+   1        0       4096 ram0
+   7        0     877108 loop0
+ 179        0    7634944 mmcblk0
+ 179        1       4096 mmcblk0p1
+ 179        2       4096 mmcblk0p2
+ 179        3    2097152 mmcblk0p3
+ 179        4    4177920 mmcblk0p4
+ 179        5    1342464 mmcblk0p5
+ 179       96   61069312 mmcblk2
+ 179       97   61069296 mmcblk2p1
+/dev/mmcblk0p3 /flash vfat ro,noatime,fmask=0022,dmask=0022,codepage=936,iocharset=utf8,shortname=mixed,errors=remount-ro 0 0
+/dev/mmcblk0p4 /storage ext4 rw,noatime 0 0
+/dev/mmcblk2p1 /storage/roms vfat rw,relatime,fmask=0022,dmask=0022,codepage=936,iocharset=utf8,shortname=mixed,errors=remount-ro 0 0
+/dev/mmcblk2p1 /storage/.update vfat rw,relatime,fmask=0022,dmask=0022,codepage=936,iocharset=utf8,shortname=mixed,errors=remount-ro 0 0
+/dev/mmcblk2p1 /storage/.config/emuelec/themes vfat rw,relatime,fmask=0022,dmask=0022,codepage=936,iocharset=utf8,shortname=mixed,errors=remount-ro 0 0
+Filesystem                Size      Used Available Use% Mounted on
+/dev/mmcblk0p3         1023.7M    878.8M    144.9M  86% /flash
+/dev/loop0              857.0M    857.0M         0 100% /
+/dev/mmcblk0p4            3.7G    368.0M      3.4G  10% /storage
+none                      3.7G    368.0M      3.4G  10% /tmp/assets
+none                      3.7G    368.0M      3.4G  10% /tmp/database
+none                      3.7G    368.0M      3.4G  10% /tmp/joypads
+none                      3.7G    368.0M      3.4G  10% /tmp/cores
+none                      3.7G    368.0M      3.4G  10% /tmp/overlays
+none                      3.7G    368.0M      3.4G  10% /tmp/shaders
+/dev/mmcblk2p1           58.4G     50.2G      8.3G  86% /storage/roms
+/dev/mmcblk2p1           58.4G     50.2G      8.3G  86% /storage/.update
+/dev/mmcblk2p1           58.4G     50.2G      8.3G  86% /storage/.config/emuelec/themes
+--- $ cat /proc/bus/input/devices   # input devices
+I: Bus=0019 Vendor=0000 Product=0000 Version=0000
+N: Name="rk805 pwrkey"
+P: Phys=rk805_pwrkey/input0
+S: Sysfs=/devices/platform/ff180000.i2c/i2c-0/0-0020/rk805-pwrkey/input/input0
+U: Uniq=
+H: Handlers=kbd event1 dmcfreq 
+B: PROP=0
+B: EV=3
+B: KEY=10000000000000 0
+
+I: Bus=0019 Vendor=0001 Product=0001 Version=0100
+N: Name="headset-keys"
+P: Phys=headset-keys/input0
+S: Sysfs=/devices/platform/rk817-sound/input/input1
+U: Uniq=
+H: Handlers=kbd event2 dmcfreq 
+B: PROP=0
+B: EV=3
+B: KEY=1000000000 0 0
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="rockchip-rk817 Headset"
+P: Phys=ALSA
+S: Sysfs=/devices/platform/rk817-sound/sound/card0/input2
+U: Uniq=
+H: Handlers=event3 
+B: PROP=0
+B: EV=21
+B: SW=14
+
+I: Bus=0019 Vendor=0001 Product=0001 Version=0100
+N: Name="adc-keys"
+P: Phys=adc-keys/input0
+S: Sysfs=/devices/platform/adc-keys/input/input3
+U: Uniq=
+H: Handlers=kbd event4 dmcfreq 
+B: PROP=0
+B: EV=3
+B: KEY=c000000000000 0
+
+I: Bus=0019 Vendor=0000 Product=0000 Version=0000
+N: Name="gamepad"
+P: Phys=
+S: Sysfs=/devices/platform/gamepad/input/input4
+U: Uniq=
+H: Handlers=js0 event0 dmcfreq 
+B: PROP=0
+B: EV=10000b
+B: KEY=f00000000 0 0 0 7fdb000000000000 0 0 0 0
+B: ABS=1b
+
+I: Bus=0019 Vendor=0000 Product=0000 Version=0000
+N: Name="udt_keyboard"
+P: Phys=
+S: Sysfs=/devices/platform/gamepad/input/input5
+U: Uniq=
+H: Handlers=event5 dmcfreq 
+B: PROP=0
+B: EV=100003
+B: KEY=10000 0 0 0 0 0 0 0
+
+--- $ cat /proc/asound/cards /proc/asound/pcm 2>/dev/null; ls /proc/asound/; cat /etc/asound.conf 2>/dev/null; cat ~/.asoundrc 2>/dev/null   # audio
+ 0 [rockchiprk817  ]: rockchip-rk817 - rockchip-rk817
+                      rockchip-rk817
+00-00: dailink-multicodecs rk817-hifi-0 : dailink-multicodecs rk817-hifi-0 : playback 1 : capture 1
+card0
+cards
+devices
+hwdep
+pcm
+rockchiprk817
+seq
+timers
+version
+--- $ for f in /boot/boot.ini /boot/extlinux/extlinux.conf /flash/boot.ini; do [ -f $f ] && { echo "== $f"; grep -v '^#' $f | grep -v '^$'; }; done   # boot config
+== /flash/boot.ini
+ODROIDGOA-UBOOT-CONFIG
+setenv fdt_addr_r "0x01f00000"
+setenv dtb_name "rk3326-odroidgo2-linux.dtb"
+setenv loadaddr "0x100000"
+setenv scriptaddr "0x00500000"
+setenv kernel_addr_r "0x02008000"
+	
+if test ${hwrev} = 'v11'; then
+sysboot mmc 1:1 any ${scriptaddr} /extlinux/rk3326-odroidgo2-linux-v11.dtb.conf
+elif test ${hwrev} = 'v10-go3'; then
+sysboot mmc 1:1 any ${scriptaddr} /extlinux/rk3326-odroidgo3-linux.dtb.conf
+else
+sysboot mmc 1:1 any ${scriptaddr} /extlinux/rk3326-odroidgo2-linux.dtb.conf
+fi
+--- $ cat /usr/share/plymouth/themes/text.plymouth 2>/dev/null | grep -i title; cat /home/ark/.config/.VERSION 2>/dev/null; ls /home/ark/.update/ 2>/dev/null; cat /opt/system/Tools/PortMaster/version /roms/tools/PortMaster/version /roms2/tools/PortMaster/version 2>/dev/null   # firmware identity
+2024.03.20-1013
+--- $ cat /proc/modules | cut -d' ' -f1 | sort | tr '\n' ' '; echo   # modules
+
+--- $ for f in /sys/bus/platform/devices/ff300000.usb/dr_mode /sys/bus/platform/devices/ff300000.usb/otg_mode; do [ -e $f ] && printf '%s: %s\n' $f "$(cat $f)"; done; ls /sys/class/udc 2>/dev/null; ls /sys/kernel/config/usb_gadget 2>/dev/null; cat /sys/kernel/debug/usb/devices 2>/dev/null | head -40; ls /sys/bus/usb/devices   # usb
+1-0:1.0
+usb1
+--- $ id; echo "SHELL=$SHELL HOME=$HOME"; env | grep -E '^(SDL_|LD_|XDG_|DISPLAY|WAYLAND|ESUDO|controlfolder|directory)' | sort   # process environment
+uid=0(root) gid=0(root)
+SHELL=/bin/sh HOME=/storage
+--- $ cat /sys/kernel/debug/clk/clk_summary 2>/dev/null | grep -E -i 'pll|aclk_gpu|clk_gpu|ddr|dmc|armclk|cpu|sclk' | head -60   # clock summary (root only)
+# end System information | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 43.2 C
+
+## CPU and memory
+# begin CPU and memory | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 43.6 C
+cpu.online = 4
+cpu.fma_gflops_1thread = 1.53
+cpu.fma_gflops_2threads = 3.07
+cpu.fma_gflops_3threads = 4.58
+cpu.fma_gflops_4threads = 6.12
+SUMMARY: CPU: 1.5 GFLOPS/core fp32 FMA, 6.1 with 4 cores
+cpu.dependent_fma_ns = 0.000
+mem.memcpy_gbps = 4.76
+mem.memset_gbps = 4.89
+mem.read_gbps = 2.32
+SUMMARY: RAM: read 2.32 GB/s, write 4.89 GB/s, memcpy 4.76 GB/s
+mem.latency_16KB_ns = 2.4
+mem.latency_128KB_ns = 13.2
+mem.latency_1024KB_ns = 156.6
+mem.latency_8192KB_ns = 169.1
+mem.latency_65536KB_ns = 188.9
+SUMMARY: latency ns: L1 2.4 | 128K 13.2 | 1M 156.6 | 8M 169.1 | 64M 188.9
+synth.sine_voices_per_core = 1135
+synth.karplus_strong_voices_per_core = 1045
+synth.saw_svf_voices_per_core = 834
+SUMMARY: synth voices/core @48k (100% of a core): sine 1135, KS string 1045, saw+SVF 834
+# end CPU and memory | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 45.9 C
+
+## Storage read/write (where the probe lives)
+# begin Storage read/write (where the probe lives) | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 45.9 C
+storage.free_mb = 8864
+storage.fs_magic = 0x4d44
+storage.cwd = /storage/roms/ports/gameguyprobe
+storage.write_mbps = 15.1
+storage.read_mbps = 47.2
+SUMMARY: storage: write 15.1 MB/s, read 47.2 MB/s (64 MB, cache dropped)
+# end Storage read/write (where the probe lives) | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 40.9 C
+
+## GPU capabilities (GLES/EGL)
+# begin GPU capabilities (GLES/EGL) | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 40.9 C
+--- GL_EXTENSIONS
+  GL_ARM_rgba8
+  GL_ARM_mali_shader_binary
+  GL_OES_depth24
+  GL_OES_depth_texture
+  GL_OES_depth_texture_cube_map
+  GL_OES_packed_depth_stencil
+  GL_OES_rgb8_rgba8
+  GL_EXT_read_format_bgra
+  GL_OES_compressed_paletted_texture
+  GL_OES_compressed_ETC1_RGB8_texture
+  GL_OES_standard_derivatives
+  GL_OES_EGL_image
+  GL_OES_EGL_image_external
+  GL_OES_EGL_image_external_essl3
+  GL_OES_EGL_sync
+  GL_OES_texture_npot
+  GL_OES_vertex_half_float
+  GL_OES_required_internalformat
+  GL_OES_vertex_array_object
+  GL_OES_mapbuffer
+  GL_EXT_texture_format_BGRA8888
+  GL_EXT_texture_rg
+  GL_EXT_texture_type_2_10_10_10_REV
+  GL_OES_fbo_render_mipmap
+  GL_OES_element_index_uint
+  GL_EXT_shadow_samplers
+  GL_OES_texture_compression_astc
+  GL_KHR_texture_compression_astc_ldr
+  GL_KHR_texture_compression_astc_hdr
+  GL_KHR_texture_compression_astc_sliced_3d
+  GL_EXT_texture_compression_astc_decode_mode
+  GL_EXT_texture_compression_astc_decode_mode_rgb9e5
+  GL_KHR_debug
+  GL_EXT_occlusion_query_boolean
+  GL_EXT_disjoint_timer_query
+  GL_EXT_blend_minmax
+  GL_EXT_discard_framebuffer
+  GL_OES_get_program_binary
+  GL_OES_texture_3D
+  GL_EXT_texture_storage
+  GL_EXT_multisampled_render_to_texture
+  GL_OES_surfaceless_context
+  GL_OES_texture_stencil8
+  GL_EXT_shader_pixel_local_storage
+  GL_ARM_shader_framebuffer_fetch
+  GL_ARM_shader_framebuffer_fetch_depth_stencil
+  GL_ARM_mali_program_binary
+  GL_EXT_sRGB
+  GL_EXT_sRGB_write_control
+  GL_EXT_texture_sRGB_decode
+  GL_EXT_texture_sRGB_R8
+  GL_EXT_texture_sRGB_RG8
+  GL_KHR_blend_equation_advanced
+  GL_KHR_blend_equation_advanced_coherent
+  GL_OES_texture_storage_multisample_2d_array
+  GL_OES_shader_image_atomic
+  GL_EXT_robustness
+  GL_EXT_draw_buffers_indexed
+  GL_OES_draw_buffers_indexed
+  GL_EXT_texture_border_clamp
+  GL_OES_texture_border_clamp
+  GL_EXT_texture_cube_map_array
+  GL_OES_texture_cube_map_array
+  GL_OES_sample_variables
+  GL_OES_sample_shading
+  GL_OES_shader_multisample_interpolation
+  GL_EXT_shader_io_blocks
+  GL_OES_shader_io_blocks
+  GL_EXT_tessellation_shader
+  GL_OES_tessellation_shader
+  GL_EXT_primitive_bounding_box
+  GL_OES_primitive_bounding_box
+  GL_EXT_geometry_shader
+  GL_OES_geometry_shader
+  GL_ANDROID_extension_pack_es31a
+  GL_EXT_gpu_shader5
+  GL_OES_gpu_shader5
+  GL_EXT_texture_buffer
+  GL_OES_texture_buffer
+  GL_EXT_copy_image
+  GL_OES_copy_image
+  GL_EXT_shader_non_constant_global_initializers
+  GL_EXT_color_buffer_half_float
+  GL_EXT_color_buffer_float
+  GL_EXT_YUV_target
+  GL_OVR_multiview
+  GL_OVR_multiview2
+  GL_OVR_multiview_multisampled_render_to_texture
+  GL_KHR_robustness
+  GL_KHR_robust_buffer_access_behavior
+  GL_EXT_draw_elements_base_vertex
+  GL_OES_draw_elements_base_vertex
+  GL_EXT_buffer_storage
+gl.num_extensions = 93
+gl.max_texture_size = 8192
+gl.max_renderbuffer_size = 8192
+gl.max_viewport_dims = 8192 x 8192
+gl.max_fs_texture_units = 16
+gl.max_combined_texture_units = 96
+gl.max_vertex_attribs = 16
+gl.max_vs_uniform_vectors = 1024
+gl.max_fs_uniform_vectors = 1024
+gl.max_varying_vectors = 15
+gl.max_draw_buffers = 4
+gl.max_color_attachments = 4
+gl.max_samples = 16
+gl.max_array_texture_layers = 256
+gl.max_3d_texture_size = 4096
+gl.max_uniform_block_size = 16384
+gl.max_compute_invocations = 128
+gl.max_ssbo_block_size = 268435456
+gl.max_pls_fast_size = 16
+gl.max_pls_size = 16
+gl.precision.vs.lowp_float = range [15,15] precision 10 bits
+gl.precision.vs.mediump_float = range [15,15] precision 10 bits
+gl.precision.vs.highp_float = range [127,127] precision 23 bits
+gl.precision.vs.lowp_int = range [15,14] precision 0 bits
+gl.precision.vs.mediump_int = range [15,14] precision 0 bits
+gl.precision.vs.highp_int = range [31,30] precision 0 bits
+gl.precision.fs.lowp_float = range [15,15] precision 10 bits
+gl.precision.fs.mediump_float = range [15,15] precision 10 bits
+gl.precision.fs.highp_float = range [127,127] precision 23 bits
+gl.precision.fs.lowp_int = range [15,14] precision 0 bits
+gl.precision.fs.mediump_int = range [15,14] precision 0 bits
+gl.precision.fs.highp_int = range [31,30] precision 0 bits
+gl.compressed_formats = 69: 0x8b90 0x8b91 0x8b92 0x8b93 0x8b94 0x8b95 0x8b96 0x8b97 0x8b98 0x8b99 0x8d64 0x9274 0x9275 0x9278 0x9279 0x9276 0x9277 0x9270 0x9272 0x9271 0x9273 0x93b0 0x93b1 0x93b2 0x93b3 0x93b4 0x93b5 0x93b6 0x93b7 0x93b8 0x93b9 0x93ba 0x93bb 0x93bc 0x93bd 0x93d0 0x93d1 0x93d2 0x93d3 0x93d4 0x93d5 0x93d6 0x93d7 0x93d8 0x93d9 0x93da 0x93db 0x93dc 0x93dd 0x93c0 0x93c1 0x93c2 0x93c3 0x93c4 0x93c5 0x93c6 0x93c7 0x93c8 0x93c9 0x93e0 0x93e1 0x93e2 0x93e3 0x93e4 0x93e5 0x93e6 0x93e7 0x93e8 0x93e9 
+egl.library = /usr/lib/libmali.so
+egl.vendor = ARM
+egl.version = 1.4 Bifrost-"r13p0-01rel0"
+egl.client_apis = OpenGL_ES
+egl.extensions = EGL_KHR_partial_update EGL_EXT_image_dma_buf_import EGL_KHR_config_attribs EGL_KHR_image EGL_KHR_image_base EGL_KHR_fence_sync EGL_KHR_wait_sync EGL_KHR_gl_colorspace EGL_KHR_get_all_proc_addresses EGL_IMG_context_priority EGL_KHR_no_config_context EGL_EXT_pixel_format_float EGL_ARM_pixmap_multisample_discard EGL_ARM_implicit_external_sync EGL_KHR_gl_texture_2D_image EGL_KHR_gl_renderbuffer_image EGL_KHR_create_context EGL_KHR_surfaceless_context EGL_KHR_gl_texture_cubemap_image EGL_EXT_create_context_robustness
+egl.client_extensions = EGL_EXT_client_extensions EGL_EXT_platform_base EGL_KHR_client_get_all_proc_addresses EGL_KHR_platform_gbm
+SUMMARY: GPU: Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+SUMMARY: ext: PLS Y | fbfetch ARM Y EXT n | ASTC Y | timer Y
+# end GPU capabilities (GLES/EGL) | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 40.9 C
+
+## GPU fill rate
+# begin GPU fill rate | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 40.9 C
+gpu.clear_only_ms = 0.017
+gpu.clear_writeback_gbps = 72.07
+fill.opaque.layers4 = 0.082 ms/frame, 14956 Mpix/s
+fill.blended.layers4 = 0.093 ms/frame, 13238 Mpix/s
+fill.opaque.layers16 = 0.217 ms/frame, 22656 Mpix/s
+fill.blended.layers16 = 0.273 ms/frame, 17996 Mpix/s
+fill.opaque.layers32 = 0.439 ms/frame, 22409 Mpix/s
+fill.blended.layers32 = 0.582 ms/frame, 16887 Mpix/s
+SUMMARY: fill: opaque 22656 Mpix/s (hidden-pixel kill), blended 17996 Mpix/s
+SUMMARY:   = 976.4 blended full-screen layers per 60 Hz frame
+# end GPU fill rate | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 43.6 C
+
+## GPU texture sampling
+# begin GPU texture sampling | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 43.6 C
+tex.rgba8_256_1to1 = 0.183 ms/frame (8 layers), 13433 Mtexel/s
+tex.rgba8_2048_minified = 0.223 ms/frame (8 layers), 11003 Mtexel/s
+tex.etc2_rgb8_2048_minified = 0.204 ms/frame (8 layers), 12025 Mtexel/s
+tex.astc4x4_2048_minified = 0.481 ms/frame (8 layers), 5104 Mtexel/s
+SUMMARY: tex Mtexel/s: 1:1 13433 | 2048 minified rgba8 11003 etc2 12025 astc 5104
+note: ASTC test uses void-extent blocks (valid data, real 1 B/texel reads, simplest decode)
+# end GPU texture sampling | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 45.5 C
+
+## GPU shader arithmetic
+# begin GPU shader arithmetic | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 45.5 C
+alu.highp = 2.525 ms/frame (64 FMA vec4 pairs/pixel), 124.57 GFLOPS
+alu.mediump = 0.580 ms/frame (64 FMA vec4 pairs/pixel), 541.99 GFLOPS
+SUMMARY: ALU: fp32 124.6 GFLOPS, fp16 542.0 GFLOPS (~6759 fp32 flops/px @60Hz)
+# end GPU shader arithmetic | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 43.6 C
+
+## GPU draw-call overhead
+# begin GPU draw-call overhead | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 43.6 C
+drawcall.uniform_change = 10.143 ms per 1000 draws (10.14 us each)
+drawcall.buffersubdata_same_vbo = 20.339 ms per 1000 draws (20.34 us each)
+drawcall.orphan_then_subdata = 21.358 ms per 1000 draws (21.36 us each)
+drawcall.instanced = 0.050 ms per 1000 draws (0.05 us each)
+SUMMARY: draw call: 10.1 us plain, 20.3 us w/ BufferSubData, 21.4 orphaned, 0.050 us/instance
+SUMMARY:   = ~1647 plain draws fit in a 16.7 ms frame (CPU side)
+# end GPU draw-call overhead | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 45.5 C
+
+## GPU render-pass cost (tile memory vs DRAM round trips)
+# begin GPU render-pass cost (tile memory vs DRAM round trips) | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 45.5 C
+renderpass.16_layers_one_pass_ms = 0.372
+renderpass.16_pingpong_passes_ms = 8.205
+SUMMARY: 16 blended layers in 1 pass: 0.37 ms | 16 separate passes: 8.20 ms (x22.0)
+# end GPU render-pass cost (tile memory vs DRAM round trips) | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 48.2 C
+
+## GPU framebuffer fetch
+# begin GPU framebuffer fetch | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 48.2 C
+fbfetch.fixed_function_blend_16_layers_ms = 0.284
+fbfetch.arm readback = 102 230 255 255 (expected 102 230 255 255) -> CORRECT
+fbfetch.arm_16_layers_ms = 1.230
+SUMMARY: fb fetch: ARM works 1.23ms | EXT not exposed | fixed blend 0.28ms (16 layers)
+# end GPU framebuffer fetch | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 48.2 C
+
+## GPU deferred lighting: pixel local storage vs MRT vs forward
+# begin GPU deferred lighting: pixel local storage vs MRT vs forward | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 48.2 C
+lighting.pls readback = 104 68 98 (expected ~104 69 98) -> CORRECT
+lighting.mrt readback = 102 67 96 (expected ~104 69 98) -> CORRECT
+lighting.forward readback = 104 69 98 (expected ~104 69 98) -> CORRECT
+lighting.pls_ms = 5.864
+lighting.mrt_ms = 14.953
+lighting.forward_ms = 0.160
+SUMMARY: 16 lights @640x480: PLS 5.86 ms | MRT 14.95 ms | forward 0.16 ms
+# end GPU deferred lighting: pixel local storage vs MRT vs forward | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 46.8 C
+
+## GPU texture upload
+# begin GPU texture upload | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 46.8 C
+upload.rgba8_2048_ms = 81.71
+SUMMARY: texture upload: 205 MB/s (2048x2048 RGBA8 in 81.7 ms)
+# end GPU texture upload | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 46.4 C
+
+## Display refresh and present cost
+# begin Display refresh and present cost | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 46.4 C
+display.swap_interval = 1
+display.frame_interval_ms = p5 16.840 | median 17.079 | p95 17.437 | max 18.208
+display.swap_call_ms = median 16.761 | p95 17.129
+display.swap_interval0_supported = yes
+display.unthrottled_clear_fps = 58.5
+SUMMARY: display: 58.55 Hz vsync (median 17.08 ms), swap call 16.76 ms, no-vsync 59 fps
+# end Display refresh and present cost | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 42.7 C
+
+## Audio output
+# begin Audio output | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 42.7 C
+audio.drivers_compiled = pulseaudio alsa 
+audio.current_driver = alsa
+audio.device[0] = rockchip-rk817, dailink-multicodecs rk817-hifi-0
+--- $ grep -l -i -E 'headphone|jack' /sys/class/input/input*/name 2>/dev/null; cat /sys/class/switch/h2w/state 2>/dev/null; cat /sys/class/extcon/*/state 2>/dev/null; amixer 2>/dev/null | grep -A3 -i -E 'playback path|headphone|speaker' | head -30   # headphone / jack state
+USB=0
+USB-HOST=1
+USB_VBUS_EN=1
+SDP=0
+CDP=0
+DCP=0
+SLOW-CHARGER=0
+MICROPHONE=0
+HEADPHONE=0
+Simple mixer control 'Headphone',0
+  Capabilities: pswitch pswitch-joined
+  Playback channels: Mono
+  Mono: Playback [on]
+Simple mixer control 'Speaker',0
+  Capabilities: pswitch pswitch-joined
+  Playback channels: Mono
+  Mono: Playback [on]
+Simple mixer control 'Playback Path',0
+  Capabilities: enum
+  Items: 'OFF' 'RCV' 'SPK' 'HP' 'HP_NO_MIC' 'BT' 'SPK_HP' 'RING_SPK' 'RING_HP' 'RING_HP_NO_MIC' 'RING_SPK_HP'
+  Item0: 'SPK'
+audio.default.samples128 = got 48000 Hz F32 2ch 1024-frame buffer (21.33 ms); callbacks 49, mean interval 21.33 ms, max 21.55 ms
+audio.default.samples256 = got 48000 Hz F32 2ch 1024-frame buffer (21.33 ms); callbacks 49, mean interval 21.34 ms, max 21.50 ms
+audio.default.samples512 = got 48000 Hz F32 2ch 1024-frame buffer (21.33 ms); callbacks 49, mean interval 21.33 ms, max 21.48 ms
+audio.default.samples1024 = got 48000 Hz F32 2ch 1024-frame buffer (21.33 ms); callbacks 49, mean interval 21.33 ms, max 21.55 ms
+audio.hw00.samples128 = got 48000 Hz S32 2ch 128-frame buffer (2.67 ms); callbacks 382, mean interval 2.67 ms, max 3.47 ms
+audio.hw00.samples256 = got 48000 Hz S32 2ch 256-frame buffer (5.33 ms); callbacks 192, mean interval 5.33 ms, max 5.79 ms
+SUMMARY: audio: driver alsa; smallest steady buffer 21.3 ms (default), 2.7 ms (hw:0,0)
+note: 'steady' = worst callback gap shorter than two buffer periods; real output latency also
+      includes the ALSA/dmix period queue (see /etc/asound.conf above)
+# end Audio output | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 40.9 C
+
+## Controls (interactive)
+# begin Controls (interactive) | cpu 1296 MHz | gpu 520 MHz | ddr 666 MHz | 40.9 C
+pad[0] name='gamepad' guid=1900841267616d657061640000000000 axes=4 buttons=17 hats=0 gamecontroller=yes
+pad[0] mapping = 1900841267616d657061640000000000,gamepad,a:b0,b:b1,x:b2,y:b3,back:b8,guide:b10,start:b9,leftstick:b11,rightstick:b12,leftshoulder:b4,rightshoulder:b5,dpup:b13,dpdown:b14,dpleft:b15,dpright:b16,leftx:a0,lefty:a1,rightx:a2,righty:a3,lefttrigger:b6,righttrigger:b7,crc:1284,platform:Linux
+env.SDL_GAMECONTROLLERCONFIG = (unset)
+axis0.rest = mean -1, sd 0.0 (of 32768)
+axis1.rest = mean -1, sd 0.0 (of 32768)
+axis2.rest = mean -1, sd 0.0 (of 32768)
+axis3.rest = mean -1, sd 0.0 (of 32768)
+stick.left_up = no deflection detected (timed out)
+stick.left_right = no deflection detected (timed out)
+stick.right_up = no deflection detected (timed out)
