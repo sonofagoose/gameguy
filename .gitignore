@@ -4,6 +4,8 @@
 # build output
 probe/build/
 probe/dist/
+toys/*/build/
+toys/*/dist/
 __pycache__/
 *.pyc
 

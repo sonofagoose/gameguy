@@ -1,0 +1,124 @@
+# remainder toy, session 20260413-174452
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+water shader: 24.48 ms at full resolution, 7.32 ms at half
+water drawn at 1/2 resolution
+audio: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+t=0.0 pool ONE
+t=1.2 place 0 came to rest (peg at 0.00 cents, lean mode)
+t=4.7 place 0 came to rest (peg at 0.00 cents, lean mode)
+last 20 s: 1141 frames, 17.09 ms each (worst 19.26), 0 late; game work 1.03 ms (worst 1.29); audio 7507 callbacks, 0 gaps, worst gap 3.18 ms
+ALSA lib pcm.c:8772:(snd_pcm_recover) underrun occurred
+t=7.7 fifths walked 1
+t=7.8 place 0 came to rest (peg at 0.00 cents, lean mode)
+t=8.0 fifths walked 0
+t=8.0 fifths walked 1
+t=8.1 fifths walked 2
+last 20 s: 1170 frames, 17.09 ms each (worst 23.88), 0 late; game work 1.03 ms (worst 1.64); audio 15007 callbacks, 1 gaps, worst gap 5.74 ms
+t=10.3 fifths walked 1
+t=12.9 place 0 came to rest (peg at 0.00 cents, lean mode)
+last 20 s: 1170 frames, 17.09 ms each (worst 17.34), 0 late; game work 1.03 ms (worst 1.53); audio 22507 callbacks, 1 gaps, worst gap 5.74 ms
+t=14.9 place 0 came to rest (peg at 0.00 cents, lean mode)
+t=15.1 place 0 came to rest (peg at 0.00 cents, lean mode)
+t=17.5 pool register 2 (880 Hz)
+t=17.9 pool register 1 (440 Hz)
+t=18.0 pool register 0 (220 Hz)
+last 20 s: 1171 frames, 17.09 ms each (worst 17.43), 0 late; game work 1.03 ms (worst 1.22); audio 30014 callbacks, 1 gaps, worst gap 5.74 ms
+t=20.1 player register -1
+t=20.3 player register 0
+t=20.4 player register 1
+t=20.5 fifths walked 2
+t=20.6 fifths walked 3
+t=20.7 fifths walked 4
+t=20.9 fifths walked 5
+t=21.3 fifths walked 4
+t=21.4 fifths walked 3
+t=21.5 fifths walked 2
+t=21.6 fifths walked 1
+t=21.7 fifths walked 0
+t=21.7 fifths walked -1
+t=21.8 fifths walked -2
+t=22.0 fifths walked -1
+t=22.1 fifths walked 0
+t=22.6 fifths walked -1
+t=22.9 fifths walked -2
+t=23.1 fifths walked -1
+t=23.2 fifths walked 0
+t=23.3 fifths walked 1
+t=23.5 fifths walked 2
+t=23.6 fifths walked 1
+t=24.0 fifths walked 0
+t=24.1 place 0 came to rest (peg at 0.00 cents, lean mode)
+last 20 s: 1170 frames, 17.09 ms each (worst 17.40), 0 late; game work 1.02 ms (worst 1.86); audio 37514 callbacks, 1 gaps, worst gap 5.74 ms
+t=25.8 place 0 came to rest (peg at 0.00 cents, lean mode)
+t=25.9 pool register -1 (110 Hz)
+t=26.1 pool register 0 (220 Hz)
+t=26.2 pool register -1 (110 Hz)
+t=26.4 fifths walked 1
+t=26.7 fifths walked 2
+last 20 s: 1171 frames, 17.09 ms each (worst 17.57), 0 late; game work 1.03 ms (worst 1.24); audio 45020 callbacks, 1 gaps, worst gap 5.74 ms
+t=32.1 mode peg
+t=32.7 mode lean
+t=32.9 mode peg
+t=33.0 mode lean
+t=33.1 fifths walked 1
+t=33.5 mode peg
+last 20 s: 1171 frames, 17.09 ms each (worst 18.63), 0 late; game work 0.99 ms (worst 1.23); audio 52526 callbacks, 1 gaps, worst gap 5.74 ms
+t=38.9 home
+last 20 s: 1170 frames, 17.09 ms each (worst 18.64), 0 late; game work 0.99 ms (worst 1.14); audio 60026 callbacks, 1 gaps, worst gap 5.74 ms
+t=40.1 pool register 0 (220 Hz)
+t=40.9 mode lean
+t=42.9 mode peg
+t=43.2 mode lean
+t=43.4 paddle off
+last 20 s: 1171 frames, 17.09 ms each (worst 17.53), 0 late; game work 1.00 ms (worst 1.21); audio 67533 callbacks, 1 gaps, worst gap 5.74 ms
+t=44.5 mode peg
+t=44.7 home
+last 20 s: 1171 frames, 17.09 ms each (worst 18.84), 0 late; game work 0.99 ms (worst 1.19); audio 75039 callbacks, 1 gaps, worst gap 5.74 ms
+t=50.1 pool register 1 (440 Hz)
+t=50.3 pool register 0 (220 Hz)
+t=50.3 fifths walked 1
+t=50.4 fifths walked 2
+t=50.5 fifths walked 1
+t=50.6 fifths walked 0
+t=50.7 mode lean
+t=50.8 home
+t=51.0 fifths walked -1
+t=52.0 place 0 came to rest (peg at 0.00 cents, lean mode)
+last 20 s: 1170 frames, 17.09 ms each (worst 18.06), 0 late; game work 0.99 ms (worst 1.24); audio 82539 callbacks, 1 gaps, worst gap 5.74 ms
+t=53.7 paddle on
+t=53.8 paddle off
+t=54.9 fifths walked 0
+t=55.4 fifths walked 1
+t=55.6 fifths walked 0
+t=55.7 fifths walked -1
+t=56.0 fifths walked 0
+t=56.0 fifths walked 1
+t=56.2 fifths walked 2
+t=56.3 fifths walked 3
+t=56.4 fifths walked 4
+t=56.6 fifths walked 3
+t=56.8 fifths walked 2
+t=56.9 fifths walked 1
+t=57.2 fifths walked 0
+t=57.3 place 0 came to rest (peg at 0.00 cents, lean mode)
+t=58.1 pool THREE
+last 20 s: 1170 frames, 17.09 ms each (worst 17.49), 0 late; game work 1.02 ms (worst 1.28); audio 90039 callbacks, 1 gaps, worst gap 5.74 ms
+t=58.9 pool TWELVE
+t=61.4 pool ONE
+t=61.6 pool THREE
+t=62.5 mode peg
+t=62.8 place 0 came to rest (peg at 0.00 cents, peg mode)
+t=62.8 place 1 came to rest (peg at 0.00 cents, peg mode)
+t=62.8 place 2 came to rest (peg at 0.00 cents, peg mode)
+t=63.2 paddle on
+t=63.4 paddle off
+last 20 s: 1171 frames, 17.09 ms each (worst 18.80), 0 late; game work 1.06 ms (worst 1.46); audio 97546 callbacks, 1 gaps, worst gap 5.74 ms
+t=63.5 paddle on
+t=63.7 paddle off
+t=64.0 home
+t=64.4 home
+t=67.1 pool TWELVE
+whole session: 16214 frames, 17.09 ms each (worst 23.88), 0 late; game work 1.02 ms (worst 1.86); audio 104129 callbacks, 1 gaps, worst gap 5.74 ms
+played 67.7 s; ended in pool TWELVE, peg mode
+exit code 0
