@@ -13,7 +13,7 @@ separates them (the purple throttles its CPU harder, see Thermal).
 | Board | R36S-V12 2023-08-18 clone (×2, identical) |
 | SoC | Rockchip RK3326: 4× Cortex-A35 (NEON), Mali-G31 MP2 |
 | Clocks (stock profile) | CPU up to 1296 MHz (1248 typical under load), GPU 520 MHz, DDR 666 MHz |
-| RAM visible to Linux | 977 MB (LPDDR3 in a Samsung eMCP) |
+| RAM visible to Linux | 918 MiB (`MemTotal` 940,428 kB), about 815 MiB available when a game starts (LPDDR3 in a Samsung eMCP) |
 | Storage | 7456 MB eMMC; read ~46 MB/s, write ~14–28 MB/s (game data lives in `/roms`, 1 GB exFAT, or on an SD card in TF2) |
 | OS | Debian 13, kernel 4.4.189, glibc 2.41, SDL 2.32.10 (KMSDRM), libmali r13p0 |
 | Radios | none (no Wi-Fi/Bluetooth) |
@@ -44,6 +44,14 @@ separates them (the purple throttles its CPU harder, see Thermal).
 | Extensions of note | ASTC LDR/HDR, ETC2, `EXT_disjoint_timer_query`, `EXT_shader_pixel_local_storage` (16 B), `ARM_shader_framebuffer_fetch`, multisampled-render-to-texture |
 | Vulkan | no GPU driver (only Mesa software/other-vendor ICDs) |
 
+**A real shader, not a benchmark (remainder toy on the black unit, 2026-11-12,
+`toys/remainder/results/black-20261112/`):** one full-screen fragment shader summing four wave
+sources (per source: an inverse square root, a short dynamic loop, two polynomial sines, with the
+phase in `highp`) plus shading and grain cost **24.5 ms at 640×480 and 7.3 ms at 320×240**. The
+ALU figure above is a ceiling for straight-line `mediump` arithmetic; `highp`, loops and
+per-pixel distance math land far below it. Plan full-screen procedural effects at half
+resolution or cheaper, and spend the full-resolution budget on textured layers.
+
 ## CPU and memory
 
 | measure | value |
@@ -59,6 +67,8 @@ separates them (the purple throttles its CPU harder, see Thermal).
   **128-frame buffers (2.67 ms)**, F32 stereo; `hw:0,0` directly also 128 frames (S32).
   (Outside that environment `~/.asoundrc` routes through dmix with 1024-frame periods ≈ 23 ms; the
   menu's `perfmax`, and `r36s.sh run`, move it aside.)
+- Under a real load (the remainder toy: 13 wavetable voices, a 7 ms GPU frame, 58.5 Hz), the
+  128-frame buffer held: 1 late callback in 104,129 (worst gap 5.7 ms) over 68 s.
 - One mono speaker (works on the "Type 1 Panel 1" profile) and a stereo 3.5 mm headphone jack with
   plug detection.
 
