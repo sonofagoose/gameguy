@@ -86,6 +86,7 @@ time but to let it spiral, with someone.
     LOVE'S TRUTH, LITTLE BIRD, SAFE AND SOUND, with "Skip to" between them. His call.
 - **The river home.** At night the river carries you home: "together we can make it home safe
   downstream". The loop's machinery is something in the world, not a menu.
+  - What the river could do with your day (replay, dreams, sleep) is in `memory-in-rhythm.md`.
 - **A new key each day.** Each day is a pure fifth above the last.
   - The world's lead colour moves one step round the wheel each day (warm sharps, cool flats; see
     `look.md`).

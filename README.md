@@ -13,7 +13,7 @@ Start here:
 | `docs/walkthrough-probe-and-flash.md` | history of how both units were set up (2026-11-11/12) |
 | `probe/` | the hardware probe (a measuring instrument; `probe/results/` has every run) |
 | `probe/tools/` | `r36s.sh` (talk to the handhelds over USB), `flash-emmc-usb.sh` (reflash), card tools |
-| `design/` | game design brainstorms (nothing decided): three shapes for the game, the look, and listening tests |
+| `design/` | game design brainstorms (nothing decided): three shapes for the game, the look, memory in rhythm, and listening tests |
 | `material/` | Morgan's own writing given to the project as material, verbatim |
 | `toys/` | small throwaway programs that test one mechanic on the handheld before the game is designed around it |
 

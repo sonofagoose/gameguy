@@ -165,6 +165,9 @@ The brain runs rhythms at many speeds at once, and the slow ones organise the fa
   note, the colour of light, each riding the slower one, the way a brain listens.
 - **Love, in these terms:** two rhythms that lock at a simple ratio and stay two.
 
+Fifteen ideas for memory and computation in these rhythms (replay on the night river, pools that
+remember, logic in the beat, small pushes that swing giants) are in `memory-in-rhythm.md`.
+
 ---
 
 ## Part 5: lands as temperaments, the ring tells the history of tuning
