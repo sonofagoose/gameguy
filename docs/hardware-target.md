@@ -52,6 +52,57 @@ ALU figure above is a ceiling for straight-line `mediump` arithmetic; `highp`, l
 per-pixel distance math land far below it. Plan full-screen procedural effects at half
 resolution or cheaper, and spend the full-resolution budget on textured layers.
 
+**A 3D scene (meadow toy on the black unit, 2026-11-14, `toys/meadow/results/black-20261114/`):**
+a patch of meadow with lit ground, stones, plants, a tree and 143,664 blades of grass.
+
+| view | GPU time for the whole picture | triangles, draw calls |
+|---|---|---|
+| down in the grass | 8.2 ms | 62,848 in 68 |
+| gliding above it | 11.9 ms | 93,747 in 100 |
+| in play (standing still) | every frame on time: 17.09 ms each, worst 17.57, none late in 1,470 | 76,361 in 87; 2.3 ms of CPU for game and draw calls |
+
+- Small triangles go through at about **10.9 million a second** (1.92 million took 175 ms).
+- Grass twice as dense costs 13.4 ms in the grass and 19.4 ms above it; four times, 24.5 and 34.1.
+- Resolution hardly matters for this scene: at 75% it costs 7.7 and 11.5 ms, at 50% 6.8 and
+  10.3. The cost is in the number of triangles, not the number of pixels.
+- So a 3D world of 60,000 to 90,000 triangles a frame fits at full resolution and full frame rate.
+
+**Lines of light in 3D (page toy on the black unit, 2026-11-14,
+`toys/page/results/black-20261114/`):** up to 1,406 blended quads a frame, every point projected
+on the CPU, one draw call. 17.10 ms a frame, worst 20.3, none late in 4,270, with 1.3 ms of CPU
+for the game, the projection and the draw call. Drawing the garden as a page (from above) or as
+a place (from behind the creature) costs the same.
+
+## SD card activity stalls frames (measured 2026-11-14)
+
+**Any write to the SD card can freeze the picture for up to a quarter of a second**, whoever
+makes it: the game, or the system in the background.
+
+- **What happens.** While the card is being written, its controller (`dw-mci`, interrupt 22 for
+  the system card) raises about **70,000 interrupts a second**, with as many tasklets and about
+  145,000 context switches a second. They land on core 0, which is also the core that serves the
+  GPU's interrupts and the display's. Frames stop arriving until the burst ends.
+- **How it was found.** Every toy had 3 to 10 late frames a session, 150 to 315 ms each. Each one
+  lined up with a burst on that interrupt, to within the 50 ms the watcher sampled at. Keeping
+  the toy's own logs in memory did not remove them (the system writes too), and no CPU, GPU or
+  DDR clock change happened during a run.
+- **The test.** The same scripted session, with 256 KB written to the card and pushed out every
+  two seconds:
+
+| | late frames | worst frame | average |
+|---|---|---|---|
+| as the device comes (35 writes) | 15 of 4,270 | 243 ms | 17.65 ms |
+| card interrupts moved to core 3, the toy kept on cores 0 to 2 (34 writes) | **0** | **17.97 ms** | 17.09 ms |
+
+- **The cure, in every toy's launcher:** before the program starts, write `3` to
+  `/proc/irq/N/smp_affinity_list` for each `dw-mci` interrupt, run the program under
+  `taskset -c 0-2`, and put the interrupts back afterwards. It needs `sudo`, which a Ports
+  launcher has. With it, full sessions of the wheel and page toys ran with no late frame (worst
+  20.5 ms) and no audio gap.
+- **What it means for the game.** One core belongs to the card; the game has three. Saving and
+  loading no longer cost frames, but should still be kept to moments that can spare a core.
+- Tools: `toys/page/tools/` (the watcher, and the two test launchers).
+
 ## CPU and memory
 
 | measure | value |

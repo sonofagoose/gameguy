@@ -4,8 +4,21 @@ A toy, not the game. It tests two things before a 3D game is designed around the
 this handheld can draw, and how moving through it feels. A seed-sized creature in a patch of meadow
 can run, jump, glide, and bounce off mushroom caps, at noon or at 2am.
 
-Status (2026-11-13): it runs on the laptop. The handheld build is ready, but it has not run on the
-device yet, so its benchmark numbers for the handheld don't exist yet.
+Status (2026-11-14): its benchmark has run on the black unit
+(`results/black-20261114/meadow-20260414-160338.txt`; the unit's clock reads April). Nobody has
+moved through it on the handheld yet.
+
+| view | GPU time for the whole picture | triangles, draw calls |
+|---|---|---|
+| down in the grass | 8.2 ms | 62,848 in 68 |
+| gliding above it | 11.9 ms | 93,747 in 100 |
+
+- It chose full resolution. Lower resolution hardly helps (7.7 and 11.5 ms at 75%): the cost is in
+  the number of triangles.
+- Grass twice as dense costs 13.4 and 19.4 ms. The grass is most of the picture's cost.
+- Standing still in play: 17.09 ms a frame, the worst 17.57, none late in 1,470; 76,361 triangles
+  in 87 draw calls, with 2.3 ms of CPU for the game and the draw calls.
+- Small triangles go through at about 10.9 million a second.
 
 ## What it does at start
 

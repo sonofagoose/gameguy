@@ -1,0 +1,17 @@
+# meadow toy, session 20260414-160338
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+screen: 640x480, depth 24 bits, 0 samples per pixel
+meadow: 143664 blades of grass, 46 stones, 296 plants, 809691 triangles in all; built in 2.95 s
+bench, in the grass: sky 4.55 | + ground 2.78 | + stones, plants, tree 3.41 | + grass 8.10 | everything 8.22 ms (62848 triangles, 68 draws)
+bench, in the grass: grass twice as dense 13.35 ms (97788 triangles) | four times 24.54 ms (167668 triangles)
+bench, in the grass: everything at 100% 8.22 ms | at 75% resolution 7.66 ms | at 50% resolution 6.82 ms
+bench, gliding above it: sky 4.56 | + ground 3.17 | + stones, plants, tree 4.50 | + grass 11.85 | everything 11.88 ms (93747 triangles, 100 draws)
+bench, gliding above it: grass twice as dense 19.37 ms (147632 triangles) | four times 34.13 ms (255402 triangles)
+bench, gliding above it: everything at 100% 11.88 ms | at 75% resolution 11.45 ms | at 50% resolution 10.33 ms
+bench, geometry: 640460 small triangles 57.59 ms; 1921380 triangles 174.93 ms: about 10.9 million triangles a second
+3D view drawn at 100% resolution
+controls: GO-Super Gamepad
+last 20 s: 1139 frames, 17.09 ms each (worst 17.57), 0 late; game and draw calls 2.27 ms (worst 3.02); 76361 triangles in 87 draws per frame
+whole session: 1470 frames, 17.09 ms each (worst 17.57), 0 late; game and draw calls 2.27 ms (worst 3.02); 76361 triangles in 87 draws per frame
+played 25.7 s: ran 0 units, 0 jumps, 0 glides (0.0 s gliding), 0 mushroom bounces, 0.0 s in the air
+exit code 0
