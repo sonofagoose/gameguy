@@ -1,0 +1,8 @@
+irq 22 on cpus 3; toy run with: taskset -c 0-2
+ 20:          0          0          0          0     GICv2  86 Level     dw-mci
+ 21:         32          0          0          0     GICv2  87 Level     dw-mci
+ 22:    3345475          0          0          0     GICv2  85 Level     dw-mci
+ 20:          0          0          0          0     GICv2  86 Level     dw-mci
+ 21:         32          0          0          0     GICv2  87 Level     dw-mci
+ 22:    3345475          0          0     124977     GICv2  85 Level     dw-mci
+restored: irq 22 on cpus 0-3

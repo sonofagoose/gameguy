@@ -1,0 +1,113 @@
+# page toy, session 20260414-155408
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+audio: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+look: PLACE ONLY
+t=0.2 in with Drip (last breath 300 ms from its tick)
+t=0.2 scene: dawn
+t=7.7 scene: knots
+t=7.7 scene: waking
+t=7.9 wheel opened
+t=8.4 wheel closed after 0.68 s
+t=8.5 home F (was C)
+ALSA lib pcm.c:8772:(snd_pcm_recover) underrun occurred
+t=18.1 scene: run
+t=18.3 wheel opened
+t=18.3 scene: garden
+t=18.8 wheel closed after 0.68 s
+t=18.9 home D (was F)
+last 20 s: 1141 frames, 17.09 ms each (worst 17.82), 0 late; game work 1.34 ms (worst 4.31); audio 7502 callbacks, 1 gaps, worst gap 12.28 ms
+t=23.9 wheel opened
+t=24.4 wheel closed after 0.68 s
+t=25.0 home G (was D)
+t=26.2 strike: rang 1, on a meeting 1
+t=26.9 G went grey
+t=26.9 strike: rang 1, on a meeting 1
+t=27.0 wheel opened
+t=27.6 wheel closed after 0.68 s
+t=27.9 home C (was G)
+t=28.7 lashed by C; steadiness 0.75
+t=28.7 G came home
+t=28.7 let go off the one (367 ms): G landed softly
+t=29.1 strike: rang 1, on a meeting 1
+t=29.8 C went grey
+t=29.8 strike: rang 1, on a meeting 1
+t=29.9 wheel opened
+t=30.5 wheel closed after 0.68 s
+t=30.8 home F (was C)
+t=32.0 C came home
+t=32.0 a walk of 1 landed, -17 ms from the one
+t=32.2 lashed by D; steadiness 0.50
+t=32.2 wheel opened
+t=32.7 wheel closed after 0.68 s
+t=33.0 home D (was F)
+t=33.7 strike: rang 1, on a meeting 1
+t=34.3 D went grey
+t=34.3 strike: rang 1, on a meeting 1
+t=34.5 wheel opened
+t=35.0 wheel closed after 0.68 s
+t=35.3 home G (was D)
+t=37.8 D came home
+t=37.8 a walk of 1 landed, -32 ms from the one
+last 20 s: 1171 frames, 17.09 ms each (worst 17.83), 0 late; game work 1.38 ms (worst 2.36); audio 15008 callbacks, 1 gaps, worst gap 12.28 ms
+t=43.0 wheel opened
+t=43.6 wheel closed after 0.68 s
+t=43.8 home B (was G)
+t=45.7 strike: rang 1, on a meeting 1
+t=46.3 B went grey
+t=46.3 strike: rang 1, on a meeting 1
+t=46.5 wheel opened
+t=47.1 wheel closed after 0.68 s
+t=47.4 home E (was B)
+t=48.3 lashed by E; steadiness 0.75
+t=48.3 B came home
+t=48.3 let go off the one (336 ms): B landed softly
+t=48.6 strike: rang 1, on a meeting 1
+t=49.2 E went grey
+t=49.2 strike: rang 2, on a meeting 1
+t=49.4 wheel opened
+t=50.0 wheel closed after 0.68 s
+t=50.3 home A (was E)
+t=50.4 lashed by B; steadiness 0.50
+t=51.5 E came home
+t=51.5 a walk of 1 landed, -30 ms from the one
+t=51.7 wheel opened
+t=52.3 wheel closed after 0.68 s
+t=52.5 home D (was A)
+t=53.6 wheel opened
+t=54.1 wheel closed after 0.68 s
+t=54.3 lashed by D; steadiness 0.25
+t=54.8 home B (was D)
+t=55.4 strike: rang 1, on a meeting 1
+t=56.1 B went grey
+t=56.1 strike: rang 1, on a meeting 1
+t=56.3 wheel opened
+t=56.8 wheel closed after 0.68 s
+t=57.1 home E (was B)
+t=57.7 B came home
+t=57.7 a walk of 1 landed, -27 ms from the one
+t=58.1 wheel opened
+t=58.7 wheel closed after 0.68 s
+t=58.7 home D (was E)
+t=59.3 strike: rang 1, on a meeting 1
+last 20 s: 1171 frames, 17.09 ms each (worst 17.56), 0 late; game work 1.40 ms (worst 3.30); audio 22515 callbacks, 1 gaps, worst gap 12.28 ms
+t=60.6 D went grey
+t=60.6 strike: rang 1, on a meeting 1
+t=60.8 wheel opened
+t=61.3 wheel closed after 0.68 s
+t=61.6 home G (was D)
+t=63.5 D came home
+t=63.5 a walk of 1 landed, -27 ms from the one
+t=68.7 wheel opened
+t=69.2 wheel closed after 0.68 s
+t=69.5 home E (was G)
+t=70.8 strike: rang 2, on a meeting 1
+t=71.4 E went grey
+t=71.4 strike: rang 2, on a meeting 2
+t=71.6 wheel opened
+t=72.1 wheel closed after 0.68 s
+t=72.4 home A (was E)
+t=73.2 lashed by D; steadiness 0.50
+whole session: 4270 frames, 17.09 ms each (worst 17.97), 0 late; game work 1.36 ms (worst 4.31); audio 27560 callbacks, 1 gaps, worst gap 12.28 ms
+played 73.5 s; ended in scene garden; home A; wheel opened 17 times; 16 strikes; best walk 1; breath holds 3
+the view: 0.0 s on the page, 73.5 s in the place, 0.0 s between; look at the end: PLACE ONLY; busiest frame 1106 marks
