@@ -18,4 +18,9 @@ enabled and the probe fell back to the CPU serial.
 | `black-stock-emuelec/` | black, stock EmuELEC (as delivered) | 1.0 | four (three cut short) | GPU timings in these are inflated 10–30× (probe bug fixed in 1.1, brainstorm §29–§30); CPU/RAM/system info valid |
 | `purple-rockusb/` | purple in Rockchip USB mode | — | — | `rkdeveloptool` device and flash info |
 
+`black-darkos4clone-v2/linktest/` holds the two-unit USB link test of 2026-11-13: `link-*.log`
+(the link measured, black as host, purple as guest) and `roleswitch-*.log` (switching the port
+from host mode back to device mode; the first run failed because of a DHCP service bug that was
+then fixed, the second passed).
+
 The numbers to design against are summarised in `docs/hardware-target.md`.

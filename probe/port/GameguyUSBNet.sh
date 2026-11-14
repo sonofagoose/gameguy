@@ -4,8 +4,10 @@
 #   handhelds on one PC never clash). SSH: user ark, key from gameguy-ssh/authorized_keys.
 # First run from Ports also installs a boot service, so afterwards the link comes up by itself
 # whenever the system boots: just plug the cable in and ssh.
-# Needs the device-tree patch in golden image v2 (OTG port in peripheral mode).
+# Needs the device-tree patch in golden image v2: the OTG controller in peripheral mode, or (since
+# 2026-11-13, for the two-unit link) in dual-role "otg" mode, which this script forces to device.
 MODE=${1:-ports}
+export PATH="/usr/local/sbin:/usr/sbin:/sbin:$PATH"   # Ports and ssh runs leave out the sbin folders (modprobe)
 if [ "$(id -u)" = 0 ]; then ESUDO=""; else ESUDO=sudo; fi
 SELF="$(readlink -f "$0")"
 HERE="$(dirname "$SELF")"
@@ -33,6 +35,14 @@ run modprobe usb_f_ecm
 mountpoint -q /sys/kernel/config || run mount -t configfs none /sys/kernel/config
 G=/sys/kernel/config/usb_gadget/gameguy
 [ -d "$G" ] && w "$G/UDC" ""
+# A dual-role controller follows whatever role the port was left in (GameguyLinkTest makes it a
+# host); be a USB device here. Harmless when the device tree already says peripheral.
+OTGMODE=$(ls /sys/devices/platform/*/*usb2-phy*/otg_mode 2>/dev/null | head -1)
+if [ -n "$OTGMODE" ] && [ "$(cat "$OTGMODE")" != peripheral ]; then
+  w "$OTGMODE" peripheral
+  sleep 1
+fi
+[ -n "$OTGMODE" ] && echo "otg_mode: $(cat "$OTGMODE")" >> "$LOG"
 UDC=$(ls /sys/class/udc 2>/dev/null | head -1)
 if [ -z "$UDC" ]; then
   msg "No USB device controller: the OTG port is not in device mode (needs golden image v2)."
@@ -59,14 +69,19 @@ fi
 w "$G/UDC" "$UDC"
 sleep 1
 IF=$(cat "$G/functions/ecm.usb0/ifname" 2>/dev/null || echo usb0)
-run ip addr flush dev "$IF"
+# IPv4 only: flushing everything would also drop the IPv6 link-local address that r36s.sh falls
+# back to, and an interface that is already up never gets it again.
+run ip -4 addr flush dev "$IF"
 run ip addr add "$IP/24" dev "$IF"
 run ip link set "$IF" up
+# It logs to the journal (journalctl -u gameguy-dhcp). It used to log to a file in /tmp, which
+# dnsmasq hands to user nobody; root then can't reopen it there, so every restart within one
+# boot failed and the PC never got an address again (found 2026-11-13).
 # DHCP for the PC side runs as its own systemd service: anything started from a Port lives in
 # EmulationStation's cgroup and is killed whenever EmulationStation is stopped.
 [ -f /tmp/dnsmasq-gameguy.pid ] && $ESUDO kill "$(cat /tmp/dnsmasq-gameguy.pid)" 2>/dev/null
 printf '%s\n' '[Unit]' 'Description=gameguy USB network DHCP (dnsmasq)' 'After=network-pre.target' '' '[Service]' \
-  "ExecStart=/usr/sbin/dnsmasq --keep-in-foreground --conf-file=/dev/null --interface=$IF --bind-interfaces --port=0 --dhcp-range=10.36.$N.2,10.36.$N.2,255.255.255.0,12h --dhcp-option=3 --dhcp-option=6 --dhcp-authoritative --log-facility=/tmp/dnsmasq-gameguy.log" \
+  "ExecStart=/usr/sbin/dnsmasq --keep-in-foreground --conf-file=/dev/null --interface=$IF --bind-interfaces --port=0 --dhcp-range=10.36.$N.2,10.36.$N.2,255.255.255.0,12h --dhcp-option=3 --dhcp-option=6 --dhcp-authoritative --log-facility=-" \
   'Restart=always' 'RestartSec=2' '' '[Install]' 'WantedBy=multi-user.target' \
   | $ESUDO tee /etc/systemd/system/gameguy-dhcp.service >/dev/null
 run systemctl daemon-reload
@@ -101,7 +116,7 @@ if [ "$MODE" = ports ] && [ ! -f /etc/systemd/system/gameguy-usbnet.service ]; t
   msg "installed boot service: the USB link will come up by itself from now on"
 fi
 { ip addr show "$IF"; cat "$G/UDC"; } >> "$LOG" 2>&1
-printf 'unit=%s ip=%s cid=%s\n' "$N" "$IP" "$CID" > "$HERE/gameguyprobe/usbnet-info.txt" 2>/dev/null
+[ -d "$HERE/gameguyprobe" ] && printf 'unit=%s ip=%s cid=%s\n' "$N" "$IP" "$CID" > "$HERE/gameguyprobe/usbnet-info.txt"
 cp -f "$LOG" "$HERE/gameguyprobe/usbnet-last.log" 2>/dev/null
 msg "USB network up: ssh ark@$IP  (link stays up; returns to the menu)"
 [ "$MODE" = ports ] && sleep 4

@@ -26,6 +26,12 @@ GameguyUSBNet: makes the handheld a USB network adapter for the laptop (OTG port
 run once from Ports on golden image v2, afterwards it starts at boot. Laptop side:
 probe/tools/r36s.sh (list / ssh / push / pull / run).
 
+GameguyLinkTest: links two handhelds with one USB-C to USB-C data cable (right port to right port)
+and measures the link. Run it on a unit whose device tree has the USB controller in dual-role mode
+(the black, since 2026-11-13); the other unit needs nothing but to be switched on. The screen says
+what to plug and unplug. Results: gameguylinktest/link-<time>.log. It puts the unit back into
+device mode at the end.
+
 GameguyDumpEMMC: backs up the internal eMMC to the SD card it sits on (1 GiB pieces + checksums).
 
 GameguySetupEMMC: run from an SD-card system to set up the eMMC system: copies these Ports over and

@@ -28,6 +28,10 @@ the cause of every USB failure on 2026-11-11; if nothing enumerates, suspect the
 The handheld appears as a USB Ethernet adapter as soon as it boots (`gameguy-usbnet` and
 `gameguy-dhcp` system services, installed by running Ports → GameguyUSBNet once). The laptop gets
 10.36.N.2 by DHCP; if DHCP ever fails, `r36s.sh` falls back to the unit's IPv6 link-local address.
+The same port can also link the two handhelds to each other with a USB-C to USB-C data cable
+(tested 2026-11-13; see "Two units on one USB-C cable" in the hardware sheet, and Ports →
+GameguyLinkTest). For that the black's device tree was changed with `probe/tools/set-dtb.sh`,
+which undoes a device-tree change by itself if the unit doesn't come back on this link.
 The data cable does **not** charge the handheld: for long sessions also plug a charger into the
 **left** (DC) port (a USB-A charger with an A-to-C cable is the dependable choice; some USB-C
 chargers don't power these units, see the hardware sheet). From the repo root:

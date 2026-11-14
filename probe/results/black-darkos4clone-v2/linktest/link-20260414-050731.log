@@ -1,0 +1,251 @@
+[05:07:31] gameguy link test; dr_mode=otg
+[05:07:31] state: otg_mode=peripheral usb_online=1 5V_pin=lo extcon=[USB=1 USB_HOST=0 USB_VBUS_EN=0 SDP=1 CDP=1 DCP=0 SLOW-CHARGER=0 ] battery=47% -349000uA 3846000uV Charging
+sudo: modprobe: command not found
+sudo: modprobe: command not found
+[05:07:31] SCREEN: 
+[05:07:31] SCREEN:    GAMEGUY LINK TEST
+[05:07:31] SCREEN: 
+[05:07:32] SCREEN:    1. Unplug the laptop cable from this unit.
+[05:21:42] laptop unplugged
+[05:21:42] state: otg_mode=peripheral usb_online=0 5V_pin=lo extcon=[USB=0 USB_HOST=0 USB_VBUS_EN=0 SDP=0 CDP=1 DCP=0 SLOW-CHARGER=0 ] battery=44% -397000uA 3822000uV Charging
+[05:21:42] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+[05:21:42] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- host
+[05:21:45] state: otg_mode=host usb_online=0 5V_pin=lo extcon=[USB=0 USB_HOST=1 USB_VBUS_EN=1 SDP=0 CDP=1 DCP=0 SLOW-CHARGER=0 ] battery=44% -397000uA 3822000uV Charging
+[05:21:45] kernel log (last 20):
+[    8.773075] systemd[1]: Reached target local-fs-pre.target - Preparation for Local File Systems.
+[    8.812380] systemd[1]: Finished ifupdown-pre.service - Helper to synchronize boot up for ifupdown.
+[    8.981089] systemd[1]: Started systemd-journald.service - Journal Service.
+[    9.119120] systemd-journald[267]: Received client request to flush runtime journal.
+[   10.750517] FAT-fs (mmcblk2p1): utf8 is not a recommended IO charset for FAT filesystems, filesystem will be case sensitive!
+[   11.106307] phy phy-ff2c0000.syscon:usb2-phy@100.1: charger = USB_SDP_CHARGER
+[   12.573092] proc: unrecognized mount option "hidepid=invisible" or missing value
+[   12.964428] using random self ethernet address
+[   12.964462] using random host ethernet address
+[   13.061283] usb0: HOST MAC 02:36:00:00:86:02
+[   13.061472] usb0: MAC 02:36:00:00:86:01
+[   13.061555] dwc2 ff300000.usb: bound driver configfs-gadget
+[   13.225663] dwc2 ff300000.usb: new device is high-speed
+[   13.340027] dwc2 ff300000.usb: new device is high-speed
+[   13.396119] dwc2 ff300000.usb: new address 16
+[   13.411558] configfs-gadget gadget: high-speed config #1: c
+[   14.745168] systemd-fstab-generator[762]: x-systemd.device-timeout ignored for /roms/tools
+[   97.412379] usbcore: registered new interface driver cdc_ether
+[   97.557040] usbcore: registered new interface driver cdc_ncm
+[  914.726506] configfs-gadget gadget: unbind function 'cdc_ethernet'/ffffffc039645400
+[05:21:45] 5 V pin after switching to host: lo (hi means the driver powers the port by itself)
+[05:21:45] SCREEN: 
+[05:21:45] SCREEN:    2. Plug the USB-C cable from this unit's right port
+[05:21:45] SCREEN:       into the other unit's right port. Keep the other unit on.
+[05:22:06] no 5 V on the port 20 s after the prompt: switching it on directly (gpio 100)
+[05:22:06] write /sys/bus/platform/drivers/reg-fixed-voltage/unbind <- vbus_host
+[05:22:06] write /sys/class/gpio/export <- 100
+[05:22:06] write /sys/class/gpio/gpio100/direction <- high
+[05:22:06] state: otg_mode=host usb_online=0 5V_pin=hi extcon=[USB=0 USB_HOST=1 USB_VBUS_EN=1 SDP=0 CDP=1 DCP=0 SLOW-CHARGER=0 ] battery=44% -370000uA 3825000uV Charging
+[05:22:22] other unit 164 appeared as usb1 after 36.4 s (5 V forced: 1)
+[05:22:22] state: otg_mode=host usb_online=0 5V_pin=hi extcon=[USB=0 USB_HOST=1 USB_VBUS_EN=1 SDP=0 CDP=1 DCP=0 SLOW-CHARGER=0 ] battery=43% -376000uA 3824000uV Charging
+[05:22:22] kernel log (last 15):
+[   14.745168] systemd-fstab-generator[762]: x-systemd.device-timeout ignored for /roms/tools
+[   97.412379] usbcore: registered new interface driver cdc_ether
+[   97.557040] usbcore: registered new interface driver cdc_ncm
+[  914.726506] configfs-gadget gadget: unbind function 'cdc_ethernet'/ffffffc039645400
+[  953.552021] usb 1-1: new high-speed USB device number 2 using dwc2
+[  953.736712] usb 1-1: New USB device found, idVendor=1d6b, idProduct=0104
+[  953.736734] usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[  953.736745] usb 1-1: Product: R36S unit 164
+[  953.736754] usb 1-1: Manufacturer: gameguy
+[  953.736763] usb 1-1: SerialNumber: gameguy-164
+[  953.738887] cdc_ether 1-1:1.0 usb1: register 'cdc_ether' at usb-ff300000.usb-1, CDC Ethernet Device, 02:36:00:00:a4:02
+[  953.871247] IPv6: ADDRCONF(NETDEV_UP): usb1: link is not ready
+[  953.896393] IPv6: ADDRCONF(NETDEV_UP): usb1: link is not ready
+[  953.904488] IPv6: ADDRCONF(NETDEV_CHANGE): usb1: link becomes ready
+[  953.904534] cdc_ether 1-1:1.0 usb1: kevent 12 may have been dropped
+[05:22:22] usb speeds: 480 480 
+[05:22:22] SCREEN: 
+[05:22:23] SCREEN:    Linked to unit 164. Measuring for about a minute...
+[05:22:23] == small packets (32 bytes of data), 100 a second for 30 s: game-state sized
+PING 10.36.164.1 (10.36.164.1) 32(60) bytes of data.
+
+--- 10.36.164.1 ping statistics ---
+3000 packets transmitted, 3000 received, 0% packet loss, time 35970ms
+rtt min/avg/max/mdev = 0.287/0.465/6.091/0.212 ms
+[05:22:59] == large packets (1400 bytes), 200 a second for 10 s
+PING 10.36.164.1 (10.36.164.1) 1400(1428) bytes of data.
+
+--- 10.36.164.1 ping statistics ---
+2000 packets transmitted, 2000 received, 0% packet loss, time 9994ms
+rtt min/avg/max/mdev = 0.252/0.486/3.804/0.150 ms
+[05:23:09] == one ping every 0.2 s for 10 s, every reply listed
+PING 10.36.164.1 (10.36.164.1) 56(84) bytes of data.
+64 bytes from 10.36.164.1: icmp_seq=1 ttl=64 time=0.542 ms
+64 bytes from 10.36.164.1: icmp_seq=2 ttl=64 time=0.373 ms
+64 bytes from 10.36.164.1: icmp_seq=3 ttl=64 time=0.403 ms
+64 bytes from 10.36.164.1: icmp_seq=4 ttl=64 time=0.420 ms
+64 bytes from 10.36.164.1: icmp_seq=5 ttl=64 time=0.458 ms
+64 bytes from 10.36.164.1: icmp_seq=6 ttl=64 time=0.412 ms
+64 bytes from 10.36.164.1: icmp_seq=7 ttl=64 time=0.448 ms
+64 bytes from 10.36.164.1: icmp_seq=8 ttl=64 time=0.423 ms
+64 bytes from 10.36.164.1: icmp_seq=9 ttl=64 time=0.406 ms
+64 bytes from 10.36.164.1: icmp_seq=10 ttl=64 time=0.493 ms
+64 bytes from 10.36.164.1: icmp_seq=11 ttl=64 time=0.458 ms
+64 bytes from 10.36.164.1: icmp_seq=12 ttl=64 time=0.407 ms
+64 bytes from 10.36.164.1: icmp_seq=13 ttl=64 time=0.481 ms
+64 bytes from 10.36.164.1: icmp_seq=14 ttl=64 time=0.482 ms
+64 bytes from 10.36.164.1: icmp_seq=15 ttl=64 time=0.495 ms
+64 bytes from 10.36.164.1: icmp_seq=16 ttl=64 time=0.608 ms
+64 bytes from 10.36.164.1: icmp_seq=17 ttl=64 time=0.470 ms
+64 bytes from 10.36.164.1: icmp_seq=18 ttl=64 time=0.422 ms
+64 bytes from 10.36.164.1: icmp_seq=19 ttl=64 time=0.420 ms
+64 bytes from 10.36.164.1: icmp_seq=20 ttl=64 time=0.507 ms
+64 bytes from 10.36.164.1: icmp_seq=21 ttl=64 time=0.440 ms
+64 bytes from 10.36.164.1: icmp_seq=22 ttl=64 time=0.534 ms
+64 bytes from 10.36.164.1: icmp_seq=23 ttl=64 time=0.633 ms
+64 bytes from 10.36.164.1: icmp_seq=24 ttl=64 time=0.629 ms
+64 bytes from 10.36.164.1: icmp_seq=25 ttl=64 time=0.396 ms
+64 bytes from 10.36.164.1: icmp_seq=26 ttl=64 time=0.507 ms
+64 bytes from 10.36.164.1: icmp_seq=27 ttl=64 time=0.892 ms
+64 bytes from 10.36.164.1: icmp_seq=28 ttl=64 time=0.507 ms
+64 bytes from 10.36.164.1: icmp_seq=29 ttl=64 time=0.416 ms
+64 bytes from 10.36.164.1: icmp_seq=30 ttl=64 time=0.513 ms
+64 bytes from 10.36.164.1: icmp_seq=31 ttl=64 time=0.534 ms
+64 bytes from 10.36.164.1: icmp_seq=32 ttl=64 time=0.484 ms
+64 bytes from 10.36.164.1: icmp_seq=33 ttl=64 time=0.499 ms
+64 bytes from 10.36.164.1: icmp_seq=34 ttl=64 time=0.431 ms
+64 bytes from 10.36.164.1: icmp_seq=35 ttl=64 time=0.544 ms
+64 bytes from 10.36.164.1: icmp_seq=36 ttl=64 time=0.452 ms
+64 bytes from 10.36.164.1: icmp_seq=37 ttl=64 time=0.367 ms
+64 bytes from 10.36.164.1: icmp_seq=38 ttl=64 time=0.421 ms
+64 bytes from 10.36.164.1: icmp_seq=39 ttl=64 time=0.416 ms
+64 bytes from 10.36.164.1: icmp_seq=40 ttl=64 time=0.430 ms
+64 bytes from 10.36.164.1: icmp_seq=41 ttl=64 time=0.374 ms
+64 bytes from 10.36.164.1: icmp_seq=42 ttl=64 time=0.344 ms
+64 bytes from 10.36.164.1: icmp_seq=43 ttl=64 time=0.457 ms
+64 bytes from 10.36.164.1: icmp_seq=44 ttl=64 time=0.357 ms
+64 bytes from 10.36.164.1: icmp_seq=45 ttl=64 time=0.390 ms
+64 bytes from 10.36.164.1: icmp_seq=46 ttl=64 time=0.508 ms
+64 bytes from 10.36.164.1: icmp_seq=47 ttl=64 time=0.404 ms
+64 bytes from 10.36.164.1: icmp_seq=48 ttl=64 time=0.433 ms
+64 bytes from 10.36.164.1: icmp_seq=49 ttl=64 time=0.376 ms
+64 bytes from 10.36.164.1: icmp_seq=50 ttl=64 time=0.480 ms
+
+--- 10.36.164.1 ping statistics ---
+50 packets transmitted, 50 received, 0% packet loss, time 9805ms
+rtt min/avg/max/mdev = 0.344/0.465/0.892/0.089 ms
+[05:23:19] == TCP: the other unit's ssh port
+Connection to 10.36.164.1 22 port [tcp/ssh] succeeded!
+
+real	0m0.013s
+user	0m0.000s
+sys	0m0.004s
+[05:23:19] ssh port answered
+[05:23:19] == battery samples (unix time, current uA, voltage uV, usb power present)
+1776158543 -376000 3824000 0
+1776158544 -376000 3824000 0
+1776158545 -376000 3824000 0
+1776158546 -376000 3824000 0
+1776158547 -405000 3820000 0
+1776158548 -405000 3820000 0
+1776158549 -405000 3820000 0
+1776158550 -405000 3820000 0
+1776158551 -405000 3820000 0
+1776158552 -403000 3820000 0
+1776158553 -403000 3820000 0
+1776158554 -403000 3820000 0
+1776158555 -403000 3820000 0
+1776158556 -403000 3820000 0
+1776158557 -405000 3820000 0
+1776158558 -405000 3820000 0
+1776158559 -405000 3820000 0
+1776158560 -405000 3820000 0
+1776158561 -405000 3820000 0
+1776158562 -404000 3820000 0
+1776158563 -404000 3820000 0
+1776158564 -404000 3820000 0
+1776158565 -404000 3820000 0
+1776158566 -404000 3820000 0
+1776158567 -404000 3820000 0
+1776158568 -404000 3820000 0
+1776158569 -404000 3820000 0
+1776158570 -404000 3820000 0
+1776158571 -404000 3820000 0
+1776158572 -405000 3819000 0
+1776158573 -405000 3819000 0
+1776158574 -405000 3819000 0
+1776158575 -405000 3819000 0
+1776158576 -405000 3819000 0
+1776158577 -403000 3819000 0
+1776158578 -403000 3819000 0
+1776158579 -403000 3819000 0
+1776158581 -403000 3819000 0
+1776158582 -403000 3819000 0
+1776158583 -466000 3811000 0
+1776158584 -466000 3811000 0
+1776158585 -466000 3811000 0
+1776158586 -466000 3811000 0
+1776158587 -466000 3811000 0
+1776158588 -466000 3811000 0
+1776158589 -466000 3811000 0
+1776158590 -466000 3811000 0
+1776158591 -466000 3811000 0
+1776158592 -466000 3811000 0
+1776158593 -403000 3818000 0
+1776158594 -403000 3818000 0
+1776158595 -403000 3818000 0
+1776158596 -403000 3818000 0
+1776158597 -403000 3819000 0
+1776158598 -402000 3819000 0
+1776158599 -402000 3819000 0
+[05:23:19] state: otg_mode=host usb_online=0 5V_pin=hi extcon=[USB=0 USB_HOST=1 USB_VBUS_EN=1 SDP=0 CDP=1 DCP=0 SLOW-CHARGER=0 ] battery=43% -402000uA 3819000uV Charging
+[05:23:19] kernel log (last 20):
+[   13.061555] dwc2 ff300000.usb: bound driver configfs-gadget
+[   13.225663] dwc2 ff300000.usb: new device is high-speed
+[   13.340027] dwc2 ff300000.usb: new device is high-speed
+[   13.396119] dwc2 ff300000.usb: new address 16
+[   13.411558] configfs-gadget gadget: high-speed config #1: c
+[   14.745168] systemd-fstab-generator[762]: x-systemd.device-timeout ignored for /roms/tools
+[   97.412379] usbcore: registered new interface driver cdc_ether
+[   97.557040] usbcore: registered new interface driver cdc_ncm
+[  914.726506] configfs-gadget gadget: unbind function 'cdc_ethernet'/ffffffc039645400
+[  953.552021] usb 1-1: new high-speed USB device number 2 using dwc2
+[  953.736712] usb 1-1: New USB device found, idVendor=1d6b, idProduct=0104
+[  953.736734] usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[  953.736745] usb 1-1: Product: R36S unit 164
+[  953.736754] usb 1-1: Manufacturer: gameguy
+[  953.736763] usb 1-1: SerialNumber: gameguy-164
+[  953.738887] cdc_ether 1-1:1.0 usb1: register 'cdc_ether' at usb-ff300000.usb-1, CDC Ethernet Device, 02:36:00:00:a4:02
+[  953.871247] IPv6: ADDRCONF(NETDEV_UP): usb1: link is not ready
+[  953.896393] IPv6: ADDRCONF(NETDEV_UP): usb1: link is not ready
+[  953.904488] IPv6: ADDRCONF(NETDEV_CHANGE): usb1: link becomes ready
+[  953.904534] cdc_ether 1-1:1.0 usb1: kevent 12 may have been dropped
+[05:23:19] SCREEN: 
+[05:23:19] SCREEN:    Results (round trips, ms):
+[05:23:20] SCREEN:    3000 packets transmitted, 3000 received, 0% packet loss, time 35970ms
+[05:23:20] SCREEN:    rtt min/avg/max/mdev = 0.287/0.465/6.091/0.212 ms
+[05:23:20] SCREEN:    2000 packets transmitted, 2000 received, 0% packet loss, time 9994ms
+[05:23:20] SCREEN:    rtt min/avg/max/mdev = 0.252/0.486/3.804/0.150 ms
+[05:23:20] SCREEN: 
+[05:23:20] SCREEN:    Done. Unplug the cable between the units,
+[05:23:20] SCREEN:    then plug this unit back into the laptop.
+[05:23:36] == putting this unit back into device mode
+[05:23:36] write /sys/class/gpio/gpio100/value <- 0
+[05:23:36] write /sys/class/gpio/unexport <- 100
+[05:23:36] write /sys/bus/platform/drivers/reg-fixed-voltage/bind <- vbus_host
+[05:23:36] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- peripheral
+tee: /sys/kernel/config/usb_gadget/gameguy/UDC: No such device
+/usr/local/bin/gameguy-usbnet: line 113: /usr/local/bin/gameguyprobe/usbnet-info.txt: No such file or directory
+[05:23:40] state: otg_mode=peripheral usb_online=0 5V_pin=lo extcon=[USB=0 USB_HOST=0 USB_VBUS_EN=0 SDP=0 CDP=1 DCP=0 SLOW-CHARGER=0 ] battery=43% -448000uA 3812000uV Charging
+[05:23:40] kernel log (last 15):
+[  953.871247] IPv6: ADDRCONF(NETDEV_UP): usb1: link is not ready
+[  953.896393] IPv6: ADDRCONF(NETDEV_UP): usb1: link is not ready
+[  953.904488] IPv6: ADDRCONF(NETDEV_CHANGE): usb1: link becomes ready
+[  953.904534] cdc_ether 1-1:1.0 usb1: kevent 12 may have been dropped
+[ 1028.647846] of_get_named_gpiod_flags: parsed 'gpio' property of node '/vbus_host[0]' - status (0)
+[ 1028.647916] reg-fixed-voltage vbus_host: Looking up vin-supply from device tree
+[ 1028.648064] vbus_host: supplied by vcc5v0_sys
+[ 1028.650151] vbus_host: at 5000 mV 
+[ 1028.650426] reg-fixed-voltage vbus_host: vbus_host supplying 0uV
+[ 1028.802485] dwc2 ff300000.usb: Not connected
+[ 1028.840034] dwc2 ff300000.usb: Not connected
+[ 1028.856078] usb 1-1: USB disconnect, device number 2
+[ 1028.856242] cdc_ether 1-1:1.0 usb1: unregister 'cdc_ether' usb-ff300000.usb-1, CDC Ethernet Device
+[ 1030.016077] dwc2 ff300000.usb: bound driver configfs-gadget
+[ 1031.353066] systemd-fstab-generator[11498]: x-systemd.device-timeout ignored for /roms/tools

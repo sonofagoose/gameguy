@@ -1,0 +1,156 @@
+[05:32:28] roleswitch-check on unit 134; laptop 10.36.134.2; kernel 4.4.189; dr_mode=otg
+[05:32:29]   otg_mode=peripheral udc=configured  carrier=1 usb0 UP 10.36.134.1/24 fe80::36:ff:fe00:8601/64  rx=227 tx=233 tx_err=0 tx_drop=0 5V_pin=lo
+[05:32:29]   LINK OK after 0 s
+[05:32:29] TRIAL 0: gadget unbound and rebound, no host mode
+[05:32:29] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+tee: /sys/kernel/config/usb_gadget/gameguy/UDC: No such device
+/usr/local/bin/gameguy-usbnet: line 113: /usr/local/bin/gameguyprobe/usbnet-info.txt: No such file or directory
+[05:32:35]   LINK OK after 0 s
+[05:32:35] RESULT 0: link came back
+[05:32:35] TRIAL 1: host mode 5 s, then forced device mode (what the link test did)
+[05:32:35] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+[05:32:35] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- host
+[05:32:40]   otg_mode=host udc=not attached  carrier=0 usb0 DOWN 10.36.134.1/24  rx=270 tx=258 tx_err=0 tx_drop=0 5V_pin=lo
+[05:32:40] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- peripheral
+tee: /sys/kernel/config/usb_gadget/gameguy/UDC: No such device
+/usr/local/bin/gameguy-usbnet: line 113: /usr/local/bin/gameguyprobe/usbnet-info.txt: No such file or directory
+[05:33:26]   LINK DEAD after 40 s
+[05:33:26]   otg_mode=peripheral udc=configured  carrier=1 usb0 UP 10.36.134.1/24  rx=311 tx=291 tx_err=0 tx_drop=0 5V_pin=lo
+[05:33:26]   dhcp log:
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPOFFER(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPREQUEST(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPACK(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:32 dnsmasq-dhcp[780]: DHCPREQUEST(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:32 dnsmasq-dhcp[780]: DHCPACK(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:35 dnsmasq[780]: exiting on receipt of SIGTERM
+[05:33:26]   kernel log:
+[  220.719404] dwc2 ff300000.usb: bound driver configfs-gadget
+[  220.884531] dwc2 ff300000.usb: new device is high-speed
+[  220.996701] dwc2 ff300000.usb: new device is high-speed
+[  221.051449] dwc2 ff300000.usb: new address 19
+[  221.067353] configfs-gadget gadget: high-speed config #1: c
+[  222.262338] systemd-fstab-generator[13585]: x-systemd.device-timeout ignored for /roms/tools
+[  223.659722] configfs-gadget gadget: unbind function 'cdc_ethernet'/ffffffc03df88800
+[  229.982195] phy phy-ff2c0000.syscon:usb2-phy@100.1: charger = USB_CDP_CHARGER
+[  230.004176] dwc2 ff300000.usb: bound driver configfs-gadget
+[  230.170323] dwc2 ff300000.usb: new device is high-speed
+[  230.282435] dwc2 ff300000.usb: new device is high-speed
+[  230.337187] dwc2 ff300000.usb: new address 20
+[  230.352293] configfs-gadget gadget: high-speed config #1: c
+[  231.426966] systemd-fstab-generator[14264]: x-systemd.device-timeout ignored for /roms/tools
+[05:33:26] RESULT 1: link did NOT come back
+[05:33:26]  repair 1: unbind and rebind the gadget
+[05:33:26] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+[05:33:27] write /sys/kernel/config/usb_gadget/gameguy/UDC <- ff300000.usb
+[05:34:08]   LINK DEAD after 40 s
+[05:34:08]   otg_mode=peripheral udc=configured  carrier=1 usb0 UP 10.36.134.1/24  rx=352 tx=321 tx_err=0 tx_drop=0 5V_pin=lo
+[05:34:08]   dhcp log:
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPOFFER(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPREQUEST(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPACK(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:32 dnsmasq-dhcp[780]: DHCPREQUEST(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:32 dnsmasq-dhcp[780]: DHCPACK(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:35 dnsmasq[780]: exiting on receipt of SIGTERM
+[05:34:08]   kernel log:
+[  223.659722] configfs-gadget gadget: unbind function 'cdc_ethernet'/ffffffc03df88800
+[  229.982195] phy phy-ff2c0000.syscon:usb2-phy@100.1: charger = USB_CDP_CHARGER
+[  230.004176] dwc2 ff300000.usb: bound driver configfs-gadget
+[  230.170323] dwc2 ff300000.usb: new device is high-speed
+[  230.282435] dwc2 ff300000.usb: new device is high-speed
+[  230.337187] dwc2 ff300000.usb: new address 20
+[  230.352293] configfs-gadget gadget: high-speed config #1: c
+[  231.426966] systemd-fstab-generator[14264]: x-systemd.device-timeout ignored for /roms/tools
+[  274.590337] configfs-gadget gadget: unbind function 'cdc_ethernet'/ffffffc03df88800
+[  275.665832] dwc2 ff300000.usb: bound driver configfs-gadget
+[  275.830165] dwc2 ff300000.usb: new device is high-speed
+[  275.942431] dwc2 ff300000.usb: new device is high-speed
+[  275.996990] dwc2 ff300000.usb: new address 21
+[  276.010657] configfs-gadget gadget: high-speed config #1: c
+[05:34:08]  repair 2: phy to automatic, then back to forced device mode
+[05:34:08] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+[05:34:09] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- otg
+[05:34:10] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- peripheral
+[05:34:11] write /sys/kernel/config/usb_gadget/gameguy/UDC <- ff300000.usb
+[05:34:52]   LINK DEAD after 40 s
+[05:34:52]   otg_mode=peripheral udc=configured  carrier=1 usb0 UP 10.36.134.1/24  rx=393 tx=351 tx_err=0 tx_drop=0 5V_pin=lo
+[05:34:52]   dhcp log:
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPOFFER(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPREQUEST(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPACK(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:32 dnsmasq-dhcp[780]: DHCPREQUEST(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:32 dnsmasq-dhcp[780]: DHCPACK(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:35 dnsmasq[780]: exiting on receipt of SIGTERM
+[05:34:52]   kernel log:
+[  230.352293] configfs-gadget gadget: high-speed config #1: c
+[  231.426966] systemd-fstab-generator[14264]: x-systemd.device-timeout ignored for /roms/tools
+[  274.590337] configfs-gadget gadget: unbind function 'cdc_ethernet'/ffffffc03df88800
+[  275.665832] dwc2 ff300000.usb: bound driver configfs-gadget
+[  275.830165] dwc2 ff300000.usb: new device is high-speed
+[  275.942431] dwc2 ff300000.usb: new device is high-speed
+[  275.996990] dwc2 ff300000.usb: new address 21
+[  276.010657] configfs-gadget gadget: high-speed config #1: c
+[  317.317014] configfs-gadget gadget: unbind function 'cdc_ethernet'/ffffffc03df88800
+[  319.416936] dwc2 ff300000.usb: bound driver configfs-gadget
+[  319.580929] dwc2 ff300000.usb: new device is high-speed
+[  319.693062] dwc2 ff300000.usb: new device is high-speed
+[  319.749896] dwc2 ff300000.usb: new address 22
+[  319.762712] configfs-gadget gadget: high-speed config #1: c
+[05:34:52]  repair 3: unbind and rebind the dwc2 driver
+[05:34:52] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+[05:34:52] write /sys/bus/platform/drivers/dwc2/unbind <- ff300000.usb
+[05:34:53] write /sys/bus/platform/drivers/dwc2/bind <- ff300000.usb
+tee: /sys/kernel/config/usb_gadget/gameguy/UDC: No such device
+/usr/local/bin/gameguy-usbnet: line 113: /usr/local/bin/gameguyprobe/usbnet-info.txt: No such file or directory
+[05:35:39]   LINK DEAD after 40 s
+[05:35:39]   otg_mode=peripheral udc=not attached  carrier= usb0 DOWN 10.36.134.1/24  rx= tx= tx_err= tx_drop= 5V_pin=lo
+[05:35:39]   dhcp log:
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPOFFER(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPREQUEST(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPACK(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:32 dnsmasq-dhcp[780]: DHCPREQUEST(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:32 dnsmasq-dhcp[780]: DHCPACK(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:35 dnsmasq[780]: exiting on receipt of SIGTERM
+[05:35:39]   kernel log:
+[  361.842082] dwc2 ff300000.usb: dwc2_wait_for_mode: Couldn't set device mode
+[  361.944416] dwc2 ff300000.usb: EPs: 10, dedicated fifos, 972 entries in SPRAM
+[  361.947211] dwc2 ff300000.usb: DWC OTG Controller
+[  361.947306] dwc2 ff300000.usb: new USB bus registered, assigned bus number 1
+[  361.947408] dwc2 ff300000.usb: irq 19, io mem 0xff300000
+[  361.947933] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[  361.947972] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[  361.948002] usb usb1: Product: DWC OTG Controller
+[  361.948031] usb usb1: Manufacturer: Linux 4.4.189 dwc2_hsotg
+[  361.948125] usb usb1: SerialNumber: ff300000.usb
+[  361.949759] hub 1-0:1.0: USB hub found
+[  361.949901] hub 1-0:1.0: 1 port detected
+[  364.170600] dwc2 ff300000.usb: bound driver configfs-gadget
+[  365.651979] systemd-fstab-generator[20535]: x-systemd.device-timeout ignored for /roms/tools
+[05:35:39]  repair 4: reload the dwc2 module
+[05:35:39] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+tee: /sys/kernel/config/usb_gadget/gameguy/UDC: No such device
+/usr/local/bin/gameguy-usbnet: line 113: /usr/local/bin/gameguyprobe/usbnet-info.txt: No such file or directory
+[05:36:25]   LINK DEAD after 40 s
+[05:36:25]   otg_mode=peripheral udc=not attached  carrier= usb0 DOWN 10.36.134.1/24  rx= tx= tx_err= tx_drop= 5V_pin=lo
+[05:36:25]   dhcp log:
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPOFFER(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPREQUEST(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:29:08 dnsmasq-dhcp[780]: DHCPACK(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:32 dnsmasq-dhcp[780]: DHCPREQUEST(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:32 dnsmasq-dhcp[780]: DHCPACK(usb0) 10.36.134.2 02:36:00:00:86:02 
+Apr 14 05:32:35 dnsmasq[780]: exiting on receipt of SIGTERM
+[05:36:25]   kernel log:
+[  408.787365] dwc2 ff300000.usb: dwc2_wait_for_mode: Couldn't set device mode
+[  408.888394] dwc2 ff300000.usb: EPs: 10, dedicated fifos, 972 entries in SPRAM
+[  408.889500] dwc2 ff300000.usb: DWC OTG Controller
+[  408.889578] dwc2 ff300000.usb: new USB bus registered, assigned bus number 1
+[  408.889656] dwc2 ff300000.usb: irq 19, io mem 0xff300000
+[  408.897629] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[  408.897671] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[  408.897692] usb usb1: Product: DWC OTG Controller
+[  408.897712] usb usb1: Manufacturer: Linux 4.4.189 dwc2_hsotg
+[  408.897732] usb usb1: SerialNumber: ff300000.usb
+[  408.899284] hub 1-0:1.0: USB hub found
+[  408.899377] hub 1-0:1.0: 1 port detected
+[  411.106837] dwc2 ff300000.usb: bound driver configfs-gadget
+[  412.569638] systemd-fstab-generator[20866]: x-systemd.device-timeout ignored for /roms/tools
+[05:36:25] REBOOTING: nothing brought the link back

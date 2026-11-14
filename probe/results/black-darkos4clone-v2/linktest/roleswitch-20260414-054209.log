@@ -1,0 +1,40 @@
+[05:42:12] roleswitch-check on unit 134; laptop 10.36.134.2; kernel 4.4.189; dr_mode=otg
+[05:42:12]   otg_mode=peripheral udc=configured  carrier=1 usb0 UP 10.36.134.1/24 fe80::36:ff:fe00:8601/64  rx=408 tx=413 tx_err=0 tx_drop=0 5V_pin=lo
+[05:42:12]   LINK OK after 0 s
+[05:42:12] TRIAL 0: gadget unbound and rebound, no host mode
+[05:42:12] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+tee: /sys/kernel/config/usb_gadget/gameguy/UDC: No such device
+[05:42:18]   LINK OK after 0 s
+[05:42:18] RESULT 0: link came back
+[05:42:18] TRIAL 1: host mode 5 s, then forced device mode (what the link test did)
+[05:42:18] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+[05:42:18] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- host
+[05:42:24]   otg_mode=host udc=not attached  carrier=0 usb0 DOWN 10.36.134.1/24 fe80::36:ff:fe00:8601/64  rx=453 tx=443 tx_err=0 tx_drop=0 5V_pin=lo
+[05:42:24] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- peripheral
+tee: /sys/kernel/config/usb_gadget/gameguy/UDC: No such device
+[05:42:28]   LINK OK after 0 s
+[05:42:28] RESULT 1: link came back
+[05:42:28] TRIAL 2: as trial 1, with the 5 V regulator driver unbound and rebound while in host mode (5 V stays off)
+[05:42:28] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+[05:42:28] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- host
+[05:42:31] write /sys/bus/platform/drivers/reg-fixed-voltage/unbind <- vbus_host
+[05:42:33] write /sys/bus/platform/drivers/reg-fixed-voltage/bind <- vbus_host
+[05:42:33]   otg_mode=host udc=not attached  carrier=0 usb0 DOWN 10.36.134.1/24 fe80::36:ff:fe00:8601/64  rx=481 tx=451 tx_err=0 tx_drop=0 5V_pin=lo
+[05:42:33] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- peripheral
+tee: /sys/kernel/config/usb_gadget/gameguy/UDC: No such device
+[05:42:37]   LINK OK after 0 s
+[05:42:37] RESULT 2: link came back
+[05:42:37] TRIAL 3: host mode 5 s, then the phy's automatic mode instead of forced device mode
+[05:42:37] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+[05:42:37] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- host
+[05:42:42] write /sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode <- otg
+[05:42:43]   otg_mode=otg udc=not attached  carrier=0 usb0 DOWN 10.36.134.1/24 fe80::36:ff:fe00:8601/64  rx=508 tx=455 tx_err=0 tx_drop=0 5V_pin=lo
+[05:42:43] write /sys/kernel/config/usb_gadget/gameguy/UDC <- ff300000.usb
+[05:42:44]   LINK OK after 0 s
+[05:42:44] RESULT 3: link came back
+[05:42:44] putting the unit back to its normal state
+[05:42:44] write /sys/kernel/config/usb_gadget/gameguy/UDC <- 
+tee: /sys/kernel/config/usb_gadget/gameguy/UDC: No such device
+[05:42:48]   otg_mode=peripheral udc=configured  carrier=1 usb0 UP 10.36.134.1/24  rx=544 tx=461 tx_err=0 tx_drop=0 5V_pin=lo
+[05:42:48]   LINK OK after 0 s
+[05:42:48] DONE

@@ -1,0 +1,22 @@
+#!/bin/bash
+# gameguy device-tree guard. Runs on the handheld at every boot (gameguy-dtb-guard.service,
+# installed by probe/tools/set-dtb.sh) and does nothing unless a device-tree change is pending.
+# A pending change is /boot/gameguy-dtb-trial, holding the file name of the previous tree. The
+# laptop confirms the change by creating /tmp/gameguy-dtb-ok over the USB link; if that doesn't
+# happen within 8 minutes of boot, this puts the previous tree back and reboots.
+T=/boot/gameguy-dtb-trial
+DTB=/boot/rk3326-r36s-type1-panel1-linux.dtb
+[ -f "$T" ] || exit 0
+PREV="/boot/$(head -1 "$T")"
+for i in $(seq 480); do
+  if [ -f /tmp/gameguy-dtb-ok ]; then
+    rm -f "$T"; sync
+    logger "gameguy-dtb-guard: device-tree change confirmed after ${i}s"
+    exit 0
+  fi
+  sleep 1
+done
+logger "gameguy-dtb-guard: no confirmation in 8 minutes; restoring $PREV"
+[ -f "$PREV" ] && cp -f "$PREV" "$DTB"
+rm -f "$T"; sync
+systemctl reboot

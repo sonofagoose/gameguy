@@ -121,6 +121,45 @@ Both units: **zero** CPU, RAM or GPU errors (`GameguyProbe-LongStress`, 2026-11-
   board): the DC port lacks the 5.1 kΩ CC pull-down resistors, and USB-C-to-C chargers only switch
   on 5 V when they see them. A USB-A charger with an A-to-C cable always supplies 5 V.
 
+## Two units on one USB-C cable (measured 2026-11-13)
+
+Two handhelds linked right port to right port with a USB-C to USB-C data cable: the black as USB
+host, the purple unchanged as a USB device (its normal laptop-link state). The purple appears on
+the black as a USB network adapter, high-speed (480 Mbit/s). Log:
+`probe/results/black-darkos4clone-v2/linktest/link-20260414-050731.log`.
+
+| test | sent | lost | round trip: min / avg / max (ms) |
+|---|---|---|---|
+| 32-byte packets, about 83 a second for 36 s | 3,000 | 0 | 0.29 / 0.47 / 6.09 |
+| 1,400-byte packets, 200 a second for 10 s | 2,000 | 0 | 0.25 / 0.49 / 3.80 |
+| one packet every 0.2 s for 10 s | 50 | 0 | 0.34 / 0.47 / 0.89 |
+
+- One frame is 17.1 ms, so a typical round trip is under 3% of a frame.
+- **What the host unit needs:** the device tree's USB controller in dual-role mode
+  (`dr_mode = "otg"`). Only the black has this so far (installed with `probe/tools/set-dtb.sh`;
+  the golden image v2 tree is kept in its `/boot` as `...dtb.prev-9ccb50bf`). The purple still has
+  golden image v2's device-only tree, which is all a guest needs.
+- **Switching roles:** write `host` or `peripheral` to
+  `/sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode`. `gameguy-usbnet`
+  forces `peripheral` at boot, so the laptop link is unchanged.
+- **Power for the cable:** in host mode the driver does not switch the port's 5 V on. The test
+  switched it on directly (GPIO 100, the `vbus_host` regulator's pin, after unbinding that
+  regulator's driver). A game hosting a link has to do the same, and must never do it while a
+  computer is plugged into that port. The phy reports a powered cable as `USB=1` in
+  `/sys/class/extcon/extcon0/state`; `power_supply/usb/online` reads 0 whenever a charger is on
+  the left port, so it can't be used for this.
+- **Battery:** the black drew about 397 mA before linking and 376–466 mA (average 413 mA) while
+  linked. The purple's charge level during the test is not known.
+- **Switching back** to device mode brings the laptop link back without a reboot. Checked three
+  ways from host mode with nothing attached, all of which worked
+  (`roleswitch-20260414-054209.log`). After the linked session itself the laptop link did not
+  come back, because of a bug in the unit's DHCP service that is now fixed; the switch back after
+  a linked session has not been re-run since the fix.
+- **Don't re-probe or reload the `dwc2` driver** on a running unit: both left the controller
+  unable to enter device mode until a reboot (`roleswitch-20260414-053225.log`).
+- Not yet tried: the purple as host, a link that stays up for hours, and what happens when the
+  cable is pulled mid-session.
+
 ## Not yet measured / caveats
 
 - Overclocking (CPU to 1608, GPU to 650, DDR to 1040 MHz are offered by ArkOS4Clone's DTB tool) is
