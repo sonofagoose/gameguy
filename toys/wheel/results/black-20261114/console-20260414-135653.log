@@ -1,0 +1,65 @@
+# wheel toy, session 20260414-135653
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+audio: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+t=0.4 call 1
+t=1.0 call 2
+t=1.0 scene: dark_find
+t=2.0 scene: phase
+t=2.6 in with Drip (last breath 25 ms from its tick)
+t=2.6 scene: dawn
+t=4.3 scene: knots
+t=4.5 call 3
+last 20 s: 1084 frames, 18.00 ms each (worst 314.78), 8 late; game work 0.66 ms (worst 1.32); audio 7505 callbacks, 0 gaps, worst gap 3.81 ms
+t=5.0 call 4
+t=5.3 lashed by C; steadiness 0.75
+t=5.4 call 5
+t=5.6 lashed by C; steadiness 0.50
+t=5.9 call 6
+t=5.9 lashed by C; steadiness 0.25
+t=6.4 call 7
+t=6.8 call 8
+t=7.1 lashed by C; steadiness 0.00
+t=7.1 shaken apart; they drew off
+t=7.3 call 9
+t=7.7 call 10
+t=8.2 call 11
+t=8.6 call 12
+t=8.9 lashed by C; steadiness 0.75
+t=9.1 call 13
+t=9.2 lashed by C; steadiness 0.50
+last 20 s: 1167 frames, 17.15 ms each (worst 81.97), 1 late; game work 0.96 ms (worst 1.22); audio 15011 callbacks, 0 gaps, worst gap 3.81 ms
+t=9.5 lashed by C; steadiness 0.25
+t=9.6 call 14
+t=10.0 call 15
+t=10.5 call 16
+t=10.8 lashed by C; steadiness 0.00
+t=10.8 shaken apart; they drew off
+t=10.9 call 17
+t=11.4 call 18
+t=11.9 call 19
+t=12.3 call 20
+t=12.6 lashed by C; steadiness 0.75
+t=12.8 call 21
+t=12.9 lashed by C; steadiness 0.50
+t=13.2 lashed by C; steadiness 0.25
+t=13.2 call 22
+t=13.7 call 23
+t=14.1 call 24
+last 20 s: 1171 frames, 17.09 ms each (worst 17.40), 0 late; game work 0.96 ms (worst 1.16); audio 22517 callbacks, 0 gaps, worst gap 3.86 ms
+t=14.4 lashed by C; steadiness 0.00
+t=14.4 shaken apart; they drew off
+t=14.6 call 25
+t=15.1 call 26
+t=15.5 call 27
+t=16.0 call 28
+t=16.2 lashed by C; steadiness 0.75
+t=16.4 call 29
+t=16.5 lashed by C; steadiness 0.50
+t=16.8 lashed by C; steadiness 0.25
+t=16.9 call 30
+t=17.4 call 31
+t=17.8 call 32
+whole session: 4270 frames, 17.34 ms each (worst 314.78), 9 late; game work 0.89 ms (worst 1.38); audio 27953 callbacks, 0 gaps, worst gap 3.86 ms
+played 17.9 s; ended in scene knots; home C; wheel opened 0 times; 0 strikes; best walk 0; breath holds 3
+exit code 0
