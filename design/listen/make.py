@@ -34,6 +34,26 @@ Lands, one tuning system each, each played the way it sounds best:
   15-land-no-octave.wav     Bohlen-Pierce: thirteen steps of a 3:1 "tritave" instead of the
                             octave, with a clarinet-like tone; a world where the octave isn't home.
   16-rhythm-becomes-pitch.wav  two pulses in 3-against-2 speed up until they fuse into a fifth.
+
+The wheel (../the-wheel.md, ../experience-fixes.md, ../the-way-home.md):
+  17-two-ways-home.wav        a full close, then an amen.
+  18-home-the-long-way.wav    walks home of two, three, four and five chords, then the whole key.
+  19-it-turns.wav             a close that lands on its neighbour; then on a borrowed chord.
+  20-borrowing-home.wav       a phrase in D that borrows the chord on C for one bar and returns.
+  21-the-slide.wav            home by a fifth, then home by a half step from the far side.
+  22-stand-where-they-meet.wav  three against five, then the note under both comes in on the one.
+  23-rising-doubled.wav       an echo's tune at four dusks: three warnings, then the howl.
+  24-the-comma-in-time.wav    a comma at middle C at 107 beats a minute: the wobble is eighth
+                              notes; a third voice between the two halves it into a heartbeat.
+  25-twelve-mornings.wav      twelve steps up by pure fifths in one breath, and the arrival.
+  26-one-note-seven-homes.wav one held note while home walks under it through the seven moods.
+  27-placed-and-true.wav      four fork strikes as the game places them, then as they ring when
+                              you were on the beat yourself.
+  28-two-tellings.wav         a day sung back with its earlier telling: the same, then different.
+  29-two-suns.wav             five dawns that open a comma apart and close; a sixth that doesn't.
+  30-be-the-ground.wav        five reeds wandering, then one low held note they come to stand on.
+  31-the-close-that-misses.wav  a close that lands; one that lands on the wolf fifth; then a
+                              third note between the wolf's two ends, and it rings.
 """
 import math
 import os
@@ -345,3 +365,353 @@ for rate0, gain in [(2.0, 0.5), (3.0, 0.5)]:
                 if i + k < len(m.buf):
                     m.buf[i + k] += gain * c
 m.save("16-rhythm-becomes-pitch.wav")
+
+
+# ---------------------------------------------------------------- the wheel (clips 17-31)
+# Sketches for ../the-wheel.md, ../experience-fixes.md and ../the-way-home.md.
+
+COMMA = (3 / 2) ** 12 / 2 ** 7          # the Pythagorean comma, 23.46 cents
+SOFT = table([1.0, 0.22, 0.07])          # a rounder voice: upper partials beat faster, so keep them low
+
+
+def glide(m, f0, f1, start, length, gain, at=0.0, over=0.0, wave=PAD, attack=0.12, release=0.4, phase0=0.0, swell=None):
+    """A note that can slide from f0 to f1 (starting `at` seconds in, taking `over` seconds).
+    `phase0` is in cycles. `swell` (seconds) fades it in slowly instead of `attack`."""
+    size = len(wave)
+    phase = phase0 * size
+    first = int(start * RATE)
+    held = int(length * RATE)
+    total = held + int(release * RATE)
+    a = max(1, int((swell or attack) * RATE))
+    r = max(1, int(release * RATE))
+    g0, g1 = int(at * RATE), int((at + over) * RATE)
+    for i in range(total):
+        j = first + i
+        if j >= len(m.buf):
+            break
+        if i <= g0 or over <= 0:
+            f = f0 if i <= g0 else f1
+        elif i >= g1:
+            f = f1
+        else:
+            f = f0 * (f1 / f0) ** ((i - g0) / (g1 - g0))
+        env = min(1.0, i / a)
+        if i > held:
+            env *= max(0.0, 1.0 - (i - held) / r)
+        m.buf[j] += gain * env * wave[int(phase) % size]
+        phase += f * size / RATE
+
+
+def just(root, kind="maj"):
+    """Chord tones as pure ratios above a root."""
+    shapes = {
+        "maj": [1, 5 / 4, 3 / 2],
+        "min": [1, 6 / 5, 3 / 2],
+        "dom7": [1, 5 / 4, 3 / 2, 7 / 4],        # the seventh harmonic: the barbershop seventh
+        "maj7": [1, 5 / 4, 3 / 2, 15 / 8],
+        "maj9": [1, 5 / 4, 3 / 2, 15 / 8, 9 / 4],
+        "dim": [1, 6 / 5, 7 / 5],                 # the top three notes of a dominant seventh
+        "sus4": [1, 4 / 3, 3 / 2],
+        "five": [1, 3 / 2],
+    }
+    return [root * r for r in shapes[kind]]
+
+
+def low(f, top=160.0):
+    while f > top:
+        f /= 2
+    while f < top / 2:
+        f *= 2
+    return f
+
+
+def progression(m, chords, t0, each, last, gain=0.6, tick=True):
+    """Play chords (lists of tones) voice-led into the middle of the keyboard, over their bass.
+    Returns the time after the last chord."""
+    prev = []
+    t = t0
+    for k, tones in enumerate(chords):
+        length = last if k == len(chords) - 1 else each
+        prev = voice_lead(prev, tones)
+        m.chord(prev + [low(tones[0])], t, length - 0.08, gain, attack=0.05)
+        if tick:   # a small pluck marks each step of the thumb
+            m.note(low(tones[0], 640.0), t, 0.2, 0.22, wave=PLUCK, attack=0.004, release=0.2, decay=0.25)
+        t += length
+    return t
+
+
+# degrees of a pure major key, as ratios above its home note
+D2, D2LOW, D3, D4, D5, D6, D7 = 9 / 8, 10 / 9, 5 / 4, 4 / 3, 3 / 2, 5 / 3, 15 / 8
+
+
+def key_chords(home):
+    return {
+        "I": just(home), "IV": just(home * D4), "V": just(home * D5), "V7": just(home * D5, "dom7"),
+        "ii": just(home * D2LOW, "min"), "vi": just(home * D6, "min"), "iii": just(home * D3, "min"),
+        "vii": just(home * D7, "dim"), "Imaj7": just(home, "maj7"), "Imaj9": just(home, "maj9"),
+    }
+
+
+# 17: two ways home. The full close (the creature on your right comes home), then the amen
+# (the one on your left is sung to sleep).
+K = key_chords(220.0)
+m = Mix(13.5)
+t = progression(m, [K["I"], K["vi"], K["V7"], K["I"]], 0.2, 1.15, 2.4)
+progression(m, [K["I"], K["vi"], K["IV"], K["I"]], t + 0.9, 1.15, 2.6)
+m.save("17-two-ways-home.wav")
+
+# 18: home the long way. Walks of two, three, four and five homes, then the whole key.
+# Each longer walk lands on a chord with one more colour in it.
+walks = [
+    ["V7", "I"],
+    ["ii", "V7", "I"],
+    ["vi", "ii", "V7", "Imaj7"],
+    ["iii", "vi", "ii", "V7", "Imaj9"],
+    ["I", "IV", "vii", "iii", "vi", "ii", "V7", "Imaj9"],
+]
+m = Mix(sum(len(w) - 1 for w in walks) * 0.85 + len(walks) * 3.0 + 1.0)
+t = 0.2
+for w in walks:
+    t = progression(m, [K[c] for c in w], t, 0.85, 2.2) + 0.8
+m.save("18-home-the-long-way.wav")
+
+# 19: it turns. The chord that should come home lands on its neighbour instead; then the bigger
+# turn, onto a borrowed chord, which walks home by a different road.
+m = Mix(14.0)
+t = progression(m, [K["I"], K["IV"], K["V7"], K["vi"]], 0.2, 1.1, 2.4)
+flat6, flat7 = just(220.0 * 8 / 5), just(220.0 * 9 / 5)
+progression(m, [K["I"], K["IV"], K["V7"], flat6, flat7, K["I"]], t + 0.9, 1.1, 2.6)
+m.save("19-it-turns.wav")
+
+# 20: borrowing home. The third morning is in D. For one bar the world borrows the garden's
+# chord, C, the note that set this morning, and comes back.
+Dk = key_chords(146.83)
+garden = just(146.83 * 16 / 9)            # two fifths below D: yesterday's yesterday
+m = Mix(15.0)
+t = progression(m, [Dk["I"], Dk["IV"], Dk["I"], Dk["V"]], 0.2, 1.1, 1.1)
+tune = [(0, D5 * 2), (0.55, D3 * 2), (1.1, D4 * 2), (1.65, D6 * 2), (2.2, D5 * 2), (2.75, D3 * 2), (3.3, D2 * 2), (3.85, D7)]
+for at, r in tune:
+    m.note(146.83 * 2 * r, 0.2 + at, 0.4, 0.3, wave=PLUCK, attack=0.005, release=0.25, decay=0.5)
+t = progression(m, [garden, Dk["I"]], t, 2.2, 2.6)
+for at, r in [(0, 16 / 9 * 5 / 4), (0.55, 16 / 9 * 3 / 2), (1.1, 16 / 9 * 2), (1.65, 16 / 9 * 3 / 2), (2.2, 2 * D3)]:
+    m.note(146.83 * 2 * r, t - 4.8 + at, 0.5, 0.3, wave=PLUCK, attack=0.005, release=0.3, decay=0.6)
+progression(m, [Dk["I"], just(146.83 * 8 / 5), just(146.83 * 9 / 5), Dk["I"]], t + 0.8, 1.1, 2.6)
+m.save("20-borrowing-home.wav")
+
+# 21: the slide. Home by a fifth, then home by a half step from the far side of the wheel
+# (the ferry).
+m = Mix(11.5)
+t = progression(m, [K["ii"], K["V7"], K["I"]], 0.2, 1.2, 2.4)
+ferry = just(220.0 * 16 / 15, "dom7")
+progression(m, [K["ii"], ferry, K["I"]], t + 0.9, 1.2, 2.6)
+m.save("21-the-slide.wav")
+
+# 22: stand where they meet. Two strands, three to the bar and five to the bar, singing C and
+# A. Then the note under both of them (F) comes in on the one, and the stumble is a groove.
+bar = 1.6
+bars_alone, bars_with = 4, 6
+root = 87.31                                  # F: its 3rd harmonic is C, its 5th is A
+m = Mix((bars_alone + bars_with) * bar + 2.5)
+for b in range(bars_alone + bars_with):
+    t0 = 0.2 + b * bar
+    for k in range(3):
+        m.note(root * 3, t0 + k * bar / 3, 0.12, 0.34, wave=PLUCK, attack=0.004, release=0.15, decay=0.16)
+    for k in range(5):
+        m.note(root * 5, t0 + k * bar / 5, 0.1, 0.3, wave=PLUCK, attack=0.004, release=0.12, decay=0.12)
+    if b >= bars_alone:
+        m.note(root * 2, t0, 0.5, 0.5, wave=PAD, attack=0.01, release=0.5, decay=0.5)
+        m.note(root, t0, 0.5, 0.3, wave=PAD, attack=0.01, release=0.5, decay=0.5)
+m.chord([root * 2, root * 4, root * 5, root * 6], 0.2 + bars_alone * bar, bars_with * bar, 0.3, attack=1.5, release=1.5)
+m.save("22-stand-where-they-meet.wav")
+
+# 23: rising doubled. An echo's tune at three dusks, its last note doubled a comma apart for a
+# moment before the dusk chord takes it in; a little longer each dusk. Then the eleventh dusk.
+C4 = 261.6256
+echo = [(0.0, 1), (0.3, D3), (0.6, D5), (0.9, D6), (1.2, D5), (1.5, D3), (1.8, D2)]
+m = Mix(27.0)
+t = 0.2
+for tail in (1.0, 1.5, 2.0):
+    for at, r in echo:
+        m.note(C4 * r, t + at, 0.28, 0.4, wave=PLUCK, attack=0.005, release=0.25, decay=0.6)
+    t1 = t + 2.1
+    glide(m, C4, C4, t1, tail, 0.3, wave=SOFT, release=0.5)
+    glide(m, C4 * COMMA, C4 * COMMA, t1, tail, 0.3, wave=SOFT, release=0.5)
+    m.chord([C4 / 2, C4 * 3 / 4, C4, C4 * 5 / 4, C4 * 3 / 2], t1 + tail, 1.6, 0.55, attack=0.25, release=0.8)
+    t = t1 + tail + 2.9
+for at, r in echo:
+    m.note(C4 * r, t + at, 0.28, 0.4, wave=PLUCK, attack=0.005, release=0.25, decay=0.6)
+glide(m, C4, C4, t + 2.1, 3.2, 0.34, wave=PAD, release=1.2)
+glide(m, C4 * COMMA, C4 * COMMA, t + 2.1, 3.2, 0.34, wave=PAD, release=1.2)
+glide(m, C4 * 3 / 2 / COMMA, C4 * 3 / 2 / COMMA, t + 2.5, 2.8, 0.22, wave=PAD, release=1.2)   # the fifth that falls short
+m.save("23-rising-doubled.wav")
+
+# 24: the comma in time. At 107 beats a minute a comma at middle C beats in eighth notes, so
+# the wobble is the pulse. Then a third voice comes in between the two, the pulse halves into a
+# heartbeat, and a chord grows on the note in the middle.
+beat_hz = C4 * (COMMA - 1)                    # 3.569 a second
+eighth = 1 / beat_hz
+q = 2 * eighth                                # one beat: 0.5604 s, 107.07 a minute
+mid = C4 * (1 + COMMA) / 2                    # what two near-unisons sum to
+m = Mix(52 * q + 3.0)
+t0 = 0.2
+for b in range(52):                           # the heartbeat, quiet, all the way through
+    m.note(C4 / 2, t0 + b * q, 0.1, 0.16 if b < 36 else 0.22, wave=SOFT, attack=0.004, release=0.2, decay=0.12)
+ta = t0 + 4 * q                               # the two voices start together, on a downbeat
+glide(m, C4, C4, ta, 40 * q, 0.3, wave=SOFT, attack=0.02, release=4 * q)
+glide(m, C4 * COMMA, C4 * COMMA, ta, 40 * q, 0.3, wave=SOFT, attack=0.02, release=4 * q)
+tb = ta + 16 * q                              # the third voice, in step with what they already sum to
+glide(m, mid, mid, tb, 30 * q, 0.8, wave=SOFT, swell=4 * q, release=3.0, phase0=(mid * (tb - ta)) % 1.0)
+tc = tb + 16 * q                              # home, built on the note in the middle
+for r, g in ((0.5, 0.3), (0.75, 0.2), (1.25, 0.18), (1.5, 0.2)):
+    glide(m, mid * r, mid * r, tc, 14 * q, g, wave=PAD, swell=4 * q, release=3.0, phase0=(mid * r * (tc - ta)) % 1.0)
+m.save("24-the-comma-in-time.wav")
+
+# 25: twelve mornings in one breath. Home, then twelve steps up by pure fifths, one a bar, and
+# the arrival: the same key as the start on a piano, a comma above it in truth. The first
+# note comes back and the two sit side by side.
+m = Mix(13 * 4 * q * 0.5 + 5 * 4 * q + 4.0)
+half = 2 * q                                  # one step every two beats
+t = 0.2
+m.chord([C4 / 2, C4, C4 * 5 / 4, C4 * 3 / 2], t, 2 * half - 0.1, 0.55, attack=0.1)
+t += 2 * half
+prev = []
+root = C4 / 2
+for step in range(1, 13):
+    root *= 3 / 2
+    if root > 190:
+        root /= 2
+    prev = voice_lead(prev, just(root))
+    m.chord(prev + [root], t, half - 0.06, 0.55, attack=0.04, release=0.3)
+    for k, f in enumerate(sorted(prev)):
+        m.note(f * 2, t + k * half / 4, 0.2, 0.2, wave=PLUCK, attack=0.004, release=0.2, decay=0.3)
+    t += half
+arrive = C4 * COMMA                           # twelve fifths up, seven octaves down
+glide(m, arrive, arrive, t, 16 * q, 0.3, wave=SOFT, attack=0.02, release=2.5)
+glide(m, C4, C4, t + 4 * q, 12 * q, 0.3, wave=SOFT, attack=0.02, release=2.5, phase0=(C4 * 4 * q) % 1.0)
+for b in range(16):
+    m.note(C4 / 2, t + b * q, 0.1, 0.16, wave=SOFT, attack=0.004, release=0.2, decay=0.12)
+m.save("25-twelve-mornings.wav")
+
+# 26: one note, seven homes. One held note, and home walks underneath it from the brightest
+# mood to the darkest, then back to sunny home. The note never moves; what it is does.
+homes = [
+    ("wonder", D4 / 2, [D4 / 2, D6 / 2]),             # F under it: the note is the fifth
+    ("sunny home", 0.5, [0.5, D3 / 2, D5 / 2]),        # C: the note is home
+    ("drive", D5 / 2, [D5 / 2, D2]),                    # G and D: the note hangs as the fourth
+    ("cool soul", D2LOW / 2, [D2LOW / 2, D4 / 2, D6 / 2]),   # D minor: the note is the seventh
+    ("tenderness", D6 / 2, [D6 / 2, D3]),               # A and E: the note is the minor third
+    ("fierceness", D3 / 2, [D3 / 2, D5 / 2]),           # E and G: the note is the minor sixth
+    ("the darkest", D7 / 4, [D7 / 4, D2LOW / 2, D4 / 2]),    # B, D, F: the note grinds a half step above
+    ("sunny home", 0.5, [0.5, D3 / 2, D5 / 2]),
+]
+span = 2.6
+m = Mix(len(homes) * span + 3.0)
+glide(m, C4, C4, 0.2, len(homes) * span + 0.8, 0.34, wave=SOFT, attack=0.3, release=1.5)
+for k, (_, bass, tones) in enumerate(homes):
+    t0 = 0.2 + k * span
+    length = span - 0.15 if k < len(homes) - 1 else span + 0.6
+    m.note(low(C4 * bass, 180.0), t0, length, 0.34, attack=0.25, release=0.5)
+    m.note(low(C4 * bass, 180.0) / 2, t0, length, 0.2, attack=0.25, release=0.5)
+    for r in tones[1:]:
+        m.note(C4 * r, t0, length, 0.2, attack=0.3, release=0.5)
+m.save("26-one-note-seven-homes.wav")
+
+# 27: a placed strike and a true one. Four fork strikes as the game places them, then the same
+# four as they ring when you were on the beat yourself.
+m = Mix(9.5)
+strikes = [220.0 * 2, 220.0 * 2 * D3, 220.0 * 2 * D5, 220.0 * 4]
+m.chord([110.0, 165.0, 220.0], 0.2, 8.4, 0.3, attack=0.3, release=0.8)
+for k, f in enumerate(strikes):
+    m.note(f, 0.4 + k * 0.56, 0.3, 0.5, wave=PLUCK, attack=0.004, release=0.3, decay=0.35)
+for k, f in enumerate(strikes):
+    t0 = 4.4 + k * 0.56
+    m.note(f, t0, 0.5, 0.5, wave=PLUCK, attack=0.004, release=0.6, decay=0.7)
+    m.note(f * 2, t0, 0.5, 0.26, wave=PLUCK, attack=0.004, release=0.6, decay=0.9)
+    m.note(f * 3, t0 + 0.02, 0.5, 0.1, wave=SINE, attack=0.004, release=0.8, decay=1.1)
+m.save("27-placed-and-true.wav")
+
+# 28: two tellings. The river sings a repeated day back with its earlier telling. First the two
+# are the same, note for note: one voice. Then the second telling differs, and there are two.
+first = [(0.0, 1), (0.4, D2), (0.8, D3), (1.2, D5), (1.8, D6), (2.2, D5), (2.6, D3), (3.0, D2), (3.4, D3), (4.0, 1)]
+second = [(0.0, 1), (0.4, D2), (0.8, D3), (1.2, D5), (1.8, 2.0), (2.2, D7), (2.6, D5), (3.2, D4), (3.6, D5), (4.0, D3)]
+m = Mix(12.5)
+for t0, other in ((0.2, first), (6.2, second)):
+    m.chord([110.0, 165.0], t0, 4.8, 0.22, attack=0.3, release=0.8)
+    for at, r in first:
+        m.note(220.0 * r, t0 + at, 0.34, 0.4, wave=PLUCK, attack=0.005, release=0.3, decay=0.7)
+    for at, r in other:
+        m.note(220.0 * r, t0 + at, 0.34, 0.4, wave=SOFT, attack=0.03, release=0.3, decay=0.9)
+m.save("28-two-tellings.wav")
+
+# 29: two suns. Five dawns on the way home. Each opens with the land's note and the day's a
+# comma apart; the land gives way and the dawn chord blooms. It takes longer each morning.
+# The sixth dawn is the garden's, and it doesn't give way.
+m = Mix(38.5)
+t = 0.2
+for morning, wait in zip(range(8, 13), (0.5, 1.0, 1.0, 2.0, 3.0)):
+    note = C4 * (3 / 2) ** (morning - 1)
+    while note > 330:
+        note /= 2
+    glide(m, note, note, t, wait + 2.6, 0.3, wave=SOFT, attack=0.05, release=0.8)
+    glide(m, note / COMMA, note, t, wait + 2.6, 0.3, at=wait, over=0.45, wave=SOFT, attack=0.05, release=0.8)
+    for k, r in enumerate((0.5, 0.75, 1.25, 1.5, 2.0)):
+        m.note(note * r, t + wait + 0.45 + k * 0.12, 2.0 - k * 0.12, 0.2, attack=0.2, release=0.8)
+    t += wait + 4.3
+note = C4 * COMMA
+glide(m, note, note, t, 5.0, 0.3, wave=SOFT, attack=0.05, release=2.0)
+glide(m, C4, C4, t, 5.0, 0.3, wave=SOFT, attack=0.05, release=2.0)
+m.save("29-two-suns.wav")
+
+# 30: be the ground. Five reeds, each singing by itself with no floor under them. Then one low
+# held note comes in, and one by one they stand on it.
+REED2 = table([1.0, 0.0, 0.4, 0.0, 0.2, 0.0, 0.1])
+scale = [1, D2, D4, D5, D6, 2, 2 * D2, 2 * D4]      # a five-note chant mode on D
+seed = 12345
+def rnd():
+    global seed
+    seed = (seed * 1103515245 + 12345) % 2 ** 31
+    return seed / 2 ** 31
+base = 146.83 * 2
+total = 24.0
+m = Mix(total + 2.5)
+drone_at = 9.0
+m.note(base / 2, drone_at, total - drone_at, 0.42, attack=1.2, release=1.5)
+m.note(base / 4, drone_at, total - drone_at, 0.28, attack=1.2, release=1.5)
+m.note(base * 3 / 4, drone_at + 4.0, total - drone_at - 4.0, 0.2, attack=1.5, release=1.5)
+for reed in range(5):
+    t = 0.2 + rnd() * 0.9
+    lock_at = drone_at + 1.5 + reed * 2.2       # when this reed finds the ground
+    step = int(rnd() * len(scale))
+    while t < total:
+        if t < lock_at:
+            length = 0.5 + rnd() * 0.9            # each in its own time
+            step = max(0, min(len(scale) - 1, step + int(rnd() * 5) - 2))
+            f = base * scale[step] * (2 ** ((rnd() - 0.5) * 0.007))
+        else:
+            length = 0.9                          # together, in the ground's time
+            t = drone_at + round((t - drone_at) / 0.9) * 0.9
+            chant = [1, D2, D4, D5, D4, D2, 1, D5 / 2]
+            f = base * chant[int((t - drone_at) / 0.9) % len(chant)] * (1.5 if reed % 2 else 1.0)
+        m.note(f, t, length * 0.85, 0.16, wave=REED2, attack=0.08, release=0.3)
+        t += length
+m.save("30-be-the-ground.wav")
+
+# 31: the close that misses. A close that lands (E flat falling home to A flat, tuned pure).
+# Then the same close in the Hollow's own tuning, where home's fifth is the wolf. Then the wolf
+# again, and a third note comes in between its two ends: both move a hair to tune to it, and
+# the howl is a chord.
+m = Mix(19.5)
+ab = 207.65
+m.chord(just(ab * 3 / 4) + [ab * 3 / 8], 0.2, 1.3, 0.6, attack=0.05)
+m.chord([ab / 2, ab, ab * 3 / 2], 1.6, 2.2, 0.55)
+t = 4.9
+m.chord([mt(-3, -1), mt(-3), mt(1), mt(-2)], t, 1.3, 0.6, attack=0.05)     # E flat major, in meantone
+wolf_low, wolf_high = mt(8), mt(-3, 1)        # G sharp and the E flat above it
+m.chord([wolf_low / 2, wolf_low, wolf_high], t + 1.4, 2.4, 0.55)
+t += 5.0
+third = wolf_low * 2 ** (17.84 / 1200) * 5 / 4     # the green note between them
+glide(m, wolf_low, third * 4 / 5, t, 7.0, 0.32, at=2.4, over=0.9, release=1.5)
+glide(m, wolf_high, third * 6 / 5, t, 7.0, 0.32, at=2.4, over=0.9, release=1.5)
+glide(m, third, third, t + 1.6, 5.4, 0.34, swell=0.8, release=1.5)
+glide(m, third * 2 / 5, third * 2 / 5, t + 3.6, 3.4, 0.3, wave=SINE, swell=1.2, release=1.5)
+m.save("31-the-close-that-misses.wav")
