@@ -463,6 +463,10 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     var window_timing = Timing{};
     var last_swap = platform.now();
     var last_report = last_swap;
+    // The time one frame takes, measured from one buffer swap to the next. (The swap is where
+    // the wait for the display happens, so the time from a swap to the top of the loop is
+    // almost nothing.)
+    var frame_dt: f64 = 1.0 / 58.5;
     var frame_ms: f64 = 17.1;
     var expected_interval: f64 = 1.0 / 58.5;
     var tally = scene_mod.Tally{};
@@ -486,7 +490,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
             if (event.type == c.SDL_QUIT) break :running;
         }
 
-        const dt: f32 = if (options.headless) 1.0 / 60.0 else @floatCast(std.math.clamp(frame_start - last_swap, 1.0 / 240.0, 1.0 / 20.0));
+        const dt: f32 = if (options.headless) 1.0 / 60.0 else @floatCast(std.math.clamp(frame_dt, 1.0 / 240.0, 1.0 / 20.0));
         const hands = if (options.headless) demoHands(options.demo, frame) else pad.read(dt);
         if (hands.quit) break;
         if (hands.toggle_numbers) numbers = !numbers;
@@ -554,6 +558,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
         sdl.GL_SwapWindow(window.handle);
         const swapped = platform.now();
         const interval = swapped - last_swap;
+        frame_dt = interval;
         last_swap = swapped;
         frame += 1;
 

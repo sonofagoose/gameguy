@@ -9,6 +9,12 @@ water between you stands still. Where it is a little off, the pattern turns at t
 tones beat, and the turning carries you: sharp pushes you away, flat draws you in. One crest
 passes you per beat, so what you hear and what you see move together.
 
+> **2026-11-14.** The session played on the black unit on 2026-11-12 ran this toy's world at
+> about a quarter speed, while its sound ran at full speed: 16,214 frames at 17.09 ms is 277
+> seconds, and the log says 67.7 seconds were played. The time each frame took was measured from
+> the wrong moment. It is fixed. The verdict from that session ("interesting mechanic", "not much
+> feels like a game") was on the slowed toy.
+
 ## Controls
 
 Face buttons are named by position, because the printed letters on these handhelds differ from
