@@ -1,0 +1,10 @@
+kind read-card; built-in storage mmcblk2; card mmcblk1; toy run with: no pinning
+irq 20 on cores 0-3
+irq 21 on cores 0-3
+irq 22 on cores 0-3
+ 20:          0          0          0          0     GICv2  86 Level     dw-mci
+ 21:       3773          0          0          0     GICv2  87 Level     dw-mci
+ 22:    4776731          0          0     532626     GICv2  85 Level     dw-mci
+ 20:          0          0          0          0     GICv2  86 Level     dw-mci
+ 21:       4001          0          0          0     GICv2  87 Level     dw-mci
+ 22:    4798782          0          0     532626     GICv2  85 Level     dw-mci

@@ -1,5 +1,6 @@
 #!/bin/bash
-# Run the page toy with its logs in memory instead of on the SD card, and a watcher beside it.
+# Run the page toy with its logs in memory instead of on the built-in storage, and a watcher
+# beside it.
 XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
 if [ -d "/opt/system/Tools/PortMaster/" ]; then controlfolder="/opt/system/Tools/PortMaster"
 elif [ -d "/opt/tools/PortMaster/" ]; then controlfolder="/opt/tools/PortMaster"

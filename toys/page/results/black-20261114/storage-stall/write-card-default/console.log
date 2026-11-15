@@ -1,0 +1,59 @@
+# page toy, session 20260414-195122
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+audio: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+look: PLACE ONLY
+t=0.2 in with Drip (last breath 300 ms from its tick)
+t=0.2 scene: dawn
+t=7.7 scene: knots
+t=7.7 scene: waking
+t=7.9 wheel opened
+t=8.4 wheel closed after 0.68 s
+t=8.5 home F (was C)
+t=15.0 a frame took 86 ms (game work 79.3 ms) at clock 1776210697.959
+t=15.2 a frame took 162 ms (game work 1.1 ms) at clock 1776210698.257
+t=18.0 scene: run
+t=18.0 scene: garden
+t=18.2 wheel opened
+t=18.7 wheel closed after 0.68 s
+t=18.8 home D (was F)
+last 20 s: 1128 frames, 17.28 ms each (worst 162.43), 2 late; game work 1.27 ms (worst 79.31); audio 7500 callbacks, 0 gaps, worst gap 2.93 ms
+t=23.6 wheel opened
+t=24.1 wheel closed after 0.68 s
+t=24.8 home G (was D)
+t=26.1 strike: rang 1, on a meeting 1
+t=26.7 G went grey
+t=26.7 strike: rang 1, on a meeting 1
+t=26.9 wheel opened
+t=27.4 wheel closed after 0.68 s
+t=27.7 home C (was G)
+t=28.0 lashed by C; steadiness 0.75
+t=29.0 G came home
+t=29.0 a walk of 1 landed, -20 ms from the one
+t=29.6 strike: rang 1, on a meeting 1
+t=30.2 C went grey
+t=30.2 strike: rang 1, on a meeting 1
+t=30.4 wheel opened
+t=30.9 wheel closed after 0.68 s
+t=31.2 home F (was C)
+t=31.9 C came home
+t=31.9 a walk of 1 landed, -29 ms from the one
+t=32.0 lashed by D; steadiness 0.50
+t=32.3 wheel opened
+t=32.8 wheel closed after 0.68 s
+t=32.8 home D (was F)
+t=33.5 strike: rang 1, on a meeting 1
+t=34.1 D went grey
+t=34.1 strike: rang 1, on a meeting 1
+t=34.3 wheel opened
+t=34.9 wheel closed after 0.68 s
+t=35.2 home G (was D)
+t=37.7 D came home
+t=37.7 a walk of 1 landed, -29 ms from the one
+last 20 s: 1170 frames, 17.09 ms each (worst 20.45), 0 late; game work 1.42 ms (worst 2.40); audio 15000 callbacks, 0 gaps, worst gap 2.99 ms
+t=42.9 wheel opened
+t=43.4 wheel closed after 0.68 s
+t=43.7 home B (was G)
+whole session: 2570 frames, 17.17 ms each (worst 162.43), 2 late; game work 1.34 ms (worst 79.31); audio 16744 callbacks, 0 gaps, worst gap 2.99 ms
+played 44.5 s; ended in scene garden; home B; wheel opened 8 times; 6 strikes; best walk 1; breath holds 3
+the view: 0.0 s on the page, 44.5 s in the place, 0.0 s between; look at the end: PLACE ONLY; busiest frame 1089 marks

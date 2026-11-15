@@ -73,35 +73,58 @@ on the CPU, one draw call. 17.10 ms a frame, worst 20.3, none late in 4,270, wit
 for the game, the projection and the draw call. Drawing the garden as a page (from above) or as
 a place (from behind the creature) costs the same.
 
-## SD card activity stalls frames (measured 2026-11-14)
+## Storage activity stalls frames (measured 2026-11-14)
 
-**Any write to the SD card can freeze the picture for up to a quarter of a second**, whoever
-makes it: the game, or the system in the background.
+**Reading or writing the built-in storage (the eMMC, where the system and `/roms` live) can freeze
+the picture for up to a quarter of a second and drop the sound for up to 84 ms**, whoever does it:
+the game, or the system in the background.
 
-- **What happens.** While the card is being written, its controller (`dw-mci`, interrupt 22 for
-  the system card) raises about **70,000 interrupts a second**, with as many tasklets and about
-  145,000 context switches a second. They land on core 0, which is also the core that serves the
-  GPU's interrupts and the display's. Frames stop arriving until the burst ends.
+- **What happens.** The eMMC's controller (`dw-mci` at `ff390000`, interrupt 22) raises 1,100 to
+  5,000 interrupts for every 256 KB it moves: about **70,000 a second** while it works, with as
+  many tasklets and about 145,000 context switches a second. They land on core 0, which is also
+  the core that serves the GPU's interrupts and the display's. Frames stop arriving until the
+  burst ends.
 - **How it was found.** Every toy had 3 to 10 late frames a session, 150 to 315 ms each. Each one
   lined up with a burst on that interrupt, to within the 50 ms the watcher sampled at. Keeping
   the toy's own logs in memory did not remove them (the system writes too), and no CPU, GPU or
   DDR clock change happened during a run.
-- **The test.** The same scripted session, with 256 KB written to the card and pushed out every
-  two seconds:
+- **The tests.** The same scripted session, with 256 KB moved every two seconds:
 
-| | late frames | worst frame | average |
-|---|---|---|---|
-| as the device comes (35 writes) | 15 of 4,270 | 243 ms | 17.65 ms |
-| card interrupts moved to core 3, the toy kept on cores 0 to 2 (34 writes) | **0** | **17.97 ms** | 17.09 ms |
+| every two seconds, 256 KB was | as the device comes | storage interrupts on core 3, the toy on cores 0 to 2 |
+|---|---|---|
+| written to the built-in storage (35 and 34 times in 4,270 frames) | 15 late frames, the worst 243 ms | **none late, the worst 18.0 ms**; one audio gap of 12 ms |
+| read from the built-in storage (19 times in 2,570 frames) | 4 stalled frames, the worst 228 ms; 7 audio gaps, the worst 84 ms | none stalled, the worst 29 ms; no audio gaps |
+| read from an SD card in the TF2 slot (19 times in 2,570 frames) | 1 stalled frame of 87 ms; 2 audio gaps, the worst 77 ms | none stalled, the worst 29 ms; one audio gap of 8 ms |
+| written to an SD card in the TF2 slot (20 times in 2,570 frames) | one stall of two frames (86 and 162 ms); no audio gaps | none stalled, the worst 20.1 ms; one audio gap of 8 ms |
 
+- **A card in the TF2 slot is far lighter than the built-in storage.** Its controller
+  (`ff380000`, interrupt 21) raised **12 interrupts for each 256 KB read** and **410 to 460 for
+  each 256 KB written and pushed out**, against 1,100 to 5,000 for the built-in storage either
+  way. The card (a 32 GB SDHC, exFAT) ran in its fastest mode, SDR104.
+  - The stalled frame in the card's read session fell between two reads, while the built-in
+    storage raised 22,000 interrupts of its own in the background; the card raised 228 in all.
+  - The stall in its write session came 0.15 s after one of the 20 writes finished; the other 19
+    caused none. The built-in storage raised 16,500 interrupts in that session too, so which of
+    the two caused it is not settled.
 - **The cure, in every toy's launcher:** before the program starts, write `3` to
   `/proc/irq/N/smp_affinity_list` for each `dw-mci` interrupt, run the program under
   `taskset -c 0-2`, and put the interrupts back afterwards. It needs `sudo`, which a Ports
   launcher has. With it, full sessions of the wheel and page toys ran with no late frame (worst
   20.5 ms) and no audio gap.
-- **What it means for the game.** One core belongs to the card; the game has three. Saving and
-  loading no longer cost frames, but should still be kept to moments that can spare a core.
-- Tools: `toys/page/tools/` (the watcher, and the two test launchers).
+- **What it means for the game.**
+  - One core belongs to storage; the game has three.
+  - The game's files are better on a card in TF2 than in `/roms` on the built-in storage.
+  - Three of the four cured test sessions still had a single audio gap of 8 to 12 ms, and a
+    seven-minute session played by hand from the menu had 11 (the worst 15 ms), about one every
+    40 seconds, with no stalled frame. Scripted sessions started over the cable had none. So
+    storage bursts on core 3 may still delay the sound a little. Not explained yet.
+- **The TF2 slot only looks for a card at boot.** Its card-detect line read "present" with no
+  change recorded since boot, with the slot empty and after a card went in. A card put in while
+  the unit runs is not noticed until a restart, or until that slot's controller is unbound and
+  bound again (`ff380000.dwmmc` under `/sys/bus/platform/drivers/dwmmc_rockchip/`; never the
+  eMMC's, `ff390000`). Nothing mounts a TF2 card by itself: `/etc/fstab` has no entry for it.
+- Tools and sessions: `toys/page/tools/` (the watcher, and the test launchers) and
+  `toys/page/results/black-20261114/storage-stall/`.
 
 ## CPU and memory
 

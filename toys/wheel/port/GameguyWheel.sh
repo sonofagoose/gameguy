@@ -21,10 +21,11 @@ mkdir -p results
 STAMP=$(date +%Y%m%d-%H%M%S)
 chmod +x ./wheel-aarch64 2>/dev/null
 
-# Any write to the SD card stalls frames for up to a quarter of a second on this handheld: the
-# card controller raises about 70,000 interrupts a second on the core that also serves the GPU
-# and the display (measured 2026-11-14, docs/hardware-target.md). So the card's interrupts get
-# the last core to themselves while the toy runs, and the toy keeps to the other three.
+# Reading or writing the built-in storage stalls frames for up to a quarter of a second on this
+# handheld: its controller raises about 70,000 interrupts a second on the core that also serves
+# the GPU and the display (measured 2026-11-14, docs/hardware-target.md). So the storage
+# controllers' interrupts get the last core to themselves while the toy runs, and the toy keeps
+# to the other three.
 PIN=""
 SDIRQS=$(grep -a dw-mci /proc/interrupts | cut -d: -f1 | tr -d ' ')
 for i in $SDIRQS; do
