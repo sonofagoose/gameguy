@@ -303,7 +303,10 @@ pub const World = struct {
     prompt_show: f32 = 0.0,
     said: []const u8 = "",
     said_left: f32 = 0.0,
-    taught: packed struct { wheel: bool = false, strike: bool = false, hold: bool = false, nudge: bool = false } = .{},
+    taught: packed struct { wheel: bool = false, strike: bool = false, hold: bool = false, nudge: bool = false, dodge: bool = false } = .{},
+    /// Beats left for which the toy says how to dodge: set by a lash, until a dodge first opens
+    /// the pocket.
+    dodge_hint: f32 = 0.0,
     idle: f32 = 0.0,
 
     events: [64]Event = undefined,
@@ -1117,6 +1120,8 @@ pub const World = struct {
             if (away <= self.oneWindow() * 1.2) {
                 self.pocket = 1.5;
                 self.pocket_hits = 0;
+                self.taught.dodge = true;
+                self.dodge_hint = 0.0;
                 self.note_event(.pocket, c.note, away);
                 self.play(.{ .table = .pad, .hz = self.homeHz(self.home, 392.0), .gain = 0.08, .attack = 0.02, .hold = 0.3, .decay = 0.5 });
             }
@@ -1238,14 +1243,17 @@ pub const World = struct {
                     if (c.state == .grey) grey = true;
                 }
                 if (grey) self.taught.hold = true;
-                if (self.wheel_opens == 0 and since > 6.0) {
-                    want = "HOLD R1";
-                } else if (self.wheel_open and self.home != drip_note) {
-                    want = "POINT WHERE THEY MEET";
+                if (self.wheel_opens == 0) {
+                    if (since > 6.0) want = "HOLD R1";
+                } else if (self.home != drip_note and open < 3) {
+                    // Home is not where the strands meet: no strike rings true there and
+                    // nothing comes home, so say so whether or not the wheel is open.
+                    want = if (self.wheel_open) "POINT WHERE THEY MEET" else "R1: POINT WHERE THEY MEET";
                 } else if (grey) {
                     want = "HOLD R2. LET GO ON THE ONE";
-                } else if (self.home == drip_note and open < 3) {
-                    want = "STRIKE ON THE ONE";
+                } else if (open < 3) {
+                    // the left face button, which this handheld prints as Y
+                    want = "Y: STRIKE ON THE ONE";
                 }
                 if (open == 3) {
                     self.setStage(.waking);
@@ -1302,6 +1310,11 @@ pub const World = struct {
             },
         }
         self.r2_was = in.r2;
+
+        // After a lash, until a dodge has opened the pocket once: the right face button, which
+        // this handheld prints as A.
+        self.dodge_hint = @max(0.0, self.dodge_hint - db);
+        if (self.dodge_hint > 0.0 and !self.wheel_open and !self.swell) want = "A: DODGE ON ITS BEAT";
 
         if (!std.mem.eql(u8, want, self.prompt)) {
             self.prompt_show -= dt * 4.0;
@@ -1480,6 +1493,7 @@ pub const World = struct {
         self.play(.{ .table = .soft, .hz = 70.0, .gain = 0.30, .decay = 0.12, .bend = 2.0 });
         self.play(.{ .table = .reed, .hz = self.noteHz(c.note, 196.0), .gain = 0.10, .decay = 0.2 });
         self.note_event(.lash, c.note, self.steady);
+        if (!self.taught.dodge) self.dodge_hint = 6.0;
         if (self.swell) self.release(true);
         if (self.steady <= 0.0) {
             // nothing dies: they draw off, and Hum gathers itself

@@ -119,26 +119,68 @@ unit's clock reads April):
 - The wheel toy's own renderer does the page in 0.68 ms of work a frame. Seeing it through the
   camera costs about 0.6 ms more.
 
-Nobody has played it by hand yet.
+## Played by hand, 2026-11-14
 
-## What it found on the way: SD card writes stall frames
+Morgan played it twice on the black unit (`results/black-20261114/by-hand/`), in the default look.
+His first words, with a fuller report to come:
+
+- "there were some moments where it really click"
+- "the moments in the music and everything ... and the beat ... it was all feeling really good"
+- "I do love the ... aesthetic and ... visual aspects of the thing I was playing"
+- "really liked the little 'oh' moment"
+
+What the two logs show:
+
+| | first session | second session |
+|---|---|---|
+| length | 2 min 29 s | 7 min 25 s |
+| in with Drip | after 50 s, the last breath 8 ms from its tick | after 62 s, the last breath 9 ms from its tick |
+| the wheel | opened 10 times, held up to 23 s | opened 11 times, held 6 s in the middle, up to 16 s |
+| strikes | none | 155: 17 on a meeting, 43 timed by hand |
+| lashed | 10 times, shaken apart twice | 36 times, shaken apart 9 times; 2 pockets |
+| let go when nothing could come home | 3 times (nothing was grey) | 15 times, 12 of them with a grey knot or creature waiting |
+| the knots | none went grey | first one grey after 115 s of the fight, all three home after 293 s |
+| got as far as | the knots | the three creatures; one walked home, 102 ms from the one |
+| on the page, in the place | 104 s, 37 s | 178 s, 249 s |
+| late frames, sound gaps | 2 (worst 28 ms), none | 3 (worst 27 ms), 11 (worst 15 ms) |
+
+- The look was never changed with the D-pad, so only "page and place" has been seen by hand.
+- **The toy never said which button strikes,** and in the first session nothing was struck.
+- **It gave no hint when home was in the wrong place.** With home off the meeting place, strikes
+  do not drain and letting go brings nothing home, and the screen said nothing.
+- **It never said how to dodge.** 46 lashes, 2 pockets.
+
+Changed because of that, in the rules both toys share (`../wheel/src/world.zig`), prompts only:
+
+- "Y: STRIKE ON THE ONE" (the left face button, which this handheld prints as Y).
+- "R1: POINT WHERE THEY MEET" whenever home is not where the knots' strands meet, with the wheel
+  open or shut.
+- "A: DODGE ON ITS BEAT" for six beats after a lash, until a dodge has opened the pocket once (the
+  right face button, printed A).
+
+## What it found on the way: storage activity stalls frames
 
 The first runs here, and every earlier run of the wheel toy, had 3 to 10 frames a session that took
-150 to 315 ms. The cause is the SD card: while it is written, its controller raises about 70,000
-interrupts a second on the core that also serves the GPU and the display. The cure is in every toy's
-launcher now (the card's interrupts get core 3, the toy keeps to cores 0 to 2), and with it the
-sessions above have no stalled frame.
+150 to 315 ms. The cause is the built-in storage (the eMMC): while it is read or written, its
+controller raises about 70,000 interrupts a second on the core that also serves the GPU and the
+display. The cure is in every toy's launcher now (the storage controllers' interrupts get core 3,
+the toy keeps to cores 0 to 2), and with it the sessions above have no stalled frame.
+
+An SD card in the TF2 slot turned out to be far lighter: 12 interrupts for each 256 KB read and
+about 440 for each 256 KB written, against 1,100 to 5,000 for the built-in storage.
 
 The measurements are in `docs/hardware-target.md`. What was used to find it is here:
 
 - `tools/watch-device.py`: samples interrupts, soft interrupts, disk activity and clock speeds 20
   times a second.
 - `tools/run-with-watcher.sh`: runs the toy with its logs in memory and the watcher beside it.
-- `tools/sd-stall-test.sh default|moved`: the same session with a write to the card every two
-  seconds, as the device comes or with the cure.
-- `results/black-20261114/sd-stall/`: both test sessions, and one watched session.
-- The session log now says when any frame takes more than two and a half frames' time, by the wall
-  clock, so it can be matched against the watcher.
+- `tools/storage-stall-test.sh default|moved write-builtin|read-builtin|read-card|write-card`:
+  the same session with 256 KB written or read every two seconds, as the device comes or with
+  the cure. `read-card` reads straight from the card in TF2: nothing is mounted and nothing is
+  written.
+- `results/black-20261114/storage-stall/`: the eight test sessions, and one watched session.
+- The session log now says when any frame takes more than two and a half frames' time, by the
+  wall clock, so it can be matched against the watcher.
 
 ## What a session leaves behind
 

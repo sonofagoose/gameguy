@@ -41,6 +41,9 @@ Face buttons are named by position, because the printed letters differ from SDL'
 | Start, held one second | skip the scene |
 | Select + Start, held | leave |
 
+The prompts name two buttons by the letters this handheld prints on them: Y is the left face
+button (strike) and A is the right face button (dodge).
+
 In a window on the laptop (`--windowed`): W A S D move, arrow keys are the right stick, U is R1,
 I is R2, J strikes, K dodges, G is gentle, N skips, Tab shows numbers, Esc leaves.
 
@@ -107,8 +110,9 @@ unit's clock reads April):
 
 A later run through the launcher as it is now (`wheel-20260414-160205.txt`): 17.09 ms a frame,
 the worst 20.5 ms, none late, no audio gaps, 0.68 ms of work a frame. The five late frames above
-were stalls of about a quarter of a second, caused by writes to the SD card. The launcher now gives
-the card's interrupts a core of their own (`docs/hardware-target.md`).
+were stalls of about a quarter of a second, caused by activity on the built-in storage. The
+launcher now gives the storage controllers' interrupts a core of their own
+(`docs/hardware-target.md`).
 
 Nobody has played it by hand yet.
 

@@ -179,7 +179,13 @@ line from far above to inside.
 - **Place only:** the wheel stands round Hum as an arch, with its dark wedges under the ground.
 - **Page only:** the wheel toy's picture.
 
-A scripted player has run it through on the black unit. Nobody has played it by hand.
+A scripted player has run it through on the black unit.
+
+Morgan played it by hand on 2026-11-14, twice, in the default look. His first words, with a fuller
+report to come: "there were some moments where it really click"; "the moments in the music and
+everything ... and the beat ... it was all feeling really good"; "I do love the ... aesthetic and
+... visual aspects of the thing I was playing"; "really liked the little 'oh' moment". What his two
+sessions' logs show is in `toys/page/README.md`.
 
 | on the black unit, 4,270 frames each | page and place | page only | place only |
 |---|---|---|---|
@@ -225,7 +231,8 @@ frame rate (8 to 12 ms of GPU). The numbers are in `docs/hardware-target.md`.
   flowerpot onto an awning. On the page, height would have to read as something.
 - **What the place is made of.** This toy draws lines of light on black, as the wheel toy does. The
   look in `look.md` is solid: plaster, ink, grain. The meadow toy shows the handheld can draw it.
-  The next toy should put solid ground under these lines.
+  Morgan's first words were for these lines of light; he has not yet tried the meadow. A later toy
+  could put solid ground under these lines, if the lines want it.
 - **Which note is the depth.** The toy uses the difference of the two pulses. The low note both
   belong to is another choice. They agree for the simple intervals and differ for the minor sixth.
   Sources also disagree on which of the two Tartini meant.

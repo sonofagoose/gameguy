@@ -1,0 +1,311 @@
+# page toy, session 20260414-165245
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+audio: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+look: PAGE AND PLACE
+last 20 s: 1141 frames, 17.09 ms each (worst 21.91), 0 late; game work 0.60 ms (worst 1.88); audio 7505 callbacks, 1 gaps, worst gap 11.85 ms
+t=32.4 call 1
+t=34.9 call 2
+t=34.9 scene: dark_find
+t=38.0 call 3
+last 20 s: 1170 frames, 17.09 ms each (worst 17.78), 0 late; game work 0.72 ms (worst 4.20); audio 15005 callbacks, 1 gaps, worst gap 11.85 ms
+t=41.5 scene: phase
+last 20 s: 1171 frames, 17.09 ms each (worst 17.52), 0 late; game work 0.72 ms (worst 1.07); audio 22511 callbacks, 2 gaps, worst gap 11.85 ms
+t=62.5 in with Drip (last breath 9 ms from its tick)
+t=62.5 scene: dawn
+t=70.0 scene: knots
+t=74.6 lashed by C; steadiness 0.75
+t=75.4 wheel opened
+last 20 s: 1170 frames, 17.10 ms each (worst 20.44), 0 late; game work 1.47 ms (worst 2.88); audio 30012 callbacks, 2 gaps, worst gap 11.85 ms
+t=91.7 wheel closed after 16.41 s
+t=92.1 wheel opened
+t=95.3 lashed by C; steadiness 0.50
+t=97.9 wheel closed after 5.98 s
+t=98.5 home F (was C)
+last 20 s: 1170 frames, 17.09 ms each (worst 18.86), 0 late; game work 1.70 ms (worst 2.19); audio 37512 callbacks, 3 gaps, worst gap 11.85 ms
+t=101.4 wheel opened
+t=111.4 pocket (108 ms from the beat)
+t=112.1 wheel closed after 10.87 s
+t=113.2 home C (was F)
+t=114.5 lashed by C; steadiness 0.25
+t=119.0 lashed by C; steadiness 0.00
+t=119.0 shaken apart; they drew off
+last 20 s: 1170 frames, 17.09 ms each (worst 20.55), 0 late; game work 1.76 ms (worst 12.49); audio 45011 callbacks, 4 gaps, worst gap 11.85 ms
+t=126.5 lashed by C; steadiness 0.75
+t=127.7 lashed by C; steadiness 0.50
+t=129.0 lashed by C; steadiness 0.25
+t=133.9 lashed by C; steadiness 0.00
+t=133.9 shaken apart; they drew off
+last 20 s: 1171 frames, 17.09 ms each (worst 27.17), 1 late; game work 1.62 ms (worst 1.91); audio 52518 callbacks, 4 gaps, worst gap 11.85 ms
+t=141.6 lashed by C; steadiness 0.75
+t=144.0 lashed by C; steadiness 0.50
+t=146.4 lashed by C; steadiness 0.25
+t=149.0 lashed by C; steadiness 0.00
+t=149.0 shaken apart; they drew off
+t=152.2 wheel opened
+t=154.1 wheel closed after 2.07 s
+t=154.7 home F (was C)
+last 20 s: 1171 frames, 17.09 ms each (worst 19.05), 0 late; game work 1.64 ms (worst 2.96); audio 60023 callbacks, 5 gaps, worst gap 11.85 ms
+t=161.7 lashed by C; steadiness 0.75
+t=164.1 lashed by C; steadiness 0.50
+t=166.6 lashed by C; steadiness 0.25
+t=169.1 lashed by C; steadiness 0.00
+t=169.1 shaken apart; they drew off
+t=176.5 pocket (27 ms from the beat)
+t=180.0 strike: rang 0, on a meeting 0, timed true
+last 20 s: 1170 frames, 17.09 ms each (worst 21.20), 0 late; game work 2.01 ms (worst 2.92); audio 67523 callbacks, 5 gaps, worst gap 11.85 ms
+t=180.9 strike: rang 0, on a meeting 0
+t=181.8 strike: rang 2, on a meeting 0
+t=182.4 strike: rang 1, on a meeting 1
+t=182.4 lashed by C; steadiness 0.75
+t=183.0 strike: rang 1, on a meeting 0, timed true
+t=183.7 strike: rang 1, on a meeting 0
+t=184.3 strike: rang 2, on a meeting 0
+t=184.9 C went grey
+t=184.9 strike: rang 2, on a meeting 2
+t=185.6 strike: rang 2, on a meeting 0
+t=186.2 strike: rang 2, on a meeting 0
+t=186.8 strike: rang 1, on a meeting 0
+t=187.4 C went grey
+t=187.4 strike: rang 3, on a meeting 2
+t=188.1 strike: rang 2, on a meeting 0
+t=188.7 strike: rang 2, on a meeting 0, timed true
+t=189.4 strike: rang 1, on a meeting 0
+t=189.9 C went grey
+t=189.9 strike: rang 1, on a meeting 1
+t=191.8 strike: rang 1, on a meeting 0, timed true
+t=192.8 strike: rang 2, on a meeting 0
+last 20 s: 1170 frames, 17.09 ms each (worst 27.00), 1 late; game work 2.17 ms (worst 3.03); audio 75023 callbacks, 5 gaps, worst gap 11.85 ms
+t=215.0 lashed by C; steadiness 0.50
+t=217.5 lashed by C; steadiness 0.25
+t=220.0 lashed by C; steadiness 0.00
+t=220.0 shaken apart; they drew off
+last 20 s: 1171 frames, 17.09 ms each (worst 21.07), 0 late; game work 2.07 ms (worst 2.31); audio 82530 callbacks, 6 gaps, worst gap 11.85 ms
+t=227.5 lashed by C; steadiness 0.75
+t=230.0 lashed by C; steadiness 0.50
+t=232.7 lashed by C; steadiness 0.25
+last 20 s: 1171 frames, 17.09 ms each (worst 25.66), 1 late; game work 1.93 ms (worst 2.28); audio 90036 callbacks, 6 gaps, worst gap 11.85 ms
+t=250.0 lashed by C; steadiness 0.00
+t=250.0 shaken apart; they drew off
+t=257.5 lashed by C; steadiness 0.75
+t=258.7 strike: rang 1, on a meeting 0, timed true
+t=259.3 strike: rang 1, on a meeting 0
+t=259.9 strike: rang 1, on a meeting 1
+last 20 s: 1170 frames, 17.09 ms each (worst 18.93), 0 late; game work 1.31 ms (worst 1.78); audio 97536 callbacks, 6 gaps, worst gap 11.85 ms
+t=260.2 lashed by C; steadiness 0.50
+t=260.7 wheel opened
+t=266.5 strike: rang 1, on a meeting 0
+t=267.5 C went grey
+t=267.5 strike: rang 1, on a meeting 1
+t=270.2 wheel closed after 9.67 s
+t=270.8 home C (was F)
+t=272.8 lashed by C; steadiness 0.25
+t=272.8 let go with nothing beside home (1 grey), -704 ms from the one
+t=276.0 lashed by C; steadiness 0.00
+t=276.0 let go with nothing beside home (1 grey), 1099 ms from the one
+t=276.0 shaken apart; they drew off
+t=279.5 let go with nothing beside home (1 grey), 95 ms from the one
+last 20 s: 1171 frames, 17.09 ms each (worst 18.93), 0 late; game work 1.57 ms (worst 1.81); audio 105042 callbacks, 6 gaps, worst gap 11.85 ms
+t=282.0 let go with nothing beside home (1 grey), 49 ms from the one
+t=283.5 let go with nothing beside home (1 grey), 1096 ms from the one
+t=284.1 lashed by C; steadiness 0.75
+t=284.1 let go with nothing beside home (1 grey), 464 ms from the one
+t=284.6 strike: rang 1, on a meeting 0
+t=285.3 lashed by C; steadiness 0.50
+t=292.7 lashed by C; steadiness 0.25
+t=292.7 let go with nothing beside home (1 grey), -667 ms from the one
+t=294.5 let go with nothing beside home (1 grey), 70 ms from the one
+t=297.1 strike: rang 2, on a meeting 1
+t=297.8 strike: rang 2, on a meeting 0
+t=298.3 strike: rang 2, on a meeting 0
+t=299.0 C went grey
+t=299.0 strike: rang 2, on a meeting 1
+t=299.6 strike: rang 2, on a meeting 0, timed true
+last 20 s: 1171 frames, 17.09 ms each (worst 24.42), 0 late; game work 1.55 ms (worst 1.83); audio 112548 callbacks, 6 gaps, worst gap 11.85 ms
+t=300.2 strike: rang 2, on a meeting 0
+t=300.4 lashed by C; steadiness 0.00
+t=300.4 let go with nothing beside home (2 grey), -860 ms from the one
+t=300.4 shaken apart; they drew off
+t=300.8 strike: rang 3, on a meeting 0, timed true
+t=301.5 strike: rang 0, on a meeting 0
+t=302.1 strike: rang 1, on a meeting 1
+t=302.7 strike: rang 0, on a meeting 0, timed true
+t=303.3 strike: rang 2, on a meeting 0
+t=303.9 C went grey
+t=303.9 strike: rang 1, on a meeting 1
+t=304.1 let go with nothing beside home (3 grey), 466 ms from the one
+t=309.6 strike: rang 3, on a meeting 0
+t=309.8 call 4
+t=310.2 strike: rang 3, on a meeting 0, timed true
+t=310.8 strike: rang 3, on a meeting 0, timed true
+t=311.5 strike: rang 0, on a meeting 0, timed true
+t=312.1 strike: rang 0, on a meeting 0, timed true
+t=312.7 strike: rang 0, on a meeting 0
+t=313.1 home F (was C)
+t=314.0 strike: rang 1, on a meeting 0, timed true
+t=314.6 strike: rang 2, on a meeting 0
+t=315.2 strike: rang 0, on a meeting 0
+t=315.8 strike: rang 0, on a meeting 0
+t=316.4 strike: rang 0, on a meeting 0
+t=317.1 strike: rang 0, on a meeting 0, timed true
+t=317.1 C came home
+t=317.1 let go off the one (-60 ms): C landed softly
+last 20 s: 1170 frames, 17.09 ms each (worst 23.37), 0 late; game work 1.59 ms (worst 1.92); audio 120048 callbacks, 7 gaps, worst gap 11.85 ms
+t=327.7 strike: rang 2, on a meeting 0, timed true
+t=328.4 strike: rang 2, on a meeting 0
+t=329.0 strike: rang 1, on a meeting 0, timed true
+t=329.6 strike: rang 2, on a meeting 2
+t=330.2 strike: rang 2, on a meeting 0, timed true
+t=330.8 strike: rang 2, on a meeting 0
+t=331.5 strike: rang 1, on a meeting 0
+t=332.1 let go with nothing beside home (0 grey), 19 ms from the one
+t=332.1 C went grey
+t=332.1 C went grey
+t=332.1 strike: rang 2, on a meeting 2
+t=332.7 strike: rang 2, on a meeting 0
+t=333.0 strike: rang 2, on a meeting 0
+t=333.3 strike: rang 2, on a meeting 0
+t=334.0 strike: rang 0, on a meeting 0
+t=335.2 strike: rang 0, on a meeting 0
+t=335.3 strike: rang 0, on a meeting 0
+t=335.5 strike: rang 0, on a meeting 0
+t=335.8 strike: rang 0, on a meeting 0
+t=336.1 strike: rang 0, on a meeting 0
+t=336.5 strike: rang 0, on a meeting 0
+t=337.1 strike: rang 0, on a meeting 0
+t=337.7 strike: rang 0, on a meeting 0
+t=339.6 strike: rang 2, on a meeting 0, timed true
+t=339.9 strike: rang 0, on a meeting 0
+last 20 s: 1171 frames, 17.09 ms each (worst 18.57), 0 late; game work 1.30 ms (worst 1.80); audio 127555 callbacks, 7 gaps, worst gap 11.85 ms
+t=340.2 strike: rang 1, on a meeting 0, timed true
+t=341.5 strike: rang 2, on a meeting 0
+t=341.8 strike: rang 1, on a meeting 0
+t=342.4 strike: rang 0, on a meeting 0
+t=343.0 strike: rang 1, on a meeting 0
+t=343.3 strike: rang 1, on a meeting 0, timed true
+t=344.0 strike: rang 0, on a meeting 0
+t=345.8 C came home
+t=345.8 let go off the one (-1205 ms): C landed softly
+t=346.1 wheel opened
+t=349.2 wheel closed after 3.21 s
+t=349.4 home C (was F)
+t=351.3 strike: rang 1, on a meeting 0
+t=351.9 strike: rang 0, on a meeting 0, timed true
+t=352.5 strike: rang 0, on a meeting 0
+t=353.1 strike: rang 0, on a meeting 0, timed true
+t=353.7 let go with nothing beside home (1 grey), 693 ms from the one
+t=353.7 strike: rang 0, on a meeting 0, timed true
+t=354.4 strike: rang 0, on a meeting 0
+t=355.0 strike: rang 0, on a meeting 0, timed true
+t=359.2 home F (was C)
+last 20 s: 1171 frames, 17.09 ms each (worst 18.93), 0 late; game work 1.34 ms (worst 1.68); audio 135058 callbacks, 8 gaps, worst gap 15.27 ms
+t=362.7 C came home
+t=362.7 let go off the one (-833 ms): C landed softly
+t=364.0 scene: waking
+t=364.2 let go with nothing beside home (0 grey), 166 ms from the one
+t=364.8 wheel opened
+t=365.4 wheel closed after 0.79 s
+t=374.4 scene: run
+t=380.0 lashed by A; steadiness 0.75
+t=380.0 let go with nothing beside home (0 grey), -180 ms from the one
+last 20 s: 1170 frames, 17.10 ms each (worst 18.89), 0 late; game work 1.28 ms (worst 1.97); audio 142555 callbacks, 9 gaps, worst gap 15.27 ms
+t=381.0 wheel opened
+t=386.7 lashed by D; steadiness 0.50
+t=391.1 wheel closed after 10.22 s
+t=391.1 home A (was F)
+t=391.8 strike: rang 0, on a meeting 0
+t=392.4 strike: rang 1, on a meeting 1
+t=393.0 A went grey
+t=393.0 strike: rang 2, on a meeting 1
+t=393.7 D went grey
+t=393.7 strike: rang 1, on a meeting 1, timed true
+t=394.3 strike: rang 1, on a meeting 0, timed true
+t=394.9 strike: rang 1, on a meeting 0
+t=395.2 lashed by G; steadiness 0.25
+t=395.5 strike: rang 1, on a meeting 0
+t=396.2 strike: rang 1, on a meeting 0, timed true
+t=396.5 strike: rang 1, on a meeting 0
+t=396.8 strike: rang 1, on a meeting 0, timed true
+t=397.4 strike: rang 1, on a meeting 0
+t=398.0 strike: rang 1, on a meeting 0
+t=398.4 strike: rang 1, on a meeting 0
+t=398.7 strike: rang 1, on a meeting 0
+t=399.3 strike: rang 1, on a meeting 0
+t=399.9 strike: rang 1, on a meeting 1
+last 20 s: 1171 frames, 17.09 ms each (worst 18.81), 0 late; game work 1.63 ms (worst 1.99); audio 150061 callbacks, 9 gaps, worst gap 15.27 ms
+t=400.2 strike: rang 1, on a meeting 0
+t=400.5 strike: rang 1, on a meeting 0
+t=401.2 strike: rang 1, on a meeting 0
+t=401.8 strike: rang 0, on a meeting 0
+t=402.1 strike: rang 1, on a meeting 0
+t=402.4 strike: rang 1, on a meeting 0
+t=403.1 wheel opened
+t=404.5 wheel closed after 1.64 s
+t=404.8 home G (was A)
+t=405.4 strike: rang 0, on a meeting 0
+t=405.5 lashed by G; steadiness 0.00
+t=405.5 shaken apart; they drew off
+t=405.7 strike: rang 0, on a meeting 0
+t=406.0 G went grey
+t=406.0 strike: rang 1, on a meeting 1, timed true
+t=406.7 strike: rang 1, on a meeting 0
+t=407.3 strike: rang 0, on a meeting 0
+t=407.9 strike: rang 1, on a meeting 0
+t=408.2 strike: rang 1, on a meeting 0
+t=408.5 strike: rang 1, on a meeting 0, timed true
+t=409.2 strike: rang 1, on a meeting 0
+t=409.8 strike: rang 1, on a meeting 0
+t=410.1 strike: rang 1, on a meeting 0
+t=410.4 strike: rang 1, on a meeting 0, timed true
+t=411.0 strike: rang 0, on a meeting 0, timed true
+t=411.7 strike: rang 1, on a meeting 0, timed true
+t=412.3 strike: rang 0, on a meeting 0, timed true
+t=412.9 strike: rang 1, on a meeting 0
+t=413.2 strike: rang 1, on a meeting 0
+t=413.5 strike: rang 0, on a meeting 0
+t=414.2 strike: rang 0, on a meeting 0
+t=414.7 wheel opened
+t=417.3 wheel closed after 2.75 s
+t=417.3 home C (was G)
+t=417.7 strike: rang 1, on a meeting 0
+t=418.0 strike: rang 0, on a meeting 0
+t=418.0 strike: rang 0, on a meeting 0
+t=418.3 strike: rang 0, on a meeting 0
+t=418.6 strike: rang 0, on a meeting 0, timed true
+last 20 s: 1171 frames, 17.09 ms each (worst 18.85), 0 late; game work 1.64 ms (worst 2.29); audio 157564 callbacks, 10 gaps, worst gap 15.27 ms
+t=420.4 G came home
+t=420.4 a walk of 1 landed, 102 ms from the one
+t=420.5 strike: rang 2, on a meeting 0, timed true
+t=423.0 let go with nothing beside home (2 grey), -13 ms from the one
+t=423.0 strike: rang 0, on a meeting 0
+t=423.6 strike: rang 2, on a meeting 0, timed true
+t=424.2 strike: rang 1, on a meeting 0
+t=424.9 strike: rang 1, on a meeting 0
+t=425.5 strike: rang 2, on a meeting 0
+t=425.8 strike: rang 1, on a meeting 0
+t=426.1 strike: rang 1, on a meeting 0
+t=426.7 strike: rang 1, on a meeting 0
+t=427.2 wheel opened
+t=435.7 wheel closed after 8.63 s
+t=436.2 home A (was C)
+t=436.5 strike: rang 1, on a meeting 0
+t=436.8 strike: rang 2, on a meeting 0
+t=437.2 strike: rang 2, on a meeting 0
+t=437.5 strike: rang 1, on a meeting 0, timed true
+t=437.8 strike: rang 0, on a meeting 0
+t=438.1 strike: rang 1, on a meeting 0, timed true
+t=438.4 strike: rang 1, on a meeting 0
+t=438.7 strike: rang 0, on a meeting 0, timed true
+t=439.4 strike: rang 0, on a meeting 0, timed true
+t=440.0 strike: rang 1, on a meeting 0, timed true
+last 20 s: 1170 frames, 17.10 ms each (worst 18.97), 0 late; game work 1.65 ms (worst 2.27); audio 165062 callbacks, 11 gaps, worst gap 15.27 ms
+t=440.6 strike: rang 0, on a meeting 0, timed true
+t=441.2 strike: rang 0, on a meeting 0
+t=441.5 strike: rang 0, on a meeting 0
+t=441.8 strike: rang 0, on a meeting 0
+t=443.1 strike: rang 1, on a meeting 0
+t=443.4 strike: rang 0, on a meeting 0
+t=444.7 gentle
+whole session: 26021 frames, 17.09 ms each (worst 27.17), 3 late; game work 1.51 ms (worst 12.49); audio 166978 callbacks, 11 gaps, worst gap 15.27 ms
+played 445.3 s; ended in scene run; home A; wheel opened 11 times; 155 strikes; best walk 1; breath holds 3
+the view: 177.9 s on the page, 249.4 s in the place, 18.0 s between; look at the end: PAGE AND PLACE; busiest frame 1660 marks

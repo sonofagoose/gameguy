@@ -1,0 +1,69 @@
+# page toy, session 20260414-164924
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+audio: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+look: PAGE AND PLACE
+t=10.1 call 1
+t=13.5 call 2
+t=13.5 scene: dark_find
+t=19.5 call 3
+last 20 s: 1141 frames, 17.09 ms each (worst 19.21), 0 late; game work 0.66 ms (worst 1.18); audio 7503 callbacks, 0 gaps, worst gap 3.04 ms
+t=24.1 scene: phase
+last 20 s: 1171 frames, 17.09 ms each (worst 27.98), 1 late; game work 0.69 ms (worst 1.05); audio 15010 callbacks, 0 gaps, worst gap 3.13 ms
+t=50.0 in with Drip (last breath 8 ms from its tick)
+t=50.0 scene: dawn
+t=57.5 scene: knots
+last 20 s: 1170 frames, 17.10 ms each (worst 20.05), 0 late; game work 0.97 ms (worst 2.28); audio 22511 callbacks, 0 gaps, worst gap 3.21 ms
+t=62.6 wheel opened
+t=64.7 lashed by C; steadiness 0.75
+t=68.7 wheel closed after 6.32 s
+t=68.9 wheel opened
+t=68.9 wheel closed after 0.17 s
+t=69.1 lashed by C; steadiness 0.50
+t=69.2 call 4
+t=70.3 wheel opened
+last 20 s: 1171 frames, 17.09 ms each (worst 23.92), 0 late; game work 1.69 ms (worst 2.57); audio 30017 callbacks, 0 gaps, worst gap 3.21 ms
+t=85.5 lashed by C; steadiness 0.25
+t=90.6 lashed by C; steadiness 0.00
+t=90.6 shaken apart; they drew off
+t=93.4 wheel closed after 23.25 s
+t=93.9 home F (was C)
+t=96.4 call 5
+t=99.5 call 6
+last 20 s: 1170 frames, 17.09 ms each (worst 18.86), 0 late; game work 1.68 ms (worst 11.99); audio 37518 callbacks, 0 gaps, worst gap 3.21 ms
+t=103.9 wheel opened
+t=103.9 wheel closed after 0.21 s
+t=104.6 wheel opened
+t=104.6 lashed by C; steadiness 0.75
+t=109.8 wheel closed after 5.38 s
+t=110.3 home C (was F)
+t=111.5 wheel opened
+t=111.5 wheel closed after 0.19 s
+t=112.3 lashed by C; steadiness 0.50
+t=112.9 wheel opened
+t=119.4 wheel closed after 6.68 s
+t=119.6 home F (was C)
+last 20 s: 1171 frames, 17.09 ms each (worst 18.83), 0 late; game work 1.74 ms (worst 2.88); audio 45024 callbacks, 0 gaps, worst gap 3.22 ms
+t=120.3 wheel opened
+t=121.3 wheel closed after 1.16 s
+t=121.9 lashed by C; steadiness 0.25
+t=124.3 lashed by C; steadiness 0.00
+t=124.3 shaken apart; they drew off
+t=126.7 wheel opened
+t=127.8 wheel closed after 1.25 s
+t=128.5 wheel opened
+t=129.5 wheel closed after 1.14 s
+t=130.5 call 7
+t=132.1 let go with nothing beside home (0 grey), 1104 ms from the one
+t=138.7 let go with nothing beside home (0 grey), -527 ms from the one
+t=139.8 call 8
+last 20 s: 1170 frames, 17.09 ms each (worst 27.80), 1 late; game work 1.83 ms (worst 3.06); audio 52524 callbacks, 0 gaps, worst gap 3.22 ms
+t=140.8 call 9
+t=144.1 call 10
+t=145.0 let go with nothing beside home (0 grey), 699 ms from the one
+t=145.8 lashed by C; steadiness 0.75
+t=148.1 gentle
+t=148.3 lashed by C; steadiness 0.50
+whole session: 8673 frames, 17.09 ms each (worst 27.98), 2 late; game work 1.36 ms (worst 11.99); audio 55787 callbacks, 0 gaps, worst gap 3.22 ms
+played 148.8 s; ended in scene knots; home F; wheel opened 10 times; 0 strikes; best walk 0; breath holds 3
+the view: 103.7 s on the page, 37.4 s in the place, 7.7 s between; look at the end: PAGE AND PLACE; busiest frame 1654 marks
