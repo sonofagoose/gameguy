@@ -9,7 +9,7 @@ in. What the rungs mean is in `../promises.md`._
 | said: in the specification and on the list | 360 of 360 |
 | sized: its moment, its cheat, its full size and its question written | 42 |
 | proven: every measure passes today and nothing is owed | 0 |
-| reached: the scripted player met it by playing | 0 |
+| reached: the scripted player met it by playing | 4 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
 | graded full by a fresh reader | 0 |
 | **kept** | **0** |
@@ -34,16 +34,16 @@ asks its question.
 
 | promise | stage | proven | reached | felt | graded | kept | what stands in the way |
 |---|---|---|---|---|---|---|---|
-| `evening.black` Black, and a drip | 2 | no | - | no | no | no | 3 owed; dark.first_backlight <= 20  (is not reported); no yes from Morgan yet |
-| `evening.call` You call, and you are answered | 2 | no | no | no | no | no | 2 owed; take: the scripted player did not meet it; frame dark-ring: nobody has looked at it yet; no yes from Morgan yet |
+| `evening.black` Black, and a drip | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `evening.call` You call, and you are answered | 2 | no | yes | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.breathe` You breathe with it, and it locks | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `evening.in` "Oh. You're in." | 2 | no | - | no | no | no | 3 owed; frame asters-far: nobody has looked at it yet; no yes from Morgan yet |
-| `evening.instrument` Everything is an instrument | 2 | no | - | no | no | no | 2 owed; asters.bells >= 800  (is not reported); frame asters-answer: nobody has looked at it yet; no yes from Morgan yet |
+| `evening.in` "Oh. You're in." | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `evening.instrument` Everything is an instrument | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.knot` The knot, and the first fight | 2 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `evening.dusk` The river sings your day back | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `garden.asters` Asters as tall as cathedrals | 2 | no | no | no | no | no | 3 owed; asters.tallest_m >= 150  (is not reported); asters.shortest_m >= 90  (is not reported); no yes from Morgan yet |
+| `garden.asters` Asters as tall as cathedrals | 2 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
 | `garden.great` The Hose | 2 | no | - | no | no | no | 6 owed; no yes from Morgan yet |
-| `garden.w01` The answering field | 2 | no | - | no | no | no | 2 owed; asters.field_m >= 1000  (is not reported); no yes from Morgan yet |
+| `garden.w01` The answering field | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w02` The seed that follows | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w03` The parade | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w04` The puddle bridge | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
@@ -55,17 +55,17 @@ asks its question.
 | `garden.w10` The third man | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w11` Three against two | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w12` The pot | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `whole.scale` One to a hundred | 2 | no | - | no | no | no | 2 owed; scale.one_to == 100  (is not reported); asters.tallest_m >= 150  (is not reported); no yes from Morgan yet |
+| `whole.scale` One to a hundred | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.true` Literally true | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `whole.law1` Sympathy | 1 | no | no | no | no | no | 1 owed; take: the scripted player did not meet it; no yes from Morgan yet |
+| `whole.law1` Sympathy | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |
 | `whole.law2` Gravity | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.law3` Falling into step | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.law4` Standing waves | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.law5` Cancelling and beating | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `whole.law6` Travel | 1 | no | no | no | no | no | 1 owed; sound.speed_m_s == 60  (is not reported); take: the scripted player did not meet it; no yes from Morgan yet |
+| `whole.law6` Travel | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |
 | `whole.law7` Building up | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.twice` Every cue twice | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `whole.same` A take is its inputs | 1 | no | - | - | no | no | 1 owed; same_take.identical == 1  (is not reported) |
+| `whole.same` A take is its inputs | 1 | no | - | - | no | no | 1 owed |
 | `whole.alone` Whole alone, more together | 6 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.endless` The mornings never repeat | 5 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.lights` Every land's lights across the water | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
@@ -74,8 +74,8 @@ asks its question.
 | `whole.ear` The ear, before and after | 2 | no | - | - | no | no | 2 owed |
 | `hands.voice-in-a-buffer` Your voice, at once | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `card.takes` The card is the world's memory | 1 | no | - | - | no | no | 4 owed |
-| `light.hue` One set of numbers for sound and light | 1 | no | - | no | no | no | 1 owed; frame asters-answer: nobody has looked at it yet; no yes from Morgan yet |
-| `light.beam` The beam | 1 | no | - | no | no | no | 2 owed; frame dark-ring: nobody has looked at it yet; no yes from Morgan yet |
+| `light.hue` One set of numbers for sound and light | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `light.beam` The beam | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 
 ## Said, and waiting to be sized
 

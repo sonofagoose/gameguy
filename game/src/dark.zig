@@ -393,7 +393,7 @@ var renderer_ready = false;
 var pixels: []u8 = &.{};
 var static_lines: [36_000]lines.Inst = undefined;
 var static_occ: [40_000][3]f32 = undefined;
-var moving: [6_000]lines.Inst = undefined;
+var moving: [9_000]lines.Inst = undefined;
 
 fn dumpNamed(dir: [*:0]const u8, comptime fmt: []const u8, args: anytype) void {
     renderer.readFrame(pixels);
@@ -431,7 +431,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             world.initAsters();
             aster_lines.build(&world);
             renderer.keep = 0.55;
-            renderer.fade = 300.0;
+            renderer.fade = 95.0;
             proj = m.perspective(world_mod.place_fov, aspect, 0.4, 5000.0);
             log("the asters: {d} of them, {d} things; R1 calls, the left stick walks, the right stick looks; stand still at a foot and the view leans back; Select and Start together leave", .{ world.tower_count, world.thing_count });
         },
@@ -527,7 +527,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             // dawn: everything can just be seen, and what a call lights or rings stands out of it
             for (world.things[0..world.thing_count], 0..) |thing, i| {
                 const light = World.light(thing);
-                const floor: f32 = if (thing.sounds) 0.26 else 0.20;
+                const floor: f32 = if (thing.sounds) 0.45 else 0.34;
                 if (thing.sounds) brightest = @max(brightest, light);
                 loud[i + 1] = @intFromFloat(@max(floor, light) * 255.0);
             }
@@ -535,23 +535,28 @@ pub fn run(window: plat.Window, options: Options) bool {
             const pitch = world.pitch();
             const fx = @sin(yaw);
             const fz = -@cos(yaw);
-            const back = world_mod.cam_back - 2.5 * world.lean;
-            eye = .{ world.hum_x - fx * back, world_mod.cam_up - 0.9 * world.lean, world.hum_z - fz * back };
+            const back = world_mod.cam_back + world.lean * (world_mod.lean_back - world_mod.cam_back);
+            const up = world_mod.cam_up + world.lean * (world_mod.lean_up - world_mod.cam_up);
+            eye = .{ world.hum_x - fx * back, up, world.hum_z - fz * back };
             const at = m.V3{ eye[0] + fx * @cos(pitch) * 10.0, eye[1] + @sin(pitch) * 10.0, eye[2] + fz * @cos(pitch) * 10.0 };
             view = m.lookAt(eye, at, .{ 0.0, 1.0, 0.0 });
+            proj = m.perspective(world.fov(), aspect, 0.4, 5000.0);
             // each aster at the detail its distance asks for, picked again every twenty metres
             const moved_x = eye[0] - picked_x;
             const moved_z = eye[2] - picked_z;
             if (moved_x * moved_x + moved_z * moved_z > 20.0 * 20.0) {
-                picked = aster_lines.pick(eye[0], eye[2], static_lines[0..30_000], &static_occ);
-                picked.lines += aster_lines.grass(eye[0], eye[2], static_lines[picked.lines..]);
+                picked = aster_lines.pick(world.hum_x, world.hum_z, static_lines[0..28_000], &static_occ);
+                picked.lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[picked.lines..]);
                 renderer.setLand(static_lines[0..picked.lines], static_lines[0..0], static_occ[0..picked.occ]);
                 picked_x = eye[0];
                 picked_z = eye[2];
             }
         }
         var moving_n: usize = 0;
-        if (options.scene == .asters) moving_n = aster_lines.sky(eye, &moving);
+        if (options.scene == .asters) {
+            moving_n = aster_lines.sky(eye, &moving);
+            moving_n += aster_lines.halos(&world, eye, moving[moving_n..]);
+        }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);
         renderer.setDynamic(moving[0..moving_n]);
@@ -568,8 +573,8 @@ pub fn run(window: plat.Window, options: Options) bool {
                 if (mark) |what| dumpNamed(dir, "promise-{s}-{s}", .{ name, what });
                 if (options.scene == .dark and !ring_dumped) {
                     for (world.rings) |ring| {
-                        // a ring a second and a quarter old: 75 m out, with what it passed still lit
-                        if (ring.live and world.step - ring.born == 75 and world.calls >= 2) {
+                        // a ring just over half a second old: 36 m out, with what it passed lit and the rest dark
+                        if (ring.live and world.step - ring.born == 36 and world.calls >= 2) {
                             dumpNamed(dir, "promise-dark-ring", .{});
                             ring_dumped = true;
                         }

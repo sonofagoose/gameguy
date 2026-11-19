@@ -11,17 +11,23 @@ const asters = world_mod.asters;
 const Inst = lines.Inst;
 const V = [3]f32;
 
-const near_cap = 1200;
+const near_cap = 1400;
+const close_cap = 900;
 const mid_cap = 170;
 const far_cap = 16;
 const occ_cap = 640;
-/// Nearer than this an aster is drawn in full; farther than `mid_within`, as a mast.
+/// Nearer than `close_within` an aster also shows what is Hum's own size on it: the joints of
+/// its stalk, and a drop of dew at the tip of each leaf. Nearer than `near_within` it is drawn
+/// in full; farther than `mid_within`, as a mast.
+pub const close_within: f32 = 85.0;
 pub const near_within: f32 = 230.0;
 pub const mid_within: f32 = 750.0;
 
 const Model = struct {
     near: [near_cap]Inst = undefined,
     near_n: u32 = 0,
+    close: [close_cap]Inst = undefined,
+    close_n: u32 = 0,
     mid: [mid_cap]Inst = undefined,
     mid_n: u32 = 0,
     far: [far_cap]Inst = undefined,
@@ -89,6 +95,7 @@ fn girth(p: *const asters.Plan, h: f32) f32 {
 fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
     model.* = .{};
     const near = List{ .items = &model.near, .n = &model.near_n };
+    const close = List{ .items = &model.close, .n = &model.close_n };
     const mid = List{ .items = &model.mid, .n = &model.mid_n };
     const far = List{ .items = &model.far, .n = &model.far_n };
     const part = p.tall / @as(f32, asters.segments);
@@ -126,6 +133,21 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
         if (k % 3 == 1) far.line(p.mast(h0 - part), p.mast(h1 + part), 1.3, body, stalk_col);
     }
 
+    // its joints: a ring every metre and a quarter, all the way up. They are what the eye counts.
+    {
+        const joint_col = col8(stalk, 0.55);
+        var h: f32 = 1.25;
+        while (h < p.tall) : (h += 1.25) {
+            const body = first + @min(@as(u32, @intFromFloat(h / part)), asters.segments - 1) + 1;
+            const c = p.mast(h);
+            const r = girth(p, h) * 1.12;
+            for (0..4) |i| {
+                const j = (i + 1) % 4;
+                close.line(.{ c[0] + corners[i][0] * r, h, c[2] + corners[i][1] * r }, .{ c[0] + corners[j][0] * r, h, c[2] + corners[j][1] * r }, 1.0, body, joint_col);
+            }
+        }
+    }
+
     // where it meets the ground
     const foot = p.mast(0.0);
     for (0..8) |k| {
@@ -142,18 +164,34 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
         const out = V{ @cos(leaf.angle), 0.0, @sin(leaf.angle) };
         const side = V{ -@sin(leaf.angle), 0.0, @cos(leaf.angle) };
         const p0 = add(p.mast(leaf.h), mul(out, girth(p, leaf.h)));
-        const p1 = add(add(p0, mul(out, leaf.len * 0.5)), V{ 0.0, leaf.len * 0.30, 0.0 });
-        const p2 = add(add(p0, mul(out, leaf.len)), V{ 0.0, leaf.len * (0.34 - leaf.droop * 1.5), 0.0 });
-        const wide = leaf.len * 0.11;
-        const e0 = add(p1, mul(side, wide));
-        const e1 = add(p1, mul(side, -wide));
-        near.line(p0, e0, 1.2, body, leaf_col);
-        near.line(e0, p2, 1.2, body, leaf_col);
-        near.line(p0, e1, 1.2, body, leaf_col);
-        near.line(e1, p2, 1.2, body, leaf_col);
-        near.line(p0, p2, 1.0, body, rib_col);
-        tri(model, p0, e0, e1);
-        tri(model, e0, p2, e1);
+        const rise = leaf.len * 0.30;
+        const fall = leaf.len * leaf.droop * 1.5;
+        const at_a = add(add(p0, mul(out, leaf.len * 0.32)), V{ 0.0, rise * 0.75, 0.0 });
+        const at_b = add(add(p0, mul(out, leaf.len * 0.68)), V{ 0.0, rise - fall * 0.35, 0.0 });
+        const tip = add(add(p0, mul(out, leaf.len)), V{ 0.0, rise * 0.9 - fall, 0.0 });
+        const wide = leaf.len * 0.10;
+        const a0 = add(at_a, mul(side, wide));
+        const a1 = add(at_a, mul(side, -wide));
+        const b0 = add(at_b, mul(side, wide * 0.66));
+        const b1 = add(at_b, mul(side, -wide * 0.66));
+        near.line(p0, a0, 1.2, body, leaf_col);
+        near.line(a0, b0, 1.2, body, leaf_col);
+        near.line(b0, tip, 1.2, body, leaf_col);
+        near.line(p0, a1, 1.2, body, leaf_col);
+        near.line(a1, b1, 1.2, body, leaf_col);
+        near.line(b1, tip, 1.2, body, leaf_col);
+        near.line(p0, tip, 1.0, body, rib_col);
+        tri(model, p0, a0, a1);
+        tri(model, a0, b0, a1);
+        tri(model, a1, b0, b1);
+        tri(model, b0, tip, b1);
+        // dew: a drop as wide as Hum is tall would be huge; these are 40 cm
+        const drop = add(tip, V{ 0.0, -0.35, 0.0 });
+        const dew = col8(.{ 0.85, 0.95, 1.0 }, 0.9);
+        close.line(add(drop, V{ 0.0, 0.2, 0.0 }), add(drop, mul(side, 0.2)), 1.0, body, dew);
+        close.line(add(drop, mul(side, 0.2)), add(drop, V{ 0.0, -0.2, 0.0 }), 1.0, body, dew);
+        close.line(add(drop, V{ 0.0, -0.2, 0.0 }), add(drop, mul(side, -0.2)), 1.0, body, dew);
+        close.line(add(drop, mul(side, -0.2)), add(drop, V{ 0.0, 0.2, 0.0 }), 1.0, body, dew);
     }
 
     // the crown: branches, and on them the bells
@@ -225,6 +263,10 @@ pub fn pick(eye_x: f32, eye_z: f32, out: []Inst, occ: []V) Picked {
         if (far < near_within) {
             from = model.near[0..model.near_n];
             got.near += 1;
+            if (far < close_within and got.lines + model.close_n <= out.len) {
+                @memcpy(out[got.lines..][0..model.close_n], model.close[0..model.close_n]);
+                got.lines += model.close_n;
+            }
             if (got.occ + model.occ_n <= occ.len) {
                 @memcpy(occ[got.occ..][0..model.occ_n], model.occ[0..model.occ_n]);
                 got.occ += model.occ_n;
@@ -243,6 +285,45 @@ pub fn pick(eye_x: f32, eye_z: f32, out: []Inst, occ: []V) Picked {
     return got;
 }
 
+/// Everything that sounds shines: round each bell that is ringing, a halo that beats at the
+/// bell's own note brought down eight octaves, so its pitch can be seen as a pulse.
+pub fn halos(w: *const world_mod.World, eye: V, out: []Inst) usize {
+    var n: usize = 0;
+    const seconds = @as(f32, @floatFromInt(w.step)) * world_mod.dt;
+    for (plans[0..count], 0..) |*p, t| {
+        const dx = p.x - eye[0];
+        const dz = p.z - eye[2];
+        if (dx * dx + dz * dz > 420.0 * 420.0) continue;
+        const first = w.towers[t].first + asters.segments;
+        for (p.bells[0..p.bell_n], 0..) |bell, j| {
+            const thing = w.things[first + j];
+            if (thing.loud < 0.12) continue;
+            if (n + 8 > out.len) return n;
+            const beat = 0.5 + 0.5 * @cos(seconds * bell.hz * (6.2831853 / 256.0));
+            const tint = col8(colour.ofNote(world_mod.garden_hz, bell.hz), thing.loud * (0.35 + 0.65 * beat));
+            const r = bell.r * (1.7 + 0.9 * beat);
+            // facing the eye, near enough: a ring in the plane across the line of sight
+            const sx = -dz;
+            const sz = dx;
+            const len = @max(@sqrt(sx * sx + sz * sz), 1e-3);
+            const side = V{ sx / len, 0.0, sz / len };
+            for (0..8) |k| {
+                const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 8.0);
+                const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 8.0);
+                out[n] = .{
+                    .a = add(add(bell.pos, mul(side, r * @cos(a0))), V{ 0.0, r * @sin(a0), 0.0 }),
+                    .b = add(add(bell.pos, mul(side, r * @cos(a1))), V{ 0.0, r * @sin(a1), 0.0 }),
+                    .half_width = 1.3,
+                    .body = 0.0,
+                    .col = tint,
+                };
+                n += 1;
+            }
+        }
+    }
+    return n;
+}
+
 fn hash(a: i32, b: i32, k: u32) u32 {
     var s: u32 = @as(u32, @bitCast(a)) *% 0x9e3779b1 ^ @as(u32, @bitCast(b)) *% 0x85ebca6b ^ (k +% 1) *% 0xc2b2ae35;
     s ^= s >> 15;
@@ -257,31 +338,56 @@ fn unit01(s: u32) f32 {
     return @as(f32, @floatFromInt(s >> 8)) * (1.0 / 16777216.0);
 }
 
-/// Grass round the eye: a real blade is 4 to 9 cm, so here each is a tree of 4 to 9 m.
-pub fn grass(eye_x: f32, eye_z: f32, out: []Inst) usize {
+/// The ground round Hum, one to a hundred: blades of grass that are trees four to nine metres
+/// tall and as wide as a door, and crumbs of soil that are boulders.
+pub fn ground(hum_x: f32, hum_z: f32, out: []Inst) usize {
     const cell: f32 = 16.0;
-    const reach: i32 = 6;
-    const cx: i32 = @intFromFloat(@floor(eye_x / cell));
-    const cz: i32 = @intFromFloat(@floor(eye_z / cell));
+    const reach: i32 = 7;
+    const cx: i32 = @intFromFloat(@floor(hum_x / cell));
+    const cz: i32 = @intFromFloat(@floor(hum_z / cell));
+    const blade = col8(.{ 0.36, 0.66, 0.46 }, 0.26);
+    const vein = col8(.{ 0.36, 0.66, 0.46 }, 0.11);
+    const stone = col8(.{ 0.62, 0.56, 0.50 }, 0.26);
     var n: usize = 0;
     var iz: i32 = cz - reach;
     while (iz <= cz + reach) : (iz += 1) {
         var ix: i32 = cx - reach;
         while (ix <= cx + reach) : (ix += 1) {
-            for (0..4) |k| {
-                if (n + 2 > out.len) return n;
+            for (0..3) |k| {
+                if (n + 5 > out.len) return n;
                 const s = hash(ix, iz, @intCast(k));
                 const x = (@as(f32, @floatFromInt(ix)) + unit01(s)) * cell;
                 const z = (@as(f32, @floatFromInt(iz)) + unit01(hash(iz, ix, @intCast(k + 7)))) * cell;
                 const tall = 4.0 + 5.0 * unit01(s *% 2654435761);
                 const way = unit01(s *% 40503) * 6.2831853;
-                const bend = tall * (0.10 + 0.25 * unit01(s *% 69069));
+                const bend = tall * (0.12 + 0.30 * unit01(s *% 69069));
+                const half = 0.16 + 0.10 * unit01(s *% 22695477);
+                const across = V{ -@sin(way) * half, 0.0, @cos(way) * half };
                 const base = V{ x, 0.0, z };
-                const knee = V{ x + @cos(way) * bend * 0.3, tall * 0.55, z + @sin(way) * bend * 0.3 };
-                const tip = V{ x + @cos(way) * bend, tall * 0.94, z + @sin(way) * bend };
-                const tint = col8(.{ 0.36, 0.62, 0.44 }, 0.42);
-                out[n] = .{ .a = base, .b = knee, .half_width = 1.2, .body = 0.0, .col = tint };
-                out[n + 1] = .{ .a = knee, .b = tip, .half_width = 1.0, .body = 0.0, .col = tint };
+                const knee = V{ x + @cos(way) * bend * 0.3, tall * 0.58, z + @sin(way) * bend * 0.3 };
+                const tip = V{ x + @cos(way) * bend, tall * 0.95, z + @sin(way) * bend };
+                out[n] = .{ .a = add(base, across), .b = add(knee, across), .half_width = 1.2, .body = 0.0, .col = blade };
+                out[n + 1] = .{ .a = add(knee, across), .b = tip, .half_width = 1.1, .body = 0.0, .col = blade };
+                out[n + 2] = .{ .a = add(base, mul(across, -1.0)), .b = add(knee, mul(across, -1.0)), .half_width = 1.2, .body = 0.0, .col = blade };
+                out[n + 3] = .{ .a = add(knee, mul(across, -1.0)), .b = tip, .half_width = 1.1, .body = 0.0, .col = blade };
+                out[n + 4] = .{ .a = base, .b = knee, .half_width = 0.9, .body = 0.0, .col = vein };
+                n += 5;
+            }
+            // one crumb of soil: a boulder one to three metres across
+            if (n + 8 > out.len) return n;
+            const s = hash(ix *% 31, iz *% 17, 99);
+            const x = (@as(f32, @floatFromInt(ix)) + unit01(s)) * cell;
+            const z = (@as(f32, @floatFromInt(iz)) + unit01(s *% 2654435761)) * cell;
+            const r = 0.6 + 1.0 * unit01(s *% 40503);
+            const turn = unit01(s *% 69069) * 6.2831853;
+            const peak = V{ x + r * 0.15, r * 0.8, z - r * 0.1 };
+            for (0..4) |k| {
+                const a0 = turn + @as(f32, @floatFromInt(k)) * 1.5707963;
+                const a1 = a0 + 1.5707963;
+                const q0 = V{ x + r * @cos(a0), 0.03, z + r * @sin(a0) };
+                const q1 = V{ x + r * @cos(a1), 0.03, z + r * @sin(a1) };
+                out[n] = .{ .a = q0, .b = q1, .half_width = 1.1, .body = 0.0, .col = stone };
+                out[n + 1] = .{ .a = q0, .b = peak, .half_width = 1.0, .body = 0.0, .col = stone };
                 n += 2;
             }
         }
@@ -289,39 +395,50 @@ pub fn grass(eye_x: f32, eye_z: f32, out: []Inst) usize {
     return n;
 }
 
-const sky_rows = 12;
-const sky_parts = 36;
-
-/// The day coming up: bands of light low in the sky, warm at the horizon and brightest toward
-/// where the sun will be. They stand round the eye, as a sky does.
+/// The day coming up: the rim of the sun on the horizon, as arcs of light, and a faint line
+/// where the ground ends. They stand round the eye, as a sky does.
 pub fn sky(eye: V, out: []Inst) usize {
-    const radius: f32 = 1500.0;
-    const dawn: f32 = -1.95; // a little right of straight ahead
+    const radius: f32 = 420.0;
+    const dawn: f32 = -1.12; // a little right of straight ahead
+    const centre = V{ eye[0] + radius * @cos(dawn), eye[1], eye[2] + radius * @sin(dawn) };
+    const right = V{ -@sin(dawn), 0.0, @cos(dawn) };
     var n: usize = 0;
-    for (0..sky_rows) |row| {
-        const f = @as(f32, @floatFromInt(row)) / @as(f32, sky_rows - 1);
-        const up = (0.5 + 15.0 * f * f + 3.0 * f) * (std.math.pi / 180.0);
-        const y = eye[1] + radius * @sin(up);
-        const flat = radius * @cos(up);
-        const warm = [3]f32{ 1.0, 0.70, 0.42 };
-        const cool = [3]f32{ 0.45, 0.52, 0.95 };
-        const tint = [3]f32{ warm[0] + (cool[0] - warm[0]) * f, warm[1] + (cool[1] - warm[1]) * f, warm[2] + (cool[2] - warm[2]) * f };
-        for (0..sky_parts) |k| {
+    const arcs = 9;
+    const parts = 18;
+    for (0..arcs) |k| {
+        const f = @as(f32, @floatFromInt(k)) / @as(f32, arcs - 1);
+        const wide = radius * @tan((1.6 + 2.1 * @as(f32, @floatFromInt(k))) * (std.math.pi / 180.0));
+        const tint = col8(.{ 1.0, 0.74 - 0.20 * f, 0.44 + 0.30 * f }, (1.0 - f) * (1.0 - f) * 0.88 + 0.12);
+        for (0..parts) |j| {
             if (n >= out.len) return n;
-            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, sky_parts));
-            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, sky_parts));
-            const toward = @max(0.0, @cos((a0 + a1) * 0.5 - dawn));
-            const level = (1.0 - f) * (0.25 + 0.75 * toward * toward);
-            if (level < 0.06) continue;
+            const a0 = @as(f32, @floatFromInt(j)) * (std.math.pi / @as(f32, parts));
+            const a1 = @as(f32, @floatFromInt(j + 1)) * (std.math.pi / @as(f32, parts));
             out[n] = .{
-                .a = .{ eye[0] + flat * @cos(a0), y, eye[2] + flat * @sin(a0) },
-                .b = .{ eye[0] + flat * @cos(a1), y, eye[2] + flat * @sin(a1) },
-                .half_width = 2.6,
+                .a = add(add(centre, mul(right, wide * @cos(a0))), V{ 0.0, wide * @sin(a0), 0.0 }),
+                .b = add(add(centre, mul(right, wide * @cos(a1))), V{ 0.0, wide * @sin(a1), 0.0 }),
+                .half_width = 3.0,
                 .body = 0.0,
-                .col = col8(tint, level),
+                .col = tint,
             };
             n += 1;
         }
+    }
+    const rim = col8(.{ 0.75, 0.62, 0.55 }, 0.30);
+    const round = 48;
+    for (0..round) |k| {
+        if (n >= out.len) return n;
+        const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, round));
+        const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, round));
+        const toward = @max(0.0, @cos((a0 + a1) * 0.5 - dawn));
+        if (toward < 0.2) continue;
+        out[n] = .{
+            .a = .{ eye[0] + radius * @cos(a0), eye[1] - 1.5, eye[2] + radius * @sin(a0) },
+            .b = .{ eye[0] + radius * @cos(a1), eye[1] - 1.5, eye[2] + radius * @sin(a1) },
+            .half_width = 2.0,
+            .body = 0.0,
+            .col = rim,
+        };
+        n += 1;
     }
     return n;
 }

@@ -1,10 +1,33 @@
-minute  1: world 55cdf6a2e76a1e2b  sound 282b4624a84056f8  loudest 0.918  calls 15  answers 247  cues 270  late 0  refused 0
-minute  2: world 63f91f471057af9c  sound 329c394ed359b4c3  loudest 0.931  calls 32  answers 273  cues 323  late 0  refused 0
-minute  3: world 197ef4d23d665f8e  sound ebc9a5561e33b15a  loudest 0.931  calls 46  answers 273  cues 349  late 0  refused 0
-minute  4: world 7adc4e6ccbdd0558  sound 19129cb1f40e6209  loudest 0.931  calls 58  answers 273  cues 371  late 0  refused 0
-minute  5: world c62900d7dc0720f3  sound 02859ba60fc3d956  loudest 0.931  calls 71  answers 273  cues 394  late 0  refused 0
-minute  6: world 039e9ee85f5c01dc  sound 0f7ccb4b2f1bcf75  loudest 0.931  calls 85  answers 273  cues 417  late 0  refused 0
-minute  7: world be9c9f33b9c80b14  sound b3b08fcb46ba687f  loudest 0.931  calls 100  answers 273  cues 441  late 0  refused 0
-minute  8: world 11a9a43df22f82ef  sound 0de2dea459e1a6c7  loudest 0.931  calls 114  answers 273  cues 463  late 0  refused 0
-minute  9: world 6b0cb430a968cd82  sound daaa4889063c2186  loudest 0.931  calls 131  answers 273  cues 488  late 0  refused 0
-minute 10: world 4e9016695f1e48c7  sound 5ee2fd47d84b9a10  loudest 0.931  calls 149  answers 273  cues 516  late 0  refused 0
+minute  1: world 44b9b96839093147  sound 582798fa89ebf8cc  loudest 0.913  calls 15  answers 247  cues 217  late 0  refused 0
+minute  2: world 085cf751511627be  sound 27fd2264c0c99203  loudest 0.913  calls 32  answers 273  cues 251  late 0  refused 0
+minute  3: world bf34285606bf0b7a  sound 93b428295a02c97a  loudest 0.913  calls 46  answers 273  cues 277  late 0  refused 0
+minute  4: world ae95180892c730ce  sound 5a38bc54d7737dc5  loudest 0.913  calls 58  answers 273  cues 299  late 0  refused 0
+minute  5: world 985e8e5c308c946d  sound e6393895c47acfed  loudest 0.918  calls 71  answers 273  cues 322  late 0  refused 0
+minute  6: world 3480b198b0c6c4d4  sound ec61c7dcf579fbfa  loudest 0.924  calls 85  answers 273  cues 345  late 0  refused 0
+minute  7: world 8e28d4bec7e4bad2  sound 56d091f59d25da4b  loudest 0.932  calls 100  answers 273  cues 369  late 0  refused 0
+minute  8: world 5439b06e66f736e9  sound d2943fc472110e8c  loudest 0.932  calls 114  answers 273  cues 391  late 0  refused 0
+minute  9: world 06a970b08d8617d8  sound ddb95c8e785f1699  loudest 0.932  calls 131  answers 273  cues 416  late 0  refused 0
+minute 10: world 3d608651bf55ac59  sound 06a55d27edb84d13  loudest 0.932  calls 149  answers 273  cues 444  late 0  refused 0
+witness evening.call first=59 held=1144
+witness whole.law1 first=59 held=0
+witness whole.law6 first=59 held=0
+asters end, minute  1: world d6f2df8169f9300d  sound a3c70007c08ba459  loudest 0.867  calls 2  answers 899  cues 325  late 0  refused 0
+witness evening.call first=299 held=377
+witness garden.asters first=2186 held=582
+witness whole.law1 first=299 held=0
+witness whole.law6 first=299 held=0
+fact scale.one_to 100.000
+fact scale.hum_tall_m 1.000
+fact sound.speed_m_s 60.000
+fact dark.first_backlight 14.000
+fact asters.count 70.000
+fact asters.tallest_m 172.000
+fact asters.shortest_m 92.411
+fact asters.bells 1781.000
+fact asters.field_m 1200.000
+fact asters.great_tall_m 172.000
+fact asters.great_bells 20.000
+fact asters.great_climb_s 2.867
+fact asters.walk_s 29.983
+fact asters.lean_holds_hum_and_top 1.000
+fact asters.top_out_of_frame 1.000

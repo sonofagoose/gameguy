@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Build the game.
-#   ./build.sh          tests, laptop build, handheld build, the pack for Ports
-#   ./build.sh laptop   tests and the laptop build only
+#   ./build.sh          tests, laptop build, the runs with no screen, the promise book, handheld
+#                       build, the pack for Ports
+#   ./build.sh laptop   everything up to the handheld build
 # Needs Zig at ../.tools/zig/zig: it is the compiler for both machines and translates the C headers.
 set -euo pipefail
 cd "$(dirname "$0")"
 ZIG=${ZIG:-../.tools/zig/zig}
 HEADERS=../probe/third_party   # SDL2 and Khronos headers: declarations only, both load at run time
+PROMISES="python3 -I ../spec/tools/promises.py"
 mkdir -p build
 
 build_for() {  # name, then extra zig flags for the target
@@ -19,27 +21,40 @@ build_for() {  # name, then extra zig flags for the target
       -lc -femit-bin="build/same-take-$name" --cache-dir build/cache
 }
 
+quiet_run() {  # label, then the command: it must write nothing to the error stream
+  local label=$1; shift
+  if ! SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy "$@" > "build/$label.out" 2> "build/$label.err"; then
+    echo "the $label run failed:"; tail -5 "build/$label.out"; cat "build/$label.err"; exit 1
+  fi
+  if [ -s "build/$label.err" ]; then echo "the $label run wrote to the error stream:"; cat "build/$label.err"; exit 1; fi
+}
+
+echo "== the promise book: which moments the world must witness (spec/promises.md)"
+$PROMISES --zig src/world/promise_list.zig
+grep -c '^    "' src/world/promise_list.zig | sed 's/^/   witnessed promises: /'
+
 echo "== tests (the rules, the sound, the arithmetic: nothing that needs a screen)"
 "$ZIG" test src/rules.zig --cache-dir build/cache 2>&1 | tail -1
 
 echo "== laptop (x86_64)"
 build_for x86_64
 
-echo "== no screen: the lines bench runs, dumps its frames, and writes nothing to the error stream"
+echo "== no screen: the lines bench runs and dumps its frames"
 rm -rf build/frames && mkdir -p build/frames
-SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy build/gameguy-x86_64 --lines --headless --frames 6 \
-    --dump build/frames > build/headless.out 2> build/headless.err
-if [ -s build/headless.err ]; then echo "the run wrote to the error stream:"; cat build/headless.err; exit 1; fi
-ls build/frames | sed 's/^/   /'
+quiet_run lines build/gameguy-x86_64 --lines --headless --frames 6 --dump build/frames
 
 echo "== no screen: the dark and the call, twenty seconds of the scripted hands, frames and sound kept"
-SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy build/gameguy-x86_64 --headless --frames 1200 \
-    --dump build/frames --dump-every 150 --wav build/dark.wav > build/dark.out 2> build/dark.err
-if [ -s build/dark.err ]; then echo "the run wrote to the error stream:"; cat build/dark.err; exit 1; fi
-tail -1 build/dark.out | sed 's/^/   /'
+quiet_run dark build/gameguy-x86_64 --headless --frames 1200 --dump build/frames --dump-every 150 --wav build/dark.wav
+grep "^the dark:" build/dark.out | sed 's/^/   /'
 
-echo "== no screen: the room opens, reads its clips, and writes nothing to the error stream"
+echo "== no screen: the asters, walked by the scripted player, a frame at each standpoint a promise names"
+quiet_run asters build/gameguy-x86_64 --scene asters --headless --dump build/frames --dump-every 100000 --wav build/asters.wav
+grep "^the asters:" build/asters.out | tail -1 | sed 's/^/   /'
+ls build/frames | grep '^promise-' | tr '\n' ' ' | sed 's/^/   /'; echo
+
+echo "== no screen: the room opens with its walk and its clips"
 rm -rf build/room && mkdir -p build/room && ln -s ../../../design/listen build/room/clips
+$PROMISES --room build/room/promises.txt
 python3 -I - > build/room/clips.txt <<'PY'
 import re
 rows = []
@@ -50,21 +65,26 @@ for line in open('../design/listen/README.md'):
 for _, name, question in sorted(rows):
     print(f"{name}|{question}")
 PY
-SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy build/gameguy-x86_64 --room build/room --headless --frames 5 \
-    --dump build/frames > build/room.out 2> build/room.err
-if [ -s build/room.err ]; then echo "the run wrote to the error stream:"; cat build/room.err; exit 1; fi
+quiet_run room build/gameguy-x86_64 --room build/room --headless --frames 5 --dump build/frames
 grep "items" build/room.out | sed 's/^/   /'
 
-echo "== same take: ten minutes of the world and the sound, fingerprinted"
+echo "== same take: ten minutes of the dark and the walk to the great aster, fingerprinted"
 build/same-take-x86_64 10 2> build/same-take-x86_64.txt
-tail -1 build/same-take-x86_64.txt | sed 's/^/   /'
+grep -E "^(minute 10|asters end)" build/same-take-x86_64.txt | sed 's/^/   /'
+identical=0
 if [ -f results/same-take-aarch64.txt ]; then
-  if diff -q <(grep minute build/same-take-x86_64.txt) <(grep minute results/same-take-aarch64.txt) > /dev/null; then
-    echo "   the same as the handheld's last run, minute for minute"
+  if diff -q <(grep -E "^(minute|asters)" build/same-take-x86_64.txt) <(grep -E "^(minute|asters)" results/same-take-aarch64.txt) > /dev/null; then
+    echo "   the same as the handheld's last run, line for line"
+    identical=1
   else
     echo "   DIFFERENT from the handheld's last run (results/same-take-aarch64.txt): run it there again"
   fi
 fi
+echo "fact same_take.identical $identical" > build/facts.txt
+
+echo "== the promise book: every claim, and where each promise stands (spec/promises/BOARD.md)"
+$PROMISES | sed 's/^/   /'
+[ "${PIPESTATUS[0]}" -eq 0 ] || { echo "the promise book refused something: see above"; exit 1; }
 [ "${1:-}" = laptop ] && exit 0
 
 echo "== handheld (aarch64, glibc 2.30 floor, Cortex-A35)"
@@ -78,7 +98,7 @@ mkdir -p "$P/gameguy"
 cp build/gameguy-aarch64 build/modes-aarch64 build/same-take-aarch64 "$P/gameguy/"
 cp port/Gameguy.sh port/GameguyRoom.sh "$P/"
 mkdir -p "$P/gameguy/room/clips"
-cp build/room/clips.txt "$P/gameguy/room/"
+cp build/room/clips.txt build/room/promises.txt "$P/gameguy/room/"
 cp ../design/listen/*.wav "$P/gameguy/room/clips/"
 chmod +x "$P/Gameguy.sh" "$P/GameguyRoom.sh" "$P/gameguy/gameguy-aarch64" "$P/gameguy/modes-aarch64" "$P/gameguy/same-take-aarch64"
 find dist -type f -not -name '*.wav' | sort | sed 's/^/   /'; echo "   and $(ls dist/ports/gameguy/room/clips | wc -l) clips"

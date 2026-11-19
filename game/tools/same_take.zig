@@ -126,6 +126,12 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     // Hum, who is at_foot from the stalk, and the frame's top edge is half the view above the gaze.
     const top_edge = world_mod.walk_pitch + world_mod.place_fov * 0.5 * std.math.pi / 180.0;
     const crown = std.math.atan2(great.tall * 0.74 - world_mod.cam_up, world_mod.at_foot + world_mod.cam_back);
+    // leaned back at its foot, are Hum and the very top both inside the wide frame?
+    const lean_top = std.math.atan2(great.tall - world_mod.lean_up, 9.0 + world_mod.lean_back);
+    const half = world_mod.lean_fov * 0.5 * std.math.pi / 180.0;
+    const lean_pitch = lean_top - half + 2.5 * std.math.pi / 180.0;
+    const hum_low = std.math.atan2(-world_mod.lean_up, world_mod.lean_back);
+    fact("asters.lean_holds_hum_and_top", if (lean_pitch - half < hum_low and lean_pitch + half > lean_top) 1.0 else 0.0);
     fact("asters.top_out_of_frame", if (crown > top_edge) 1.0 else 0.0);
     return 0;
 }

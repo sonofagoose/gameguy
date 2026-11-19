@@ -36,11 +36,16 @@ pub const first_dark_backlight: f32 = 14.0;
 /// An answer fainter than this is seen and not sounded.
 pub const quietest: f32 = 0.004;
 
-/// The view of the place: where the eye sits behind Hum, and how far it looks up while walking.
-pub const cam_back: f32 = 6.5;
-pub const cam_up: f32 = 1.7;
-pub const walk_pitch: f32 = 0.16;
+/// The view of the place. Walking: the eye sits well behind Hum and low, looking up a little, so
+/// the horizon is low in the frame and Hum is small in it. Leaned back at a tall thing's foot:
+/// the eye drops to the ground and the view opens wide, so Hum and the crown are in one frame.
+pub const cam_back: f32 = 12.0;
+pub const cam_up: f32 = 1.4;
+pub const walk_pitch: f32 = 0.28;
 pub const place_fov: f32 = 55.0;
+pub const lean_fov: f32 = 90.0;
+pub const lean_back: f32 = 9.0;
+pub const lean_up: f32 = 0.5;
 /// Standing still within this of a tall thing's foot, the view leans back to take it in.
 pub const lean_within: f32 = 40.0;
 /// How near a tower's foot counts as standing at it.
@@ -423,14 +428,21 @@ pub const World = struct {
         }
     }
 
-    /// How far up the view looks, in radians: walking, a little; leaned back, to the crown.
+    /// How far up the view looks, in radians: walking, a little; leaned back, far enough that
+    /// the top of the thing is just inside the top of the wide frame.
     pub fn pitch(self: *const World) f32 {
-        var crown: f32 = walk_pitch;
+        var leaned: f32 = walk_pitch;
         if (self.near_tower != no_tower) {
             const tower = self.towers[self.near_tower];
-            crown = std.math.clamp(std.math.atan2(tower.tall * 0.72, self.near_far + 3.0), walk_pitch, 1.30);
+            const top = std.math.atan2(tower.tall - lean_up, self.near_far + lean_back);
+            leaned = std.math.clamp(top - (lean_fov * 0.5 - 2.5) * (std.math.pi / 180.0), walk_pitch, 1.0);
         }
-        return std.math.clamp(walk_pitch + self.look_tilt + self.lean * (crown - walk_pitch), -0.35, 1.36);
+        return std.math.clamp(walk_pitch + self.look_tilt + self.lean * (leaned - walk_pitch), -0.35, 1.36);
+    }
+
+    /// How wide the view is, in degrees up and down.
+    pub fn fov(self: *const World) f32 {
+        return place_fov + self.lean * (lean_fov - place_fov);
     }
 
     fn atTallFoot(self: *const World) bool {

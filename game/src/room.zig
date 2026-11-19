@@ -7,12 +7,22 @@
 //! Buttons, by the letters this handheld prints: A (right) yes, B (bottom) no, Y (left) again,
 //! R1 next, L1 back, Select and Start together leave.
 //!
-//! The items: a tone, the rumble line, the backlight following a swell, the left stick, a headset's
-//! microphone, and then every listening clip in the folder's `clips.txt`.
+//! The items, in order:
+//!   - who is holding the handheld;
+//!   - the walk (spec/promises.md): each promise that has a scene, from the folder's
+//!     `promises.txt`. It names the promise, puts the person in the moment with their own hands,
+//!     and when they come back asks its one question. What their hands did there is logged too;
+//!   - three checks for the hands and eyes: a tone, the backlight following a swell, the left
+//!     stick;
+//!   - every listening clip in the folder's `clips.txt`.
+//!
+//! The rumble line and the headset's microphone were here and are gone: Morgan, 2026-11-19, said
+//! this handheld has no motor, and that a microphone is never something to lean on.
 const std = @import("std");
 const plat = @import("plat/plat.zig");
 const font = @import("plat/font.zig");
 const png = @import("plat/png.zig");
+const dark = @import("dark.zig");
 const c = plat.c;
 const sdl = plat.sdl;
 const gl = plat.gl;
@@ -236,170 +246,68 @@ fn stopClip() void {
     clip_pos = 0;
 }
 
-// ------------------------------------------------------------------ what listens
-
-var heard: [48000 * 5]f32 = undefined;
-var heard_n: usize = 0;
-var in_channels: usize = 1;
-
-fn hearCallback(userdata: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.c) void {
-    _ = userdata;
-    const frames = @as(usize, @intCast(len)) / (@sizeOf(f32) * in_channels);
-    const in: [*]const f32 = @ptrCast(@alignCast(stream));
-    var n = @atomicLoad(usize, &heard_n, .monotonic);
-    for (0..frames) |i| {
-        if (n >= heard.len) break;
-        // the loudest of the channels: on this board only one carries anything
-        var s: f32 = 0.0;
-        for (0..in_channels) |ch| {
-            const v = in[i * in_channels + ch];
-            if (@abs(v) > @abs(s)) s = v;
-        }
-        heard[n] = s;
-        n += 1;
-    }
-    @atomicStore(usize, &heard_n, n, .release);
-}
-
-fn level(samples: []const f32) f32 {
-    if (samples.len == 0) return -120.0;
-    var mean: f64 = 0.0;
-    for (samples) |x| mean += x;
-    mean /= @floatFromInt(samples.len);
-    var sum: f64 = 0.0;
-    for (samples) |x| sum += (x - mean) * (x - mean);
-    const rms = @sqrt(sum / @as(f64, @floatFromInt(samples.len)));
-    return @floatCast(20.0 * @log10(@max(rms, 1e-9)));
-}
-
-/// Record a second of quiet and three of whatever is said, through the recording path.
-fn hearHeadset(screen: *Screen) void {
-    _ = c.system("amixer -q -c 0 sset 'Capture MIC Path' 'Main Mic' > /dev/null 2>&1");
-    defer _ = c.system("amixer -q -c 0 sset 'Capture MIC Path' 'MIC OFF' > /dev/null 2>&1");
-    var want = std.mem.zeroes(c.SDL_AudioSpec);
-    want.freq = 48000;
-    want.format = c.AUDIO_F32SYS;
-    want.channels = 2;
-    want.samples = 1024;
-    want.callback = &hearCallback;
-    var have = std.mem.zeroes(c.SDL_AudioSpec);
-    const device = sdl.OpenAudioDevice(null, 1, &want, &have, c.SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
-    if (device == 0) {
-        log("room: headset: the recording path did not open ({s})", .{std.mem.span(sdl.GetError())});
-        return;
-    }
-    in_channels = have.channels;
-    @atomicStore(usize, &heard_n, 0, .release);
-    sdl.PauseAudioDevice(device, 0);
-    screen.say("QUIET FOR A MOMENT...", "");
-    sdl.Delay(1300);
-    const quiet_end = @min(@atomicLoad(usize, &heard_n, .acquire), heard.len);
-    screen.say("NOW: SAY AH", "for three seconds, into the headset's microphone");
-    sdl.Delay(3200);
-    const end = @min(@atomicLoad(usize, &heard_n, .acquire), heard.len);
-    sdl.CloseAudioDevice(device);
-    const quiet = level(heard[@min(4800, quiet_end)..quiet_end]);
-    const voice = level(heard[quiet_end..end]);
-    var peak: f32 = 0.0;
-    for (heard[quiet_end..end]) |x| peak = @max(peak, @abs(x));
-    log("room: headset: quiet {d:.1} dBFS, then {d:.1} dBFS with a peak of {d:.3}: {s}", .{
-        quiet,
-        voice,
-        peak,
-        if (voice > quiet + 12.0) "the jack hears a voice" else "no voice came through",
-    });
-}
-
-// ------------------------------------------------------------------ the rumble line
-
-/// Find the gamepad among the kernel's input devices and play one rumble effect through it.
-fn rumble() void {
-    var text: [8192]u8 = undefined;
-    const file = c.fopen("/proc/bus/input/devices", "r") orelse return;
-    const n = c.fread(&text, 1, text.len, file);
-    _ = c.fclose(file);
-    const all = text[0..n];
-    const at = std.mem.indexOf(u8, all, "Gamepad") orelse {
-        log("room: rumble: no gamepad among the input devices", .{});
-        return;
-    };
-    const handlers = std.mem.indexOfPos(u8, all, at, "Handlers=") orelse return;
-    const ev = std.mem.indexOfPos(u8, all, handlers, "event") orelse return;
-    var number: u32 = 0;
-    var i = ev + 5;
-    while (i < all.len and all[i] >= '0' and all[i] <= '9') : (i += 1) number = number * 10 + (all[i] - '0');
-    var path: [64]u8 = undefined;
-    const p = std.mem.printSentinel(&path, "/dev/input/event{d}", .{number}, 0) catch return;
-    const fd = c.open(p.ptr, c.O_RDWR);
-    if (fd < 0) {
-        log("room: rumble: could not open {s}", .{p});
-        return;
-    }
-    defer _ = c.close(fd);
-    // struct input_event: two 64-bit times, then type, code, value
-    const Event = extern struct { sec: i64 = 0, usec: i64 = 0, kind: u16, code: u16, value: i32 };
-    const ev_ff: u16 = 0x15;
-    var gain = Event{ .kind = ev_ff, .code = 0x60, .value = 0xFFFF }; // FF_GAIN: without it the pin stays low
-    _ = c.write(fd, &gain, @sizeOf(Event));
-    // struct ff_effect, 48 bytes: type, id, direction, trigger, replay, then the rumble's two strengths
-    var effect: [48]u8 = @splat(0);
-    std.mem.writeInt(u16, effect[0..2], 0x50, .little); // FF_RUMBLE
-    std.mem.writeInt(i16, effect[2..4], -1, .little);
-    std.mem.writeInt(u16, effect[10..12], 350, .little); // length, ms
-    std.mem.writeInt(u16, effect[16..18], 0xFFFF, .little);
-    std.mem.writeInt(u16, effect[18..20], 0xFFFF, .little);
-    if (c.ioctl(fd, @as(c_ulong, 0x40304580), &effect) < 0) { // EVIOCSFF
-        log("room: rumble: the effect was refused", .{});
-        return;
-    }
-    const id = std.mem.readInt(i16, effect[2..4], .little);
-    for (0..3) |_| {
-        var play = Event{ .kind = ev_ff, .code = @intCast(id), .value = 1 };
-        _ = c.write(fd, &play, @sizeOf(Event));
-        sdl.Delay(600);
-    }
-    log("room: rumble: three effects played through {s}", .{p});
-}
-
 // ------------------------------------------------------------------ the items
 
-const Kind = enum { tone, rumble, backlight, stick, headset, clip };
+const Kind = enum { who, promise, tone, backlight, stick, clip };
 
 const Item = struct {
     kind: Kind,
     name: []const u8,
     question: []const u8,
     file: []const u8 = "",
+    /// For a promise: its id in the promise book, and the scene the walk puts a person in.
+    id: []const u8 = "",
+    scene: []const u8 = "",
+    /// For a promise: whether the person has been there yet.
+    been: bool = false,
     answer: u8 = 0, // 0 none, 'y', 'n'
     plays: u32 = 0,
 };
 
 const checks = [_]Item{
     .{ .kind = .tone, .name = "a tone", .question = "A plain tone plays for two seconds. Did you hear it clearly through the speaker?" },
-    .{ .kind = .rumble, .name = "the rumble line", .question = "Hold the handheld. Three short pulses are sent to its rumble line. Did it buzz?" },
     .{ .kind = .backlight, .name = "the backlight", .question = "A swell plays twice and the screen's own light follows it. Did that look good? (No: it pumped, flickered or annoyed.)" },
     .{ .kind = .stick, .name = "the left stick", .question = "Push the LEFT stick UP and hold it there. Then press A." },
-    .{ .kind = .headset, .name = "a headset", .question = "Plug a phone headset WITH a microphone into the jack. Press A, stay quiet a moment, then say AH. (No headset: press B.)" },
 };
 
-var items: [80]Item = undefined;
+var items: [160]Item = undefined;
 var item_count: usize = 0;
+var promise_count: usize = 0;
 var manifest: [16 * 1024]u8 = undefined;
+var promise_list: [16 * 1024]u8 = undefined;
+var holder: []const u8 = "someone";
+
+fn readInto(dir: []const u8, name: []const u8, into: []u8) []const u8 {
+    var path: [512]u8 = undefined;
+    const p = std.mem.printSentinel(&path, "{s}/{s}", .{ dir, name }, 0) catch return "";
+    const file = c.fopen(p.ptr, "r") orelse return "";
+    const n = c.fread(into.ptr, 1, into.len, file);
+    _ = c.fclose(file);
+    return into[0..n];
+}
 
 fn loadItems(dir: []const u8) void {
+    items[0] = .{ .kind = .who, .name = "who is holding it", .question = "The answers are kept with a name. Who is holding the handheld?" };
+    item_count = 1;
+    // the walk: id|scene|title|question
+    var rows = std.mem.splitScalar(u8, readInto(dir, "promises.txt", &promise_list), '\n');
+    while (rows.next()) |row| {
+        if (item_count >= items.len) break;
+        var parts = std.mem.splitScalar(u8, row, '|');
+        const id = parts.next() orelse continue;
+        const scene = parts.next() orelse continue;
+        const title = parts.next() orelse continue;
+        const question = parts.next() orelse continue;
+        if (id.len == 0 or std.meta.stringToEnum(dark.Scene, scene) == null) continue;
+        items[item_count] = .{ .kind = .promise, .name = title, .question = question, .id = id, .scene = scene };
+        item_count += 1;
+        promise_count += 1;
+    }
     for (checks) |check| {
         items[item_count] = check;
         item_count += 1;
     }
-    var path: [512]u8 = undefined;
-    const p = std.mem.printSentinel(&path, "{s}/clips.txt", .{dir}, 0) catch return;
-    const file = c.fopen(p.ptr, "r") orelse {
-        log("room: no clips.txt in {s}; only the hand checks", .{dir});
-        return;
-    };
-    const n = c.fread(&manifest, 1, manifest.len, file);
-    _ = c.fclose(file);
-    var rows = std.mem.splitScalar(u8, manifest[0..n], '\n');
+    rows = std.mem.splitScalar(u8, readInto(dir, "clips.txt", &manifest), '\n');
     while (rows.next()) |row| {
         if (item_count >= items.len) break;
         var parts = std.mem.splitScalar(u8, row, '|');
@@ -410,23 +318,6 @@ fn loadItems(dir: []const u8) void {
         item_count += 1;
     }
 }
-
-const Screen = struct {
-    window: plat.Window,
-    words: *Type,
-
-    /// A whole screen of two lines, for the moments in the middle of a check.
-    fn say(self: *Screen, big: []const u8, small: []const u8) void {
-        gl.BindFramebuffer(c.GL_FRAMEBUFFER, 0);
-        gl.Viewport(0, 0, self.window.width, self.window.height);
-        gl.ClearColor(0.0, 0.0, 0.0, 1.0);
-        gl.Clear(c.GL_COLOR_BUFFER_BIT);
-        self.words.line(30.0, 180.0, 2.0, bone, big);
-        self.words.line(30.0, 250.0, 1.0, dim, small);
-        self.words.flush();
-        sdl.GL_SwapWindow(self.window.handle);
-    }
-};
 
 const bone = [4]f32{ 0.886, 0.839, 0.784, 1.0 };
 const dim = [4]f32{ 0.55, 0.53, 0.50, 1.0 };
@@ -455,12 +346,11 @@ fn enter(item: *Item, dir: []const u8) void {
     item.plays += 1;
     switch (item.kind) {
         .tone => tone_left = 96000,
-        .rumble => rumble(),
         .backlight => {
             swell_total = 48000 * 6;
             swell_left = swell_total;
         },
-        .stick, .headset => {},
+        .who, .promise, .stick => {},
         .clip => {
             var path: [512]u8 = undefined;
             const p = std.mem.printSentinel(&path, "{s}/clips/{s}.wav", .{ dir, item.file }, 0) catch return;
@@ -475,14 +365,7 @@ fn enter(item: *Item, dir: []const u8) void {
     }
 }
 
-pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*:0]const u8) bool {
-    const dir = std.mem.span(dir_z);
-    var type_: Type = undefined;
-    if (!type_.init(window.width, window.height)) return false;
-    var screen = Screen{ .window = window, .words = &type_ };
-    loadItems(dir);
-    log("room: {d} items ({d} checks for the hands, {d} clips for the ears)", .{ item_count, checks.len, item_count - checks.len });
-
+fn openPlay() c.SDL_AudioDeviceID {
     var want = std.mem.zeroes(c.SDL_AudioSpec);
     want.freq = 48000;
     want.format = c.AUDIO_F32SYS;
@@ -497,6 +380,45 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
     } else {
         log("room: no sound device ({s})", .{std.mem.span(sdl.GetError())});
     }
+    return device;
+}
+
+/// The walk: put the person in the promise's moment, with their own hands, and come back.
+fn visit(window: plat.Window, item: *Item, device: *c.SDL_AudioDeviceID) void {
+    stopClip();
+    if (device.* != 0) sdl.CloseAudioDevice(device.*);
+    const scene = std.meta.stringToEnum(dark.Scene, item.scene) orelse .dark;
+    log("room: promise {s}: going there ({s})", .{ item.id, item.scene });
+    _ = dark.run(window, .{ .scene = scene, .promise = item.id });
+    item.been = true;
+    item.plays += 1;
+    device.* = openPlay();
+}
+
+/// Wrap `text` at words and draw it from `top` down.
+fn paragraph(words: *Type, text: []const u8, top: f32, col: [4]f32) void {
+    var y = top;
+    var rest = text;
+    while (rest.len > 0 and y < 388.0) {
+        var take: usize = @min(rest.len, 40);
+        if (take < rest.len) {
+            while (take > 0 and rest[take] != ' ') take -= 1;
+            if (take == 0) take = @min(rest.len, 40);
+        }
+        words.line(30.0, y, 1.2, col, rest[0..take]);
+        rest = std.mem.trimStart(u8, rest[take..], " ");
+        y += 34.0;
+    }
+}
+
+pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*:0]const u8) bool {
+    const dir = std.mem.span(dir_z);
+    var type_: Type = undefined;
+    if (!type_.init(window.width, window.height)) return false;
+    loadItems(dir);
+    log("room: {d} items ({d} promises to walk, {d} checks for the hands, {d} clips for the ears)", .{ item_count, promise_count, checks.len, item_count - 1 - promise_count - checks.len });
+
+    var device = openPlay();
     defer if (device != 0) sdl.CloseAudioDevice(device);
 
     var pad: ?*c.SDL_GameController = null;
@@ -511,6 +433,8 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
     var was: [7]bool = @splat(false);
     var frame: u32 = 0;
     var move_on_at: ?u32 = null;
+    // after a visit both leaving buttons are still down: they must be let go before they count
+    var leave_armed = true;
     const backlight_normal = readBacklight();
     var backlight_was: i32 = backlight_normal;
     enter(&items[0], dir);
@@ -537,29 +461,65 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
         var pressed: [7]bool = undefined;
         for (0..7) |i| pressed[i] = down[i] and !was[i];
         was = down;
-        if (down[5] and down[6]) running = false;
+        if (!down[5] and !down[6]) leave_armed = true;
+        if (leave_armed and down[5] and down[6]) running = false;
 
         const item = &items[current];
         var go: i32 = 0;
-        if (pressed[0] or pressed[1]) {
-            item.answer = if (pressed[0]) 'y' else 'n';
-            if (item.kind == .stick and pressed[0]) {
-                if (pad) |handle| {
-                    const lx = sdl.GameControllerGetAxis(handle, c.SDL_CONTROLLER_AXIS_LEFTX);
-                    const ly = sdl.GameControllerGetAxis(handle, c.SDL_CONTROLLER_AXIS_LEFTY);
-                    log("room: the left stick held up reads x {d}, y {d}: {s}", .{
-                        lx,
-                        ly,
-                        if (ly < -16000 and @abs(@as(i32, lx)) < 12000) "as it should (up is -y)" else "NOT as it should (up should be -y, with x near nought)",
-                    });
-                }
-            } else if (item.kind == .headset and pressed[0]) {
-                hearHeadset(&screen);
+        if (item.kind == .who) {
+            if (pressed[0] or pressed[1] or pressed[2]) {
+                holder = if (pressed[0]) "morgan" else if (pressed[1]) "jj" else "other";
+                item.answer = 'y';
+                log("room: held by {s}", .{holder});
+                move_on_at = frame + 15;
             }
-            log("room: {s}: {s} (played {d})", .{ item.name, if (item.answer == 'y') "yes" else "no", item.plays });
+        } else if (item.kind == .promise and !item.been) {
+            if (pressed[0]) {
+                visit(window, item, &device);
+                leave_armed = false;
+                was = @splat(true);
+                backlight_was = -1;
+            }
+        } else if (pressed[0] or pressed[1]) {
+            item.answer = if (pressed[0]) 'y' else 'n';
+            const word: []const u8 = if (item.answer == 'y') "yes" else "no";
+            if (item.kind == .promise) {
+                const v = dark.last_visit;
+                log("room: promise {s} {s} by {s}; visit: met {s}, stayed {d:.1} s, calls {d}, {d:.0} s there, went {d}", .{
+                    item.id,
+                    word,
+                    holder,
+                    if (!v.witnessed) "-" else if (v.met) "yes" else "no",
+                    v.stayed_s,
+                    v.calls,
+                    v.seconds,
+                    item.plays - 1,
+                });
+            } else {
+                if (item.kind == .stick and pressed[0]) {
+                    if (pad) |handle| {
+                        const lx = sdl.GameControllerGetAxis(handle, c.SDL_CONTROLLER_AXIS_LEFTX);
+                        const ly = sdl.GameControllerGetAxis(handle, c.SDL_CONTROLLER_AXIS_LEFTY);
+                        log("room: the left stick held up reads x {d}, y {d}: {s}", .{
+                            lx,
+                            ly,
+                            if (ly < -16000 and @abs(@as(i32, lx)) < 12000) "as it should (up is -y)" else "NOT as it should (up should be -y, with x near nought)",
+                        });
+                    }
+                }
+                log("room: {s}: {s} by {s} (played {d})", .{ item.name, word, holder, item.plays });
+            }
             move_on_at = frame + 25;
+        } else if (pressed[2]) {
+            if (item.kind == .promise) {
+                visit(window, item, &device);
+                leave_armed = false;
+                was = @splat(true);
+                backlight_was = -1;
+            } else {
+                enter(item, dir);
+            }
         }
-        if (pressed[2]) enter(item, dir);
         if (pressed[3]) go = 1;
         if (pressed[4]) go = -1;
         if (move_on_at) |at| {
@@ -578,7 +538,7 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
             }
         }
 
-        // the backlight follows the swell, and nothing else
+        // the backlight follows the swell, and nothing else; a scene's own light is put back
         if (items[current].kind == .backlight) {
             const lv: i32 = 20 + @as(i32, @intCast(@atomicLoad(u32, &swell_level, .monotonic) * 180 / 1000));
             if (lv != backlight_was) {
@@ -600,22 +560,21 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
         const head_text: []const u8 = std.mem.printSentinel(&head, "the room   {d} of {d}", .{ current + 1, item_count }, 0) catch "the room";
         type_.line(30.0, 24.0, 1.0, dim, head_text);
         type_.line(30.0, 70.0, 1.7, bone, shown.name[0..@min(shown.name.len, 28)]);
-        // the question, wrapped at words
-        var y: f32 = 140.0;
-        var rest = shown.question;
-        while (rest.len > 0 and y < 380.0) {
-            var take: usize = @min(rest.len, 40);
-            if (take < rest.len) {
-                while (take > 0 and rest[take] != ' ') take -= 1;
-                if (take == 0) take = @min(rest.len, 40);
-            }
-            type_.line(30.0, y, 1.2, bone, rest[0..take]);
-            rest = std.mem.trimStart(u8, rest[take..], " ");
-            y += 34.0;
+        if (shown.name.len > 28) type_.line(30.0, 106.0, 1.2, bone, shown.name[28..@min(shown.name.len, 68)]);
+        if (shown.kind == .promise and !shown.been) {
+            paragraph(&type_, "A promise from the specification. Press A to go there. When you have had enough, hold Select and Start to come back, and one question follows.", 150.0, dim);
+            type_.line(30.0, 420.0, 1.0, dim, "A go there   R1 skip   L1 back");
+        } else {
+            paragraph(&type_, shown.question, 150.0, bone);
+            const keys: []const u8 = switch (shown.kind) {
+                .who => "A Morgan   B JJ   Y someone else",
+                .promise => "A yes   B no   Y go there again   R1 next",
+                else => "A yes   B no   Y again   R1 next   L1 back",
+            };
+            type_.line(30.0, 420.0, 1.0, dim, keys);
         }
-        if (shown.answer == 'y') type_.line(470.0, 70.0, 1.7, green, "yes");
+        if (shown.answer == 'y' and shown.kind != .who) type_.line(470.0, 70.0, 1.7, green, "yes");
         if (shown.answer == 'n') type_.line(470.0, 70.0, 1.7, red, "no");
-        type_.line(30.0, 420.0, 1.0, dim, "A yes   B no   Y again   R1 next   L1 back");
         type_.line(30.0, 448.0, 1.0, dim, "Select and Start together: leave");
         type_.flush();
         if (dump) |out_dir| {

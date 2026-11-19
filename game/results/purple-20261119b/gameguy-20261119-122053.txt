@@ -1,0 +1,6 @@
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+the dark: R1 calls, R2 hums, the left stick walks; Select and Start together leave
+the dark: 1800 frames, 0 late, 1.91 ms of work a frame; 1846 steps, 93 frames ran two; 7 calls, 174 answers; cues late 1, refused 0; slowest sound buffer 0.23 ms; real-time sound yes
