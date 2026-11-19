@@ -4,6 +4,45 @@ _Part of the promise book (`../promises.md`). The Garden is the first land and t
 morning's (`../world.md`, 1). Its eight lives are listed from `../people.md` and are sized when
 stage 2 begins._
 
+### `garden.land` The Garden, home
+
+- **Said:** `spec/world.md` "Asters, reeds, the Mirror Pool, a brass spigot and a knotted hose."
+  "tuning | pure" "made of | water and stems: pools, the hose, bell-headed asters, reeds" "shows
+  best | all seven laws, gently, one at a time" "metre | four, with Drip's swing" "why they sing |
+  the morning song" "the songbook credits | the pure tuning of people singing with no instruments"
+  "its river | the hose's water, which fills the Mirror Pool" "lends | everything rings, and asters
+  come up through whatever ground you are on" "new here | Drip; wonder and sunny home; stand where
+  they meet; the first close; the river"
+- **Stage:** 2
+- **Scene:** asters
+- **The moment:** Every morning of the game begins here, so it has to be a place you are glad to
+  wake in. A yard after a storm, a kilometre and a half across: the brass spigot standing over it
+  like a monument, the hose lying across it like a green river you can hear, the Mirror Pool black
+  and still, reeds as tall as towers at its edge, and asters everywhere, their bells answering
+  whatever moves. It is tuned pure, so nothing in it beats: chords here stand perfectly still. It
+  counts in four, with Drip a little late on the off-beats. By the end of the first week you could
+  draw it from memory, and it still has corners you have not stood in.
+- **Far:** from any other land, the Garden is the green light on the north shore.
+- **At its foot:** the spigot, ten metres of brass, dripping.
+- **Inside:** the Hose, the Mirror Pool, the crowns of the asters.
+- **After:** on the thirteenth morning you come back to it a comma sharp, and know every stalk.
+- **A cheat would be:** a tutorial level: small, flat, and left behind after the first hour.
+- **Full size:**
+  - `fact asters.count >= 60` The proof field holds this many asters; the Garden's score will place
+    its own.
+  - `owed` The Garden's score: about three square kilometres (`size.md`), every thing in it at its
+    real size times a hundred, and a run across it of at least five minutes.
+  - `owed` Pure tuning, measured: every chord its things can make holds still, to within a hundredth
+    of a beat a second.
+  - `owed` Its metre: four, with Drip's swing, in everything that moves there.
+  - `owed` Its river freed fills the Mirror Pool and raises the lake.
+  - `owed` Borrowed from another land, it lends what the atlas says: everything rings, and asters
+    come up through the ground you are on.
+  - `owed` What every land owes (`promises.md`): something calls you from everywhere; every piece
+    seen; every sound with a yes.
+  - `owed` The songbook's credit, checked against sources before it is written.
+- **Asks:** Is the Garden somewhere you are glad to wake up?
+
 ### `garden.asters` Asters as tall as cathedrals
 
 - **Said:** `spec/world.md` "Asters are as tall as cathedrals."
@@ -60,7 +99,11 @@ stage 2 begins._
 
 ### `garden.great` The Hose
 
-- **Said:** `spec/world.md` "A pipe stopped by its own knot."
+- **Said:** `spec/world.md` "Its great instrument: the Hose." "They meet every thirty-fifth beat,
+  and that is the one you clap." "A pipe stopped by its own knot." "Inside, its standing wave is the
+  floor plan" "Kinks change its length, and its length changes which points are still." "At its
+  heart the Great Knot ties five against seven." "Opened, the hose sounds an octave higher and every
+  overtone comes back."
 - **Stage:** 2
 - **The moment:** You walk into the open end of the hose standing up, because it is as wide as a
   door. Inside it is a tunnel that goes on for two and a half kilometres, curving, lit only by what
@@ -215,7 +258,7 @@ stage 2 begins._
 
 ### `garden.w09` The drip's secret
 
-- **Said:** `spec/world.md` "A falling drop makes no sound. The plink is the bubble it traps,
+- **Said:** `spec/world.md` "A falling drop makes no sound." "The plink is the bubble it traps,
   ringing."
 - **Stage:** 2
 - **The moment:** The view leans in on the spigot and time thickens. A drop the size of your head

@@ -222,6 +222,7 @@ written. They sit on the laws like this:
 | loudness | volume | brightness; silence is dark; the backlight follows the whole |
 | ratio between two voices | interval | the figure between them |
 | a near-miss | beating | the figure turning, at the beat rate |
+| a note, eight octaves down | too slow to hear | a pulse: the halo round a ringing thing beats at its own note halved eight times, so middle C beats about once a second and a fifth above it three times for its two |
 | overtone recipe | timbre | the texture of the line |
 | place in a cycle | together or loose | moving together |
 | the note between two notes | the third voice | depth |

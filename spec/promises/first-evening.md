@@ -5,7 +5,8 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 
 ### `evening.black` Black, and a drip
 
-- **Said:** `SPEC.md` "The backlight itself is down, so the black is black."
+- **Said:** `SPEC.md` "Black, and a drip." "The backlight itself is down, so the black is black."
+  "Low on the screen, a small bone-white shape in reeds, breathing."
 - **Stage:** 2
 - **Scene:** dark
 - **The moment:** You start the game and think the handheld has switched itself off. It hasn't. The
@@ -23,7 +24,8 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 
 ### `evening.call` You call, and you are answered
 
-- **Said:** `SPEC.md` "The second call is always answered"
+- **Said:** `SPEC.md` "You call (tap R1)." "A ring of light runs out over the ground and shows reeds
+  and a coiled hose." "The second call is always answered"
 - **Stage:** 2
 - **Scene:** dark
 - **The moment:** You press R1 and a ring of light runs away from you over the ground. Where it
@@ -50,7 +52,10 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 
 ### `evening.breathe` You breathe with it, and it locks
 
-- **Said:** `SPEC.md` "Four breaths together and the figure stops dead."
+- **Said:** `SPEC.md` "You find it and breathe with it." "Stand still beside it and the view leans
+  in." "Hold R2 to hum and let go on its tick." "Between you a flat figure turns: three lobes by
+  two." "Four breaths together and the figure stops dead." "A third note sounds under you both that
+  neither of you is singing."
 - **Stage:** 2
 - **The moment:** You stand beside the small thing that answered. The view leans in. It ticks, and
   you hold R2 and hum and let go on its tick, clumsily, then less clumsily. Between the two of you a
@@ -66,11 +71,14 @@ twenty minutes anyone has with the game, so each one is held to its largest read
     are doing, and gone the moment one of them drifts.
   - `owed` The scripted player locks in four breaths; a scripted player with poor timing takes
     longer and still gets there.
+  - `owed` The view leans in when you stand still beside it, as it leans back at an aster's foot
+    now.
 - **Asks:** When the figure stopped, did it feel like the two of you locking?
 
 ### `evening.in` "Oh. You're in."
 
-- **Said:** `SPEC.md` "Now it tilts back and stands up around you"
+- **Said:** `SPEC.md` "The drop falls on your head and stays." "Until now the world has been a page
+  seen from above." "Now it tilts back and stands up around you"
 - **Stage:** 2
 - **Scene:** asters
 - **The moment:** The drop falls on your head and stays. Until this second the world has been a page
@@ -93,7 +101,9 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 
 ### `evening.instrument` Everything is an instrument
 
-- **Said:** `SPEC.md` "whatever shares your note answers across the garden in its own light"
+- **Said:** `SPEC.md` "Everything is an instrument." "whatever shares your note answers across the
+  garden in its own light" "A still pool shows lines on its surface when you hum its note, and you
+  can walk on them."
 - **Stage:** 2
 - **Scene:** asters
 - **The moment:** You call again, to see what the standing world does with it. The ring runs out
@@ -115,7 +125,12 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 
 ### `evening.knot` The knot, and the first fight
 
-- **Said:** `SPEC.md` "The hose, unstopped, sounds an octave higher and brighter than it did."
+- **Said:** `SPEC.md` "The hose is knotted, and the knot is moving." "Three small knots stumble at
+  you." "Hold R1: time thickens, the place folds back to a page" "Point there and let go." "Now they
+  dance in three and in five over a one that you are singing." "Strike on the one." "Dodge on the
+  beat and time opens into a pocket." "A grey knot leans; hold R2 while the swell builds, and let go
+  on the one." "It springs open." "The hose, unstopped, sounds an octave higher and brighter than it
+  did." "For a second a blue figure sits on the pool's edge."
 - **Stage:** 2
 - **The moment:** Three small knots stumble at you, out of time with each other and with you. You
   hold R1: time thickens, the place lies down, and on the wheel their threads cross on one wedge.
@@ -133,11 +148,14 @@ twenty minutes anyone has with the game, so each one is held to its largest read
   - `owed` The hose's octave is the pipe's own sum: stopped, odd overtones only; opened, all of them
     and an octave up. A test.
   - `owed` Thumbs: the fight is played without the right stick and a face button together.
+  - `owed` The blue figure on the pool's edge, for one second, with no face and no name. Who it is
+    stays Morgan's.
 - **Asks:** Did a strike you timed yourself feel like power?
 
 ### `evening.dusk` The river sings your day back
 
-- **Said:** `SPEC.md` "The river carries you home and sings your day back in half a minute."
+- **Said:** `SPEC.md` "The river carries you home and sings your day back in half a minute." "You
+  keep a take." "A post carved in the world's old script offers a repeat sign or a bracket."
 - **Stage:** 2
 - **The moment:** The light goes. The river takes you, and as it carries you it sings: your own
   calls, your own strikes, the breath that locked, in the order you made them, folded into half a
@@ -149,4 +167,5 @@ twenty minutes anyone has with the game, so each one is held to its largest read
     give two different songs and the same evening gives the same one.
   - `owed` It lasts between 25 and 35 seconds whatever the evening held.
   - `owed` `game/tools/ears` finds nothing rough in a hundred of them made from scripted evenings.
+  - `owed` The post, in the world's old script, with its two marks: a repeat sign and a bracket.
 - **Asks:** Did the river's song sound like your evening?

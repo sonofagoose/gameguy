@@ -402,8 +402,8 @@ three passes with the phosphor.
 
 **The rest:**
 
-- **The rumble line can be driven.** GPIO 102, through the gamepad's force-feedback interface, once
-  the gain is set to full. Whether a motor is fitted is not known: nobody was holding the unit.
+- **There is no rumble motor** (Morgan, 2026-11-19). The line can be driven: GPIO 102, through the
+  gamepad's force-feedback interface, once the gain is set to full. Nothing is on it.
 - **There is no microphone on the board.** The recording path opens (`hw:0,0`, 48,000 Hz) and one
   channel is a live input with nothing on it. Whether the jack carries a headset's microphone to it
   is not known.
@@ -416,8 +416,8 @@ three passes with the phosphor.
 
 ## Not yet measured / caveats
 
-- From the second probe, each needing a person: a headset's microphone through the jack; a motor on
-  the rumble line; how the backlight looks when it follows the music; the speaker's loudness; the
+- From the second probe, each needing a person: how the backlight looks when it follows the music;
+  the speaker's loudness; the
   purple's left stick; whether the set clock counts while off. Also: button to sound and button to
   picture.
 

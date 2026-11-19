@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 """The promise book's keeper (spec/promises.md).
 
-    python3 -I spec/tools/promises.py              check every promise and write the board
+    python3 -I spec/tools/promises.py              read every claim, check every promise, write the board
     python3 -I spec/tools/promises.py --show ID    one promise and each of its rungs
+    python3 -I spec/tools/promises.py --open [N]   the claims no promise speaks for yet (of stage N)
+    python3 -I spec/tools/promises.py --packet N   write what a fresh reader needs to grade stage N
     python3 -I spec/tools/promises.py --zig FILE   write the list of witnessed promises for the game
     python3 -I spec/tools/promises.py --room FILE  write the walk's list for the room
 
-It reads the promises (spec/promises/*.md and the atlas), then what today's build proved
+Nobody lists the claims. The tool reads every sentence of the specification's game documents
+(CLAIM_FILES below) as a claim, so a line written tomorrow is on the board tomorrow. A promise in
+spec/promises/ speaks for the sentences it quotes. Then the tool reads what today's build proved
 (game/build/), what the handhelds logged (game/results/), which frames were looked at
-(spec/promises/seen/) and what a fresh reader graded (spec/promises/graded.md). It exits with 1
-if it has to refuse something. Nothing here is typed in by hand as "done": every rung is worked
-out from evidence.
+(spec/promises/seen/) and what a fresh reader graded (spec/promises/graded.md), and works out
+every rung from that evidence. It exits with 1 if it has to refuse something.
 """
+import hashlib
 import glob
 import os
 import re
@@ -23,9 +27,44 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 PROMISES = os.path.join(ROOT, 'spec', 'promises')
 BUILD = os.path.join(ROOT, 'game', 'build')
 
-LANDS = ['garden', 'alfalfa', 'glass', 'bell', 'highway', 'chrome', 'seam', 'steps', 'verbena',
-         'rain', 'reeds', 'porch']
 LAND_STAGE = [2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4]
+
+# Every sentence in these is a claim. (file, first section, last section): None means all of it.
+CLAIM_FILES = [
+    ('SPEC.md', '4.', '15.'),
+    ('spec/laws.md', None, None),
+    ('spec/world.md', None, None),
+    ('spec/people.md', None, None),
+    ('spec/size.md', None, None),
+    ('spec/years.md', None, None),
+    ('spec/together.md', None, None),
+]
+
+# Sections that are about the documents or about other games, not promises to a player.
+SKIP_SECTIONS = [
+    ('spec/size.md', 'What it is measured against'), ('spec/size.md', 'Still to be measured'), ('spec/size.md', 'Sources'),
+    ('spec/years.md', 'What a small world known by heart does'), ('spec/years.md', 'What stays Morgan'),
+    ('spec/together.md', 'What is measured'), ('spec/together.md', 'What it never leans on'),
+]
+
+# The stage that owes a section, until a promise that quotes a sentence says otherwise. The first
+# rule whose file matches and whose words begin a heading on the sentence's path wins.
+STAGE_RULES = [
+    ('SPEC.md', '6.3', 3), ('SPEC.md', '6.4', 5), ('SPEC.md', '6.5', 5), ('SPEC.md', '12.', 3),
+    ('SPEC.md', '14.', 6), ('SPEC.md', '', 2),
+    ('spec/laws.md', '', 2),
+    ('spec/world.md', 'The shape', 2), ('spec/world.md', 'What every land has', 2),
+    ('spec/world.md', 'The lake', 3), ('spec/world.md', 'The Seam', 3), ('spec/world.md', 'The sky', 5),
+    ('spec/world.md', 'The deep', 5), ('spec/world.md', 'After the thirteenth', 5),
+    ('spec/world.md', 'The calendar', 5),
+    ('spec/people.md', 'How a life works', 2), ('spec/people.md', 'The ones who go with you', 3),
+    ('spec/people.md', 'The one who remembers', 3), ('spec/people.md', 'The travellers', 3),
+    ('spec/people.md', "The ones that aren't people", 3), ('spec/people.md', "The lands' eights", 2),
+    ('spec/people.md', 'Left blank', 2), ('spec/people.md', 'On the thirteenth', 5),
+    ('spec/size.md', 'What the card', 2), ('spec/size.md', '', 2),
+    ('spec/years.md', 'Generations', 5), ('spec/years.md', 'The great year', 5), ('spec/years.md', '', 3),
+    ('spec/together.md', '', 6),
+]
 FIELDS = {
     'said': 'said', 'stage': 'stage', 'scene': 'scene', 'the moment': 'moment', 'far': 'far',
     'at its foot': 'foot', 'inside': 'inside', 'after': 'after', 'a cheat would be': 'cheat',
@@ -67,7 +106,7 @@ class Promise:
     def __init__(self, pid, title, source):
         self.id, self.title, self.source = pid, title, source
         self.stage = 0
-        self.said_file = self.said_quote = ''
+        self.said = []  # (file, quote)
         self.scene = self.moment = self.cheat = self.asks = ''
         self.far = self.foot = self.inside = self.after = ''
         self.measures = []  # (kind, spec, words)
@@ -77,8 +116,14 @@ class Promise:
 # ------------------------------------------------------------------ reading the promises
 
 def parse_said(text):
-    m = re.match(r'\s*`?([^`"]+?)`?\s+"(.+)"\s*$', text, re.S)
-    return (m.group(1).strip(), m.group(2)) if m else ('', '')
+    """`FILE` "words" "more words" `OTHER` "words": a list of (file, quote)."""
+    out, path = [], ''
+    for m in re.finditer(r'`([^`]+)`|"((?:[^"\\]|\\.)*)"', text, re.S):
+        if m.group(1) is not None:
+            path = m.group(1).strip()
+        elif path:
+            out.append((path, m.group(2)))
+    return out
 
 
 def read_sized(path):
@@ -117,7 +162,7 @@ def read_sized(path):
     for p in out:
         raw = p.raw
         get = lambda k: ' '.join(raw.get(k, [])).strip()
-        p.said_file, p.said_quote = parse_said(get('said'))
+        p.said = parse_said(get('said'))
         try:
             p.stage = int(get('stage'))
         except ValueError:
@@ -143,79 +188,190 @@ def read_sized(path):
     return out
 
 
-def read_said_table():
-    out = []
-    for line in read('spec/promises/said.md').split('\n'):
-        m = re.match(r'^\| `([a-z0-9.\-]+)` \| (\d+) \| (.+?) \| (.+?) \|\s*$', line)
-        if not m:
-            continue
-        p = Promise(m.group(1), m.group(4).strip(), 'spec/promises/said.md')
-        p.stage = int(m.group(2))
-        p.said_file, p.said_quote = parse_said(m.group(3))
-        out.append(p)
-    return out
+class Claim:
+    def __init__(self, path, where, text, n):
+        self.file, self.where, self.text = path, where, text
+        key = os.path.basename(path).split('.')[0].lower()
+        self.id = f'{key}.{hashlib.sha1(text.encode()).hexdigest()[:6]}'
+        self.order = n
+        self.stage = 0
+        self.promises = []
 
 
-def read_atlas():
-    """Lands, great instruments and wonders from world.md; lives from people.md."""
-    out = []
-    counts = {'land': 0, 'great': 0, 'wonder': 0, 'life': 0}
-    land = -1
-    for line in read('spec/world.md').split('\n'):
-        head = re.match(r'^## (\d+)\. (The .+?|[A-Z].+?) \(', line)
-        if head:
-            land = int(head.group(1)) - 1
-            p = Promise(f'{LANDS[land]}.land', head.group(2), 'spec/world.md')
-            p.stage, p.said_file, p.said_quote = LAND_STAGE[land], 'spec/world.md', line[3:].strip()
-            out.append(p)
-            counts['land'] += 1
+def split_sentences(text):
+    """Sentences, never broken inside double quotes, with a short one joined to its neighbour."""
+    out, cur, quoted = [], '', False
+    for i, ch in enumerate(text):
+        cur += ch
+        if ch == '"':
+            quoted = not quoted
+        if ch in '.!?' and not quoted:
+            rest = text[i + 1:i + 3]
+            ends = i + 1 == len(text) or (len(rest) == 2 and rest[0] == ' ' and (rest[1].isupper() or rest[1] in '"(['))
+            if ends and not re.search(r'\b(No|e\.g|i\.e|vs)\.$', cur):
+                out.append(cur.strip())
+                cur = ''
+    if cur.strip():
+        out.append(cur.strip())
+    joined = []
+    carry = ''
+    for s in out:
+        s = (carry + ' ' + s).strip() if carry else s
+        carry = ''
+        if len(s.split()) < 4:
+            carry = s
+        else:
+            joined.append(s)
+    if carry:
+        if joined:
+            joined[-1] += ' ' + carry
+        else:
+            joined.append(carry)
+    return joined
+
+
+def is_pointer(sentence):
+    """A sentence that only points at another document, or only introduces a list."""
+    words = len(sentence.split())
+    return ('.md' in sentence and words <= 16) or (sentence.endswith(':') and words < 7)
+
+
+def read_claims():
+    claims = []
+    lands_in = {'spec/world.md': -1, 'spec/people.md': -1}
+    for path, first, last in CLAIM_FILES:
+        try:
+            lines = read(path).split('\n')
+        except OSError:
             continue
-        if line.startswith('## ') and not re.match(r'^## \d+\.', line):
-            if land >= 0 and counts['land'] == 12:
-                land = -2  # past the twelve lands
-            continue
-        if land < 0:
-            continue
-        great = re.match(r'^\*\*Its great instrument: (.+?)\.\*\*', line)
-        if great:
-            p = Promise(f'{LANDS[land]}.great', great.group(1)[0].upper() + great.group(1)[1:], 'spec/world.md')
-            p.stage, p.said_file, p.said_quote = LAND_STAGE[land], 'spec/world.md', f'Its great instrument: {great.group(1)}.'
-            out.append(p)
-            counts['great'] += 1
-            continue
-        wonder = re.match(r'^(\d+)\. \*\*(.+?)\.\*\*', line)
-        if wonder:
-            p = Promise(f'{LANDS[land]}.w{int(wonder.group(1)):02d}', wonder.group(2), 'spec/world.md')
-            p.stage, p.said_file, p.said_quote = LAND_STAGE[land], 'spec/world.md', wonder.group(2) + '.'
-            out.append(p)
-            counts['wonder'] += 1
-    land = -1
-    seen_ids = set()
-    for line in read('spec/people.md').split('\n'):
-        if line.startswith('### '):
-            land += 1 if land < 11 and re.match(r'^### The .+?: ', line) else 0
-            continue
-        if line.startswith('## ') and land >= 0 and not line.startswith('## The lands'):
-            land = 99
-        if not (0 <= land < 12):
-            continue
-        row = re.match(r'^\| (.+?) \| (.+?) \|', line)
-        if not row or row.group(1).strip() in ('who', '---') or set(row.group(1).strip()) <= set('-'):
-            continue
-        who = row.group(1).strip()
-        pid = f'{LANDS[land]}.{slug(who)}'
-        if pid in seen_ids:
-            pid += '-2'
-        seen_ids.add(pid)
-        p = Promise(pid, who[0].upper() + who[1:], 'spec/people.md')
-        p.stage, p.said_file, p.said_quote = LAND_STAGE[land], 'spec/people.md', f'{who} | {row.group(2).strip()}'
-        out.append(p)
-        counts['life'] += 1
-    want = {'land': 12, 'great': 12, 'wonder': 144, 'life': 96}
-    for kind, n in want.items():
-        if counts[kind] != n:
-            refusals.append(f'the atlas has {counts[kind]} {kind} entries where the specification says {n}')
-    return out
+        heads = []       # the path of headings down to here
+        inside = first is None
+        code = False
+        block = None     # (kind, text)
+        table_rows = 0
+        skipping = False
+
+        def flush():
+            nonlocal block
+            if block is None:
+                return
+            kind, text = block
+            block = None
+            if text.lstrip().startswith('_'):
+                return
+            # a bold lead is the name of what follows: it stays with the first sentence
+            lead = re.match(r'^\*\*(.+?)\*\*\s*(.*)$', text.strip(), re.S)
+            title = ''
+            if lead and kind != 'row':
+                title, text = plain(lead.group(1)), lead.group(2)
+            text = plain(text)
+            where = ' / '.join(heads)
+            if kind == 'row':
+                parts = [text] if text else []
+            else:
+                parts = split_sentences(text)
+                if title and parts:
+                    parts[0] = f'{title} {parts[0]}'
+                elif title and len(title.split()) >= 4:
+                    parts = [title]  # a name with nothing after it is a label unless it says something
+            for s in parts:
+                if not is_pointer(s) and len(s) > 3:
+                    claims.append(Claim(path, where, s, len(claims)))
+
+        for raw in lines:
+            if raw.strip().startswith('```'):
+                flush()
+                code = not code
+                continue
+            if code:
+                continue
+            head = re.match(r'^(#+)\s+(.*)$', raw)
+            if head:
+                flush()
+                level = len(head.group(1))
+                heads = heads[:level - 1] + [plain(head.group(2))]
+                if level == 2:
+                    skipping = any(f == path and plain(head.group(2)).startswith(words) for f, words in SKIP_SECTIONS)
+                if first is not None and level == 2:
+                    title = plain(head.group(2))
+                    if title.startswith(first):
+                        inside = True
+                    elif inside and not any(title.startswith(f'{n}.') for n in range(int(first[:-1]), int(last[:-1]) + 1)):
+                        inside = False
+                table_rows = 0
+                continue
+            if not inside or skipping:
+                continue
+            if not raw.strip():
+                flush()
+                table_rows = 0
+                continue
+            if raw.lstrip().startswith('|'):
+                flush()
+                table_rows += 1
+                cells = [c.strip() for c in raw.strip().strip('|').split('|')]
+                if table_rows <= 2 and (table_rows == 1 or set(''.join(cells)) <= set('-: ')):
+                    continue  # the heading row and the rule under it
+                if set(''.join(cells)) <= set('-: '):
+                    continue
+                block = ('row', ' | '.join(c for c in cells if c))
+                flush()
+                continue
+            table_rows = 0
+            item = re.match(r'^\s*(?:[-*]|\d+\.)\s+(.*)$', raw)
+            if item:
+                flush()
+                block = ('item', item.group(1))
+            elif raw.startswith('_') and block is None:
+                block = ('note', raw)
+            elif block is None:
+                block = ('para', raw.strip())
+            else:
+                block = (block[0], block[1] + ' ' + raw.strip())
+        flush()
+    for c in claims:
+        c.stage = stage_of(c)
+    return claims
+
+
+_land_order = {}
+
+
+def stage_of(claim):
+    # a land's own section, in the atlas or among the people, is owed by that land's stage
+    top = claim.where.split(' / ')
+    if claim.file == 'spec/world.md' and len(top) > 1:
+        m = re.match(r'^(\d+)\. ', top[1])
+        if m and 1 <= int(m.group(1)) <= 12:
+            return LAND_STAGE[int(m.group(1)) - 1]
+    if claim.file == 'spec/people.md' and len(top) > 2 and top[1].startswith("The lands' eights"):
+        order = _land_order.setdefault('people', [])
+        if top[2] not in order:
+            order.append(top[2])
+        i = order.index(top[2])
+        if i < 12:
+            return LAND_STAGE[i]
+    for path, words, stage in STAGE_RULES:
+        if path == claim.file and (words == '' or any(h.startswith(words) for h in top)):
+            return stage
+    refusals.append(f'{claim.file}: the section "{claim.where}" has no stage (STAGE_RULES in spec/tools/promises.py)')
+    return 0
+
+
+def atlas_counts():
+    """The atlas says twelve lands, twelve great instruments, 144 wonders and 96 lives."""
+    world = read('spec/world.md')
+    people = read('spec/people.md')
+    lands = len(re.findall(r'^## \d+\. ', world, re.M))
+    greats = len(re.findall(r'^\*\*Its great instrument: ', world, re.M))
+    body = world[:world.index('## The lake')] if '## The lake' in world else world
+    wonders = len(re.findall(r'^\d+\. \*\*', body, re.M))
+    eights = people[people.index("## The lands' eights"):] if "## The lands' eights" in people else ''
+    eights = eights[:eights.index('\n## ', 5)] if '\n## ' in eights[5:] else eights
+    lives = len([row for row in re.findall(r'^\| (.+?) \|', eights, re.M) if row.strip() != 'who' and not set(row.strip()) <= set('-')])
+    for name, have, want in (('lands', lands, 12), ('great instruments', greats, 12), ('wonders', wonders, 144), ('lives', lives, 96)):
+        if have != want:
+            refusals.append(f'the atlas has {have} {name} where the specification says {want}')
 
 
 # ------------------------------------------------------------------ reading the evidence
@@ -358,8 +514,8 @@ class Rungs:
 
 def weigh(p, facts, witness, tests, seen_rows, hands, graded):
     r = Rungs()
-    r.said = said_in(p.said_file, p.said_quote) if p.said_file else False
-    r.sized = bool(p.sized_entry and p.moment and p.cheat and p.measures and p.asks)
+    r.said = bool(p.claims) and p.said_ok
+    r.sized = bool(p.moment and p.cheat and p.measures and p.asks)
     r.lines = []  # (ok or None, text)
     r.owed = 0
     r.takes = False
@@ -416,28 +572,25 @@ def mark(v):
 
 # ------------------------------------------------------------------ main
 
+def claim_state(c, rungs):
+    """'kept' when every promise that quotes it is kept, 'answered' when one quotes it, else 'open'."""
+    if not c.promises:
+        return 'open'
+    return 'kept' if all(rungs[p.id].kept for p in c.promises) else 'answered'
+
+
 def main():
     args = sys.argv[1:]
-    sized = []
+    promises = []
     for path in sorted(glob.glob(os.path.join(PROMISES, '*.md'))):
-        if os.path.basename(path) in ('said.md', 'seen.md', 'graded.md', 'BOARD.md'):
+        if os.path.basename(path) in ('seen.md', 'graded.md', 'BOARD.md', 'CLAIMS.md'):
             continue
-        sized += read_sized(path)
-    listed = read_said_table() + read_atlas()
+        promises += read_sized(path)
     by_id = {}
-    for p in sized:
+    for p in promises:
         if p.id in by_id:
             refusals.append(f'two promises are called `{p.id}`')
         by_id[p.id] = p
-    order = [p.id for p in sized]
-    for p in listed:
-        if p.id in by_id:
-            if not by_id[p.id].sized_entry:
-                refusals.append(f'two promises are called `{p.id}`')
-            continue
-        by_id[p.id] = p
-        order.append(p.id)
-    promises = [by_id[i] for i in order]
 
     if '--zig' in args:
         out = args[args.index('--zig') + 1]
@@ -457,9 +610,33 @@ def main():
     if '--room' in args:
         out = args[args.index('--room') + 1]
         rows = [f'{p.id}|{p.scene}|{p.title}|{p.asks}' for p in promises
-                if p.sized_entry and p.scene and p.asks and not p.asks.lower().startswith('nobody')]
+                if p.scene and p.asks and not p.asks.lower().startswith('nobody')]
         open(out, 'w', encoding='utf-8').write('\n'.join(rows) + '\n')
         return 0
+
+    # every sentence of the specification, and which promises speak for it
+    claims = read_claims()
+    atlas_counts()
+    by_file = {}
+    for c in claims:
+        by_file.setdefault(c.file, []).append(c)
+    for p in promises:
+        p.claims, p.said_ok = [], bool(p.said)
+        if not p.said:
+            refusals.append(f'`{p.id}` in {p.source} quotes nothing from the specification')
+        for path, quote in p.said:
+            q = plain(quote)
+            hits = [c for c in by_file.get(path, []) if q in c.text]
+            if not hits:
+                p.said_ok = False
+                refusals.append(f'`{p.id}` quotes words that no sentence of {path} holds: "{q[:70]}"')
+            for c in hits:
+                if p not in c.promises:
+                    c.promises.append(p)
+                    p.claims.append(c)
+        if not (p.moment and p.cheat and p.measures and p.asks):
+            missing = [n for n, v in (('the moment', p.moment), ('a cheat', p.cheat), ('full size', p.measures), ('asks', p.asks)) if not v]
+            refusals.append(f'`{p.id}` is in {p.source} without {", ".join(missing)}')
 
     facts, witness = read_facts()
     hands = read_handhelds(facts)
@@ -467,28 +644,27 @@ def main():
     seen_rows = read_table('spec/promises/seen.md', 3)
     graded = read_table('spec/promises/graded.md', 4)
     stages = read_stages()
+    rungs = {p.id: weigh(p, facts, witness, tests, seen_rows, hands, graded) for p in promises}
+    state = {c.id: claim_state(c, rungs) for c in claims}
 
-    rungs = {}
-    for p in promises:
-        if not p.said_file or not said_in(p.said_file, p.said_quote):
-            refusals.append(f'`{p.id}` quotes words that are not in {p.said_file or "any file"}: "{plain(p.said_quote)[:70]}"')
-        if p.sized_entry and not (p.moment and p.cheat and p.measures and p.asks):
-            missing = [n for n, v in (('the moment', p.moment), ('a cheat', p.cheat), ('full size', p.measures), ('asks', p.asks)) if not v]
-            refusals.append(f'`{p.id}` is in {p.source} without {", ".join(missing)}')
-        rungs[p.id] = weigh(p, facts, witness, tests, seen_rows, hands, graded)
-
-    for stage, state in sorted(stages.items()):
+    for stage, word in sorted(stages.items()):
         mine = [p for p in promises if p.stage == stage]
-        if state in ('begun', 'done'):
+        owed = [c for c in claims if c.stage == stage]
+        if word in ('begun', 'done'):
             unsized = [p.id for p in mine if not rungs[p.id].sized]
             if unsized:
-                refusals.append(f'stage {stage} is marked {state} in PROGRESS.md while {len(unsized)} of its promises are not sized: '
-                                + ', '.join(unsized[:8]) + (' ...' if len(unsized) > 8 else ''))
-        if state == 'done':
+                refusals.append(f'stage {stage} is marked {word} in PROGRESS.md while {len(unsized)} of its promises are not sized: ' + ', '.join(unsized[:8]))
+            unanswered = [c for c in owed if state[c.id] == 'open']
+            if unanswered:
+                refusals.append(f'stage {stage} is marked {word} in PROGRESS.md while {len(unanswered)} of its claims have no promise that speaks for them. '
+                                f'The first: "{unanswered[0].text[:80]}" ({unanswered[0].file}). All of them: --open {stage}')
+        if word == 'done':
             unkept = [p.id for p in mine if not rungs[p.id].kept]
             if unkept:
-                refusals.append(f'stage {stage} is marked done in PROGRESS.md while {len(unkept)} of its promises are not kept: '
-                                + ', '.join(unkept[:8]) + (' ...' if len(unkept) > 8 else ''))
+                refusals.append(f'stage {stage} is marked done in PROGRESS.md while {len(unkept)} of its promises are not kept: ' + ', '.join(unkept[:8]))
+            loose = [c for c in owed if state[c.id] != 'kept']
+            if loose:
+                refusals.append(f'stage {stage} is marked done in PROGRESS.md while {len(loose)} of its claims are not kept')
 
     if '--show' in args:
         pid = args[args.index('--show') + 1]
@@ -498,7 +674,9 @@ def main():
             return 1
         r = rungs[pid]
         print(f'{p.id}: {p.title}   (stage {p.stage}; {p.source})')
-        print(f'  said    {mark(r.said)}   {p.said_file} "{plain(p.said_quote)}"')
+        print(f'  speaks for {len(p.claims)} sentences:')
+        for c in p.claims:
+            print(f'            {c.file}: {c.text[:110]}')
         print(f'  sized   {mark(r.sized)}')
         print(f'  proven  {mark(r.proven)}')
         for ok, text in r.lines:
@@ -509,22 +687,82 @@ def main():
         print(f'  KEPT    {mark(r.kept)}')
         return 0
 
+    if '--open' in args:
+        i = args.index('--open')
+        only = int(args[i + 1]) if i + 1 < len(args) and args[i + 1].isdigit() else None
+        last = None
+        n = 0
+        for c in claims:
+            if state[c.id] != 'open' or (only is not None and c.stage != only):
+                continue
+            here = f'{c.file} / {c.where}'
+            if here != last:
+                print(f'\n{here}   (stage {c.stage})')
+                last = here
+            print(f'  {c.id}  {c.text}')
+            n += 1
+        print(f'\n{n} claims with no promise that speaks for them')
+        return 0
+
+    if '--packet' in args:
+        stage = int(args[args.index('--packet') + 1])
+        out = os.path.join(BUILD, f'grade-stage-{stage}.md')
+        b = [f'# Grading packet, stage {stage}', '', "You are grading a game against its own promises. You have not seen its code and you won't.",
+             'For each promise below: read its words, its moment and its cheat; look at its frames and its numbers;',
+             'then say whether this is the promise at full size, the cheat, or something between. Say what a person',
+             'holding the handheld would feel, and name the weakest thing. Give one verdict: full, short (by how much,',
+             'and why), or cheat. You are looking for shrink. Do not be kind.', '']
+        for p in promises:
+            if p.stage != stage:
+                continue
+            r = rungs[p.id]
+            b += [f'## `{p.id}` {p.title}', '', 'The specification says:']
+            b += [f'- {c.text}' for c in p.claims]
+            b += ['', f'The moment: {p.moment}', '', f'A cheat would be: {p.cheat}', '', 'Its measures today:']
+            b += [f'- [{"x" if ok else " "}] {text}' for ok, text in r.lines]
+            frames = [spec for kind, spec, _ in p.measures if kind == 'frame']
+            if frames:
+                b += ['', 'Frames: ' + ', '.join(f'spec/promises/seen/{f}.png' for f in frames)]
+            b += ['', f'It asks a person: {p.asks}', '']
+        os.makedirs(BUILD, exist_ok=True)
+        open(out, 'w', encoding='utf-8').write('\n'.join(b))
+        print(out)
+        return 0
+
     # the board
-    n = len(promises)
+    n = len(claims)
+    count_c = lambda s: sum(1 for c in claims if state[c.id] == s)
     count = lambda f: sum(1 for p in promises if f(rungs[p.id]))
     b = ['# The board', '',
-         '_Where every promise stands today. `spec/tools/promises.py` writes this on every build from',
-         "what the build proved, what the handhelds logged and what was looked at: nobody types a rung",
-         'in. What the rungs mean is in `../promises.md`._', '',
-         '| rung | promises |', '|---|---|',
-         f'| said: in the specification and on the list | {count(lambda r: r.said)} of {n} |',
-         f'| sized: its moment, its cheat, its full size and its question written | {count(lambda r: r.sized)} |',
-         f'| proven: every measure passes today and nothing is owed | {count(lambda r: r.proven)} |',
-         f'| reached: the scripted player met it by playing | {count(lambda r: r.reached)} |',
-         f'| felt: Morgan, holding the handheld, answered yes | {count(lambda r: r.felt)} |',
-         f'| graded full by a fresh reader | {count(lambda r: r.graded)} |',
-         f'| **kept** | **{count(lambda r: r.kept)}** |', '']
-    walk = [p for p in promises if p.sized_entry and p.scene and rungs[p.id].asked]
+         '_Where every claim and every promise stands today. `spec/tools/promises.py` writes this on every',
+         'build. It reads each sentence of the specification as a claim, so nobody lists them, and it works',
+         'out each rung from what the build proved, what the handhelds logged and what was looked at, so',
+         'nobody types one in. What the words mean is in `../promises.md`. Every claim is in `CLAIMS.md`._', '',
+         '## Claims: every sentence a player is promised', '',
+         '| | sentences |', '|---|---|',
+         f'| in the specification | {n} |',
+         f'| a promise speaks for it | {n - count_c("open")} |',
+         f'| **kept** | **{count_c("kept")}** |',
+         f'| no promise speaks for it yet | {count_c("open")} |', '',
+         '| stage | claims | spoken for | kept | open |', '|---|---|---|---|---|']
+    for stage in sorted({c.stage for c in claims}):
+        mine = [c for c in claims if c.stage == stage]
+        b.append(f'| {stage} | {len(mine)} | {sum(1 for c in mine if state[c.id] != "open")} | '
+                 f'{sum(1 for c in mine if state[c.id] == "kept")} | {sum(1 for c in mine if state[c.id] == "open")} |')
+    b += ['', '| document | claims | spoken for | kept |', '|---|---|---|---|']
+    for path, _, _ in CLAIM_FILES:
+        mine = by_file.get(path, [])
+        if mine:
+            b.append(f'| `{path}` | {len(mine)} | {sum(1 for c in mine if state[c.id] != "open")} | {sum(1 for c in mine if state[c.id] == "kept")} |')
+    b += ['', '## Promises: what speaks for the claims', '',
+          '| rung | promises |', '|---|---|',
+          f'| sized: its moment, its cheat, its full size and its question written | {count(lambda r: r.sized)} of {len(promises)} |',
+          f'| proven: every measure passes today and nothing is owed | {count(lambda r: r.proven)} |',
+          f'| reached: the scripted player met it by playing | {count(lambda r: r.reached)} |',
+          f'| felt: Morgan, holding the handheld, answered yes | {count(lambda r: r.felt)} |',
+          f'| graded full by a fresh reader | {count(lambda r: r.graded)} |',
+          f'| **kept** | **{count(lambda r: r.kept)}** |', '']
+    walk = [p for p in promises if p.scene and rungs[p.id].asked]
     b += ['## Waiting for hands', '',
           'On the handheld, in the room (Ports, GameguyRoom), the walk puts a person in each of these and',
           'asks its question.', '',
@@ -533,11 +771,9 @@ def main():
         r = rungs[p.id]
         said = '; '.join(f'{who}: {v[0]}' for who, v in sorted(r.hands.items())) or 'none'
         b.append(f'| `{p.id}` {p.title} | {p.asks} | {said} |')
-    b += ['', '## The sized promises', '',
-          '| promise | stage | proven | reached | felt | graded | kept | what stands in the way |', '|---|---|---|---|---|---|---|---|']
+    b += ['', '## Every promise', '',
+          '| promise | stage | speaks for | proven | reached | felt | graded | kept | what stands in the way |', '|---|---|---|---|---|---|---|---|---|']
     for p in promises:
-        if not p.sized_entry:
-            continue
         r = rungs[p.id]
         failing = [text for ok, text in r.lines if ok is False and not text.startswith('owed')]
         way = []
@@ -548,29 +784,37 @@ def main():
             way.append('no yes from Morgan yet' if 'morgan' not in r.hands else 'Morgan said no')
         if r.proven and not r.graded:
             way.append('not graded')
-        b.append(f'| `{p.id}` {p.title} | {p.stage} | {mark(r.proven)} | {mark(r.reached)} | {mark(r.felt)} | {mark(r.graded)} | '
+        b.append(f'| `{p.id}` {p.title} | {p.stage} | {len(p.claims)} | {mark(r.proven)} | {mark(r.reached)} | {mark(r.felt)} | {mark(r.graded)} | '
                  f'{"**yes**" if r.kept else "no"} | {"; ".join(way)} |')
-    b += ['', '## Said, and waiting to be sized', '', '| stage | promises | of which |', '|---|---|---|']
-    for stage in sorted({p.stage for p in promises}):
-        rest = [p for p in promises if p.stage == stage and not p.sized_entry]
-        if not rest:
-            continue
-        kinds = {}
-        for p in rest:
-            tail = p.id.split('.', 1)[1]
-            kind = ('wonders' if re.match(r'^w\d\d$', tail) else 'great instruments' if tail == 'great' else 'lands' if tail == 'land'
-                    else 'lives' if p.source.endswith('people.md') else 'other')
-            kinds[kind] = kinds.get(kind, 0) + 1
-        b.append(f'| {stage} | {len(rest)} | ' + ', '.join(f'{v} {k}' for k, v in sorted(kinds.items())) + ' |')
     b.append('')
     text = '\n'.join(b)
     board = os.path.join(PROMISES, 'BOARD.md')
     if not os.path.exists(board) or open(board, encoding='utf-8').read() != text:
         open(board, 'w', encoding='utf-8').write(text)
 
-    print(f'promises: {n} said, {count(lambda r: r.sized)} sized, {count(lambda r: r.proven)} proven, '
-          f'{count(lambda r: r.reached)} reached, {count(lambda r: r.felt)} felt, {count(lambda r: r.graded)} graded, '
-          f'{count(lambda r: r.kept)} kept')
+    # every claim
+    k = ['# Every claim', '',
+         '_Every sentence of the specification that promises a player something, read by',
+         '`spec/tools/promises.py`: nobody lists these. **kept**: every promise that quotes it is kept.',
+         '**spoken for**: a promise quotes it. **open**: no promise speaks for it yet._']
+    last = None
+    for c in claims:
+        here = f'`{c.file}` / {c.where}'
+        if here != last:
+            k += ['', f'## {here}', '']
+            last = here
+        word = {'kept': '**kept**', 'answered': 'spoken for', 'open': 'open'}[state[c.id]]
+        who = (' by ' + ', '.join(f'`{p.id}`' for p in c.promises)) if c.promises else ''
+        k.append(f'- {word}{who}: {c.text}')
+    k.append('')
+    text = '\n'.join(k)
+    path = os.path.join(PROMISES, 'CLAIMS.md')
+    if not os.path.exists(path) or open(path, encoding='utf-8').read() != text:
+        open(path, 'w', encoding='utf-8').write(text)
+
+    print(f'claims: {n} sentences, {n - count_c("open")} spoken for by a promise, {count_c("kept")} kept, {count_c("open")} open')
+    print(f'promises: {len(promises)} sized, {count(lambda r: r.proven)} proven, {count(lambda r: r.reached)} reached, '
+          f'{count(lambda r: r.felt)} felt, {count(lambda r: r.graded)} graded, {count(lambda r: r.kept)} kept')
     for line in notes:
         print('  note: ' + line)
     for line in refusals:

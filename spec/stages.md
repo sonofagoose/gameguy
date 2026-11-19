@@ -4,6 +4,13 @@ _Part of the specification (`../SPEC.md`, section 20): what each stage builds, a
 stage is done when its proof has been shown, not when its work looks finished. `../PROGRESS.md` says
 which stage is live._
 
+## Every stage begins the same way
+
+`python3 -I spec/tools/promises.py --open N` lists every sentence of the specification that the stage
+owes and that no promise speaks for. Each gets a promise before anything is built: its moment, its
+cheat, its full size, its question (`promises.md`). The older design documents the stage names are
+read through then, and every line of them that still stands is written into a file in `spec/`.
+
 ## Every stage ends the same way
 
 1. `game/build.sh` from a clean checkout: tests pass, both builds are made, the port is packed.
@@ -16,10 +23,11 @@ which stage is live._
 5. The same-take test gives the same fingerprints on the laptop and the purple.
 6. A session on the purple has been logged: every frame on time, no gaps in the sound.
 7. Everything is committed and pushed, and `PROGRESS.md` is true.
-8. Morgan has played it, and his answers in the room have been read.
-
-After stages 2, 5 and 7 a reader with fresh context grades the build against `SPEC.md`. That reader
-grades and does not fix.
+8. A reader with fresh context has graded each of the stage's promises against its words, from
+   what `promises.py --packet N` writes. That reader grades and does not fix.
+9. Morgan has played it, and his answers in the room have been read.
+10. Every claim the stage owes is kept, and `spec/promises/BOARD.md` says so. The build refuses a
+    stage called done before that.
 
 ## Stage 1: the workshop and the engine
 
@@ -33,11 +41,18 @@ grades and does not fix.
 - Pieces read from the card as Hum walks; the score tool, with one test land.
 - The scripted player's first skills: walk, call, breathe with a tick.
 - `ears`, `same-take`, `room`.
+- The ground: one picture for each piece, drawn under the lines and loaded as Hum walks
+  (`size.md`).
+- Every thing its own shape, kept on the card and loaded at a run.
 
 **Proof:**
 
 - A test land of bells, strings and a pool, walked from end to end on the purple with every frame on
-  time, at least the number of lines the atlas needs in view, and 1,000 overtones sounding.
+  time, at least the number of lines the atlas needs in view, and 1,000 overtones sounding. (So far:
+  a field of 70 asters as tall as cathedrals, walked with none of 2,398 frames late and 18,055
+  lines at most.)
+- The ground's light drawn under it, with pieces loading as Hum walks, every frame on time.
+- A dawn's save kept and opened again a hundred dawns later.
 - Ring one bell and its kin answer, in sound and in light, late by their distance.
 - A take of that walk replays to the same fingerprints on the laptop and the purple.
 - A save made in the middle and loaded again reaches the same end.
@@ -54,7 +69,11 @@ grades and does not fix.
 - The wheel with two moods awake; the swell; the full close and the amen; the first walk.
 - The fork, the dodge, the pocket, the afterimage, the clap; knots; Gentle and Fierce.
 - The Hose, with the Great Knot inside it.
-- The Garden's eight lives, and its morning song growing as they join.
+- The Garden's eight lives, each with its three wants and its ties (`years.md`), and its morning
+  song growing as they join.
+- Being them: a morning as Pill, as Snail, as Moss, as the Ants.
+- The Garden at its size: about three square kilometres, every thing its own shape, the ground
+  keeping light.
 - Dusk: the river's song, keeping takes, Repeat and Onward, the post.
 - A second morning: your echo beside you, flat and blue; a gate that wants two of you.
 - Sitting and listening; the fly; the songbook's first pages; the almanac.
@@ -86,6 +105,7 @@ Seam, each with its tuning, its eight lives, its twelve wonders and its great in
 - The Metronome. The Wolf at the Seam.
 - One continuous ring from the Garden round to the Seam, with every land's lights seen across the
   water.
+- Ties across the lake, and the duets of lives that meet (`years.md`).
 
 **Proof:** the scripted player goes from the first evening to the seventh night; frames from every
 land at noon and at 2am; each land's song whole; the Metronome swung; a walk from the Garden to the
@@ -121,6 +141,9 @@ brief, resolves, and has Morgan's yes.
 - The sky and the deep, with the forty octaves as places.
 - The islets and the Shimmer.
 - The moon, the tide, the brood and its cousins.
+- Generations: lives that change into things that keep their tunes, and the lives made after them
+  (`years.md`). A thousand made tunes pass `ears`, and no two are alike.
+- The book opens any dawn that was kept.
 
 **Proof:** the scripted player takes each ending and comes back by the river; then goes fifty-three
 fifths out, by sums, and stands in that garden; a made land is the same on the laptop and the purple
@@ -128,12 +151,13 @@ from the same three numbers; a phrase reaches the same land on both.
 
 ## Stage 6: two consoles
 
-**Builds:** `design/together.md`, with `SPEC.md` section 14's additions.
+**Builds:** `together.md`, with `design/together.md` wherever it is silent.
 
 - The treaty by clap; side by side; the parts split across two speakers.
 - The cable: one clock, lockstep, a visit, the standing-wave doorway, two homes in one world.
 - Drip's seat. Trading fours.
-- Their voice as your depth. The comma in real air.
+- A world for two, begun apart in the same dark.
+- Each other's worlds, kept on the card.
 - Letters on a card; the radio that plays them.
 - Lent voices.
 - The water you share.

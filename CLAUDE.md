@@ -27,6 +27,8 @@ probe/tools/r36s.sh run 164 /roms/ports/Gameguy.sh    # run it on the handheld's
 probe/tools/r36s.sh pull 164 /roms/ports/gameguy/results/ game/results/
 SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy game/build/gameguy-x86_64 --headless --dump DIR
 python3 -I spec/tools/check_numbers.py                # recompute the specification's numbers
+python3 -I spec/tools/promises.py                     # read every claim, check every promise
+python3 -I spec/tools/promises.py --open 2            # stage 2's claims that no promise speaks for
 python3 spec/tools/wrapmd.py FILE FILE                # wrap a document to 100 columns
 ```
 
@@ -34,6 +36,13 @@ Zig is at `.tools/zig/zig`. `.tools/` is never committed.
 
 ## Rules that are easy to break
 
+- **Maximal, not minimal.** Morgan: "I don't want anything to be held back just for the sake of
+  optimization". Build what the words mean at one to a hundred and by the laws (`spec/size.md`).
+  Never present smallness as a virtue.
+- **Every sentence of the specification is a claim** (`spec/promises.md`). Size a promise for each
+  before its stage: the moment, the cheat, the full size, the question. A stage is done when its
+  claims are kept, and the build refuses it sooner. Never call a thing done, or written, that isn't.
+- **Nothing rests on rumble, a microphone, or two unlinked speakers.** There is no motor.
 - **Thumbs.** Nothing may need the right stick and a face button at once. Before calling a control
   done, name the digit that performs each of any two things done together.
 - **The same on every machine.** Never fuse a multiply and an add; maths from Zig's own library; a

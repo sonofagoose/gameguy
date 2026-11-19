@@ -155,6 +155,17 @@ The thirteen rules in `docs/other-platforms.md` hold. In code they mean:
      last, and bleeds a little for the halo (`toys/page/src/gfx.zig`);
   3. the screen: the two together, then the black shapes again, then crisp light and whatever
      covers.
+- **The ground remembers** (`size.md`). Each piece has one picture, 256 dots on a side, of the light
+  left on its ground. It is drawn in the first pass, under the lines, and where something sounds
+  the world adds to it. Measured so far: a picture that size uploads in about 1.3 ms and the GPU
+  samples far more dots a second than the screen needs. Drawing it with pieces loading is stage
+  1's to measure.
+- **Three distances and a fourth.** A tall thing is drawn in full near, as a mast with points of
+  light far off, and between; and within 85 m it also shows what is Hum's own size on it
+  (`game/src/draw/aster_lines.zig`).
+- **The view of a place** sits well behind Hum and low, so the horizon is low and Hum is small. At
+  the foot of something tall, standing still, it leans back and opens to ninety degrees, so Hum and
+  the top are in one frame.
 - **Far lands** are each a few hundred lines and lights, always loaded.
 - **The backlight** is one number written each frame to a file the launcher opens for the game,
   moved smoothly, and put back when the game ends.
@@ -189,6 +200,11 @@ The thirteen rules in `docs/other-platforms.md` hold. In code they mean:
   seconds.
 - **A save every dawn:** a new file, pushed out, renamed over the old. The two newest and one for
   every dawn are kept, each with a checksum.
+- **Every dawn is kept for good** (`size.md`): what changed in the world since the dawn before, so
+  any dawn can be opened. When a card fills, the oldest are thinned to their takes, from which each
+  can be made again.
+- **Nothing is a copy.** A piece on the card holds every thing in it as its own shape, and what has
+  happened to each.
 - **The handheld's own copy** is written at the river, when nothing is moving.
 - **The book:** a page a day, with the pressed page, the river's song, the day's notes, the take and
   a line of facts.
@@ -216,8 +232,13 @@ The thirteen rules in `docs/other-platforms.md` hold. In code they mean:
   and `--wav` for sound, as the toys have.
 - **`game/tools/ears`** reads a sound file and reports roughness, loudness, the balance across
   bands, what is left between 400 Hz and 8 kHz, and what is left when left and right are summed.
-- **`game/tools/room`** runs on the handheld: it plays a clip or a moment and logs the button Morgan
-  answers with.
+- **The room** (`game/src/room.zig`) runs on the handheld: it puts a person in a promise's moment,
+  or plays a clip, and logs the button they answer with.
+- **Witnesses** (`game/src/world/witness.zig`): the world notes when a promise's moment happens and
+  how long the player stays in it. They are beside the world, not in its fingerprint, so adding a
+  promise never changes a take.
+- **`spec/tools/promises.py`** reads every sentence of the specification as a claim and works out
+  where each stands (`promises.md`). `build.sh` runs it and fails on what it refuses.
 
 ## Reused from the toys
 

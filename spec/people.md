@@ -26,6 +26,9 @@ away._
   one colour of one of the five. The river sings them in your night.
 - **Each land's eight are its band:** a ground, a pulse, a tune, a third, and four colours. A land
   with all eight sings its whole song at dusk. Twelve songs, ninety-six parts.
+- **A life goes on past its first ending** (`years.md`): two more wants, ties to other lives, duets
+  when they meet, a morning you can live as it, and over years a change into something that keeps
+  its tune.
 - **Nothing here is a chore list.** Nobody asks. A life sings what it sings, where it is, and the
   player who never helps anyone still reaches the thirteenth morning. The lands are thinner for it,
   and the lake is lower.

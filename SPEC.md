@@ -12,8 +12,8 @@ everything._
 
 Build a complete, original game for the R36S family of handhelds: the largest and most complete
 version the material supports. It is done when a scripted player can play it from the first evening
-to the thirteenth morning with no errors, every place has been looked at, and Morgan has played it
-on his handheld (section 21).
+to the thirteenth morning with no errors, every place has been looked at, Morgan has played it on
+his handheld, and every claim in this specification is kept (section 21).
 
 ## 2. Why
 
@@ -38,7 +38,11 @@ on his handheld (section 21).
   - one console or two "without trade-offs";
   - "a seriously AAA game... like the scope of Tears of the Kingdom";
   - "maximize this project's experience, beauty, impact, possibility space, and the human
-    experience, **be ambitious**".
+    experience, **be ambitious**";
+  - "we can be maximal instead of minimal... I don't want anything to be held back just for the sake
+    of optimization";
+  - "I played in Majora's Mask for 7 years before 100% the game... what we're building should vastly
+    vastly absolutely immensely surpass that game".
 
 ## 3. Which source wins
 
@@ -182,11 +186,16 @@ Thirteen mornings, each a pure fifth higher, each rising over the next land roun
   fifth of a semitone flat; 53 out, 3.6 hundredths sharp; 306; and 665, where two tones swell once
   in 87 seconds.
 - **The sky, the deep, the Shimmer, the islets and the forty octaves** for whoever goes looking.
+- **The ear, before and after:** what a person can hear on the last morning that they could not on
+  the first. The room measures it both times, with no words: which of two is home, which pair is
+  still.
 
 ### 6.5 How long
 
 A target, not a measurement: 60 to 100 hours to see the first turn fully, with most mornings lived
-several times. After it there is no end.
+several times. After it there is no end, and what can be finished takes years by the calendar's own
+sums: the last of the far gardens is 665 nights out, and some lives only meet every 420 mornings
+(`spec/years.md`).
 
 ## 7. The laws
 
@@ -312,6 +321,11 @@ About a hundred lives (`spec/people.md`).
   number. An almanac page in the songbook shows any morning to come.
 - **Nobody is explained.** Every line is sung, in the speaker's vowel, with one line of caption at
   most. The seven moods are your seven answers.
+- **A life is deep enough for years** (`spec/years.md`). Each has three wants, one inside the
+  other. Each is tied to others across the lake, and when two lives meet they sing a duet made
+  from their two tunes. Once you have helped a life you can live a morning as it: its body, its
+  ears, its own speed of time. Over years the lives change into things that keep their tunes, and
+  new lives are born singing what was handed down.
 
 ## 12. The world
 
@@ -321,6 +335,11 @@ About a hundred lives (`spec/people.md`).
   north. Each has a key, a tuning, a material that sets its physics, a metre, a tradition named in
   the songbook, a river to free, a great instrument to go inside, eight lives, twelve wonders, a
   noon face and a 2am face.
+- **One to a hundred** (`spec/size.md`). Hum stands one metre, a centimetre of the real garden, and
+  every thing is its real size times a hundred. An aster is as tall as the tallest cathedrals, the
+  hose is a tunnel two and a half kilometres long, and a drop of water sits on Hum's head.
+- **As big as a country.** Each land is about three square kilometres, and the whole world 7.7 km
+  across: 36 square kilometres of ground round 11 of water.
 - **One continuous place.** From any shore you see every land's lights across the water, and hear
   the far ones late.
 - **The lake:** to sail, with islets tuned in finer steps and the Shimmer, a bronze grove that beats
@@ -353,24 +372,35 @@ About a hundred lives (`spec/people.md`).
 - **The card is the world's memory.** Every take is kept, a save is made every dawn, and the
   handheld keeps its own copy. The book has a page a day. Songs leave as sound, as notes and as
   separate tracks.
+- **The card's room is spent on two things** (`spec/size.md`). Nothing is a copy: every aster, leaf
+  and blade of grass is its own shape and stays as it is left. And nothing is forgotten: the ground
+  keeps the light of what was sung on it, every dawn's save is kept so any morning of your life in
+  the game can be walked again, and each day's song is kept as sound. A card is a number of years.
 - **The handheld doesn't know how long it was off** (measured). Days are counted in mornings played,
   never by the calendar.
 
 ## 14. Two consoles
 
-`design/together.md` stands: letters, side by side, visits over the cable, Drip's seat, trading
-fours, the water you share. Added:
+`spec/together.md` has it in full, and `design/together.md` holds the first design and its reasons.
+In brief:
 
-- **Their voice is your depth.** Alone, a body's depth is the note between its own note and home.
-  With the other console linked, what they sing is that third note.
-- **The comma in real air.** Each console holds one tone, a comma apart, and the beating happens in
-  the room between the two speakers. It needs no cable.
+- **A friend in the room is a live echo, and an echo is a friend from another day.** Anything two can
+  do, one can do with an echo, so the game stays whole alone.
+- **The whole weight is on the cable:** two consoles running one world, step for step, with one
+  clock. Each screen is one player's eyes and each speaker one player's ears, so you hear a friend
+  late by how far apart you are.
+- **It never leans on** two speakers meeting in a room, a microphone, rumble, or a network.
+- **A visit:** one of you steps into the other's day.
+- **A world for two:** a whole world that belongs to both of you, begun apart in the same dark,
+  where the second call is answered by a person. It is the whole game, it lives on both cards, and
+  it moves on when you are linked.
+- **Apart:** letters, which are takes on a card, and each other's worlds, kept on your card as they
+  stood, to walk in when the other is not there.
+- **Two seats:** a second Hum, or Drip.
+- **Trading fours** is the one contest.
 - **Lent voices.** Six short sounds (a hum and five vowels) recorded on a phone and put on the card,
   and Hum sings in your own voice. The built voices are complete without it.
-- **Songs are seeds.** A phrase played at the river grows a friend's plant in your garden. It can be
-  passed on by ear or by a photo of the page.
-- **If the jack takes a headset's microphone** (not yet known), the game can hear you: the hush seat
-  is heard, and seated, Hum can follow your voice. Nothing depends on it.
+- **Songs are seeds.** A phrase played at a friend's river grows a plant of yours in their garden.
 
 ## 15. Sound and picture
 
@@ -398,12 +428,14 @@ fours, the water you share. Added:
 ## 16. Scope
 
 - **In:** everything in sections 4 to 15 and in `spec/`.
-- **Later, and nothing depends on them:** a microphone or an instrument over USB (the kernel has the
-  drivers; nothing has been plugged in); more than two consoles through a hub; rumble, if a motor
-  turns out to be fitted; builds for other platforms (`docs/other-platforms.md` has the rules that
-  keep them possible, and the game keeps those rules from the start).
+- **Later, and nothing depends on them:** an instrument over USB (the kernel has the drivers; nothing
+  has been plugged in); more than two consoles through a hub; builds for other platforms
+  (`docs/other-platforms.md` has the rules that keep them possible, and the game keeps those rules
+  from the start).
 - **Out:** a network; anything that needs a second console; recorded music; any human face; any
-  existing game's world.
+  existing game's world; rumble, because these handhelds have no motor; a microphone, because
+  hearing the player is a gimmick the game never leans on; anything that rests on two unlinked
+  speakers or on a trained ear (Morgan, 2026-11-19).
 - **Must not change without Morgan:** the rules in section 5, and the list of his calls in section
   17.
 
@@ -427,6 +459,10 @@ fours, the water you share. Added:
 | recorded sound | none; lent voices optional |
 | the Grid's and the Wolf's endings | real, takeable, and the river offers the morning again |
 | the thirteenth morning with two consoles | each with their own vine, side by side |
+| the ground keeps the light of what was sung on it (`spec/size.md`) | in |
+| lives change over years and hand their tunes down (`spec/years.md`) | yes |
+| a world for two (`spec/together.md`) | in |
+| contests between two | trading fours only |
 | release to other R36S owners | built so it can be; whether and how is his |
 | by ear | every sound, from the room (section 21) |
 
@@ -440,6 +476,7 @@ Measured numbers the design rests on (`docs/hardware-target.md`; `probe/results/
 | cores for the game | three; the fourth takes the storage interrupts |
 | overtones one core renders in half a 2.67 ms buffer | about 2,100 at the purple's throttled clock, bit for bit the same as on the laptop |
 | picture | 30,000 lines of light a frame in 11.1 ms, and 40,000 in 13.2 ms, every frame on time, with black shapes and all three passes (`game/` on the purple); three render passes at most, because each costs a fixed amount |
+| a field of 70 asters as tall as cathedrals, walked | 2,398 frames, none late; 2.7 ms of work a frame; 18,055 lines at most; the slowest sound buffer 0.76 ms of 2.67 (`game/results/purple-20261119b/`) |
 | the page toy's whole frame | 1,400 marks in 1.3 to 3.6 ms of one core |
 | memory | 918 MiB, about 815 free when a game starts |
 | the card | reads 43 MB/s with next to no interrupts; a 64 KB save in 9.5 ms |
@@ -448,14 +485,15 @@ Measured numbers the design rests on (`docs/hardware-target.md`; `probe/results/
 | the backlight | 208 of 388 mA at idle; settable from a program |
 | the clock | does not count while the unit is off |
 | a microphone on the board | none |
-| the rumble line | can be driven; whether a motor is fitted is not known |
+| the rumble line | can be driven, and there is no motor on it (Morgan, 2026-11-19) |
 
 Still to be measured, and by what:
 
 | what | how |
 |---|---|
-| button to sound, button to picture | the room, with Morgan's phone filming, or a headset if the jack records |
-| a headset's microphone through the jack; a motor on the rumble line; the breathing backlight; the speaker's loudness | the room, with Morgan's hands, eyes and ears |
+| button to sound, button to picture | the room, with Morgan's phone filming |
+| the breathing backlight; the speaker's loudness | the room, with Morgan's eyes and ears |
+| a 64 GB card; the ground drawn under the lines; what a dawn's keep weighs; every thing its own shape | `spec/size.md`, "Still to be measured" |
 | drift between two units' sound clocks; a link that lasts hours; the cable pulled | stage 6, with the black hosting |
 | a place's baked echoes: size and cost | stage 2, on the Garden |
 
@@ -498,11 +536,12 @@ neither measured nor marked is a mistake.
 6. **Two consoles.**
 7. **The book, lent voices, and release.**
 
-Each stage ends the same way: the whole game so far played through by the scripted player with no
-errors; frames from every place dumped and looked at; the measuring tools run on every new sound;
-the same-take test passed on the laptop and the purple; a session on the purple logged; everything
-committed and pushed; `PROGRESS.md` brought up to date; and Morgan's hands on it. After stages 2, 5
-and 7, a reader with fresh context grades the build against this file.
+Each stage begins by sizing a promise for every claim it owes, and ends the same way: the whole game
+so far played through by the scripted player with no errors; frames from every place dumped and
+looked at; the measuring tools run on every new sound; the same-take test passed on the laptop and
+the purple; a session on the purple logged; a reader with fresh context grading each promise against
+its words; Morgan's hands on it; every claim of the stage kept; everything committed and pushed; and
+`PROGRESS.md` brought up to date.
 
 ## 21. Verification
 
@@ -519,13 +558,14 @@ The ladder from Part 0, each rung catching what the ones below can't:
 8. **Morgan, on the handheld.** The room (`game/tools/room/`) is where his answers are logged: a
    clip or a moment, and a button for yes, no or again. This is the only rung that says the game is
    good.
-9. **The promises.** Every claim in this file and in `spec/` that a player is meant to see, hear, do
-   or feel is a promise, with its full size and its cheat written down. A stage is done only when
-   each of its promises is kept: proven by the build, reached by the scripted player, felt by a
-   person holding the handheld, and graded by a fresh reader (`spec/promises.md`; where each one
-   stands is `spec/promises/BOARD.md`). The build refuses a stage called done before that.
-10. **The ear, before and after:** what a person can hear on the last morning that they could not on
-    the first. The room measures it both times.
+9. **The promises.** Every sentence of sections 4 to 15 and of the game's files in `spec/` is a
+   claim, and a tool reads them all: nobody lists them, so a line written tomorrow is tracked
+   tomorrow. A promise speaks for the sentences it quotes, with its full size and its cheat written
+   down. A stage is done only when every claim it owes is kept: proven by the build, reached by the
+   scripted player, felt by a person holding the handheld, and graded by a fresh reader
+   (`spec/promises.md`; where each one stands is `spec/promises/BOARD.md`, and every claim is in
+   `spec/promises/CLAIMS.md`). The build refuses a stage called done before that.
+10. **The ear, before and after** (section 6.4): the room measures it both times.
 
 ## 22. Starting a build session
 
@@ -558,6 +598,10 @@ THE RULES
 - Never estimate how long anything will take, and never trim the stage to save effort.
 - Every few tool calls, one line on where things stand.
 - Commit and push each finished piece. Keep PROGRESS.md true.
+- Every sentence of the specification is a claim. Before a stage, run
+  "python3 -I spec/tools/promises.py --open N" and size a promise for each claim it lists:
+  its moment, its cheat, its full size, its question (spec/promises.md). Be maximal, not
+  minimal: the full size is what the words mean at one to a hundred and by the laws.
 
 DONE
 The stage's proof in spec/stages.md, shown, not asserted: the command, the run, the

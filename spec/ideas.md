@@ -280,3 +280,30 @@ All fifteen are kept.
 | ears by measurement; the room for Morgan's answers | 21 |
 | sounds as data files Morgan can shape | `engine.md` |
 | each place's echoes worked out from its shape | `engine.md` |
+| every sentence of the specification is a claim, read by a tool; a promise speaks for the ones it quotes | `promises.md` |
+| witnesses: the world notes when a promise's moment happens | `promises.md`; `game/src/world/witness.zig` |
+| the walk: a person is put in each promise's moment and asked one question | `promises.md`; the room |
+| the ear, before and after | 6.4; `promises/whole.md` |
+| one to a hundred: every thing its real size times a hundred | `size.md` |
+| height is heard as lateness: a call climbs | `size.md`; `laws.md`, law 6 |
+| a ringing bell's halo beats at its own note eight octaves down | `game/src/draw/aster_lines.zig`; to be written into `laws.md`, "Sound and light" |
+| nothing is a copy: every thing its own shape, and it stays as it is left | `size.md` |
+| the ground remembers: the light of what was sung, kept for good when the lake is full; the lives' rounds worn into it | `size.md` |
+| every dawn kept: any morning of your life can be walked again beside your past self | `size.md` |
+| a card is a number of years | `size.md` |
+| three wants for every life; ties; a duet for every pair that meets | `years.md` |
+| being them: a morning as any life you have helped, at its size, with its ears, at its own speed of time | `years.md` |
+| generations: lives change into things that keep their tunes, and new lives sing what was handed down | `years.md` |
+| the great year: 92,820 mornings | `years.md` |
+| a world for two, begun apart in the same dark | `together.md` |
+| each other's worlds, kept on your card to walk in | `together.md` |
+| you hear a friend late by how far apart you are | `together.md` |
+
+## Taken out on 2026-11-19, on Morgan's word
+
+| idea | why |
+|---|---|
+| the comma in real air, between two unlinked consoles' speakers | "we can't count on two unconnected console's speakers or two untrained people's ears to carry the weight of the multiplayer experience" |
+| side by side with no cable, clapping back in when it drifts | the same |
+| the game hearing a player through a headset; the hush seat heard | "the microphone input thing is gimmicky and is never a mechanism to lean on" |
+| rumble | "there are no vibration/rumble mechanisms" |

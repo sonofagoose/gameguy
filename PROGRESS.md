@@ -19,27 +19,34 @@ section 20, and `spec/stages.md`.
 | the room: Morgan's hand checks and the 31 listening clips, on the handheld | built and installed on the purple as GameguyRoom; it opens and leaves cleanly. Nobody has answered it yet |
 | second probe, the parts that need Morgan's hands | waiting for him to run the room: the tone, the rumble line, the backlight, the left stick, a headset. The clock check needs a power-off and on |
 
-## The promise book (2026-11-19, unfinished: the session hit its usage limit)
+## The guard, the size, the years (2026-11-19)
 
-Morgan asked for something that makes sure every claim is built at full size and felt by a person.
+Morgan asked for something that makes sure every claim is built at full size and felt by a person,
+working for every claim by itself; then for the game to be maximal, to use the card, and to go far
+past the deepest game he knows.
 
 | piece | state |
 |---|---|
-| `spec/promises.md`, `spec/promises/`, `spec/tools/promises.py` | written; the tool runs and writes `spec/promises/BOARD.md` |
-| witnesses in the world, the proof field of asters as tall as cathedrals, the walking bot | written; 12 tests pass; the laptop build runs the scene with no screen and dumps its frames |
-| the frames | dumped, **not yet looked at**: nothing is in `spec/promises/seen/` |
-| `game/build.sh` | **not yet changed**: it does not run the promise tool or the asters scene, and `results/same-take-aarch64.txt` is stale (the rules changed) |
-| the walk in the room | **not written** |
-| the purple | **not run**: none of this has been on a handheld |
-| `spec/size.md` (one to a hundred, the ring's size, the yardstick, the card) | **not written**; `spec/world.md` still has the old size estimate |
+| the guard: `spec/tools/promises.py` reads every sentence of the specification as a claim | done: 1,260 claims read; `spec/promises/BOARD.md` and `CLAIMS.md` are written on every build |
+| promises that speak for claims (`spec/promises/`) | 43 sized. The first evening and the Garden's atlas are fully spoken for. Nothing is kept yet |
+| `game/build.sh` runs the guard and fails on what it refuses | done |
+| witnesses in the world; a proof field of asters as tall as cathedrals; the walking player | done: 12 tests pass; frames looked at and kept in `spec/promises/seen/` |
+| on the purple | the asters walk: 2,398 frames, none late, 18,055 lines at most; both takes the same as the laptop |
+| the walk in the room | built and on the purple (Ports, GameguyRoom): 8 promises to walk. Nobody has answered it |
+| `spec/size.md`: one to a hundred, the ring's size, what the card is for | written. Its measurements are owed (its last section) |
+| `spec/years.md`: three wants, ties, meetings, being them, generations | written |
+| `spec/together.md`: the cable carries it; a world for two | written |
+| rumble, the microphone, the comma in real air | out, on Morgan's word (`DECISIONS.md`) |
 
 ## Next
 
-1. Morgan reads and edits `SPEC.md`, and runs GameguyRoom on the purple (or the black, once the game
-   is put on it).
+1. Morgan reads and edits `SPEC.md`, `spec/size.md`, `spec/years.md` and `spec/together.md`, and
+   runs GameguyRoom on the purple (or the black, once the game is put on it).
 2. Pull the room's log and read every `room:` line; fold the answers into `docs/hardware-target.md`
    and the specification.
 3. The build goes on from stage 1, in a session opened with the brief in `SPEC.md`, section 22.
+   Stage 2 begins by sizing a promise for each of its open claims
+   (`python3 -I spec/tools/promises.py --open 2`).
 
 ## Stages
 

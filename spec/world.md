@@ -14,9 +14,11 @@ its stage is built, may add to this but not take away._
   car and a porch, each as big as a country to Hum. Asters are as tall as cathedrals.
 - **One continuous place.** There are no loading doors between lands. From any shore you see every
   land's lights across the water and hear the far ones late.
-- **Sizes, as estimates:** the lake is about 1.6 km across at Hum's scale and a day's run round.
-  Each land is about 500 m of shore and 300 to 600 m deep. The ring is about 3 square kilometres of
-  ground.
+- **One to a hundred.** Hum stands one metre, a centimetre of the real garden, and every thing is its
+  real size times a hundred (`size.md`).
+- **Sizes** (`size.md`): the lake is 3.7 km across, and its shore more than a day's run round. Each
+  land is about 3 square kilometres: a kilometre of shore, two kilometres deep. The ring is 36
+  square kilometres of ground, and the whole world 7.7 km across.
 - **Height is the octave.** Higher ground is a higher register. The rim climbs by a hair all the way
   round, so at the Seam one side of the crack stands a step above the other: the comma, as a ledge.
   The city bridges it.

@@ -87,3 +87,26 @@ print(f"  one step of the world is {48000 // 60} samples; a buffer is {128 / 480
 print(f"  overtones in half a buffer at 4.7 ns each: {0.5 * 128 / 48000 / (4.7e-9 * 128):.0f}")
 print(f"  backlight share of the idle draw at full: {(388 - 180) / 388 * 100:.0f}%; "
       f"saved at 120 from 200: {(350 - 275) / 350 * 100:.0f}%; at 60: {(350 - 226) / 350 * 100:.0f}%")
+
+print("== how big (spec/size.md)")
+lake_r, deep = 3.7 / 2, 2.0
+land = math.pi * ((lake_r + deep) ** 2 - lake_r ** 2) / 12
+print(f"  the lake: {math.pi * lake_r ** 2:.1f} square km; its shore {2 * math.pi * lake_r:.1f} km round, "
+      f"{2 * math.pi * lake_r * 1000 / 6 / 60:.0f} minutes at a run; sound crosses it in {3700 / 60:.0f} s")
+print(f"  each land: {land:.2f} square km, {2 * math.pi * lake_r / 12:.2f} km of shore, "
+      f"{2 * math.pi * (lake_r + deep) / 12:.2f} km of outer edge; a run across its depth {deep * 1000 / 6 / 60:.1f} minutes")
+print(f"  all twelve: {12 * land:.0f} square km; the whole world {2 * (lake_r + deep):.1f} km across, "
+      f"{math.pi * (lake_r + deep) ** 2:.0f} square km")
+print(f"  pieces 64 m on a side: {12 * land * 1e6 / 4096:.0f} of land, {math.pi * lake_r ** 2 * 1e6 / 4096:.0f} of lake")
+print(f"  the tallest aster's call climbs for {172 / 60:.2f} s; a real aster of 1.72 m, one to a hundred")
+for card, usable in ((32, 29), (64, 59)):
+    room = usable - 10
+    print(f"  a {card} GB card: {room} GB for days; {room * 1000 / 45:.0f} to {room * 1000 / 25:.0f} days, "
+          f"{room * 1000 / 45 / 365:.1f} to {room * 1000 / 25 / 365:.1f} years of a day every day")
+print(f"  the ground's picture for one piece: {256 * 256 * 4 / 1024:.0f} KB; forty-nine in memory {49 * 256 * 256 * 4 / 1e6:.0f} MB; "
+      f"the screen needs {640 * 480 * 60 / 1e6:.0f} million dots a second")
+
+print("== the years (spec/years.md)")
+print(f"  every round lining up: {math.lcm(3, 4, 5, 7, 13, 17)} mornings, {math.lcm(3, 4, 5, 7, 13, 17) / 365:.0f} years of a morning a day")
+print(f"  the last far garden: 665 nights, {665 / 365:.1f} years; 96 lives with three wants: {96 * 3}")
+print(f"  a halo's beat, middle C eight octaves down: {C4 / 256:.2f} a second")
