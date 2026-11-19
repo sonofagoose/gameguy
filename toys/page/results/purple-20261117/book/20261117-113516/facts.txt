@@ -1,0 +1,10 @@
+when=2026-11-17 11:35
+played=74
+found_drip=yes
+knots_opened=yes
+came_home=7
+sung_to_sleep=0
+best_walk=3
+strikes=10
+look=PAGE AND PLACE
+light=BEAM

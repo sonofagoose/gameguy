@@ -1,5 +1,12 @@
 # The look: brainstorm
 
+> **2026-11-17:** Morgan chose the page toy's lines of light over the meadow's solid look ("the
+> style and feel of the gameguypage so far is VASTLY cooler than the meadow... scrap the meadow
+> style"). What follows from that is in `drawn-in-light.md`. From this document it keeps the inks,
+> the colours by fifths, light made of sound, lines made of ratios, the past in sun-print blue and
+> the Grid and the Wolf. It drops the noon meadow of solid shapes, plaster creatures (only Hum stays
+> plaster), lighting per vertex and the ink pass over a 3D scene.
+
 Brainstorm, 2026-11-13. Nothing here is decided. Morgan asked to "explore and brainstorm the ideal
 visual aesthetic for the endeavour". This document goes with `shape-1-a-musical-zelda.md`,
 `shape-2-volta.md` and `shape-3-the-lake-ring.md`.

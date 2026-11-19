@@ -11,6 +11,10 @@
 //! - Hold the wheel and the place folds back onto the page so it can be read; let go and it
 //!   stands again. The wheel's seven lit wedges are the half that stands above the ground, and
 //!   its five dark ones the half that goes under it.
+//!
+//! And how the light behaves (`Light`): as crisp lines, or as a beam, the way an oscilloscope
+//! draws. In the beam, only things that sound leave light behind them; things that are only lit
+//! stay crisp. While time is thick (the wheel held, a swell held) the afterglow lengthens.
 const std = @import("std");
 const gfx = @import("gfx.zig");
 const cam_mod = @import("cam.zig");
@@ -52,6 +56,36 @@ pub const Look = enum {
     }
 };
 
+/// How the light is put on the screen.
+pub const Light = enum {
+    /// Things that sound (voices, calls, the wheel) leave a short afterglow and have a halo, and
+    /// a figure is brightest where its beam slows to turn. Thick time lengthens the afterglow.
+    beam,
+    /// The same, with a long afterglow all the time.
+    afterglow,
+    /// As the toy was first played: crisp lines of light, nothing lingers.
+    lines,
+
+    pub fn name(self: Light) []const u8 {
+        return switch (self) {
+            .beam => "BEAM",
+            .afterglow => "LONG AFTERGLOW",
+            .lines => "LINES",
+        };
+    }
+
+    pub fn next(self: Light, step: i32) Light {
+        const n: i32 = @intFromEnum(self);
+        return @enumFromInt(@as(u2, @intCast(@mod(n + step, 3))));
+    }
+};
+
+/// Sun-print blue: the colour of the past (`design/look.md`).
+const sunprint3 = [3]f32{ 0.36, 0.56, 0.92 };
+
+/// The most points of Hum's path the day keeps.
+const trail_max = 8192;
+
 /// Everything about how the view moves, in one place for tuning.
 pub const Feel = struct {
     /// How fast the place folds to the page when the wheel opens, and back (per second).
@@ -71,6 +105,9 @@ pub const Feel = struct {
 pub const View = struct {
     feel: Feel = .{},
     look: Look = .both,
+    light: Light = .beam,
+    /// The words at the top right after a change of look or light.
+    label: []const u8 = "",
     cam: Cam = .{},
     cx: f32 = 0.0,
     cy: f32 = 0.0,
@@ -86,13 +123,33 @@ pub const View = struct {
     turn: f32 = 0.0,
     clock: f32 = 0.0,
     label_left: f32 = 0.0,
+    /// How fast the view itself is moving (the fold, turning), so the afterglow can stand aside
+    /// while it does: a moving camera would smear everything that sounds.
+    motion: f32 = 0.0,
+    /// 1 while time is thick (R1 held, the wheel open), eased.
+    thick: f32 = 0.0,
+    last_deep: f32 = 0.0,
+    last_yaw: f32 = 0.0,
     // for the session log
     page_s: f32 = 0.0,
     place_s: f32 = 0.0,
     between_s: f32 = 0.0,
+    light_s: [3]f32 = .{ 0.0, 0.0, 0.0 },
+    /// Where Hum has walked today, a point every few steps.
+    trail: [trail_max][2]f32 = undefined,
+    trail_len: usize = 0,
+    /// The eye for the pressed page, high above the whole day.
+    page_cam: Cam = .{},
 
     pub fn setLook(self: *View, look: Look) void {
         self.look = look;
+        self.label = look.name();
+        self.label_left = 2.5;
+    }
+
+    pub fn setLight(self: *View, light: Light) void {
+        self.light = light;
+        self.label = light.name();
         self.label_left = 2.5;
     }
 
@@ -152,8 +209,24 @@ pub const View = struct {
         };
         const deep = smooth(self.stood * (1.0 - self.fold));
         self.cam.aim(self.cx, self.cy, self.yaw, self.zoom, deep, pose);
+        const rate = (@abs(deep - self.last_deep) * 3.0 + @abs(self.yaw - self.last_yaw)) / @max(dt, 0.001);
+        self.motion += (rate - self.motion) * @min(1.0, dt * 12.0);
+        self.last_deep = deep;
+        self.last_yaw = self.yaw;
 
         if (deep < 0.05) self.page_s += dt else if (deep > 0.95) self.place_s += dt else self.between_s += dt;
+        self.light_s[@intFromEnum(self.light)] += dt;
+        const want_thick: f32 = if (w.wheel_open) 1.0 else 0.0;
+        self.thick += (want_thick - self.thick) * @min(1.0, dt * 6.0);
+
+        // the day's path
+        const last: [2]f32 = if (self.trail_len > 0) self.trail[self.trail_len - 1] else .{ 1e9, 1e9 };
+        const mx = w.x - last[0];
+        const my = w.y - last[1];
+        if (mx * mx + my * my > 9.0 * 9.0 and self.trail_len < trail_max) {
+            self.trail[self.trail_len] = .{ w.x, w.y };
+            self.trail_len += 1;
+        }
     }
 };
 
@@ -211,11 +284,48 @@ fn figure(r: *Renderer, f: Figure, color: gfx.Color) void {
             cam.solid(f.x, f.y, s * cr + d * sr, up, d * cr - s * sr, f.hover);
     }
     points[steps] = points[0];
-    r.path(points[0 .. steps + 1], f.thick, f.sized, color, true);
+    // A beam driven by two pulses moves fastest through the middle of its figure and slowest
+    // where it turns, so it leaves the most light at the turns. The points are equally spaced in
+    // time, so each line's length is the beam's speed there.
+    var weights: [200]f32 = undefined;
+    if (r.dwell) {
+        var total: f32 = 0.0;
+        for (0..steps) |i| {
+            const d = [3]f32{ points[i + 1][0] - points[i][0], points[i + 1][1] - points[i][1], points[i + 1][2] - points[i][2] };
+            weights[i] = @max(@sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]), 0.0001);
+            total += weights[i];
+        }
+        const mean_len = total / @as(f32, @floatFromInt(steps));
+        var sum: f32 = 0.0;
+        for (0..steps) |i| {
+            weights[i] = mean_len / weights[i];
+            sum += weights[i];
+        }
+        const norm = @as(f32, @floatFromInt(steps)) / sum;
+        for (0..steps) |i| weights[i] = std.math.clamp(weights[i] * norm, 0.4, 1.9);
+    }
+    r.pathWeighted(points[0 .. steps + 1], if (r.dwell) weights[0..steps] else null, f.thick, f.sized, color, true);
 }
 
 pub fn draw(r: *Renderer, w: *const World, v: *View, dt: f32) void {
     const cam = &v.cam;
+    // how the light behaves this frame
+    const layered = v.light != .lines;
+    r.layered = layered;
+    r.dwell = layered;
+    r.persist = false;
+    r.bloom = if (layered) 0.6 else 0.0;
+    const tau: f32 = switch (v.light) {
+        .lines => 0.0,
+        .afterglow => 0.45,
+        // seconds for the afterglow to fall to about a third: short, and four times as long while
+        // time is thick, when everything moves at a quarter of its speed (so a trail is as long
+        // on the screen as it was); a little longer as a swell gathers
+        .beam => 0.07 + 0.21 * smooth(v.thick) + (if (w.swell) 0.006 * @min(w.swell_beats, 8.0) else 0.0),
+    };
+    // while the view itself moves, the afterglow stands aside
+    const steady_tau = tau / (1.0 + 10.0 * v.motion);
+    r.keep = if (steady_tau > 0.0) @exp(-@max(dt, 0.001) / steady_tau) else 0.0;
     r.begin(cam);
     const beat: f32 = @floatCast(@mod(w.beat, 64.0));
     const in_beat = beat - @floor(beat);
@@ -250,15 +360,20 @@ pub fn draw(r: *Renderer, w: *const World, v: *View, dt: f32) void {
     const sway = @sin(v.clock * 0.9) * 3.0;
 
     drawGround(r, w, v);
+    drawTrail(r, w, v);
+    r.persist = true; // a call is a sound
     for (w.rings) |ring| {
         if (!ring.alive) continue;
         r.groundCircle(ring.x, ring.y, ring.r, 3.0, false, gfx.rgb(ring.color, 0.75 * ring.life));
     }
+    r.persist = false;
 
     // what is beyond Hum, then Hum, then what is nearer: only Hum and Drip cover anything
     drawGrass(r, w, v, sway, hum_depth, true);
     drawGiants(r, w, sway);
     drawThings(r, w, sway, hum_depth, true);
+    // voices, Hum, the wheel and sparks all sound: their light lingers in the beam
+    r.persist = true;
     drawDrip(r, w, v, dt, in_beat);
     for (&w.creatures) |*cr| {
         if (cam.see(cam.ground(cr.x, cr.y)).depth >= hum_depth - 0.5) drawCreature(r, w, v, cr, in_beat);
@@ -267,14 +382,17 @@ pub fn draw(r: *Renderer, w: *const World, v: *View, dt: f32) void {
     for (&w.creatures) |*cr| {
         if (cam.see(cam.ground(cr.x, cr.y)).depth < hum_depth - 0.5) drawCreature(r, w, v, cr, in_beat);
     }
+    r.persist = false;
     drawThings(r, w, sway, hum_depth, false);
     drawGrass(r, w, v, sway, hum_depth, false);
+    r.persist = true;
     drawWheel(r, w, v, in_bar);
 
     for (w.sparks) |s| {
         if (s.life <= 0.0) continue;
         r.dot(.{ s.x, (8.0 + 26.0 * (1.0 - s.life)) * cam.stand, s.y }, 1.6, false, gfx.rgb(s.color, s.life));
     }
+    r.persist = false;
 
     // one line of words, large
     const words = if (w.said_left > 0.0) w.said else w.prompt;
@@ -286,7 +404,7 @@ pub fn draw(r: *Renderer, w: *const World, v: *View, dt: f32) void {
         r.text(320.0 - wide / 2.0, 418.0, scale, gfx.faded(gfx.bone, alpha), words);
     }
     if (v.label_left > 0.0) {
-        const name = v.look.name();
+        const name = v.label;
         r.text(630.0 - Renderer.textWidth(name, 1.0), 8.0, 1.0, gfx.faded(gfx.bone, @min(1.0, v.label_left)), name);
     }
 }
@@ -307,6 +425,8 @@ fn drawGround(r: *Renderer, w: *const World, v: *const View) void {
         } else {
             // the knot moves: five against three
             const writhe: f32 = if (w.drip_riding) 1.6 else 0.3;
+            r.persist = true;
+            defer r.persist = false;
             figure(r, .{
                 .x = world_mod.knot_x,
                 .y = world_mod.knot_y,
@@ -347,6 +467,83 @@ fn drawGround(r: *Renderer, w: *const World, v: *const View) void {
             r.groundCircle(t.x, t.y, 30.0 * s * fill + 6.0, 2.0, false, gfx.rgb(water3, 0.6 * fill));
             r.groundCircle(t.x, t.y, 16.0 * s * fill + 3.0, 2.0, false, gfx.rgb(water3, 0.4 * fill));
         }
+    }
+}
+
+/// The day as a page: the garden from above with everything lying flat, the path Hum walked
+/// today in sun-print blue, a ring where it began, and Hum where it ended. What the day left
+/// behind lies on it too: knots sprung open, creatures that came home, sleepers. Shown as the
+/// game closes, and kept in the book. `fade` brings it up out of the black.
+pub fn pressedPage(r: *Renderer, w: *const World, v: *View, fade: f32) void {
+    // fit the garden and the whole day's path on the page
+    var x0: f32 = -160.0;
+    var x1: f32 = 720.0;
+    var y0: f32 = -440.0;
+    var y1: f32 = 120.0;
+    for (v.trail[0..v.trail_len]) |pt| {
+        x0 = @min(x0, pt[0]);
+        x1 = @max(x1, pt[0]);
+        y0 = @min(y0, pt[1]);
+        y1 = @max(y1, pt[1]);
+    }
+    const margin: f32 = 36.0;
+    const zoom = std.math.clamp(@min((gfx.width - 2.0 * margin) / (x1 - x0), (gfx.height - 2.0 * margin) / (y1 - y0)), 0.15, 1.5);
+    const cx = (x0 + x1) * 0.5;
+    const cy = (y0 + y1) * 0.5;
+    // the page puts its focus 52 pixels below the middle of the screen: aim so the day is centred
+    v.page_cam.aim(cx, cy + 52.0 / zoom, 0.0, zoom, 0.0, cam_mod.calm);
+    r.layered = false;
+    r.dwell = false;
+    r.persist = false;
+    r.begin(&v.page_cam);
+    const cam = r.cam;
+
+    if (w.light > 0.01) r.pool(cx, cy, 900.0, gfx.rgb(music.hue(0), 0.12 * w.light));
+    drawGround(r, w, v);
+    const hum_depth = cam.see(cam.ground(w.x, w.y)).depth;
+    drawThings(r, w, 0.0, hum_depth, true);
+    drawThings(r, w, 0.0, hum_depth, false);
+    for (&w.creatures) |*cr| {
+        switch (cr.state) {
+            .open, .follow, .asleep => drawCreature(r, w, v, cr, 0.0),
+            else => {},
+        }
+    }
+
+    // the day's path
+    if (v.trail_len >= 2) {
+        var points: [Renderer.max_path]V3 = undefined;
+        var start: usize = 0;
+        while (start + 1 < v.trail_len) {
+            const end = @min(v.trail_len, start + Renderer.max_path);
+            for (start..end) |i| points[i - start] = cam.ground(v.trail[i][0], v.trail[i][1]);
+            r.path(points[0 .. end - start], 2.2, false, gfx.rgb(sunprint3, 0.85), false);
+            start = end - 1;
+        }
+        // where the day began
+        r.groundCircle(v.trail[0][0], v.trail[0][1], 9.0 / zoom, 2.0, false, gfx.rgb(bone3, 0.7));
+    }
+    // and where it ended
+    r.disc(cam.ground(w.x, w.y), 7.5, gfx.bone);
+    if (w.drip_riding) r.disc(cam.ground(w.x + 1.5, w.y - 9.0), 3.4, gfx.rgb(music.hue(world_mod.drip_note), 1.0));
+
+    // up out of the black
+    if (fade < 1.0) r.rect(0.0, 0.0, gfx.width, gfx.height, gfx.faded(gfx.void_black, 1.0 - fade));
+}
+
+/// The day's path, in sun-print blue, on the page only: where the world is read.
+fn drawTrail(r: *Renderer, w: *const World, v: *const View) void {
+    const cam = r.cam;
+    const a = 0.34 * (1.0 - smooth(cam.deep)) * smooth(w.light);
+    if (a < 0.02 or v.trail_len < 2) return;
+    const col = gfx.rgb(sunprint3, a);
+    var points: [Renderer.max_path]V3 = undefined;
+    var start: usize = 0;
+    while (start + 1 < v.trail_len) {
+        const end = @min(v.trail_len, start + Renderer.max_path);
+        for (start..end) |i| points[i - start] = cam.ground(v.trail[i][0], v.trail[i][1]);
+        r.path(points[0 .. end - start], 1.6, false, col, false);
+        start = end - 1; // the next run starts where this one ended
     }
 }
 
@@ -859,11 +1056,12 @@ pub fn numbers(r: *Renderer, w: *const World, v: *const View, frame_ms: f64, gap
         w.best_walk,
     }) catch "";
     r.text(10.0, 8.0 + 24.0, 1.0, quiet, second);
-    const third = std.fmt.bufPrint(&buf, "{d:.1} MS  {d} MARKS  GAPS {d}  DEEP {d:.2}  {s}", .{
+    const third = std.fmt.bufPrint(&buf, "{d:.1} MS  {d} MARKS  GAPS {d}  DEEP {d:.2}  {s}  {s}", .{
         frame_ms,
         r.quads,
         gaps,
         v.cam.deep,
+        v.light.name(),
         if (w.gentle) "GENTLE" else "PLAIN",
     }) catch "";
     r.text(10.0, 8.0 + 48.0, 1.0, quiet, third);

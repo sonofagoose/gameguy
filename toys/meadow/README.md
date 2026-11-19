@@ -1,5 +1,9 @@
 # meadow
 
+> **2026-11-17:** Morgan chose the page toy's lines of light over this toy's solid look ("scrap the
+> meadow style"). This toy stays only as a measurement of what the GPU can draw. The look is in
+> `design/drawn-in-light.md`.
+
 A toy, not the game. It tests two things before a 3D game is designed around them: how much world
 this handheld can draw, and how moving through it feels. A seed-sized creature in a patch of meadow
 can run, jump, glide, and bounce off mushroom caps, at noon or at 2am.

@@ -8,6 +8,10 @@ It is the wheel toy's garden with the wheel toy's rules, which it uses as they a
 What it adds is one camera. From straight above, with everything lying flat, the garden is a page.
 From low behind Hum, with everything standing, it is a place.
 
+Since 2026-11-17 it also has a light that draws like an oscilloscope's beam
+(`design/drawn-in-light.md`), and, with a card named GAMEGUY in the TF2 slot, it keeps every session
+in a book on the card (`design/the-card.md`).
+
 ## What happens
 
 1. **The dark, on the page.** Call (tap R1). A ring of light runs out. Something answers in teal.
@@ -21,7 +25,10 @@ From low behind Hum, with everything standing, it is a place.
    body has depth, from the note between its own note and home. Kin have no note between, and stay
    flat.
 5. **Hold the wheel (R1), or sing (R2),** and the place folds back onto the page so that it can be
-   read. Let go and it stands again.
+   read. Let go and it stands again. On the page, once it is light, the path you have walked today
+   shows in sun-print blue.
+6. **Leave** (Select + Start, held). The screen comes up out of black on your day seen from above,
+   the pressed page, while the music fades. Any button skips it.
 
 ## Controls
 
@@ -30,10 +37,12 @@ Everything in `../wheel/README.md`, and:
 | input | does |
 |---|---|
 | D-pad left / right | change the look: page and place, place only, page only. Its name shows at the top right |
+| D-pad up / down | change the light: beam, long afterglow, lines. Its name shows at the top right |
 | right stick, with R1 and R2 up | turn the view (once the world is standing). The left stick moves Hum by what is on the screen |
 | top face | numbers on / off; they now show how deep the view is and how many marks were drawn |
 
-In a window on the laptop (`--windowed`): V changes the look. The arrow keys are the right stick.
+In a window on the laptop (`--windowed`): V changes the look, L the light. The arrow keys are the
+right stick.
 
 The three looks:
 
@@ -42,6 +51,14 @@ The three looks:
 - **Place only.** A place from the first call. The wheel stands round Hum as an arch, and its five
   dark wedges go under the ground.
 - **Page only.** The wheel toy's picture.
+
+The three lights:
+
+- **Beam** (the default). Things that sound (voices, calls, the wheel) leave a short afterglow,
+  longer while R1 thickens time. A figure is brightest where its beam slows to turn, and what
+  lingers has a soft halo. The ground and the reeds stay crisp.
+- **Long afterglow.** The same with a long trail all the time.
+- **Lines.** The toy as it was first played.
 
 ## What to look for
 
@@ -54,6 +71,9 @@ The three looks:
 - Does the fold make you queasy on this screen?
 - When creatures are near, the camera rises a little and pulls back. Does that help, or would you
   rather keep the sky?
+- Is the beam better than the lines? Do the trails help you read a fight, or clutter it?
+- Does the pressed page at the end mean anything to you? Open the card's `index.html` on a computer
+  and listen to a session.
 
 ## How it works
 
@@ -65,17 +85,29 @@ The three looks:
 - The wheel is hinged along its line from nine o'clock to three, through Hum.
 - A body is drawn by three pulses: home's, its own, and their difference. The third only counts once
   the body stands.
-- Every point is worked out on the processor and sent as one batch of quads in one draw call. There
-  is no depth buffer: only Hum and Drip cover anything, so things are drawn in two passes, beyond
-  Hum and nearer than Hum.
+- Every point is worked out on the processor and sent as batches of quads. There is no depth
+  buffer: only Hum and Drip cover anything, so things are drawn in two passes, beyond Hum and nearer
+  than Hum.
+- In the beam, marks go into three layers:
+  - light from things that sound, which goes into a phosphor;
+  - light from things that are only lit, drawn crisp;
+  - things that cover.
+- The phosphor is kept at half size. At each pixel the screen shows the brighter of this frame's
+  light and what is left of the frames before, so only what moves leaves a trail. The phosphor
+  bleeds a little each frame, which is the halo. All of it is `src/gfx.zig`; how long the afterglow
+  lasts is in `draw()` in `src/draw.zig`.
+- The book: the sound thread copies each buffer it plays into a ring and never waits; the main
+  thread empties the ring into `song.wav` once a frame, and brings its header up to date every ten
+  seconds. The pressed page is drawn by `pressedPage` in `src/draw.zig`.
 - Everything about how the view moves is in `Feel` at the top of `src/draw.zig`, and the two camera
   positions are at the top of `src/cam.zig`.
 
 ## Not in it
 
 Height in the rules (no jumping and no hills: the rules are on a plane). Solid surfaces: everything
-is lines of light, as in the wheel toy, and `../meadow/` is the test of solid ground. A first-person
-focus. Lock-on. Cuts on the beat.
+is lines of light (Morgan dropped the meadow's solid look on 2026-11-17). Line texture by timbre, and
+figures that turn by tuning (`design/drawn-in-light.md`). A first-person focus. Lock-on. Cuts on
+the beat.
 
 ## Build and run
 
@@ -95,9 +127,21 @@ SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy toys/page/build/page-x86_64 \
     --headless --frames 4300 --dump /some/folder --dump-every 25
 ```
 
-`--look both|place|page` picks the look to start in. `--yaw DEGREES` starts with the view turned.
-`--bot` runs the scripted player in real time with real sound, for measuring on the handheld.
-`--skip N` starts N scenes in. `--help` lists the rest.
+`--look both|place|page` and `--light beam|afterglow|lines` pick the look and the light to start
+in. `--book DIR` keeps the session in a book in DIR (the launcher does this when a GAMEGUY card is
+in). `--halo 0` turns the beam's halo off, for measuring. `--yaw DEGREES` starts with the view
+turned. `--bot` runs the scripted player in real time with real sound, for measuring on the
+handheld. `--skip N` starts N scenes in. `--help` lists the rest.
+
+The launcher (`port/GameguyPage.sh`) is also the doorway to the game card. If it finds a partition
+named GAMEGUY on an SD card, it does three things:
+
+- it mounts the card for the session, asking the TF2 slot to look again if needed;
+- it runs the toy with `--book` on the card, or the card's own `gameguy/page-aarch64` if there is
+  one;
+- afterwards it rebuilds the card's `index.html` and unmounts it.
+
+`design/the-card.md` has the details and the reasons.
 
 ## Measured on the black unit, 2026-11-14
 
@@ -118,6 +162,23 @@ unit's clock reads April):
   between, opened the wheel 7 times, and landed a walk of three 30 ms before the one.
 - The wheel toy's own renderer does the page in 0.68 ms of work a frame. Seeing it through the
   camera costs about 0.6 ms more.
+
+## The beam and the book, measured on the purple, 2026-11-17
+
+The scripted player, 4,270 frames a session (`results/purple-20261117/`):
+
+| | a frame | late | worst | work a frame | sound gaps |
+|---|---|---|---|---|---|
+| lines | 17.10 ms | none | 20.2 ms | 1.46 ms | none |
+| beam, first try: full-size phosphor, three blur passes | 17.97 ms | 216 | 34.8 ms | 7.31 ms | none |
+| beam, half-size trail, three blur passes | 17.14 ms | 11 | 34.6 ms | 4.64 ms | none |
+| beam, half-size trail, no halo | 17.10 ms | 1 | 31.9 ms | 2.83 ms | none |
+| beam as built: half-size trail that bleeds | 17.10 ms | none | 20.4 ms | 3.57 ms | none |
+| beam as built, keeping a book on the card | 17.10 ms | 2 | 34.0 ms | 2.99 ms | none |
+
+- Each pass costs this GPU a fixed amount whatever its size, so the halo is made by the trail
+  bleeding rather than by blur passes.
+- The book left a 76.5 s song (7.3 MB), a pressed page and the facts on the card.
 
 ## Played by hand, 2026-11-14
 
@@ -169,18 +230,28 @@ the toy keeps to cores 0 to 2), and with it the sessions above have no stalled f
 An SD card in the TF2 slot turned out to be far lighter: 12 interrupts for each 256 KB read and
 about 440 for each 256 KB written, against 1,100 to 5,000 for the built-in storage.
 
+It also found that the menu can start a toy with the clocks left to scale themselves, which
+drops it to about two thirds of its frame rate, and that the sound gapped for about a hundredth
+of a second every half minute until the sound thread was given real-time priority. Every launcher
+now pins the clocks and allows that priority.
+
 The measurements are in `docs/hardware-target.md`. What was used to find it is here:
 
 - `tools/watch-device.py`: samples interrupts, soft interrupts, disk activity and clock speeds 20
   times a second.
-- `tools/run-with-watcher.sh`: runs the toy with its logs in memory and the watcher beside it.
+- `tools/run-with-watcher.sh [gov=ondemand]`: runs the toy as its launcher does, with the watcher
+  beside it; `gov=ondemand` leaves the clocks to scale.
+- `tools/as-the-menu-might.sh LAUNCHER`: starts a real launcher on scaling clocks, to check that
+  it corrects them.
 - `tools/storage-stall-test.sh default|moved write-builtin|read-builtin|read-card|write-card`:
   the same session with 256 KB written or read every two seconds, as the device comes or with
   the cure. `read-card` reads straight from the card in TF2: nothing is mounted and nothing is
   written.
 - `results/black-20261114/storage-stall/`: the eight test sessions, and one watched session.
-- The session log now says when any frame takes more than two and a half frames' time, by the
-  wall clock, so it can be matched against the watcher.
+- `results/black-20261115/sound-gaps/`: the four sessions about the clocks and the sound.
+- The session log now says when any frame takes more than two and a half frames' time, and when
+  the sound gaps, each by the wall clock, so it can be matched against the watcher. The console
+  log starts with the clocks the toy was started on and the priority it got.
 
 ## What a session leaves behind
 

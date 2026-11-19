@@ -1,0 +1,89 @@
+# page toy, session 20260414-111839
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+phosphor: light 640x480, trail 320x240 in half floats, halo 160x120
+audio: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+look: PAGE AND PLACE; light: BEAM
+sound thread: real-time priority
+t=1.6 call 1
+t=4.2 call 2
+t=4.2 scene: dark_find
+t=8.9 scene: phase
+t=11.3 in with Drip (last breath 22 ms from its tick)
+t=11.3 scene: dawn
+t=18.8 scene: knots
+t=19.0 wheel opened
+t=19.5 wheel closed after 0.68 s
+t=19.8 home F (was C)
+last 20 s: 1139 frames, 17.10 ms each (worst 20.47), 0 late; game work 4.16 ms (worst 5.55); audio 7505 callbacks, 0 gaps, worst gap 3.10 ms, slowest fill 0.65 ms
+t=20.4 strike: rang 3, on a meeting 3
+t=22.7 a frame took 103 ms (game work 6.4 ms) at clock 1776179942.363
+t=22.8 a frame took 95 ms (game work 6.5 ms) at clock 1776179942.543
+t=22.8 C went grey
+t=22.8 strike: rang 1, on a meeting 1
+t=23.1 a frame took 303 ms (game work 7.3 ms) at clock 1776179943.092
+t=23.1 a frame took 184 ms (game work 6.1 ms) at clock 1776179943.276
+t=25.0 C came home
+t=25.0 a walk of 1 landed, -33 ms from the one
+t=27.4 C went grey
+t=27.4 strike: rang 1, on a meeting 1
+t=27.6 lashed by C; steadiness 0.75
+t=29.9 C came home
+t=29.9 a walk of 1 landed, -24 ms from the one
+t=32.4 C went grey
+t=32.4 strike: rang 1, on a meeting 1
+t=32.9 a frame took 182 ms (game work 6.2 ms) at clock 1776179953.125
+t=34.8 C came home
+t=34.8 a walk of 1 landed, -32 ms from the one
+t=36.1 scene: waking
+last 20 s: 1121 frames, 17.86 ms each (worst 302.51), 9 late; game work 6.35 ms (worst 8.10); audio 15011 callbacks, 0 gaps, worst gap 3.11 ms, slowest fill 0.82 ms
+t=46.1 scene: run
+t=46.3 wheel opened
+t=46.8 wheel closed after 0.68 s
+t=47.1 home D (was F)
+t=48.9 strike: rang 1, on a meeting 1
+t=50.2 A went grey
+t=50.2 strike: rang 1, on a meeting 1
+t=51.5 lashed by D; steadiness 0.75
+t=52.7 A came home
+t=52.7 home G (was D)
+t=52.7 D went grey
+t=52.7 stepped on the one past D; walk so far 1
+t=53.0 a frame took 187 ms (game work 7.3 ms) at clock 1776179973.454
+t=53.1 a frame took 137 ms (game work 5.5 ms) at clock 1776179973.591
+t=55.0 D came home
+t=55.0 home C (was G)
+t=55.0 G went grey
+t=55.0 stepped on the one past G; walk so far 2
+t=57.5 G came home
+t=57.5 a walk of 3 landed, -22 ms from the one
+t=57.5 scene: garden
+last 20 s: 1153 frames, 17.35 ms each (worst 187.32), 2 late; game work 5.41 ms (worst 7.75); audio 22511 callbacks, 0 gaps, worst gap 3.11 ms, slowest fill 0.82 ms
+t=62.7 wheel opened
+t=63.2 wheel closed after 0.68 s
+t=63.5 home A (was C)
+t=65.4 strike: rang 1, on a meeting 1
+t=66.0 A went grey
+t=66.0 strike: rang 1, on a meeting 1
+t=66.2 wheel opened
+t=66.7 wheel closed after 0.68 s
+t=67.0 home D (was A)
+t=68.3 A came home
+t=68.3 a walk of 1 landed, -34 ms from the one
+t=68.5 wheel opened
+t=69.0 wheel closed after 0.68 s
+t=69.3 home E (was D)
+t=70.1 lashed by E; steadiness 0.75
+t=70.4 wheel opened
+t=70.9 wheel closed after 0.68 s
+t=71.6 home B (was E)
+t=71.6 strike: rang 2, on a meeting 2
+t=72.2 B went grey
+t=72.2 strike: rang 2, on a meeting 1
+t=72.4 wheel opened
+t=72.9 wheel closed after 0.68 s
+t=73.2 home E (was B)
+whole session: 4270 frames, 17.36 ms each (worst 302.51), 11 late; game work 5.27 ms (worst 8.38); audio 28005 callbacks, 0 gaps, worst gap 3.11 ms, slowest fill 0.82 ms
+played 73.8 s; ended in scene garden; home E; wheel opened 7 times; 10 strikes; best walk 3; breath holds 4
+the view: 21.2 s on the page, 43.8 s in the place, 8.8 s between; look at the end: PAGE AND PLACE; busiest frame 1427 marks
+the light: 73.8 s beam, 0.0 s long afterglow, 0.0 s lines; at the end: BEAM

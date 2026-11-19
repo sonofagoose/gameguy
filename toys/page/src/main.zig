@@ -32,12 +32,18 @@ const Options = struct {
     skip: u8 = 0,
     gentle: bool = false,
     look: draw.Look = .both,
+    light: draw.Light = .beam,
+    /// How strong the halo is, as a share of the usual (for measuring what it costs).
+    halo: f32 = 1.0,
     /// Degrees the view starts turned to the right (for checking pictures).
     yaw: f32 = 0.0,
     dump_dir: ?[*:0]const u8 = null,
     dump_every: u32 = 30,
     wav_path: ?[*:0]const u8 = null,
     out_dir: [*:0]const u8 = "results",
+    /// Keep the session in a book: a folder per session with its log, its sound and a pressed
+    /// page of the day (meant for the game card).
+    book_dir: ?[*:0]const u8 = null,
 };
 
 fn parseOptions(argc: c_int, argv: [*][*:0]u8) ?Options {
@@ -61,6 +67,13 @@ fn parseOptions(argc: c_int, argv: [*][*:0]u8) ?Options {
             const name = std.mem.span(value.?);
             options.look = if (std.mem.eql(u8, name, "both")) .both else if (std.mem.eql(u8, name, "place")) .place else if (std.mem.eql(u8, name, "page")) .page else return null;
             i += 1;
+        } else if (std.mem.eql(u8, arg, "--light")) {
+            const name = std.mem.span(value.?);
+            options.light = if (std.mem.eql(u8, name, "beam")) .beam else if (std.mem.eql(u8, name, "afterglow")) .afterglow else if (std.mem.eql(u8, name, "lines")) .lines else return null;
+            i += 1;
+        } else if (std.mem.eql(u8, arg, "--halo")) {
+            options.halo = std.fmt.parseFloat(f32, std.mem.span(value.?)) catch return null;
+            i += 1;
         } else if (std.mem.eql(u8, arg, "--yaw")) {
             options.yaw = std.fmt.parseFloat(f32, std.mem.span(value.?)) catch return null;
             i += 1;
@@ -79,6 +92,9 @@ fn parseOptions(argc: c_int, argv: [*][*:0]u8) ?Options {
         } else if (std.mem.eql(u8, arg, "--wav")) {
             options.wav_path = value.?;
             i += 1;
+        } else if (std.mem.eql(u8, arg, "--book")) {
+            options.book_dir = value.?;
+            i += 1;
         } else if (std.mem.eql(u8, arg, "--out")) {
             options.out_dir = value.?;
             i += 1;
@@ -92,9 +108,15 @@ fn parseOptions(argc: c_int, argv: [*][*:0]u8) ?Options {
 const usage =
     \\page [options]
     \\  --out DIR         where the session log goes (default ./results)
+    \\  --book DIR        keep the session in a book instead: DIR/<time>/ gets the log, the sound
+    \\                    of the session (song.wav), a pressed page of the day (page.png) and a
+    \\                    few facts (facts.txt)
     \\  --look WHICH      both (default): a page until the third note, then a place, and a page
     \\                    again while the wheel is held; place: a place throughout; page: the
     \\                    page only
+    \\  --light WHICH     beam (default): things that sound leave an afterglow; afterglow: a
+    \\                    long one; lines: crisp lines, as the toy was first played
+    \\  --halo SHARE      the halo's strength as a share of the usual (0: none, and no passes)
     \\  --yaw DEGREES     start with the view turned to the right
     \\  --gentle          start in gentle: wider timing, and the wheel leans for you
     \\  --skip N          skip the first N scenes (1: start at dawn)
@@ -118,19 +140,48 @@ var audio_last: f64 = 0.0;
 var audio_callbacks: u32 = 0;
 var audio_gaps: u32 = 0;
 var audio_worst_us: u32 = 0;
+/// The longest the synth took to fill one buffer, and when and how long each gap was (the last
+/// 32), so a gap can be told apart: the synth ran long, or the thread was kept waiting.
+var audio_render_worst_us: u32 = 0;
+/// -1 not asked yet, 0 refused, 1 granted: whether the sound thread runs ahead of everything
+/// that is not real-time (the launcher has to raise the limit for it to be allowed).
+var audio_realtime: i32 = -1;
+var audio_realtime_said: bool = false;
+var gap_clock: [32]f64 = @splat(0.0);
+var gap_us_log: [32]u32 = @splat(0);
+var gap_render_us_log: [32]u32 = @splat(0);
 
 fn audioCallback(userdata: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.c) void {
     _ = userdata;
     const frames = @as(usize, @intCast(len)) / (@sizeOf(f32) * audio_channels);
     const out: [*]f32 = @ptrCast(@alignCast(stream));
+    if (@atomicLoad(i32, &audio_realtime, .monotonic) < 0) {
+        // 0 means "this thread"
+        var param = std.mem.zeroes(c.struct_sched_param);
+        param.sched_priority = 30;
+        const granted = c.sched_setscheduler(0, c.SCHED_FIFO, &param) == 0;
+        @atomicStore(i32, &audio_realtime, if (granted) 1 else 0, .monotonic);
+    }
+    const began = platform.now();
     engine.render(&shared, out[0 .. frames * audio_channels], frames, audio_channels);
+    recorder.feed(out[0 .. frames * audio_channels], audio_channels);
 
     // A callback arriving more than two periods after the last one means the device ran dry.
     const t = platform.now();
+    const render_us: u32 = @intFromFloat(@min((t - began) * 1e6, 4e9));
     const count = @atomicLoad(u32, &audio_callbacks, .monotonic);
     if (count > 50) {
+        if (render_us > @atomicLoad(u32, &audio_render_worst_us, .monotonic)) @atomicStore(u32, &audio_render_worst_us, render_us, .monotonic);
         const gap_us: u32 = @intFromFloat(@min((t - audio_last) * 1e6, 4e9));
-        if (gap_us > audio_period_us * 2) @atomicStore(u32, &audio_gaps, @atomicLoad(u32, &audio_gaps, .monotonic) + 1, .monotonic);
+        if (gap_us > audio_period_us * 2) {
+            const n = @atomicLoad(u32, &audio_gaps, .monotonic);
+            var wall: c.struct_timespec = undefined;
+            _ = c.clock_gettime(c.CLOCK_REALTIME, &wall);
+            gap_clock[n % 32] = @as(f64, @floatFromInt(wall.tv_sec)) + @as(f64, @floatFromInt(wall.tv_nsec)) * 1e-9;
+            gap_us_log[n % 32] = gap_us;
+            gap_render_us_log[n % 32] = render_us;
+            @atomicStore(u32, &audio_gaps, n + 1, .monotonic);
+        }
         if (gap_us > @atomicLoad(u32, &audio_worst_us, .monotonic)) @atomicStore(u32, &audio_worst_us, gap_us, .monotonic);
     }
     audio_last = t;
@@ -211,13 +262,111 @@ const Wav = struct {
     }
 };
 
+// ---------------------------------------------------------------- the song
+
+/// The sound of the session, kept for the book. The sound thread copies each buffer it plays into
+/// a ring and never waits; the main thread empties the ring into a file once a frame.
+const Recorder = struct {
+    const size = 1 << 19; // samples, 16-bit mono: about 11 s at 48 kHz
+    ring: [size]i16 = undefined,
+    /// Written only by the sound thread.
+    head: u32 = 0,
+    /// Written only by the main thread.
+    tail: u32 = 0,
+    on: bool = false,
+    dropped: u32 = 0,
+
+    /// From the sound thread (or the main thread when it makes the sound itself).
+    fn feed(self: *Recorder, samples: []const f32, channels: usize) void {
+        if (!@atomicLoad(bool, &self.on, .acquire)) return;
+        const frames: u32 = @intCast(samples.len / channels);
+        const tail = @atomicLoad(u32, &self.tail, .acquire);
+        var head = self.head;
+        if (head -% tail + frames > size) {
+            _ = @atomicRmw(u32, &self.dropped, .Add, frames, .monotonic);
+            return;
+        }
+        for (0..frames) |i| {
+            const v = std.math.clamp(samples[i * channels], -1.0, 1.0);
+            self.ring[head & (size - 1)] = @intFromFloat(v * 32767.0);
+            head +%= 1;
+        }
+        @atomicStore(u32, &self.head, head, .release);
+    }
+
+    /// From the main thread.
+    fn drain(self: *Recorder, song: *Song) void {
+        const head = @atomicLoad(u32, &self.head, .acquire);
+        var tail = self.tail;
+        while (tail != head) {
+            const start = tail & (size - 1);
+            const n = @min(head -% tail, size - start);
+            song.write(self.ring[start .. start + n]);
+            tail +%= n;
+        }
+        @atomicStore(u32, &self.tail, tail, .release);
+    }
+};
+
+var recorder: Recorder = .{};
+
+/// A mono 16-bit WAV file that is always playable: its header is brought up to date every ten
+/// seconds, so a session cut off by the power still leaves its sound behind.
+const Song = struct {
+    file: *c.FILE,
+    rate: u32,
+    frames: u32 = 0,
+    headed_at: u32 = 0,
+
+    fn open(path: [*:0]const u8, rate: u32) ?Song {
+        const file = c.fopen(path, "wb") orelse return null;
+        var song = Song{ .file = file, .rate = rate };
+        song.header();
+        return song;
+    }
+
+    fn header(self: *Song) void {
+        const bytes = self.frames * 2;
+        var head: [44]u8 = undefined;
+        @memcpy(head[0..4], "RIFF");
+        std.mem.writeInt(u32, head[4..8], 36 + bytes, .little);
+        @memcpy(head[8..16], "WAVEfmt ");
+        std.mem.writeInt(u32, head[16..20], 16, .little);
+        std.mem.writeInt(u16, head[20..22], 1, .little); // PCM
+        std.mem.writeInt(u16, head[22..24], 1, .little); // mono
+        std.mem.writeInt(u32, head[24..28], self.rate, .little);
+        std.mem.writeInt(u32, head[28..32], self.rate * 2, .little);
+        std.mem.writeInt(u16, head[32..34], 2, .little);
+        std.mem.writeInt(u16, head[34..36], 16, .little);
+        @memcpy(head[36..40], "data");
+        std.mem.writeInt(u32, head[40..44], bytes, .little);
+        _ = c.fseek(self.file, 0, c.SEEK_SET);
+        _ = c.fwrite(&head, 1, head.len, self.file);
+        _ = c.fseek(self.file, 0, c.SEEK_END);
+        _ = c.fflush(self.file);
+        self.headed_at = self.frames;
+    }
+
+    fn write(self: *Song, samples: []const i16) void {
+        _ = c.fwrite(samples.ptr, 2, samples.len, self.file);
+        self.frames += @intCast(samples.len);
+        if (self.frames - self.headed_at > self.rate * 10) self.header();
+    }
+
+    fn close(self: *Song) void {
+        self.header();
+        _ = c.fclose(self.file);
+    }
+};
+
 // ---------------------------------------------------------------- controls
 
 /// One frame of what the hands did.
 const Hands = struct {
     input: world_mod.Input = .{},
-    /// -1 or 1: the D-pad asked for the previous or next look.
+    /// -1 or 1: the D-pad asked for the previous or next look (left, right) or light (down, up).
     look_step: i32 = 0,
+    light_step: i32 = 0,
     toggle_numbers: bool = false,
     quit: bool = false,
 };
@@ -236,7 +385,7 @@ const Pad = struct {
     skip_held_s: f32 = 0.0,
     skipped: bool = false,
 
-    const button_count = 7;
+    const button_count = 9;
 
     fn open() Pad {
         var pad = Pad{};
@@ -281,6 +430,8 @@ const Pad = struct {
             button(handle, c.SDL_CONTROLLER_BUTTON_START), // held: skip the scene
             button(handle, c.SDL_CONTROLLER_BUTTON_DPAD_LEFT), // previous look
             button(handle, c.SDL_CONTROLLER_BUTTON_DPAD_RIGHT), // next look
+            button(handle, c.SDL_CONTROLLER_BUTTON_DPAD_UP), // next light
+            button(handle, c.SDL_CONTROLLER_BUTTON_DPAD_DOWN), // previous light
         };
         var pressed: [button_count]bool = undefined;
         for (0..button_count) |i| pressed[i] = down[i] and !self.held[i];
@@ -310,6 +461,7 @@ const Pad = struct {
                 .skip = skip,
             },
             .look_step = @as(i32, @intFromBool(pressed[6])) - @as(i32, @intFromBool(pressed[5])),
+            .light_step = @as(i32, @intFromBool(pressed[7])) - @as(i32, @intFromBool(pressed[8])),
             .toggle_numbers = pressed[2],
             .quit = self.quit_held_s > 0.6,
         };
@@ -321,7 +473,7 @@ const Keys = struct {
     down: [key_count]bool = @splat(false),
     pressed: [key_count]bool = @splat(false),
 
-    const key_count = 17;
+    const key_count = 18;
     const map = [key_count]c_int{
         c.SDLK_w,  c.SDLK_s,    c.SDLK_a,    c.SDLK_d, // move
         c.SDLK_UP, c.SDLK_DOWN, c.SDLK_LEFT, c.SDLK_RIGHT, // aim
@@ -329,6 +481,7 @@ const Keys = struct {
         c.SDLK_j, c.SDLK_k, // strike, dodge
         c.SDLK_g, c.SDLK_n, c.SDLK_TAB, c.SDLK_ESCAPE, // gentle, skip, numbers, leave
         c.SDLK_v, // next look
+        c.SDLK_l, // next light
     };
 
     fn event(self: *Keys, e: *const c.SDL_Event) void {
@@ -362,6 +515,7 @@ const Keys = struct {
         into.toggle_numbers = into.toggle_numbers or p[14];
         into.quit = into.quit or d[15];
         if (p[16]) into.look_step = 1;
+        if (p[17]) into.light_step = 1;
         self.pressed = @splat(false);
     }
 };
@@ -505,7 +659,7 @@ const Timing = struct {
     fn report(self: *const Timing, label: []const u8) void {
         if (self.frames == 0) return;
         const n: f64 = @floatFromInt(self.frames);
-        log("{s}: {d} frames, {d:.2} ms each (worst {d:.2}), {d} late; game work {d:.2} ms (worst {d:.2}); audio {d} callbacks, {d} gaps, worst gap {d:.2} ms", .{
+        log("{s}: {d} frames, {d:.2} ms each (worst {d:.2}), {d} late; game work {d:.2} ms (worst {d:.2}); audio {d} callbacks, {d} gaps, worst gap {d:.2} ms, slowest fill {d:.2} ms", .{
             label,
             self.frames,
             self.interval_sum / n * 1000.0,
@@ -516,6 +670,7 @@ const Timing = struct {
             @atomicLoad(u32, &audio_callbacks, .monotonic),
             @atomicLoad(u32, &audio_gaps, .monotonic),
             @as(f64, @floatFromInt(@atomicLoad(u32, &audio_worst_us, .monotonic))) / 1000.0,
+            @as(f64, @floatFromInt(@atomicLoad(u32, &audio_render_worst_us, .monotonic))) / 1000.0,
         });
     }
 };
@@ -539,8 +694,14 @@ fn logEvents(world: *World) void {
             .lash => log("t={d:.1} lashed by {s}; steadiness {d:.2}", .{ e.time, noteName(e.a), e.b }),
             .pocket => log("t={d:.1} pocket ({d:.0} ms from the beat)", .{ e.time, e.b * 1000.0 }),
             .grey => log("t={d:.1} {s} went grey", .{ e.time, noteName(e.a) }),
-            .close => log("t={d:.1} {s} came home", .{ e.time, noteName(e.a) }),
-            .amen => log("t={d:.1} {s} sung to sleep", .{ e.time, noteName(e.a) }),
+            .close => {
+                came_home += 1;
+                log("t={d:.1} {s} came home", .{ e.time, noteName(e.a) });
+            },
+            .amen => {
+                sung_to_sleep += 1;
+                log("t={d:.1} {s} sung to sleep", .{ e.time, noteName(e.a) });
+            },
             .plain => log("t={d:.1} let go with nothing beside home ({d} grey), {d:.0} ms from the one", .{ e.time, e.a, e.b * 1000.0 }),
             .soft => log("t={d:.1} let go off the one ({d:.0} ms): {s} landed softly", .{ e.time, e.b * 1000.0, noteName(e.a) }),
             .step => log("t={d:.1} stepped on the one past {s}; walk so far {d:.0}", .{ e.time, noteName(e.a), e.b }),
@@ -554,6 +715,10 @@ fn logEvents(world: *World) void {
 
 // ---------------------------------------------------------------- main
 
+/// What the session did, for the book.
+var came_home: u32 = 0;
+var sung_to_sleep: u32 = 0;
+
 var the_renderer: gfx.Renderer = undefined;
 var scratch: [4096]f32 = undefined;
 
@@ -563,13 +728,29 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
         return 2;
     };
 
-    // session log
-    _ = c.mkdir(options.out_dir, 0o755);
+    // session log: in the book's folder for this session, or with the other results
     var stamp: [32]u8 = @splat(0);
     var clock = c.time(null);
     _ = c.strftime(&stamp, stamp.len, "%Y%m%d-%H%M%S", c.localtime(&clock));
+    var when: [32]u8 = @splat(0);
+    _ = c.strftime(&when, when.len, "%Y-%m-%d %H:%M", c.localtime(&clock));
     var path_buf: [512]u8 = undefined;
-    if (std.mem.printSentinel(&path_buf, "{s}/page-{s}.txt", .{ std.mem.span(options.out_dir), std.mem.sliceTo(&stamp, 0) }, 0)) |path| {
+    var session_buf: [512]u8 = undefined;
+    var session_dir: ?[:0]const u8 = null;
+    if (options.book_dir) |book| {
+        _ = c.mkdir(book, 0o755);
+        if (std.mem.printSentinel(&session_buf, "{s}/{s}", .{ std.mem.span(book), std.mem.sliceTo(&stamp, 0) }, 0)) |dir| {
+            _ = c.mkdir(dir.ptr, 0o755);
+            session_dir = dir;
+        } else |_| {}
+    } else {
+        _ = c.mkdir(options.out_dir, 0o755);
+    }
+    const log_path = if (session_dir) |dir|
+        std.mem.printSentinel(&path_buf, "{s}/log.txt", .{dir}, 0)
+    else
+        std.mem.printSentinel(&path_buf, "{s}/page-{s}.txt", .{ std.mem.span(options.out_dir), std.mem.sliceTo(&stamp, 0) }, 0);
+    if (log_path) |path| {
         platform.log_file = c.fopen(path.ptr, "w");
     } else |_| {}
     log("# page toy, session {s}", .{std.mem.sliceTo(&stamp, 0)});
@@ -599,11 +780,26 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     // throws it away.
     const clock_by_frame = options.headless or device == 0;
 
+    // the book's song
+    var song: ?Song = null;
+    if (session_dir) |dir| {
+        var song_path: [512]u8 = undefined;
+        if (std.mem.printSentinel(&song_path, "{s}/song.wav", .{dir}, 0)) |path| {
+            song = Song.open(path.ptr, @intFromFloat(engine.rate));
+            if (song != null) {
+                @atomicStore(bool, &recorder.on, true, .release);
+                log("book: {s} (the sound at {d} Hz)", .{ dir, @as(u32, @intFromFloat(engine.rate)) });
+            } else {
+                log("book: could not open {s}", .{path});
+            }
+        } else |_| {}
+    }
+
     var pad = if (options.headless) Pad{} else Pad.open();
     var keys = Keys{};
     var bot = Bot{};
-    var view = draw.View{ .look = options.look, .yaw = options.yaw * std.math.pi / 180.0 };
-    log("look: {s}", .{view.look.name()});
+    var view = draw.View{ .look = options.look, .light = options.light, .yaw = options.yaw * std.math.pi / 180.0 };
+    log("look: {s}; light: {s}", .{ view.look.name(), view.light.name() });
     var show_numbers = false;
     var skips_left = options.skip;
     var frame: u32 = 0;
@@ -611,6 +807,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     var window_timing = Timing{};
     var last_swap = platform.now();
     var last_report = last_swap;
+    var gaps_logged: u32 = 0;
     // The time one frame takes, measured from one buffer swap to the next. (The swap is where
     // the wait for the display happens, so the time from a swap to the top of the loop is
     // almost nothing.)
@@ -652,6 +849,10 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
             view.setLook(view.look.next(hands.look_step));
             log("t={d:.1} look: {s}", .{ world.time, view.look.name() });
         }
+        if (hands.light_step != 0) {
+            view.setLight(view.light.next(hands.light_step));
+            log("t={d:.1} light: {s}", .{ world.time, view.light.name() });
+        }
         if (skips_left > 0 and frame % 20 == 10) {
             hands.input.skip = true;
             if (world.stage != .dawn and world.stage != .waking) skips_left -= 1;
@@ -659,18 +860,39 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
 
         world.step(hands.input, dt, shared.beat());
         logEvents(&world);
+        if (!audio_realtime_said and @atomicLoad(i32, &audio_realtime, .monotonic) >= 0) {
+            audio_realtime_said = true;
+            if (@atomicLoad(i32, &audio_realtime, .monotonic) == 1) {
+                log("sound thread: real-time priority", .{});
+            } else {
+                log("sound thread: ordinary priority (real-time was refused; the launcher raises the limit)", .{});
+            }
+        }
+        // each gap in the sound, with the wall clock, so it can be matched against the device
+        const gaps_now = @atomicLoad(u32, &audio_gaps, .monotonic);
+        while (gaps_logged < gaps_now) : (gaps_logged += 1) {
+            log("t={d:.1} sound gap of {d:.1} ms (that buffer took {d:.2} ms to fill) at clock {d:.3}", .{
+                world.time,
+                @as(f64, @floatFromInt(gap_us_log[gaps_logged % 32])) / 1000.0,
+                @as(f64, @floatFromInt(gap_render_us_log[gaps_logged % 32])) / 1000.0,
+                gap_clock[gaps_logged % 32],
+            });
+        }
         if (clock_by_frame) {
             var left: usize = @intFromFloat(@round(dt * synth.sample_rate));
             while (left > 0) {
                 const n = @min(left, scratch.len);
                 engine.render(&shared, scratch[0..n], n, 1);
+                recorder.feed(scratch[0..n], 1);
                 if (wav) |*file| file.write(scratch[0..n]);
                 left -= n;
             }
         }
 
+        if (song) |*file| recorder.drain(file);
         view.update(&world, dt, turn_stick);
         draw.draw(renderer, &world, &view, dt);
+        renderer.bloom *= options.halo;
         if (show_numbers) draw.numbers(renderer, &world, &view, frame_ms, @atomicLoad(u32, &audio_gaps, .monotonic));
         renderer.flush();
 
@@ -721,6 +943,85 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
         if (options.frames != 0 and frame >= options.frames) break;
     }
 
+    // The pressed page: before the game closes, the day seen from above, with the path Hum walked
+    // in sun-print blue, while the music fades. Any button skips it.
+    if (world.time > 5.0) {
+        const frames_shown: u32 = if (options.headless) 1 else 170;
+        const master_was = @atomicLoad(f32, &shared.master, .monotonic);
+        var held_any = true; // a button still down from leaving does not count
+        var shown: u32 = 0;
+        closing: while (shown < frames_shown) : (shown += 1) {
+            var event: c.SDL_Event = undefined;
+            while (sdl.PollEvent(&event) != 0) {
+                if (event.type == c.SDL_QUIT) break :closing;
+            }
+            if (!options.headless and pad.handle != null) {
+                var any = false;
+                var b: c_int = 0;
+                while (b < c.SDL_CONTROLLER_BUTTON_MAX) : (b += 1) {
+                    if (sdl.GameControllerGetButton(pad.handle, b) != 0) any = true;
+                }
+                if (any and !held_any and shown > 30) break :closing;
+                held_any = any;
+            }
+            const t = @as(f32, @floatFromInt(shown)) / @as(f32, @floatFromInt(frames_shown));
+            if (!options.headless) @atomicStore(f32, &shared.master, master_was * (1.0 - t), .monotonic);
+            if (song) |*file| recorder.drain(file);
+            const fade: f32 = if (options.headless) 1.0 else @min(1.0, @as(f32, @floatFromInt(shown + 1)) / 24.0);
+            draw.pressedPage(renderer, &world, &view, fade);
+            renderer.flush();
+            const press_at: u32 = if (options.headless) 0 else 40;
+            if (shown == press_at) {
+                // the page as it stands once it has come up
+                if (session_dir) |dir| {
+                    const size: usize = @intCast(window.width * window.height * 4);
+                    if (@as(?[*]u8, @ptrCast(c.malloc(size)))) |pixels| {
+                        defer c.free(pixels);
+                        renderer.readFrame(pixels[0..size]);
+                        var page_path: [512]u8 = undefined;
+                        if (std.mem.printSentinel(&page_path, "{s}/page.png", .{dir}, 0)) |path| {
+                            if (png.writeFromGl(path.ptr, @intCast(window.width), @intCast(window.height), pixels[0..size])) log("book: pressed the page", .{});
+                        } else |_| {}
+                    }
+                }
+            }
+            sdl.GL_SwapWindow(window.handle);
+        }
+    }
+    @atomicStore(bool, &recorder.on, false, .release);
+    if (song) |*file| {
+        recorder.drain(file);
+        log("book: the song is {d:.1} s{s}", .{
+            @as(f64, @floatFromInt(file.frames)) / @as(f64, @floatFromInt(file.rate)),
+            if (@atomicLoad(u32, &recorder.dropped, .monotonic) > 0) " (some of it was lost: the main thread fell behind)" else "",
+        });
+        file.close();
+    }
+    if (session_dir) |dir| {
+        // a few facts for the book's index
+        var facts_path: [512]u8 = undefined;
+        if (std.mem.printSentinel(&facts_path, "{s}/facts.txt", .{dir}, 0)) |path| {
+            if (c.fopen(path.ptr, "w")) |facts| {
+                var line: [256]u8 = undefined;
+                const stage_reached = @intFromEnum(world.stage);
+                const text = std.fmt.bufPrint(&line, "when={s}\nplayed={d:.0}\nfound_drip={s}\nknots_opened={s}\ncame_home={d}\nsung_to_sleep={d}\nbest_walk={d}\nstrikes={d}\nlook={s}\nlight={s}\n", .{
+                    std.mem.sliceTo(&when, 0),
+                    world.time,
+                    if (stage_reached >= @intFromEnum(world_mod.Stage.dawn)) "yes" else "no",
+                    if (stage_reached >= @intFromEnum(world_mod.Stage.waking)) "yes" else "no",
+                    came_home,
+                    sung_to_sleep,
+                    world.best_walk,
+                    world.strike_count,
+                    view.look.name(),
+                    view.light.name(),
+                }) catch "";
+                _ = c.fwrite(text.ptr, 1, text.len, facts);
+                _ = c.fclose(facts);
+            }
+        } else |_| {}
+    }
+
     if (!platform.checkGl("end of session")) log("OpenGL reported errors during the session", .{});
     timing.report("whole session");
     log("played {d:.1} s; ended in scene {s}; home {s}; wheel opened {d} times; {d} strikes; best walk {d}; breath holds {d:.0}", .{
@@ -738,6 +1039,12 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
         view.between_s,
         view.look.name(),
         renderer.most_quads,
+    });
+    log("the light: {d:.1} s beam, {d:.1} s long afterglow, {d:.1} s lines; at the end: {s}", .{
+        view.light_s[@intFromEnum(draw.Light.beam)],
+        view.light_s[@intFromEnum(draw.Light.afterglow)],
+        view.light_s[@intFromEnum(draw.Light.lines)],
+        view.light.name(),
     });
     if (renderer.dropped > 0) log("{d} quads did not fit in a frame's batch", .{renderer.dropped});
     if (shared.dropped > 0) log("{d} notes did not fit in the sound queue", .{shared.dropped});
