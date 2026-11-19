@@ -14,6 +14,7 @@
 const std = @import("std");
 const sound = @import("../sound/sound.zig");
 pub const asters = @import("asters.zig");
+pub const cues_mod = @import("cue.zig");
 pub const witness = @import("witness.zig");
 
 pub const steps_per_second = 60;
@@ -33,19 +34,31 @@ pub const one_to: f32 = 100.0;
 pub const hum_tall: f32 = 1.0;
 /// The backlight's level in the first dark, of 255 (SPEC.md 6.1).
 pub const first_dark_backlight: f32 = 14.0;
-/// An answer fainter than this is seen and not sounded.
+/// A thing rung more faintly than this at the ears neither sounds nor shines of itself.
 pub const quietest: f32 = 0.004;
+/// How loud a thing rung at full strength is at the ears, and how loud Hum's own voice is.
+pub const answer_level: f32 = 0.22;
+pub const voice_level: f32 = 0.35;
 
-/// The view of the place. Walking: the eye sits well behind Hum and low, looking up a little, so
-/// the horizon is low in the frame and Hum is small in it. Leaned back at a tall thing's foot:
-/// the eye drops to the ground and the view opens wide, so Hum and the crown are in one frame.
-pub const cam_back: f32 = 12.0;
-pub const cam_up: f32 = 1.4;
-pub const walk_pitch: f32 = 0.28;
+/// What a cue comes from.
+pub const Source = union(enum) { hum, thing: u32 };
+
+/// The view of the place. Walking: the eye sits far behind Hum and low, looking up a little, so
+/// the horizon is low in the frame and Hum is small in it. Stopped at a tall thing's foot, the
+/// view does not fit the thing to the screen: the gaze climbs it at the speed of sound, narrowing
+/// as it goes, so the ground is lost and the height is paid for in time. A call made there is
+/// ridden up: the gaze follows the band of light.
+pub const cam_back: f32 = 22.0;
+pub const cam_up: f32 = 2.2;
+pub const walk_pitch: f32 = 0.24;
 pub const place_fov: f32 = 55.0;
-pub const lean_fov: f32 = 90.0;
-pub const lean_back: f32 = 9.0;
-pub const lean_up: f32 = 0.5;
+pub const lean_back: f32 = 14.0;
+pub const lean_up: f32 = 1.0;
+/// How many metres of the thing the leaned view frames, top to bottom, and how narrow it may go.
+pub const lean_frame: f32 = 30.0;
+pub const lean_fov_least: f32 = 13.0;
+
+pub const Camera = struct { eye: [3]f32, at: [3]f32, fov: f32 };
 /// Standing still within this of a tall thing's foot, the view leans back to take it in.
 pub const lean_within: f32 = 40.0;
 /// How near a tower's foot counts as standing at it.
@@ -107,6 +120,9 @@ pub const Tower = struct {
     x: f32 = 0.0,
     z: f32 = 0.0,
     tall: f32 = 0.0,
+    /// How far its top has bowed from over its foot.
+    bow_x: f32 = 0.0,
+    bow_z: f32 = 0.0,
     first: u32 = 0,
     count: u32 = 0,
 };
@@ -125,6 +141,8 @@ const Arrival = struct {
     live: bool = false,
     /// The thing whose answer this is, if it is one.
     from: u32 = no_thing,
+    /// How bright the light was that this sound was told with.
+    light: f32 = 0.0,
 };
 
 const no_thing: u32 = 0xffff_ffff;
@@ -176,11 +194,22 @@ pub const World = struct {
     look_tilt: f32 = 0.0,
     /// How far the view has leaned back at a tall thing's foot, 0 to 1.
     lean: f32 = 0.0,
+    /// How high up the tall thing the leaned view is looking, in metres.
+    gaze: f32 = 0.0,
+    /// A flower head that has fallen by the great aster's foot: a bell at Hum's own size.
+    fallen: u32 = no_thing,
     /// The tower Hum is nearest, and how far its foot is.
     near_tower: u16 = no_tower,
     near_far: f32 = 0.0,
     /// How many steps Hum has stood still.
     still: u32 = 0,
+    /// Hum's own light: it flares when Hum calls and holds while it sings.
+    hum_light: f32 = 0.0,
+    /// How many cues have been told, how many sounds they sent on their way, and how many sounds
+    /// reached the ears that had been told with no light. The last is always nought.
+    told: u32 = 0,
+    sent: u32 = 0,
+    dark_sounds: u32 = 0,
     /// How far a call's ring goes before it is gone.
     ring_reach: f32 = 140.0,
     towers: [max_towers]Tower = @splat(.{}),
@@ -255,16 +284,65 @@ pub const World = struct {
                 };
                 at += 1;
             }
-            self.towers[t] = .{ .x = p.x, .z = p.z, .tall = p.tall, .first = first, .count = at - first };
+            self.towers[t] = .{ .x = p.x, .z = p.z, .tall = p.tall, .bow_x = p.bow_x, .bow_z = p.bow_z, .first = first, .count = at - first };
         }
         self.tower_count = @intCast(n);
+        // one flower head has fallen by the great aster's foot, so a bell is met at Hum's own
+        // size before a crown of them is seen from a hundred and fifty metres below
+        self.fallen = at;
+        self.things[at] = .{ .x = asters.great_x + 7.5, .y = 1.5, .z = asters.great_z + 6.0, .tall = 2.2, .hz = garden_hz * 0.5, .ring = 5.5 };
+        at += 1;
         self.thing_count = at;
     }
 
-    fn later(self: *World, at: u64, cue: sound.Cue, from: u32) void {
+    /// Tell the player something. This is the only way anything in the world makes a sound, and
+    /// it takes a cue, which always has its light. The light is put on the thing here and now;
+    /// the sound is sent on its way and reaches Hum's ears when it has travelled there.
+    fn tell(self: *World, from: Source, what: cues_mod.Cue) void {
+        const now_sample = self.step * samples_per_step;
+        self.told += 1;
+        switch (from) {
+            .hum => {
+                switch (what.light.shape) {
+                    .ring_on_the_ground => {
+                        var oldest: usize = 0;
+                        for (self.rings, 0..) |ring, i| {
+                            if (!ring.live) {
+                                oldest = i;
+                                break;
+                            }
+                            if (ring.born < self.rings[oldest].born) oldest = i;
+                        }
+                        self.rings[oldest] = .{ .x = self.hum_x, .z = self.hum_z, .born = self.step, .live = true };
+                    },
+                    .swell => self.singing = true,
+                    .dims => self.singing = false,
+                    .glow => {},
+                }
+                self.hum_light = @max(self.hum_light, what.light.brightness);
+                self.send(now_sample + lead, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .hz = what.sound.hz, .gain = what.sound.strength * voice_level, .ring = what.sound.ring }, no_thing, what.light);
+            },
+            .thing => |index| {
+                const thing = &self.things[index];
+                thing.loud = @max(thing.loud, what.light.brightness);
+                // heard when it has come back to where Hum is now
+                const hx = thing.x - self.hum_x;
+                const hz = thing.z - self.hum_z;
+                const back = @sqrt(hx * hx + hz * hz + thing.y * thing.y) / sound_speed;
+                const delay: u64 = @intFromFloat(back * sound.rate);
+                self.send(now_sample + lead + delay, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .hz = what.sound.hz, .gain = what.sound.strength * answer_level, .ring = what.sound.ring }, index, what.light);
+            },
+        }
+    }
+
+    /// The sound half of a cue, on its way. Only `tell` calls this.
+    fn send(self: *World, at: u64, heard_as: sound.Cue, from: u32, its_light: cues_mod.Light) void {
+        self.sent += 1;
+        // a held voice ending is told by the singer settling, which is a light going down
+        const shown: f32 = if (its_light.shape == .dims) 1.0 else its_light.brightness;
         for (&self.arrivals) |*slot| {
             if (slot.live) continue;
-            slot.* = .{ .at = at, .cue = cue, .live = true, .from = from };
+            slot.* = .{ .at = at, .cue = heard_as, .live = true, .from = from, .light = shown };
             slot.cue.at = at;
             return;
         }
@@ -302,30 +380,22 @@ pub const World = struct {
         }
         if (self.view == .place) self.look(hands);
 
-        // the call: a ring of light, and Hum's own short note
+        // the call: a ring of light and Hum's own short note, as one cue
         if (pressed & Hands.call != 0) {
             self.calls += 1;
-            var oldest: usize = 0;
-            for (self.rings, 0..) |ring, i| {
-                if (!ring.live) {
-                    oldest = i;
-                    break;
-                }
-                if (ring.born < self.rings[oldest].born) oldest = i;
-            }
-            self.rings[oldest] = .{ .x = self.hum_x, .z = self.hum_z, .born = self.step, .live = true };
-            self.later(now_sample + lead, .{ .at = 0, .kind = .strike, .family = .string, .hz = garden_hz, .gain = 0.3, .ring = 0.35 }, no_thing);
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = garden_hz, .strength = 0.857, .ring = 0.35 }, .ring_on_the_ground));
         }
 
-        // singing: Hum's one note, for as long as R2 is held
+        // singing: Hum's one note for as long as R2 is held, and Hum swelling for as long
         if (pressed & Hands.sing != 0) {
-            self.singing = true;
-            self.later(now_sample + lead, .{ .at = 0, .kind = .hum_on, .hz = garden_hz, .gain = 0.35 }, no_thing);
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = garden_hz, .strength = 1.0, .ring = 0.0 }, .swell));
         }
         if (released & Hands.sing != 0) {
-            self.singing = false;
-            self.later(now_sample + lead, .{ .at = 0, .kind = .hum_off }, no_thing);
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = garden_hz, .strength = 0.0, .ring = 0.0 }, .dims));
         }
+        if (self.singing) self.hum_light = @max(self.hum_light, 0.8);
+        self.hum_light *= 0.94;
+        if (self.hum_light < 0.002) self.hum_light = 0.0;
 
         // rings travel, along the ground and up whatever stands on it; what they pass is lit, and
         // answers as much as its own overtones share with the call
@@ -348,17 +418,12 @@ pub const World = struct {
                 const rec = sound.recipe(thing.family);
                 const kin = sympathy(garden_hz, thing.hz, rec.mult, rec.gain);
                 if (kin < 0.08) continue;
-                // quieter with distance, as sound is
-                const level = 0.22 * kin / (1.0 + (far / thing.carry) * (far / thing.carry));
-                thing.loud = @max(thing.loud, kin);
+                // how hard the call rings it: less with distance, as sound is. One number, and it
+                // is both how loud the thing is and how bright
+                const strength = kin / (1.0 + (far / thing.carry) * (far / thing.carry));
+                if (strength * answer_level < quietest) continue;
                 self.answers += 1;
-                if (level < quietest) continue;
-                // its answer is heard when it has come back to where Hum is now
-                const hx = thing.x - self.hum_x;
-                const hz = thing.z - self.hum_z;
-                const back = @sqrt(hx * hx + hz * hz + thing.y * thing.y) / sound_speed;
-                const delay: u64 = @intFromFloat(back * sound.rate);
-                self.later(now_sample + lead + delay, .{ .at = 0, .kind = .strike, .family = thing.family, .hz = thing.hz, .gain = level, .ring = thing.ring }, @intCast(index));
+                self.tell(.{ .thing = @intCast(index) }, cues_mod.Cue.of(.{ .kind = .strike, .family = thing.family, .hz = thing.hz, .strength = strength, .ring = thing.ring }, .glow));
             }
         }
 
@@ -388,6 +453,7 @@ pub const World = struct {
             cues[n] = self.arrivals[i].cue;
             self.arrivals[i].live = false;
             n += 1;
+            if (self.arrivals[i].light <= 0.0) self.dark_sounds += 1;
             if (self.arrivals[i].from != no_thing) self.heard(self.arrivals[i].from);
         }
 
@@ -425,24 +491,52 @@ pub const World = struct {
             while (turn > std.math.pi) turn -= 2.0 * std.math.pi;
             while (turn < -std.math.pi) turn += 2.0 * std.math.pi;
             self.look_yaw += turn * 0.05;
+            // the gaze climbs it at the speed of sound; a call made here is ridden up instead
+            const crown = tower.tall * 0.86;
+            var want_gaze = @min(self.gaze + sound_speed * dt, crown);
+            for (self.rings) |ring| {
+                if (!ring.live) continue;
+                const dx = tower.x - ring.x;
+                const dz = tower.z - ring.z;
+                const reach = @as(f32, @floatFromInt(self.step - ring.born)) * dt * sound_speed;
+                const flat2 = dx * dx + dz * dz;
+                if (reach * reach <= flat2 or flat2 > at_foot * at_foot * 4.0) continue;
+                const band = @sqrt(reach * reach - flat2);
+                if (band < crown) want_gaze = band;
+            }
+            // down fast, to catch a call as it starts; up no faster than sound
+            self.gaze = if (want_gaze < self.gaze) @max(want_gaze, self.gaze - 6.0) else want_gaze;
+        } else {
+            self.gaze *= 0.90;
         }
     }
 
-    /// How far up the view looks, in radians: walking, a little; leaned back, far enough that
-    /// the top of the thing is just inside the top of the wide frame.
-    pub fn pitch(self: *const World) f32 {
-        var leaned: f32 = walk_pitch;
-        if (self.near_tower != no_tower) {
+    /// Where the eye is, what it looks at and how wide: walking, behind Hum and a little up;
+    /// leaned back, at the height the gaze has reached on the thing, narrowed to frame it.
+    pub fn camera(self: *const World) Camera {
+        const fx = @sin(self.look_yaw);
+        const fz = -@cos(self.look_yaw);
+        const back = cam_back + self.lean * (lean_back - cam_back);
+        const up = cam_up + self.lean * (lean_up - cam_up);
+        const eye = [3]f32{ self.hum_x - fx * back, up, self.hum_z - fz * back };
+        const pitch = std.math.clamp(walk_pitch + self.look_tilt, -0.35, 1.2);
+        const walking = [3]f32{ fx * @cos(pitch), @sin(pitch), fz * @cos(pitch) };
+        var dir = walking;
+        var fov = place_fov;
+        if (self.near_tower != no_tower and self.lean > 0.001) {
             const tower = self.towers[self.near_tower];
-            const top = std.math.atan2(tower.tall - lean_up, self.near_far + lean_back);
-            leaned = std.math.clamp(top - (lean_fov * 0.5 - 2.5) * (std.math.pi / 180.0), walk_pitch, 1.0);
+            const f = self.gaze / tower.tall;
+            const gx = tower.x + tower.bow_x * f * f - eye[0];
+            const gy = self.gaze - eye[1];
+            const gz = tower.z + tower.bow_z * f * f - eye[2];
+            const far = @sqrt(gx * gx + gy * gy + gz * gz);
+            const k = self.lean;
+            dir = .{ walking[0] + (gx / far - walking[0]) * k, walking[1] + (gy / far - walking[1]) * k, walking[2] + (gz / far - walking[2]) * k };
+            const narrow = std.math.clamp(2.0 * std.math.atan2(lean_frame * 0.5, far) * (180.0 / std.math.pi), lean_fov_least, place_fov);
+            fov = place_fov + (narrow - place_fov) * k;
         }
-        return std.math.clamp(walk_pitch + self.look_tilt + self.lean * (leaned - walk_pitch), -0.35, 1.36);
-    }
-
-    /// How wide the view is, in degrees up and down.
-    pub fn fov(self: *const World) f32 {
-        return place_fov + self.lean * (lean_fov - place_fov);
+        const len = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
+        return .{ .eye = eye, .at = .{ eye[0] + dir[0] / len * 10.0, eye[1] + dir[1] / len * 10.0, eye[2] + dir[2] / len * 10.0 }, .fov = fov };
     }
 
     fn atTallFoot(self: *const World) bool {
@@ -489,6 +583,9 @@ pub const World = struct {
         mixIn(&h, @as(u32, @bitCast(self.look_yaw)));
         mixIn(&h, @as(u32, @bitCast(self.look_tilt)));
         mixIn(&h, @as(u32, @bitCast(self.lean)));
+        mixIn(&h, @as(u32, @bitCast(self.gaze)));
+        mixIn(&h, @as(u32, @bitCast(self.hum_light)));
+        mixIn(&h, self.told);
         mixIn(&h, self.calls);
         mixIn(&h, self.answers);
         for (self.things[0..self.thing_count]) |thing| {
@@ -616,9 +713,10 @@ test "what lights a thing by ringing is what sounds it" {
         try std.testing.expectEqual(shone[i] > 0.0, sounded[i] > 0.0);
         if (shone[i] == 0.0) continue;
         rang += 1;
-        // at 30 m, with a carry of 30 m, the sound is 0.22 x kin / 2; the light is kin, one step faded
-        const kin_from_sound = sounded[i] * 2.0 / 0.22;
-        try std.testing.expect(@abs(kin_from_sound - shone[i]) < 0.03 * kin_from_sound);
+        // one number rings it. The sound at the ears is that number times answer_level, and
+        // the light is its square root, here seen one step faded
+        const strength = sounded[i] / answer_level;
+        try std.testing.expect(@abs(@sqrt(strength) - shone[i]) < 0.03 * @sqrt(strength));
     }
     try std.testing.expect(rang >= 3 and rang <= 5);
 }
@@ -653,4 +751,36 @@ test "a call climbs a tower, and its bells are heard late by their height" {
     // and the bell is heard two seconds after it is seen to light: four seconds after the call
     const seconds = @as(f32, @floatFromInt(heard_at.? - lead)) / sound.rate;
     try std.testing.expect(@abs(seconds - 4.0) < 0.05);
+}
+
+test "nothing sounds without its light: every sound in a scripted take was told as a cue" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    // the dark, from hands that walk, call and hum
+    w.* = World.init();
+    var handed: u32 = 0;
+    var step: u32 = 0;
+    while (step < 3000) : (step += 1) {
+        const hands = Hands{
+            .lx = if (step % 200 < 100) 90 else -40,
+            .ly = if (step % 150 < 60) -110 else 20,
+            .buttons = (if (step % 97 == 3) Hands.call else 0) | (if (step % 240 > 200) Hands.sing else 0),
+        };
+        handed += @intCast(w.stepOnce(hands, &cues));
+    }
+    try std.testing.expect(handed > 100);
+    // every sound was sent by a cue, and none reached the ears that had no light
+    try std.testing.expectEqual(w.told, w.sent);
+    try std.testing.expectEqual(@as(u32, 0), w.dark_sounds);
+    // the same in the field of asters, where one call rings hundreds of bells
+    w.initAsters();
+    step = 0;
+    handed = 0;
+    while (step < 1500) : (step += 1) {
+        handed += @intCast(w.stepOnce(.{ .buttons = if (step == 5 or step == 600) Hands.call else 0 }, &cues));
+    }
+    try std.testing.expect(handed > 100 and w.answers > 100);
+    try std.testing.expectEqual(w.told, w.sent);
+    try std.testing.expectEqual(@as(u32, 0), w.dark_sounds);
 }

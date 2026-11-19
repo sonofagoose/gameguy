@@ -10,13 +10,13 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | | sentences |
 |---|---|
 | in the specification | 1261 |
-| a promise speaks for it | 82 |
+| a promise speaks for it | 89 |
 | **kept** | **0** |
-| no promise speaks for it yet | 1179 |
+| no promise speaks for it yet | 1172 |
 
 | stage | claims | spoken for | kept | open |
 |---|---|---|---|---|
-| 2 | 514 | 77 | 0 | 437 |
+| 2 | 514 | 84 | 0 | 430 |
 | 3 | 387 | 2 | 0 | 385 |
 | 4 | 186 | 2 | 0 | 184 |
 | 5 | 95 | 1 | 0 | 94 |
@@ -28,7 +28,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | `spec/laws.md` | 151 | 0 | 0 |
 | `spec/world.md` | 455 | 36 | 0 |
 | `spec/people.md` | 161 | 0 | 0 |
-| `spec/size.md` | 82 | 0 | 0 |
+| `spec/size.md` | 82 | 7 | 0 |
 | `spec/years.md` | 94 | 0 | 0 |
 | `spec/together.md` | 66 | 0 | 0 |
 
@@ -36,7 +36,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 
 | rung | promises |
 |---|---|
-| sized: its moment, its cheat, its full size and its question written | 43 of 43 |
+| sized: its moment, its cheat, its full size and its question written | 44 of 44 |
 | proven: every measure passes today and nothing is owed | 0 |
 | reached: the scripted player met it by playing | 4 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
@@ -57,6 +57,7 @@ asks its question.
 | `garden.land` The Garden, home | Is the Garden somewhere you are glad to wake up? | none |
 | `garden.asters` Asters as tall as cathedrals | Is it as tall as a cathedral? | none |
 | `garden.w01` The answering field | Did the answers coming in from far away make the garden feel big? | none |
+| `card.ground` The ground remembers | Coming back to it, could you see where you had been? | none |
 | `hands.voice-in-a-buffer` Your voice, at once | When you hum, does it start the moment you press? | none |
 | `light.hue` One set of numbers for sound and light | Could you tell which bells were kin to your note by their colour? | none |
 
@@ -67,12 +68,12 @@ asks its question.
 | `evening.black` Black, and a drip | 2 | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `evening.call` You call, and you are answered | 2 | 2 | no | yes | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
-| `evening.in` "Oh. You're in." | 2 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `evening.in` "Oh. You're in." | 2 | 3 | no | - | no | no | no | 3 owed; frame asters-far: it has changed since it was looked at (by 6.1 of 255 a channel); no yes from Morgan yet |
 | `evening.instrument` Everything is an instrument | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.knot` The knot, and the first fight | 2 | 10 | no | - | no | no | no | 5 owed; no yes from Morgan yet |
 | `evening.dusk` The river sings your day back | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `garden.land` The Garden, home | 2 | 14 | no | - | no | no | no | 7 owed; no yes from Morgan yet |
-| `garden.asters` Asters as tall as cathedrals | 2 | 1 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
+| `garden.asters` Asters as tall as cathedrals | 2 | 1 | no | yes | no | no | no | 3 owed; frame asters-far: it has changed since it was looked at (by 6.1 of 255 a channel); frame asters-foot: it has changed since it was looked at (by 6.5 of 255 a channel); no yes from Morgan yet |
 | `garden.great` The Hose | 2 | 6 | no | - | no | no | no | 6 owed; no yes from Morgan yet |
 | `garden.w01` The answering field | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w02` The seed that follows | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
@@ -86,6 +87,7 @@ asks its question.
 | `garden.w10` The third man | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w11` Three against two | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w12` The pot | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `card.ground` The ground remembers | 2 | 7 | no | - | no | no | no | 6 owed; frame asters-ground: it has changed since it was looked at (by 8.4 of 255 a channel); handheld.asters.late == 0  (is 2); no yes from Morgan yet |
 | `whole.scale` One to a hundred | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.true` Literally true | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.law1` Sympathy | 1 | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |

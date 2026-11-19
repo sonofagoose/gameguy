@@ -1,0 +1,17 @@
+clocks as started: cpu performance, gpu performance, memory performance
+clocks now: cpu performance, gpu performance, memory performance
+priority: nice -19, real-time limit 40; storage interrupts on core(s) 3 ; run with: taskset -c 0-2
+backlight as started: 200
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the ground: black: nothing has been sung on it yet
+the asters: 70 of them, 2622 things; R1 calls, the left stick walks, the right stick looks; stand still at a foot and the view leans back; Select and Start together leave
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+the asters: 3085 frames, 1 late, 3.48 ms of work a frame (worst 36.47); 3170 steps, 155 frames ran two; 2 calls, 1281 answers; cues late 1, refused 0; slowest sound buffer 0.82 ms; real-time sound yes; most lines in a frame 19497
+the slowest frame was 36 (step 41): steps done by 0.76 ms, the land by 0.92, the moving lines by 1.17, drawn by 36.47; nothing was picked
+witness evening.call first=299 held=535
+witness garden.asters first=2281 held=676
+witness whole.law1 first=299 held=0
+witness whole.law6 first=299 held=0
+exit code 0

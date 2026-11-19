@@ -10,6 +10,7 @@ pub const colour = @import("draw/colour.zig");
 test {
     _ = world;
     _ = world.asters;
+    _ = world.cues_mod;
     _ = sound;
     _ = m;
     _ = walker;

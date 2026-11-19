@@ -8,8 +8,8 @@
 //!   1. light from things that sound, behind the black shapes, into a full-size target;
 //!   2. the phosphor: a half-size copy that keeps the brighter of this frame's light and what is
 //!      left of the last frame's, bleeding a little for the halo (from toys/page/src/gfx.zig);
-//!   3. the screen: the two together, then the black shapes again, then light from things that
-//!      are only lit.
+//!   3. the screen: the two together, then the black shapes again, then the ground's own light
+//!      (one picture of what has been left on it), then light from things that are only lit.
 const std = @import("std");
 const plat = @import("../plat/plat.zig");
 const m = @import("../m.zig");
@@ -28,6 +28,8 @@ pub const Inst = extern struct {
     col: [4]u8,
 };
 
+pub const ground_tile = 256;
+pub const ground_tiles_side = 8;
 pub const body_cols = 256;
 pub const body_rows = 64;
 pub const max_bodies = body_cols * body_rows;
@@ -42,6 +44,7 @@ const line_vs =
     \\uniform vec2 u_half;
     \\uniform highp sampler2D u_loud;
     \\uniform float u_fade;
+    \\uniform vec2 u_far;
     \\out vec2 v_uv;
     \\out vec3 v_col;
     \\void main() {
@@ -67,8 +70,8 @@ const line_vs =
     \\    vec2 nrm = vec2(-dir.y, dir.x);
     \\    vec4 p = e > 0.5 ? pb : pa;
     \\    // Far parts of a figure are fainter and thinner.
-    \\    float nearness = clamp(u_fade / p.w, 0.12, 1.0);
-    \\    float hw = a_wb.x * (0.55 + 0.45 * nearness);
+    \\    float nearness = clamp(u_fade / p.w, u_far.x, 1.0);
+    \\    float hw = a_wb.x * (0.55 + (0.45 + u_far.y) * nearness);
     \\    vec2 px = (e > 0.5 ? sb : sa) + nrm * (s * hw) + dir * ((e * 2.0 - 1.0) * hw * 0.5);
     \\    gl_Position = vec4(px / u_half * p.w, p.z, p.w);
     \\    int body = int(a_wb.y);
@@ -105,6 +108,37 @@ const occ_fs =
     \\out vec4 o;
     \\void main() {
     \\    o = vec4(0.0, 0.0, 0.0, 1.0);
+    \\}
+;
+
+// The ground: one picture of the light that has been left on it, drawn flat under everything.
+const ground_vs =
+    \\#version 300 es
+    \\uniform mat4 u_vp;
+    \\uniform vec2 u_from;
+    \\uniform vec2 u_to;
+    \\out vec2 v_uv;
+    \\out float v_w;
+    \\void main() {
+    \\    vec2 q = vec2(float(gl_VertexID & 1), float(gl_VertexID >> 1));
+    \\    v_uv = q;
+    \\    gl_Position = u_vp * vec4(mix(u_from.x, u_to.x, q.x), 0.02, mix(u_from.y, u_to.y, q.y), 1.0);
+    \\    v_w = gl_Position.w;
+    \\}
+;
+
+const ground_fs =
+    \\#version 300 es
+    \\precision mediump float;
+    \\in vec2 v_uv;
+    \\in float v_w;
+    \\uniform sampler2D u_ground;
+    \\uniform float u_gain;
+    \\uniform float u_fade;
+    \\out vec4 o;
+    \\void main() {
+    \\    float nearness = clamp(u_fade / max(v_w, 0.001), 0.10, 1.0);
+    \\    o = vec4(texture(u_ground, v_uv).rgb * (u_gain * nearness), 0.0);
     \\}
 ;
 
@@ -145,11 +179,17 @@ const comp_fs =
     \\uniform sampler2D u_cur;
     \\uniform sampler2D u_phosphor;
     \\uniform vec3 u_base;
+    \\uniform vec3 u_sky;
+    \\uniform vec2 u_dawn;
     \\uniform float u_seed;
     \\out vec4 o;
     \\void main() {
     \\    vec3 lit = max(texture(u_cur, v_uv).rgb, texture(u_phosphor, v_uv).rgb);
-    \\    vec3 c = u_base + lit;
+    \\    // the day coming up: light low in the sky, most toward where the sun will be
+    \\    float up = v_uv.y - u_dawn.y;
+    \\    float glow = up > 0.0 ? exp(-up * 3.4) : exp(up * 26.0);
+    \\    float side = v_uv.x - u_dawn.x;
+    \\    vec3 c = u_base + lit + u_sky * (glow * (0.30 + 0.70 * exp(-side * side * 1.8)));
     \\    float n = fract(sin(dot(gl_FragCoord.xy + u_seed, vec2(12.9898, 78.233))) * 43758.5453);
     \\    o = vec4(c + (n - 0.5) / 255.0, 1.0);
     \\}
@@ -167,6 +207,16 @@ pub const Renderer = struct {
     line_u_half: c.GLint = -1,
     line_u_loud: c.GLint = -1,
     line_u_fade: c.GLint = -1,
+    line_u_far: c.GLint = -1,
+    comp_u_sky: c.GLint = -1,
+    comp_u_dawn: c.GLint = -1,
+    /// How faint a line may get with distance, and how much heavier a near line is drawn.
+    far_floor: f32 = 0.12,
+    heft: f32 = 0.0,
+    /// The colour of the light low in the sky, and where on the screen the horizon is (y) and
+    /// where the sun will come up (x), both as parts of the screen from 0 to 1.
+    sky: [3]f32 = .{ 0.0, 0.0, 0.0 },
+    dawn: [2]f32 = .{ 0.5, 0.0 },
     occ_prog: c.GLuint = 0,
     occ_u_vp: c.GLint = -1,
     decay_prog: c.GLuint = 0,
@@ -176,6 +226,31 @@ pub const Renderer = struct {
     decay_u_floor: c.GLint = -1,
     decay_u_texel: c.GLint = -1,
     decay_u_spread: c.GLint = -1,
+    ground_prog: c.GLuint = 0,
+    ground_u_vp: c.GLint = -1,
+    ground_u_from: c.GLint = -1,
+    ground_u_to: c.GLint = -1,
+    ground_u_tex: c.GLint = -1,
+    ground_u_gain: c.GLint = -1,
+    ground_u_fade: c.GLint = -1,
+    /// The ground's picture is kept as small squares, each its own texture: this GPU copies a
+    /// whole texture when one that is still being drawn from is changed, so a big one hitches.
+    ground_tiles: [ground_tiles_side * ground_tiles_side]c.GLuint = @splat(0),
+    /// Which tiles hold any light at all: a black one is never drawn.
+    ground_lit: [ground_tiles_side * ground_tiles_side]bool = @splat(false),
+    /// Where the eye is on the ground and which way it looks, so that tiles far off or behind it
+    /// are left out. The caller sets these each frame.
+    /// Frames drawn since the ground got its picture. For the first few, one tile is drawn even if
+    /// it is black: this GPU builds a program the first time it is drawn with, and that must not
+    /// happen in the middle of a walk.
+    ground_frames: u32 = 0,
+    ground_eye: [2]f32 = .{ 0.0, 0.0 },
+    ground_look: [2]f32 = .{ 0.0, -1.0 },
+    ground_size: i32 = 0,
+    /// The corners of the ground's picture in the world: x and z of one, then of the other.
+    ground_from: [2]f32 = .{ 0.0, 0.0 },
+    ground_to: [2]f32 = .{ 0.0, 0.0 },
+    ground_gain: f32 = 0.85,
     comp_prog: c.GLuint = 0,
     comp_u_cur: c.GLint = -1,
     comp_u_phosphor: c.GLint = -1,
@@ -224,6 +299,7 @@ pub const Renderer = struct {
         self.line_u_half = gl.GetUniformLocation(self.line_prog, "u_half");
         self.line_u_loud = gl.GetUniformLocation(self.line_prog, "u_loud");
         self.line_u_fade = gl.GetUniformLocation(self.line_prog, "u_fade");
+        self.line_u_far = gl.GetUniformLocation(self.line_prog, "u_far");
         self.occ_u_vp = gl.GetUniformLocation(self.occ_prog, "u_vp");
         self.decay_u_src = gl.GetUniformLocation(self.decay_prog, "u_src");
         self.decay_u_cur = gl.GetUniformLocation(self.decay_prog, "u_cur");
@@ -235,6 +311,15 @@ pub const Renderer = struct {
         self.comp_u_phosphor = gl.GetUniformLocation(self.comp_prog, "u_phosphor");
         self.comp_u_base = gl.GetUniformLocation(self.comp_prog, "u_base");
         self.comp_u_seed = gl.GetUniformLocation(self.comp_prog, "u_seed");
+        self.comp_u_sky = gl.GetUniformLocation(self.comp_prog, "u_sky");
+        self.comp_u_dawn = gl.GetUniformLocation(self.comp_prog, "u_dawn");
+        self.ground_prog = plat.linkProgram(ground_vs, ground_fs, "the ground") orelse return false;
+        self.ground_u_vp = gl.GetUniformLocation(self.ground_prog, "u_vp");
+        self.ground_u_from = gl.GetUniformLocation(self.ground_prog, "u_from");
+        self.ground_u_to = gl.GetUniformLocation(self.ground_prog, "u_to");
+        self.ground_u_tex = gl.GetUniformLocation(self.ground_prog, "u_ground");
+        self.ground_u_gain = gl.GetUniformLocation(self.ground_prog, "u_gain");
+        self.ground_u_fade = gl.GetUniformLocation(self.ground_prog, "u_fade");
 
         gl.GenVertexArrays(1, &self.empty_vao);
 
@@ -351,6 +436,108 @@ pub const Renderer = struct {
         _ = plat.checkGl("land upload");
     }
 
+    /// Give the ground its picture: `size` dots on a side (eight tiles of 256), three bytes a dot,
+    /// lying between two corners of the world. Passing a size of nought takes it away.
+    pub fn setGround(self: *Renderer, size: i32, from: [2]f32, to: [2]f32, pixels: ?[*]const u8) void {
+        self.ground_size = size;
+        self.ground_from = from;
+        self.ground_to = to;
+        self.ground_frames = 0;
+        if (size == 0) return;
+        std.debug.assert(size == ground_tile * ground_tiles_side);
+        const all = pixels orelse return;
+        gl.PixelStorei(c.GL_UNPACK_ALIGNMENT, 1);
+        gl.PixelStorei(c.GL_UNPACK_ROW_LENGTH, size);
+        for (0..ground_tiles_side * ground_tiles_side) |i| {
+            if (self.ground_tiles[i] == 0) gl.GenTextures(1, &self.ground_tiles[i]);
+            const tx: usize = i % ground_tiles_side;
+            const ty: usize = i / ground_tiles_side;
+            const at = (ty * ground_tile * @as(usize, @intCast(size)) + tx * ground_tile) * 3;
+            // is there any light in it yet?
+            self.ground_lit[i] = false;
+            var row: usize = 0;
+            while (row < ground_tile and !self.ground_lit[i]) : (row += 1) {
+                const line = (all + at + row * @as(usize, @intCast(size)) * 3)[0 .. ground_tile * 3];
+                for (line) |v| {
+                    if (v != 0) {
+                        self.ground_lit[i] = true;
+                        break;
+                    }
+                }
+            }
+            gl.BindTexture(c.GL_TEXTURE_2D, self.ground_tiles[i]);
+            gl.TexImage2D(c.GL_TEXTURE_2D, 0, c.GL_RGB8, ground_tile, ground_tile, 0, c.GL_RGB, c.GL_UNSIGNED_BYTE, all + at);
+            gl.TexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_MIN_FILTER, c.GL_LINEAR);
+            gl.TexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_MAG_FILTER, c.GL_LINEAR);
+            gl.TexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_WRAP_S, c.GL_CLAMP_TO_EDGE);
+            gl.TexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_WRAP_T, c.GL_CLAMP_TO_EDGE);
+        }
+        gl.PixelStorei(c.GL_UNPACK_ROW_LENGTH, 0);
+        _ = plat.checkGl("the ground's picture");
+    }
+
+    /// Send again one square of the ground's picture, `w` by `h` dots from (`x`, `y`), which must
+    /// lie inside one tile. `all` is the whole picture.
+    pub fn updateGround(self: *Renderer, x: i32, y: i32, w: i32, h: i32, all: [*]const u8) void {
+        if (self.ground_size == 0) return;
+        const tx = @divTrunc(x, ground_tile);
+        const ty = @divTrunc(y, ground_tile);
+        self.ground_lit[@intCast(ty * ground_tiles_side + tx)] = true;
+        gl.BindTexture(c.GL_TEXTURE_2D, self.ground_tiles[@intCast(ty * ground_tiles_side + tx)]);
+        gl.PixelStorei(c.GL_UNPACK_ALIGNMENT, 1);
+        gl.PixelStorei(c.GL_UNPACK_ROW_LENGTH, self.ground_size);
+        const at: usize = @intCast((y * self.ground_size + x) * 3);
+        gl.TexSubImage2D(c.GL_TEXTURE_2D, 0, x - tx * ground_tile, y - ty * ground_tile, w, h, c.GL_RGB, c.GL_UNSIGNED_BYTE, all + at);
+        gl.PixelStorei(c.GL_UNPACK_ROW_LENGTH, 0);
+    }
+
+    fn drawGround(self: *Renderer, vp: *const m.M4) void {
+        if (self.ground_size == 0) return;
+        gl.UseProgram(self.ground_prog);
+        gl.UniformMatrix4fv(self.ground_u_vp, 1, c.GL_FALSE, vp);
+        gl.ActiveTexture(c.GL_TEXTURE0);
+        gl.Uniform1i(self.ground_u_tex, 0);
+        gl.Uniform1f(self.ground_u_gain, self.ground_gain);
+        gl.Uniform1f(self.ground_u_fade, self.fade);
+        gl.Enable(c.GL_DEPTH_TEST);
+        gl.DepthFunc(c.GL_LEQUAL);
+        gl.DepthMask(c.GL_FALSE);
+        gl.Enable(c.GL_BLEND);
+        gl.BlendFunc(c.GL_ONE, c.GL_ONE);
+        gl.BindVertexArray(self.empty_vao);
+        const step_x = (self.ground_to[0] - self.ground_from[0]) / @as(f32, ground_tiles_side);
+        const step_z = (self.ground_to[1] - self.ground_from[1]) / @as(f32, ground_tiles_side);
+        for (0..ground_tiles_side * ground_tiles_side) |i| {
+            const tx: f32 = @floatFromInt(i % ground_tiles_side);
+            const tz: f32 = @floatFromInt(i / ground_tiles_side);
+            const x0 = self.ground_from[0] + tx * step_x;
+            const z0 = self.ground_from[1] + tz * step_z;
+            // the tile the eye is over, which fills the lower half of the screen
+            const over_x = std.math.clamp((self.ground_eye[0] - self.ground_from[0]) / step_x, 0.0, @as(f32, ground_tiles_side - 1));
+            const over_z = std.math.clamp((self.ground_eye[1] - self.ground_from[1]) / step_z, 0.0, @as(f32, ground_tiles_side - 1));
+            const over = @as(usize, @intFromFloat(over_z)) * ground_tiles_side + @as(usize, @intFromFloat(over_x));
+            const warming = self.ground_frames < 4 and i == over;
+            if (!self.ground_lit[i] and !warming) continue;
+            // leave out a tile that is far off, or wholly behind the eye
+            const cx = x0 + step_x * 0.5 - self.ground_eye[0];
+            const cz = z0 + step_z * 0.5 - self.ground_eye[1];
+            const reach = @max(@abs(step_x), @abs(step_z)) * 0.75;
+            if (!warming) {
+                if (cx * cx + cz * cz > (420.0 + reach) * (420.0 + reach)) continue;
+                if (cx * self.ground_look[0] + cz * self.ground_look[1] < -reach) continue;
+            }
+            gl.Uniform2f(self.ground_u_from, x0, z0);
+            gl.Uniform2f(self.ground_u_to, x0 + step_x, z0 + step_z);
+            gl.BindTexture(c.GL_TEXTURE_2D, self.ground_tiles[i]);
+            gl.DrawArrays(c.GL_TRIANGLE_STRIP, 0, 4);
+        }
+        self.ground_frames +|= 1;
+        gl.BindVertexArray(0);
+        gl.Disable(c.GL_BLEND);
+        gl.DepthMask(c.GL_TRUE);
+        gl.Disable(c.GL_DEPTH_TEST);
+    }
+
     /// Lines that change every frame (rings, Hum, creatures). They all go through the phosphor.
     pub fn setDynamic(self: *Renderer, insts: []const Inst) void {
         self.dyn_count = @intCast(insts.len);
@@ -385,6 +572,7 @@ pub const Renderer = struct {
         gl.BindTexture(c.GL_TEXTURE_2D, self.loud_tex);
         gl.Uniform1i(self.line_u_loud, 0);
         gl.Uniform1f(self.line_u_fade, self.fade);
+        gl.Uniform2f(self.line_u_far, self.far_floor, self.heft);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_FALSE);
@@ -465,9 +653,12 @@ pub const Renderer = struct {
         gl.Uniform1i(self.comp_u_phosphor, 1);
         gl.Uniform3f(self.comp_u_base, self.base[0], self.base[1], self.base[2]);
         gl.Uniform1f(self.comp_u_seed, self.seed);
+        gl.Uniform3f(self.comp_u_sky, self.sky[0], self.sky[1], self.sky[2]);
+        gl.Uniform2f(self.comp_u_dawn, self.dawn[0], self.dawn[1]);
         self.fullScreen(0, self.fb_w, self.fb_h);
         gl.ActiveTexture(c.GL_TEXTURE0);
         self.drawOcc(vp);
+        self.drawGround(vp);
         self.drawLines(vp, self.line_vbo, self.sounding, self.lit);
 
         self.ping = next;

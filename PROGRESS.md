@@ -39,6 +39,19 @@ past the deepest game he knows.
 | `spec/together.md`: the cable carries it; a world for two | written |
 | rumble, the microphone, the comma in real air | out, on Morgan's word (`DECISIONS.md`) |
 
+## Stopped in the middle (2026-11-19, the session hit its usage limit again)
+
+All of this is committed and compiles, and the 14 rules tests pass. None of it is finished.
+
+| piece | state |
+|---|---|
+| one cue mechanism (`game/src/world/cue.zig`, `World.tell`): a cue can't hold a sound without its light, and `tell` is the only way to sound | built and tested. **Not done:** the promise `whole.twice` still lists it as owed; the tool has no check that nothing else sends a sound |
+| the second staging, after a fresh reader graded all seven promises "short" (`spec/promises/graded.md`) | built: Hum small, the gaze climbs a tower at the speed of sound and rides a call up, thick grass that hides, light in the sky, a fallen bell at Hum's size. Looked at once |
+| the ground remembers (`card.ground`) | built as sixty-four small pictures; kept in a file between sessions |
+| four kinds of ground cover in the proof field | built an hour before stopping. **Weak:** where Hum starts it is all bare soil, drawn as identical pyramids, which is the same fault as the identical grass. The per-land design of covers (Morgan: "different lands have different types of foliage and different relationships to the player") is **not written** into `spec/world.md` |
+| the frames in `spec/promises/seen/` | **stale:** they are from before the covers and the cue change, so the guard will mark them changed until they are looked at again |
+| the purple | **stale:** it has the build from before the cue and the covers. Its same-take file no longer matches. One frame in each run was late, at the first call (step 41); a timing split was added to find out why and has **not been run** |
+
 ## Next
 
 1. Morgan reads and edits `SPEC.md`, `spec/size.md`, `spec/years.md` and `spec/together.md`, and

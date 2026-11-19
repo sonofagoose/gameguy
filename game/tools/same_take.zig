@@ -126,12 +126,21 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     // Hum, who is at_foot from the stalk, and the frame's top edge is half the view above the gaze.
     const top_edge = world_mod.walk_pitch + world_mod.place_fov * 0.5 * std.math.pi / 180.0;
     const crown = std.math.atan2(great.tall * 0.74 - world_mod.cam_up, world_mod.at_foot + world_mod.cam_back);
-    // leaned back at its foot, are Hum and the very top both inside the wide frame?
-    const lean_top = std.math.atan2(great.tall - world_mod.lean_up, 9.0 + world_mod.lean_back);
-    const half = world_mod.lean_fov * 0.5 * std.math.pi / 180.0;
-    const lean_pitch = lean_top - half + 2.5 * std.math.pi / 180.0;
-    const hum_low = std.math.atan2(-world_mod.lean_up, world_mod.lean_back);
-    fact("asters.lean_holds_hum_and_top", if (lean_pitch - half < hum_low and lean_pitch + half > lean_top) 1.0 else 0.0);
     fact("asters.top_out_of_frame", if (crown > top_edge) 1.0 else 0.0);
+    // leaned back with the gaze at the crown, how many dots across is the smallest bell?
+    world.hum_x = great.x;
+    world.hum_z = great.z + 9.0;
+    world.look_yaw = 0.0;
+    world.look_tilt = 0.0;
+    world.near_tower = 0;
+    world.near_far = 9.0;
+    world.lean = 1.0;
+    world.gaze = great.tall * 0.86;
+    const cam = world.camera();
+    const up_there = great.tall * 0.86 - cam.eye[1];
+    const away = @sqrt(up_there * up_there + (9.0 + world_mod.lean_back) * (9.0 + world_mod.lean_back));
+    fact("asters.leaned_fov", cam.fov);
+    fact("asters.leaned_bell_px", 2.0 * 1.3 / away / (cam.fov * std.math.pi / 180.0) * 480.0);
+    fact("asters.hum_px_walking", world_mod.hum_tall / world_mod.cam_back / (world_mod.place_fov * std.math.pi / 180.0) * 480.0);
     return 0;
 }

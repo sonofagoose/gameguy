@@ -1,0 +1,3 @@
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+room: 44 items (9 promises to walk, 3 checks for the hands, 31 clips for the ears)
+room: left after 0 of 44 items were answered

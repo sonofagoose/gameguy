@@ -1295,13 +1295,13 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/size.md` / How big / What the card is for / Nothing is forgotten
 
-- open: The ground remembers. This is the one picture on the card, and the player paints it.
-- open: Wherever something sounds, it leaves its light on the ground beneath it, in its note's colour.
-- open: With the lake low the light fades in a breath, as trails do now.
-- open: Each river that is freed lets the ground hold more, and with the lake full it stays for good.
-- open: Over months the black ground becomes a slow photograph of everything that has been sung on it: your own paths as bright rivers, the place a fight was won, the ring where a land gathered at dusk.
-- open: Under it is the old light, which was there before you: the rounds of the lives, worn faintly into the ground where each one walks, so the almanac can be read by looking down.
-- open: A friend who visits leaves their colour on your ground for as long as the card lasts.
+- spoken for by `card.ground`: The ground remembers. This is the one picture on the card, and the player paints it.
+- spoken for by `card.ground`: Wherever something sounds, it leaves its light on the ground beneath it, in its note's colour.
+- spoken for by `card.ground`: With the lake low the light fades in a breath, as trails do now.
+- spoken for by `card.ground`: Each river that is freed lets the ground hold more, and with the lake full it stays for good.
+- spoken for by `card.ground`: Over months the black ground becomes a slow photograph of everything that has been sung on it: your own paths as bright rivers, the place a fight was won, the ring where a land gathered at dusk.
+- spoken for by `card.ground`: Under it is the old light, which was there before you: the rounds of the lives, worn faintly into the ground where each one walks, so the almanac can be read by looking down.
+- spoken for by `card.ground`: A friend who visits leaves their colour on your ground for as long as the card lasts.
 - open: Every dawn is kept. The save made each dawn is never thrown away.
 - open: Any morning of your life in the game can be opened from the book and walked again as it was, with your own past self walking it beside you, because a take is its inputs.
 - open: Someone you met in the first week and who has since changed (years.md) is still there on the morning you met them.

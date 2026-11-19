@@ -323,7 +323,8 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
             };
             n += 1;
         }
-        const fill = col8(bone, 0.5);
+        // Hum's own light: it flares when Hum calls and holds while it sings
+        const fill = col8(bone, 0.40 + 0.60 * w.hum_light);
         for (1..8) |k| {
             const f = @as(f32, @floatFromInt(k)) / 8.0 * 2.0 - 1.0;
             const across = wide * @sqrt(1.0 - f * f);
@@ -360,6 +361,99 @@ const Backlight = struct {
         self.written = now;
     }
 };
+
+// ------------------------------------------------------------------ the ground remembers
+//
+// One picture of the light that has been left on the ground (spec/size.md): wherever something
+// sounds, it leaves its light beneath it in its note's colour. This is a first proof: one picture
+// for the whole field, 62 cm to a dot, where the specification asks for one for each piece of
+// land at 25 cm. It is kept in a file between sessions, so the ground still holds yesterday.
+const ground_size = 2048;
+const ground_from = [2]f32{ -640.0, -1090.0 };
+const ground_span: f32 = 1280.0;
+const ground_block = 64;
+const ground_blocks = ground_size / ground_block;
+const ground_file = "keep/asters-ground.rgb";
+var ground: [ground_size * ground_size * 3]u8 = undefined;
+var ground_dirty: [ground_blocks * ground_blocks]bool = @splat(false);
+var ground_cursor: usize = 0;
+
+/// Leave light on the ground round a point: `amount` of `rgb` at the middle, falling away.
+fn leaveLight(x: f32, z: f32, radius: f32, rgb: [3]f32, amount: f32) void {
+    const scale = @as(f32, ground_size) / ground_span;
+    const cx = (x - ground_from[0]) * scale;
+    const cz = (z - ground_from[1]) * scale;
+    const r = @max(radius * scale, 1.0);
+    const x0: i32 = @intFromFloat(@floor(cx - r * 1.6));
+    const x1: i32 = @intFromFloat(@ceil(cx + r * 1.6));
+    const z0: i32 = @intFromFloat(@floor(cz - r * 1.6));
+    const z1: i32 = @intFromFloat(@ceil(cz + r * 1.6));
+    var iz = @max(z0, 0);
+    while (iz <= @min(z1, ground_size - 1)) : (iz += 1) {
+        var ix = @max(x0, 0);
+        while (ix <= @min(x1, ground_size - 1)) : (ix += 1) {
+            const dx = (@as(f32, @floatFromInt(ix)) + 0.5 - cx) / r;
+            const dz = (@as(f32, @floatFromInt(iz)) + 0.5 - cz) / r;
+            // a soft round edge with no exponential in it: this runs for every dot of every light
+            const edge = 1.0 - (dx * dx + dz * dz) * (1.0 / 2.56);
+            if (edge <= 0.0) continue;
+            const fall = edge * edge;
+            const at: usize = @intCast((iz * ground_size + ix) * 3);
+            for (0..3) |k| {
+                const more = amount * fall * rgb[k] * 255.0;
+                const now = @as(f32, @floatFromInt(ground[at + k])) + more;
+                ground[at + k] = @intFromFloat(@min(now, 255.0));
+            }
+            ground_dirty[@intCast(@divTrunc(iz, ground_block) * ground_blocks + @divTrunc(ix, ground_block))] = true;
+        }
+    }
+}
+
+/// Send the GPU a few of the squares that have changed: never more than three a frame.
+fn sendGround() void {
+    var sent: u32 = 0;
+    var looked: usize = 0;
+    while (looked < ground_dirty.len and sent < 3) : (looked += 1) {
+        const i = ground_cursor;
+        ground_cursor = (ground_cursor + 1) % ground_dirty.len;
+        if (!ground_dirty[i]) continue;
+        ground_dirty[i] = false;
+        const bx: i32 = @intCast(i % ground_blocks);
+        const bz: i32 = @intCast(i / ground_blocks);
+        renderer.updateGround(bx * ground_block, bz * ground_block, ground_block, ground_block, &ground);
+        sent += 1;
+        ground_cursor = i; // so that a square made dirty again at once is not a whole lap away
+    }
+}
+
+fn loadGround() bool {
+    const file = c.fopen(ground_file, "rb") orelse return false;
+    defer _ = c.fclose(file);
+    return c.fread(&ground, 1, ground.len, file) == ground.len;
+}
+
+fn saveGround() void {
+    _ = c.mkdir("keep", 0o755);
+    const file = c.fopen(ground_file ++ ".new", "wb") orelse return;
+    const wrote = c.fwrite(&ground, 1, ground.len, file);
+    _ = c.fclose(file);
+    if (wrote == ground.len) _ = c.rename(ground_file ++ ".new", ground_file);
+}
+
+/// What sounded this step, and so what light it leaves: Hum where it walks, calls and hums, and
+/// every bell that is ringing, on the ground beneath it.
+fn groundStep(w: *const World, called: bool) void {
+    const home = colour.ofNote(world_mod.garden_hz, world_mod.garden_hz);
+    if (called) leaveLight(w.hum_x, w.hum_z, 4.5, home, 0.55);
+    if (w.singing) leaveLight(w.hum_x, w.hum_z, 2.4, home, 0.012);
+    if (w.still == 0) leaveLight(w.hum_x, w.hum_z, 1.2, .{ 0.886, 0.839, 0.784 }, 0.016);
+    // each ringing bell, one step in sixty-four, taken in turn: a crown of them ringing at once
+    // must not cost a frame
+    for (w.things[0..w.thing_count], 0..) |thing, i| {
+        if (!thing.sounds or thing.loud < 0.06 or (i + w.step) % 64 != 0) continue;
+        leaveLight(thing.x, thing.z, 4.0 + thing.tall * 1.5, noteColour(thing.hz), thing.loud * 0.12);
+    }
+}
 
 pub const Scene = enum { dark, asters };
 
@@ -422,17 +516,34 @@ pub fn run(window: plat.Window, options: Options) bool {
             world = World.init();
             renderer.keep = 0.82;
             renderer.fade = 70.0;
+            renderer.far_floor = 0.12;
+            renderer.heft = 0.0;
+            renderer.sky = .{ 0.0, 0.0, 0.0 };
             proj = m.perspective(50.0, aspect, 0.3, 400.0);
             const static_n = thingLines(&world, &static_lines);
             renderer.setLand(static_lines[0..static_n], static_lines[0..0], &.{});
+            renderer.setGround(0, .{ 0.0, 0.0 }, .{ 0.0, 0.0 }, null);
             log("the dark: R1 calls, R2 hums, the left stick walks; Select and Start together leave", .{});
         },
         .asters => {
             world.initAsters();
             aster_lines.build(&world);
             renderer.keep = 0.55;
-            renderer.fade = 95.0;
+            renderer.fade = 70.0;
+            renderer.far_floor = 0.05;
+            renderer.heft = 0.55;
+            renderer.sky = .{ 0.085, 0.055, 0.045 };
             proj = m.perspective(world_mod.place_fov, aspect, 0.4, 5000.0);
+            // the ground starts black, or as it was left: a run with no screen always starts black,
+            // so its frames are the same every time
+            @memset(&ground, 0);
+            const remembered = !options.headless and loadGround();
+            @memset(&ground_dirty, false);
+            // the square under Hum is sent again in the first frames, so the first real change
+            // to the picture is not the first time this GPU is asked to change one
+            ground_dirty[((0 - @as(i32, @intFromFloat(ground_from[1]))) * ground_size / @as(i32, @intFromFloat(ground_span)) / ground_block) * ground_blocks + ((0 - @as(i32, @intFromFloat(ground_from[0]))) * ground_size / @as(i32, @intFromFloat(ground_span)) / ground_block)] = true;
+            renderer.setGround(ground_size, ground_from, .{ ground_from[0] + ground_span, ground_from[1] + ground_span }, &ground);
+            log("the ground: {s}", .{if (remembered) "as it was left" else "black: nothing has been sung on it yet"});
             log("the asters: {d} of them, {d} things; R1 calls, the left stick walks, the right stick looks; stand still at a foot and the view leans back; Select and Start together leave", .{ world.tower_count, world.thing_count });
         },
     }
@@ -465,6 +576,12 @@ pub fn run(window: plat.Window, options: Options) bool {
     var picked_z: f32 = 1e9;
     var picked = aster_lines.Picked{ .lines = 0, .occ = 0, .near = 0, .mid = 0, .far = 0 };
     var most_lines: usize = 0;
+    var worst_at: u32 = 0;
+    var worst_step: u64 = 0;
+    var worst_why: []const u8 = "";
+    var repicked = false;
+    var parts: [5]f64 = @splat(0.0);
+    var worst_parts: [6]f64 = @splat(0.0);
     var ring_dumped = false;
     var done_at: ?u32 = null;
 
@@ -480,7 +597,9 @@ pub fn run(window: plat.Window, options: Options) bool {
         if (device == 0) {
             const hands = if (options.scene == .asters) walker.hands(&world) else script.hands(world.step);
             mark = walker.mark;
+            const calls_before = world.calls;
             const n = world.stepOnce(hands, &cues);
+            if (options.scene == .asters) groundStep(&world, world.calls != calls_before);
             for (cues[0..n]) |cue| {
                 if (!snd.push(cue)) refused += 1;
             }
@@ -495,7 +614,9 @@ pub fn run(window: plat.Window, options: Options) bool {
             var ran: u32 = 0;
             while (world.step < due and ran < 3) : (ran += 1) {
                 const hands = if (!scripted) held else if (options.scene == .asters) walker.hands(&world) else script.hands(world.step);
+                const calls_before = world.calls;
                 const n = world.stepOnce(hands, &cues);
+                if (options.scene == .asters) groundStep(&world, world.calls != calls_before);
                 for (cues[0..n]) |cue| {
                     if (!snd.push(cue)) refused += 1;
                 }
@@ -509,6 +630,8 @@ pub fn run(window: plat.Window, options: Options) bool {
         }
 
         // the picture
+        parts[0] = (plat.now() - began) * 1000.0;
+        repicked = false;
         var eye: m.V3 = undefined;
         var view: m.M4 = undefined;
         var brightest: f32 = 0.0;
@@ -527,31 +650,41 @@ pub fn run(window: plat.Window, options: Options) bool {
             // dawn: everything can just be seen, and what a call lights or rings stands out of it
             for (world.things[0..world.thing_count], 0..) |thing, i| {
                 const light = World.light(thing);
-                const floor: f32 = if (thing.sounds) 0.45 else 0.34;
+                const floor: f32 = if (thing.sounds) 0.30 else 0.26;
                 if (thing.sounds) brightest = @max(brightest, light);
                 loud[i + 1] = @intFromFloat(@max(floor, light) * 255.0);
             }
-            const yaw = world.look_yaw;
-            const pitch = world.pitch();
-            const fx = @sin(yaw);
-            const fz = -@cos(yaw);
-            const back = world_mod.cam_back + world.lean * (world_mod.lean_back - world_mod.cam_back);
-            const up = world_mod.cam_up + world.lean * (world_mod.lean_up - world_mod.cam_up);
-            eye = .{ world.hum_x - fx * back, up, world.hum_z - fz * back };
-            const at = m.V3{ eye[0] + fx * @cos(pitch) * 10.0, eye[1] + @sin(pitch) * 10.0, eye[2] + fz * @cos(pitch) * 10.0 };
-            view = m.lookAt(eye, at, .{ 0.0, 1.0, 0.0 });
-            proj = m.perspective(world.fov(), aspect, 0.4, 5000.0);
+            const cam = world.camera();
+            eye = cam.eye;
+            view = m.lookAt(cam.eye, cam.at, .{ 0.0, 1.0, 0.0 });
+            proj = m.perspective(cam.fov, aspect, 0.4, 5000.0);
+            const fx = @sin(world.look_yaw);
+            const fz = -@cos(world.look_yaw);
+            renderer.ground_eye = .{ eye[0], eye[2] };
+            renderer.ground_look = .{ fx, fz };
+            // where on the screen the horizon is, and where the sun will come up
+            const dy = (cam.at[1] - cam.eye[1]) / 10.0;
+            const pitch = std.math.asin(std.math.clamp(dy, -1.0, 1.0));
+            const half = cam.fov * 0.5 * std.math.pi / 180.0;
+            var turn: f32 = aster_lines.dawn_yaw - world.look_yaw;
+            while (turn > std.math.pi) turn -= 2.0 * std.math.pi;
+            while (turn < -std.math.pi) turn += 2.0 * std.math.pi;
+            const across: f32 = if (@abs(turn) < 1.3) 0.5 + @tan(turn) / (2.0 * @tan(half) * aspect) else 9.0;
+            renderer.dawn = .{ across, 0.5 - @tan(pitch) / (2.0 * @tan(half)) };
             // each aster at the detail its distance asks for, picked again every twenty metres
             const moved_x = eye[0] - picked_x;
             const moved_z = eye[2] - picked_z;
             if (moved_x * moved_x + moved_z * moved_z > 20.0 * 20.0) {
-                picked = aster_lines.pick(world.hum_x, world.hum_z, static_lines[0..28_000], &static_occ);
-                picked.lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[picked.lines..]);
+                picked = aster_lines.pick(world.hum_x, world.hum_z, static_lines[0..26_000], static_occ[0..24_000]);
+                picked.lines += aster_lines.fallen(&world, static_lines[picked.lines..]);
+                picked.lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[picked.lines..], &static_occ, &picked.occ);
                 renderer.setLand(static_lines[0..picked.lines], static_lines[0..0], static_occ[0..picked.occ]);
                 picked_x = eye[0];
                 picked_z = eye[2];
+                repicked = true;
             }
         }
+        parts[1] = (plat.now() - began) * 1000.0;
         var moving_n: usize = 0;
         if (options.scene == .asters) {
             moving_n = aster_lines.sky(eye, &moving);
@@ -559,13 +692,23 @@ pub fn run(window: plat.Window, options: Options) bool {
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);
+        parts[2] = (plat.now() - began) * 1000.0;
         renderer.setDynamic(moving[0..moving_n]);
+        if (options.scene == .asters) sendGround();
         const vp = m.mul(proj, view);
+        parts[3] = (plat.now() - began) * 1000.0;
         renderer.frame(&vp, &loud);
+        parts[4] = (plat.now() - began) * 1000.0;
         if (!options.headless) backlight.follow(if (options.scene == .dark) brightest else 0.38 + 0.62 * brightest);
         const work = (plat.now() - began) * 1000.0;
         work_sum += work;
-        if (frame > 30) work_worst = @max(work_worst, work);
+        if (frame > 30 and work > work_worst) {
+            work_worst = work;
+            worst_at = frame;
+            worst_step = world.step;
+            worst_why = if (repicked) "the land was picked again" else "nothing was picked";
+            worst_parts = .{ parts[0], parts[1], parts[2], parts[3], parts[4], work };
+        }
 
         if (options.dump) |dir| {
             if (options.promise == null) {
@@ -590,6 +733,7 @@ pub fn run(window: plat.Window, options: Options) bool {
     }
 
     if (wav) |*w| w.close();
+    if (options.scene == .asters and !options.headless and !scripted) saveGround();
     last_visit = .{ .calls = world.calls, .seconds = @as(f32, @floatFromInt(world.step)) / 60.0 };
     if (options.promise) |promise| {
         if (world_mod.witness.Table.find(promise)) |id| {
@@ -615,6 +759,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         if (@atomicLoad(i32, &audio_realtime, .monotonic) == 1) "yes" else "no",
         most_lines,
     });
+    log("the slowest frame was {d} (step {d}): steps done by {d:.2} ms, the land by {d:.2}, the moving lines by {d:.2}, sent to the GPU by {d:.2}, drawn by {d:.2}, the backlight set by {d:.2}; {s}", .{ worst_at, worst_step, worst_parts[0], worst_parts[1], worst_parts[2], worst_parts[3], worst_parts[4], worst_parts[5], worst_why });
     for (world_mod.witness.names, 0..) |promise, i| {
         const seen = world.seen.marks[i];
         if (seen.met) log("witness {s} first={d} held={d}", .{ promise, seen.first, seen.held });

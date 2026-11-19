@@ -1,7 +1,8 @@
 //! A scripted player for the proof field of asters. It plays by rules, from what it can see of
 //! the world, not by replaying a take: it stands where the page stood up and calls, walks to the
 //! great aster, stops at its foot, waits for the view to lean back, calls, and stays until the
-//! bells of the crown have been heard. `mark` names the moments a promise wants a frame of.
+//! bells of the crown have been heard; then it backs away looking down, to see what light was left
+//! on the ground. `mark` names the moments a promise wants a frame of.
 const std = @import("std");
 const world_mod = @import("../world/world.zig");
 const World = world_mod.World;
@@ -54,15 +55,38 @@ pub const Walker = struct {
             2 => {
                 // at its foot: stand still, let the view lean back, then call and wait
                 if (after == 3) self.mark = "foot";
-                if (after == 110) self.mark = "lean";
-                if (after == 120) h.buttons |= Hands.call;
-                if (after == 120 + 150) self.mark = "climb";
+                // the gaze takes about two and a half seconds to climb to the crown
+                if (after == 205) self.mark = "lean";
+                if (after == 215) h.buttons |= Hands.call;
+                if (after == 215 + 95) self.mark = "climb";
                 if (self.heard_at == null and w.seen.get(.garden_asters).met) self.heard_at = step;
+                // seen before it is heard: the crown lights when the call reaches it, almost three
+                // seconds after the call, and its sound takes as long again to come down
+                if (after == 215 + 185) self.mark = "answer";
                 if (self.heard_at) |at| {
-                    if (step == at + 40) self.mark = "answer";
                     if (step >= at + 240) self.next(step);
                 }
                 if (after > 60 * 40) self.next(step); // it never came: give up, and say so by not having met it
+            },
+            3 => {
+                // back away from it with the view still on it, looking down at the ground: where
+                // Hum walked and called, and the light the crown's bells left beneath them
+                const tower = w.towers[0];
+                const dx = w.hum_x - tower.x;
+                const dz = w.hum_z - tower.z;
+                const far = @sqrt(dx * dx + dz * dz);
+                if (after < 40) h.ry = 110;
+                if (far < 62.0) {
+                    const cy = @cos(w.look_yaw);
+                    const sy = @sin(w.look_yaw);
+                    const wx = dx / @max(far, 0.01);
+                    const wz = dz / @max(far, 0.01);
+                    h.lx = @intFromFloat(110.0 * (cy * wx + sy * wz));
+                    h.ly = @intFromFloat(110.0 * (-sy * wx + cy * wz));
+                } else {
+                    self.mark = "ground";
+                    self.next(step);
+                }
             },
             else => self.done = true,
         }

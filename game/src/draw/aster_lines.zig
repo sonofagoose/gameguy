@@ -135,7 +135,7 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
 
     // its joints: a ring every metre and a quarter, all the way up. They are what the eye counts.
     {
-        const joint_col = col8(stalk, 0.55);
+        const joint_col = col8(stalk, 0.34);
         var h: f32 = 1.25;
         while (h < p.tall) : (h += 1.25) {
             const body = first + @min(@as(u32, @intFromFloat(h / part)), asters.segments - 1) + 1;
@@ -338,68 +338,264 @@ fn unit01(s: u32) f32 {
     return @as(f32, @floatFromInt(s >> 8)) * (1.0 / 16777216.0);
 }
 
-/// The ground round Hum, one to a hundred: blades of grass that are trees four to nine metres
-/// tall and as wide as a door, and crumbs of soil that are boulders.
-pub fn ground(hum_x: f32, hum_z: f32, out: []Inst) usize {
-    const cell: f32 = 16.0;
-    const reach: i32 = 7;
-    const cx: i32 = @intFromFloat(@floor(hum_x / cell));
-    const cz: i32 = @intFromFloat(@floor(hum_z / cell));
-    const blade = col8(.{ 0.36, 0.66, 0.46 }, 0.26);
-    const vein = col8(.{ 0.36, 0.66, 0.46 }, 0.11);
-    const stone = col8(.{ 0.62, 0.56, 0.50 }, 0.26);
+/// One blade of grass: a real one is 4 to 9 cm, so here it is a tree 4 to 9 m tall and as wide
+/// as a door, and it hides what is behind it.
+fn blade(ix: i32, iz: i32, k: u32, cell: f32, out: []Inst, n: *usize, occ: []V, occ_n: *usize) void {
+    if (n.* + 5 > out.len) return;
+    const tint = col8(.{ 0.36, 0.66, 0.46 }, 0.17);
+    const vein = col8(.{ 0.36, 0.66, 0.46 }, 0.08);
+    const s = hash(ix, iz, k);
+    const x = (@as(f32, @floatFromInt(ix)) + unit01(s)) * cell;
+    const z = (@as(f32, @floatFromInt(iz)) + unit01(hash(iz, ix, k + 7))) * cell;
+    const tall = 4.0 + 5.0 * unit01(s *% 2654435761);
+    const way = unit01(s *% 40503) * 6.2831853;
+    const bend = tall * (0.12 + 0.30 * unit01(s *% 69069));
+    const half = 0.18 + 0.12 * unit01(s *% 22695477);
+    const across = V{ -@sin(way) * half, 0.0, @cos(way) * half };
+    const base = V{ x, 0.0, z };
+    const knee = V{ x + @cos(way) * bend * 0.3, tall * 0.58, z + @sin(way) * bend * 0.3 };
+    const tip = V{ x + @cos(way) * bend, tall * 0.95, z + @sin(way) * bend };
+    const b0 = add(base, across);
+    const b1 = add(base, mul(across, -1.0));
+    const k0 = add(knee, across);
+    const k1 = add(knee, mul(across, -1.0));
+    out[n.*] = .{ .a = b0, .b = k0, .half_width = 1.2, .body = 0.0, .col = tint };
+    out[n.* + 1] = .{ .a = k0, .b = tip, .half_width = 1.1, .body = 0.0, .col = tint };
+    out[n.* + 2] = .{ .a = b1, .b = k1, .half_width = 1.2, .body = 0.0, .col = tint };
+    out[n.* + 3] = .{ .a = k1, .b = tip, .half_width = 1.1, .body = 0.0, .col = tint };
+    out[n.* + 4] = .{ .a = base, .b = knee, .half_width = 0.9, .body = 0.0, .col = vein };
+    n.* += 5;
+    if (occ_n.* + 9 > occ.len) return;
+    const shapes = [9]V{ b0, b1, k1, b0, k1, k0, k0, k1, tip };
+    @memcpy(occ[occ_n.*..][0..9], &shapes);
+    occ_n.* += 9;
+}
+
+/// What the ground wears (spec/world.md, "What the ground wears"). These are four of the
+/// Garden's own covers. Each land has its own, and no cover is only scenery.
+pub const Cover = enum { soil, lawn, clover, moss };
+
+/// Which cover is at a place: wide patches, a hundred metres or so across, by a sum from where
+/// it is.
+pub fn coverAt(x: f32, z: f32) Cover {
+    const fx = x * (1.0 / 105.0);
+    const fz = z * (1.0 / 105.0);
+    const ix: i32 = @intFromFloat(@floor(fx));
+    const iz: i32 = @intFromFloat(@floor(fz));
+    const tx = fx - @floor(fx);
+    const tz = fz - @floor(fz);
+    const sx = tx * tx * (3.0 - 2.0 * tx);
+    const sz = tz * tz * (3.0 - 2.0 * tz);
+    const a = unit01(hash(ix, iz, 501));
+    const b = unit01(hash(ix + 1, iz, 501));
+    const c = unit01(hash(ix, iz + 1, 501));
+    const d = unit01(hash(ix + 1, iz + 1, 501));
+    const v = (a + (b - a) * sx) + ((c + (d - c) * sx) - (a + (b - a) * sx)) * sz;
+    return if (v < 0.40) .soil else if (v < 0.50) .lawn else if (v < 0.60) .clover else .moss;
+}
+
+const Out = struct {
+    lines: []Inst,
+    n: *usize,
+    occ: []V,
+    occ_n: *usize,
+
+    fn line(self: Out, a: V, b: V, half_width: f32, col: [4]u8) void {
+        if (self.n.* >= self.lines.len) return;
+        self.lines[self.n.*] = .{ .a = a, .b = b, .half_width = half_width, .body = 0.0, .col = col };
+        self.n.* += 1;
+    }
+
+    fn tri(self: Out, a: V, b: V, c: V) void {
+        if (self.occ_n.* + 3 > self.occ.len) return;
+        self.occ[self.occ_n.*] = a;
+        self.occ[self.occ_n.* + 1] = b;
+        self.occ[self.occ_n.* + 2] = c;
+        self.occ_n.* += 3;
+    }
+};
+
+/// Clover: a real leaf stands 3 to 7 cm high on a thread of a stalk, three leaflets each a
+/// centimetre or so across. Here it is a roof three to seven metres up, and it hides the sky.
+fn clover(x: f32, z: f32, s: u32, out: Out) void {
+    const tint = col8(.{ 0.40, 0.72, 0.56 }, 0.22);
+    const rib = col8(.{ 0.40, 0.72, 0.56 }, 0.11);
+    const tall = 3.0 + 4.0 * unit01(s *% 2654435761);
+    const r = 1.1 + 0.7 * unit01(s *% 40503);
+    const turn = unit01(s *% 69069) * 6.2831853;
+    const lean = V{ @cos(turn) * tall * 0.12, 0.0, @sin(turn) * tall * 0.12 };
+    const top = V{ x + lean[0], tall, z + lean[2] };
+    out.line(.{ x, 0.0, z }, top, 1.0, rib);
+    for (0..3) |k| {
+        const a = turn + @as(f32, @floatFromInt(k)) * 2.0943951;
+        const far = V{ top[0] + @cos(a) * r * 1.9, tall - r * 0.18, top[2] + @sin(a) * r * 1.9 };
+        const left = V{ top[0] + @cos(a - 0.62) * r * 1.25, tall + r * 0.10, top[2] + @sin(a - 0.62) * r * 1.25 };
+        const right = V{ top[0] + @cos(a + 0.62) * r * 1.25, tall + r * 0.10, top[2] + @sin(a + 0.62) * r * 1.25 };
+        out.line(top, left, 1.2, tint);
+        out.line(left, far, 1.2, tint);
+        out.line(far, right, 1.2, tint);
+        out.line(right, top, 1.2, tint);
+        out.line(top, far, 0.9, rib);
+        out.tri(top, left, far);
+        out.tri(top, far, right);
+    }
+}
+
+/// Moss: a cushion a few metres across and a metre or so high, bristling with its thin stalks.
+fn moss(x: f32, z: f32, s: u32, near: bool, out: Out) void {
+    const tint = col8(.{ 0.30, 0.58, 0.36 }, 0.20);
+    const fine = col8(.{ 0.52, 0.70, 0.40 }, 0.16);
+    const r = 2.0 + 3.0 * unit01(s *% 2654435761);
+    const high = 0.5 + 0.9 * unit01(s *% 40503);
+    const turn = unit01(s *% 69069) * 6.2831853;
+    const top = V{ x, high, z };
+    const sides: usize = if (near) 7 else 5;
+    for (0..sides) |k| {
+        const a0 = turn + @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, @floatFromInt(sides)));
+        const a1 = turn + @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, @floatFromInt(sides)));
+        const q0 = V{ x + r * @cos(a0), 0.03, z + r * @sin(a0) };
+        const q1 = V{ x + r * @cos(a1), 0.03, z + r * @sin(a1) };
+        const shoulder = V{ x + r * 0.55 * @cos(a0), high * 0.8, z + r * 0.55 * @sin(a0) };
+        out.line(q0, q1, 1.1, tint);
+        out.line(q0, shoulder, 1.0, tint);
+        out.line(shoulder, top, 1.0, tint);
+        out.tri(q0, q1, top);
+        if (near and k % 2 == 0) {
+            // a stalk with its capsule, as thin as a hair and taller than Hum
+            const foot = V{ x + r * 0.4 * @cos(a0 + 0.4), high * 0.85, z + r * 0.4 * @sin(a0 + 0.4) };
+            const head = V{ foot[0] + 0.15, high + 1.2 + 0.8 * unit01(s *% @as(u32, @intCast(k + 3))), foot[2] };
+            out.line(foot, head, 0.8, fine);
+            out.line(head, .{ head[0] + 0.22, head[1] + 0.28, head[2] }, 1.3, fine);
+        }
+    }
+}
+
+/// A crumb of soil: a boulder one to three metres across.
+fn crumb(x: f32, z: f32, s: u32, out: Out) void {
+    const stone = col8(.{ 0.62, 0.56, 0.50 }, 0.22);
+    const r = 0.6 + 1.0 * unit01(s *% 40503);
+    const turn = unit01(s *% 69069) * 6.2831853;
+    const peak = V{ x + r * 0.15, r * 0.8, z - r * 0.1 };
+    for (0..4) |k| {
+        const a0 = turn + @as(f32, @floatFromInt(k)) * 1.5707963;
+        const a1 = a0 + 1.5707963;
+        const q0 = V{ x + r * @cos(a0), 0.03, z + r * @sin(a0) };
+        const q1 = V{ x + r * @cos(a1), 0.03, z + r * @sin(a1) };
+        out.line(q0, q1, 1.1, stone);
+        out.line(q0, peak, 1.0, stone);
+        out.tri(q0, q1, peak);
+    }
+}
+
+/// One cell of ground, wearing whatever cover is at its middle.
+fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
+    const mid_x = (@as(f32, @floatFromInt(ix)) + 0.5) * size;
+    const mid_z = (@as(f32, @floatFromInt(iz)) + 0.5) * size;
+    const many: u32 = if (near) 3 else 2;
+    switch (coverAt(mid_x, mid_z)) {
+        .lawn => {
+            for (0..many) |k| blade(ix, iz, @intCast(k + salt), size, out.lines, out.n, out.occ, out.occ_n);
+        },
+        .clover => {
+            for (0..many - 1) |k| {
+                const s = hash(ix, iz, @intCast(k + salt + 40));
+                clover((@as(f32, @floatFromInt(ix)) + unit01(s)) * size, (@as(f32, @floatFromInt(iz)) + unit01(s *% 22695477)) * size, s, out);
+            }
+        },
+        .moss => {
+            for (0..many - 1) |k| {
+                const s = hash(ix, iz, @intCast(k + salt + 60));
+                moss((@as(f32, @floatFromInt(ix)) + unit01(s)) * size, (@as(f32, @floatFromInt(iz)) + unit01(s *% 22695477)) * size, s, near, out);
+            }
+        },
+        .soil => {
+            for (0..many) |k| {
+                const s = hash(ix, iz, @intCast(k + salt + 80));
+                crumb((@as(f32, @floatFromInt(ix)) + unit01(s)) * size, (@as(f32, @floatFromInt(iz)) + unit01(s *% 22695477)) * size, s, out);
+            }
+        },
+    }
+}
+
+/// The ground round Hum, one to a hundred, wearing its covers: lawn, clover, moss and bare soil
+/// in wide patches, thick close by and thinner farther off. The return is how many lines;
+/// `occ_n` grows by the black shapes.
+pub fn ground(hum_x: f32, hum_z: f32, lines_out: []Inst, occ: []V, occ_n: *usize) usize {
     var n: usize = 0;
-    var iz: i32 = cz - reach;
-    while (iz <= cz + reach) : (iz += 1) {
-        var ix: i32 = cx - reach;
-        while (ix <= cx + reach) : (ix += 1) {
-            for (0..3) |k| {
-                if (n + 5 > out.len) return n;
-                const s = hash(ix, iz, @intCast(k));
-                const x = (@as(f32, @floatFromInt(ix)) + unit01(s)) * cell;
-                const z = (@as(f32, @floatFromInt(iz)) + unit01(hash(iz, ix, @intCast(k + 7)))) * cell;
-                const tall = 4.0 + 5.0 * unit01(s *% 2654435761);
-                const way = unit01(s *% 40503) * 6.2831853;
-                const bend = tall * (0.12 + 0.30 * unit01(s *% 69069));
-                const half = 0.16 + 0.10 * unit01(s *% 22695477);
-                const across = V{ -@sin(way) * half, 0.0, @cos(way) * half };
-                const base = V{ x, 0.0, z };
-                const knee = V{ x + @cos(way) * bend * 0.3, tall * 0.58, z + @sin(way) * bend * 0.3 };
-                const tip = V{ x + @cos(way) * bend, tall * 0.95, z + @sin(way) * bend };
-                out[n] = .{ .a = add(base, across), .b = add(knee, across), .half_width = 1.2, .body = 0.0, .col = blade };
-                out[n + 1] = .{ .a = add(knee, across), .b = tip, .half_width = 1.1, .body = 0.0, .col = blade };
-                out[n + 2] = .{ .a = add(base, mul(across, -1.0)), .b = add(knee, mul(across, -1.0)), .half_width = 1.2, .body = 0.0, .col = blade };
-                out[n + 3] = .{ .a = add(knee, mul(across, -1.0)), .b = tip, .half_width = 1.1, .body = 0.0, .col = blade };
-                out[n + 4] = .{ .a = base, .b = knee, .half_width = 0.9, .body = 0.0, .col = vein };
-                n += 5;
-            }
-            // one crumb of soil: a boulder one to three metres across
-            if (n + 8 > out.len) return n;
+    const out = Out{ .lines = lines_out, .n = &n, .occ = occ, .occ_n = occ_n };
+    {
+        const size: f32 = 8.0;
+        const cx: i32 = @intFromFloat(@floor(hum_x / size));
+        const cz: i32 = @intFromFloat(@floor(hum_z / size));
+        var iz: i32 = cz - 6;
+        while (iz <= cz + 6) : (iz += 1) {
+            var ix: i32 = cx - 6;
+            while (ix <= cx + 6) : (ix += 1) patch(ix, iz, size, true, 20, out);
+        }
+    }
+    const size: f32 = 16.0;
+    const cx: i32 = @intFromFloat(@floor(hum_x / size));
+    const cz: i32 = @intFromFloat(@floor(hum_z / size));
+    var iz: i32 = cz - 7;
+    while (iz <= cz + 7) : (iz += 1) {
+        var ix: i32 = cx - 7;
+        while (ix <= cx + 7) : (ix += 1) {
+            patch(ix, iz, size, false, 0, out);
+            // a crumb of soil lies on every kind of ground
             const s = hash(ix *% 31, iz *% 17, 99);
-            const x = (@as(f32, @floatFromInt(ix)) + unit01(s)) * cell;
-            const z = (@as(f32, @floatFromInt(iz)) + unit01(s *% 2654435761)) * cell;
-            const r = 0.6 + 1.0 * unit01(s *% 40503);
-            const turn = unit01(s *% 69069) * 6.2831853;
-            const peak = V{ x + r * 0.15, r * 0.8, z - r * 0.1 };
-            for (0..4) |k| {
-                const a0 = turn + @as(f32, @floatFromInt(k)) * 1.5707963;
-                const a1 = a0 + 1.5707963;
-                const q0 = V{ x + r * @cos(a0), 0.03, z + r * @sin(a0) };
-                const q1 = V{ x + r * @cos(a1), 0.03, z + r * @sin(a1) };
-                out[n] = .{ .a = q0, .b = q1, .half_width = 1.1, .body = 0.0, .col = stone };
-                out[n + 1] = .{ .a = q0, .b = peak, .half_width = 1.0, .body = 0.0, .col = stone };
-                n += 2;
-            }
+            crumb((@as(f32, @floatFromInt(ix)) + unit01(s)) * size, (@as(f32, @floatFromInt(iz)) + unit01(s *% 2654435761)) * size, s, out);
         }
     }
     return n;
 }
 
+/// The flower head that has fallen by the great aster's foot, lying on its side: a bell at Hum's
+/// own size. Its body is the world's thing for it.
+pub fn fallen(w: *const world_mod.World, out: []Inst) usize {
+    if (w.fallen >= w.thing_count) return 0;
+    const thing = w.things[w.fallen];
+    const body: f32 = @floatFromInt(w.fallen + 1);
+    const tint = colour.ofNote(world_mod.garden_hz, thing.hz);
+    const bright = col8(tint, 1.0);
+    const soft = col8(tint, 0.6);
+    const c = V{ thing.x, thing.y, thing.z };
+    const r = thing.tall;
+    const n = unit(.{ 0.75, 0.55, -0.35 });
+    const u = unit(cross(n, .{ 0.0, 1.0, 0.0 }));
+    const v = cross(n, u);
+    const disc = r * 0.36;
+    var made: usize = 0;
+    for (0..16) |k| {
+        if (made >= out.len) return made;
+        const a = @as(f32, @floatFromInt(k)) * (6.2831853 / 16.0);
+        const ray = add(mul(u, @cos(a)), mul(v, @sin(a)));
+        out[made] = .{ .a = add(c, mul(ray, disc)), .b = add(c, mul(ray, r)), .half_width = 1.6, .body = body, .col = bright };
+        made += 1;
+    }
+    const under = add(c, mul(n, -r * 0.7));
+    for (0..8) |k| {
+        if (made + 2 > out.len) return made;
+        const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 8.0);
+        const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 8.0);
+        const q0 = add(c, mul(add(mul(u, @cos(a0)), mul(v, @sin(a0))), disc));
+        const q1 = add(c, mul(add(mul(u, @cos(a1)), mul(v, @sin(a1))), disc));
+        out[made] = .{ .a = q0, .b = q1, .half_width = 1.7, .body = body, .col = bright };
+        out[made + 1] = .{ .a = q0, .b = under, .half_width = 1.3, .body = body, .col = soft };
+        made += 2;
+    }
+    return made;
+}
+
+/// Where the sun will come up: as a way across the ground (x is its cosine, z its sine), and as
+/// a turn of the view from straight ahead.
+const dawn_way: f32 = -1.12;
+pub const dawn_yaw: f32 = dawn_way + 1.5707963;
+
 /// The day coming up: the rim of the sun on the horizon, as arcs of light, and a faint line
 /// where the ground ends. They stand round the eye, as a sky does.
 pub fn sky(eye: V, out: []Inst) usize {
     const radius: f32 = 420.0;
-    const dawn: f32 = -1.12; // a little right of straight ahead
+    const dawn: f32 = dawn_way;
     const centre = V{ eye[0] + radius * @cos(dawn), eye[1], eye[2] + radius * @sin(dawn) };
     const right = V{ -@sin(dawn), 0.0, @cos(dawn) };
     var n: usize = 0;

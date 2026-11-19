@@ -79,6 +79,10 @@ stage 2 begins._
     second.
   - `fact asters.top_out_of_frame == 1` Walking at its foot, the crown is above the top of the
     screen.
+  - `fact asters.hum_px_walking <= 26` Walking, Hum is small on the screen: under a twentieth of its
+    height.
+  - `fact asters.leaned_bell_px >= 24` Leaned back with the gaze at the crown, the smallest bell is
+    a shape on the screen and not a spark.
   - `test asters stand as tall as cathedrals, one to a hundred`
   - `test a call climbs a tower, and its bells are heard late by their height`
   - `take` The scripted player walks to the great aster, stops at its foot, calls, and is still
