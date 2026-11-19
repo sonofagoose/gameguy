@@ -608,6 +608,9 @@ the garden.
 ## After the thirteenth morning
 
 - **Each night:** up a fifth, down a fifth, or stay.
+- **The sunflower.** In the thirteenth morning's garden one flower has come up that was not there
+  before. Its seeds are set by a turn that agrees with no count at all, so no two ever line up, and
+  the head is full.
 - **The wheel gains a second direction,** by thirds, and later a third, by sevenths. Fifths go round
   the lake, thirds go out from it, sevenths go where the caravan comes from.
 - **The lands out there are made, not built.** A land's place is three numbers: how many fifths,
