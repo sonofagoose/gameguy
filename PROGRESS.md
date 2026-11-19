@@ -9,9 +9,9 @@ section 20, and `spec/stages.md`.
 |---|---|
 | commit and push what was waiting | done (`a52be83`) |
 | second probe, the parts that need no hands | done (`probe/results/purple-darkos4clone-v2/second-probe-20261119.md`) |
-| `SPEC.md` | being written |
-| `spec/` (laws, world, people, engine, stages, ideas) | next |
-| `DECISIONS.md`, `CLAUDE.md` | next |
+| `SPEC.md` | done |
+| `spec/` (laws, world, people, engine, stages, ideas) | done |
+| `DECISIONS.md`, `CLAUDE.md`, the index, the hardware sheet | done |
 | the workshop: `game/` builds, runs with no screen, dumps frames, packs | next |
 | lines-a-frame benchmark on the handheld | next |
 | the room: Morgan's hand checks and the 31 listening clips, on the handheld | next |

@@ -11,7 +11,7 @@ separates them (the purple throttles its CPU harder, see Thermal).
 | | |
 |---|---|
 | Board | R36S-V12 2023-08-18 clone (×2, identical) |
-| SoC | Rockchip RK3326: 4× Cortex-A35 (NEON), Mali-G31 MP2 |
+| SoC | Rockchip RK3326: 4× Cortex-A35 (NEON), Mali-G31 (Rockchip's sheet says MP2; the driver reports `Mali-G31 1 cores` on every run) |
 | Clocks (stock profile) | CPU up to 1296 MHz (1248 typical under load), GPU 520 MHz, DDR 666 MHz |
 | RAM visible to Linux | 918 MiB (`MemTotal` 940,428 kB), about 815 MiB available when a game starts (LPDDR3 in a Samsung eMCP) |
 | Storage | 7456 MB eMMC; read ~46 MB/s, write ~14–28 MB/s (game data lives in `/roms`, 1 GB exFAT, or on an SD card in TF2) |
@@ -278,6 +278,9 @@ the sound, and the loudest sample so far.
   button a prompt refers to.
 - Stick values change at most ~56–58 times per second (the driver polls the ADC at ~60 Hz);
   buttons are GPIO-driven.
+- One probe log from the purple (2026-11-12, `probe-9b4d0e-20260413-163420.txt`) recorded its left
+  stick turned a quarter: up on the first axis and right on the second. The black's was normal. It
+  has not been rechecked by hand; the room (`SPEC.md`, section 21) asks for it.
 
 ## Thermal and power (10 min, all cores + RAM + GPU at full load, unplugged)
 
@@ -352,7 +355,56 @@ the black as a USB network adapter, high-speed (480 Mbit/s). Log:
 - Not yet tried: the purple as host, a link that stays up for hours, and what happens when the
   cable is pulled mid-session.
 
+## What else the handheld has (second probe, measured 2026-11-19)
+
+On the purple, over ssh, with the menu running. Raw readings:
+`probe/results/purple-darkos4clone-v2/second-probe-20261119.md`.
+
+**The backlight is more than half of the idle draw, and a program can set it.**
+`/sys/class/backlight/backlight/brightness`, 0 to 255, PWM at 40 kHz, writable by root.
+
+| level | battery current, menu idle |
+|---|---|
+| 255 | 388 mA |
+| 200 (as found) | 350 mA |
+| 120 | 275 mA |
+| 60 | 226 mA |
+| 20 | 195 mA |
+| 1 | 180 mA |
+
+**One core renders about 2,100 overtones.** `game/bench/modes.zig`: two-pole resonators, 128 frames
+at a time, pinned to one core. "Fit" is how many render in half a 2.67 ms buffer, 99 buffers in 100.
+
+| clock | how | each overtone-sample | fit |
+|---|---|---|---|
+| 1248 MHz | one at a time | 12.1 ns | about 840 |
+| 1248 MHz | four abreast (NEON) | 3.8 ns | 2,530 to 2,690 |
+| 1008 MHz, the purple's clock under sustained load | four abreast | 4.7 ns | 2,100 to 2,180 |
+
+- The slowest buffer was within 20% of the mean.
+- The sound is the same to the last bit on the laptop and the purple, four abreast or one at a
+  time, with multiplies and adds kept separate.
+
+**The rest:**
+
+- **The rumble line can be driven.** GPIO 102, through the gamepad's force-feedback interface, once
+  the gain is set to full. Whether a motor is fitted is not known: nobody was holding the unit.
+- **There is no microphone on the board.** The recording path opens (`hw:0,0`, 48,000 Hz) and one
+  channel is a live input with nothing on it. Whether the jack carries a headset's microphone to it
+  is not known.
+- **The clock does not count while the unit is off.** The system clock was 38.8 hours behind after
+  being off; the clock chip had gained 26 hours in a week. The chip accepts a new time, and was set.
+- **A unit acting as USB host has drivers for** USB sound, USB MIDI, keyboards and gamepads
+  (built into the kernel). Nothing was plugged in.
+- **The two lights on the case ignore writes** on this system.
+- **The battery gauge's current reading moves in steps a few seconds apart.**
+
 ## Not yet measured / caveats
+
+- From the second probe, each needing a person: a headset's microphone through the jack; a motor on
+  the rumble line; how the backlight looks when it follows the music; the speaker's loudness; the
+  purple's left stick; whether the set clock counts while off. Also: button to sound and button to
+  picture, and how many lines a frame holds with the GPU doing the projecting.
 
 - Overclocking (CPU to 1608, GPU to 650, DDR to 1040 MHz are offered by ArkOS4Clone's DTB tool) is
   untested; every number here is at stock clocks.
