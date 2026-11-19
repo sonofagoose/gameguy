@@ -25,6 +25,7 @@ const Args = struct {
     log_path: ?[*:0]const u8 = null,
     wav: ?[*:0]const u8 = null,
     bot: bool = false,
+    scene: dark.Scene = .dark,
     room: ?[*:0]const u8 = null,
 };
 
@@ -42,6 +43,9 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
             args.bench_lines = true;
         } else if (std.mem.eql(u8, a, "--bot")) {
             args.bot = true;
+        } else if (std.mem.eql(u8, a, "--scene") and i + 1 < n) {
+            i += 1;
+            args.scene = std.meta.stringToEnum(dark.Scene, std.mem.span(argv[i])) orelse .dark;
         } else if (std.mem.eql(u8, a, "--frames") and i + 1 < n) {
             i += 1;
             args.frames = std.fmt.parseInt(u32, std.mem.span(argv[i]), 10) catch 0;
@@ -323,7 +327,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     } else if (args.bench_lines) {
         ok = benchLines(window, args);
     } else {
-        ok = dark.run(window, .{ .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot });
+        ok = dark.run(window, .{ .scene = args.scene, .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot });
     }
     if (plat.log_file) |file| _ = c.fclose(file);
     return if (ok) 0 else 1;

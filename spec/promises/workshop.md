@@ -1,0 +1,76 @@
+# Promises of the workshop
+
+_Part of the promise book (`../promises.md`). What stage 1 owes a person, as opposed to what it owes
+the build (`../stages.md`)._
+
+### `hands.voice-in-a-buffer` Your voice, at once
+
+- **Said:** `SPEC.md` "Your own voice answers within one sound buffer."
+- **Stage:** 1
+- **Scene:** dark
+- **The moment:** You press R2 and Hum is already humming. There is no gap to learn, nothing to
+  lead. It is as immediate as humming yourself, so within a minute you stop thinking of the button
+  and think of the note.
+- **A cheat would be:** a voice that starts on the world's next step, a sixtieth of a second or more
+  late, with a soft attack to hide it.
+- **Full size:**
+  - `owed` Hands are stamped with the sound card's own count, and the sound thread starts Hum's
+    breath on the buffer after the stamp: under 3 ms later, shown by the stamps in a log from the
+    handheld.
+  - `owed` The same on a replay: the take holds the stamps, so the voice starts on the same sample
+    every time.
+  - `owed` Button to sound, measured from outside with Morgan's phone filming the handheld, or with
+    a headset if the jack records.
+- **Asks:** When you hum, does it start the moment you press?
+
+### `card.takes` The card is the world's memory
+
+- **Said:** `SPEC.md` "Every take is kept, a save is made every dawn"
+- **Stage:** 1
+- **The moment:** The battery dies in the middle of an evening. You charge it, start the game, and
+  you are standing where you were, with everything you had done still done. Months later you pick
+  any day out of the book and it plays again from your hands, note for note.
+- **A cheat would be:** one save file that is overwritten; a recording of the sound in place of the
+  take.
+- **Full size:**
+  - `owed` The day's take is written to the card as it happens, 4 KB at a time. Killing the game at
+    any moment loses under five seconds. A test kills it a hundred times.
+  - `owed` A save loaded in the middle of a day reaches the same fingerprint as the day played
+    through. A test.
+  - `owed` Any kept take replays to the same fingerprints on the laptop and the purple.
+  - `owed` Measured on the handheld: writing the take never makes a frame late or a gap in the
+    sound.
+- **Asks:** nobody: a pulled battery answers it.
+
+### `light.hue` One set of numbers for sound and light
+
+- **Said:** `SPEC.md` "Pitch class is hue, by fifths."
+- **Stage:** 1
+- **Scene:** asters
+- **The moment:** After an hour you can read the garden's notes by eye. Green is home. Things a
+  fifth up are a step warmer, a fifth down a step cooler, and what clashes with home is the colour
+  straight across from it. Brightness is loudness, so a quiet thing is dim and silence is black. You
+  never learned a legend; it was simply always true.
+- **A cheat would be:** colours chosen by an artist; brightness animated by hand.
+- **Full size:**
+  - `test a note's colour goes round the wheel by fifths`
+  - `test what lights a thing by ringing is what sounds it`
+  - `frame asters-answer` Kin of home lit in home's colour and its neighbours'; nothing lit that
+    isn't sounding.
+  - `owed` Octave is height and timbre is the texture of a line, in the renderer, for every family.
+- **Asks:** Could you tell which bells were kin to your note by their colour?
+
+### `light.beam` The beam
+
+- **Said:** `SPEC.md` "A figure is brightest where its beam slows to turn."
+- **Stage:** 1
+- **The moment:** Everything looks drawn by one moving point of light, the way an oscilloscope
+  draws. Where the point turns, the line is brightest. What has just sounded leaves a glow that
+  fades over a breath, so you can see what happened a moment ago as well as what is happening.
+- **A cheat would be:** plain lines with a blur over the top.
+- **Full size:**
+  - `frame dark-ring` The ring's afterglow behind it, and none in front.
+  - `owed` Brightness along a line follows the beam's speed, for every figure the wheel and the
+    voices draw.
+  - `owed` The afterglow doesn't smear when the view turns: what glows is the thing, not the screen.
+- **Asks:** Did it look drawn by light, or like lines on a screen?

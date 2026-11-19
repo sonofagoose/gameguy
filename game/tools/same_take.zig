@@ -1,8 +1,13 @@
-//! Does one take play out the same on every machine?
+//! Does one take play out the same on every machine? And what did the scripted player meet?
 //!
 //! Runs the world and the sound with no screen and no sound card, from the scripted hands, and
 //! prints a fingerprint of each after every minute, with the loudest sample so far so that silence
-//! can't pass for a match. Build it for two machines and compare the lines.
+//! can't pass for a match. Build it for two machines and compare the lines. Two takes: the dark,
+//! for as many minutes as asked, and the walk to the great aster.
+//!
+//! It also prints what the promise book asks of the build (spec/promises.md): `fact` lines, which
+//! are numbers the game reports about itself, and `witness` lines, one for each promise's moment
+//! that the scripted player met by playing.
 //!
 //!   game/build.sh            builds it for the laptop and the handheld, and runs the laptop's
 //!   build/same-take-x86_64 [minutes]
@@ -14,46 +19,113 @@ const sound_mod = rules.sound;
 var world: world_mod.World = undefined;
 var snd: sound_mod.Sound = undefined;
 
+const Take = struct {
+    sound_print: u64 = 0xcbf29ce484222325,
+    loudest: f32 = 0.0,
+    cue_total: u64 = 0,
+    refused: u64 = 0,
+
+    fn step(self: *Take, hands: world_mod.Hands) void {
+        var cues: [world_mod.max_cues]sound_mod.Cue = undefined;
+        var buf: [world_mod.samples_per_step]f32 = undefined;
+        const n = world.stepOnce(hands, &cues);
+        for (cues[0..n]) |cue| {
+            if (!snd.push(cue)) self.refused += 1;
+        }
+        self.cue_total += n;
+        snd.render(&buf);
+        for (buf) |x| {
+            self.sound_print ^= @as(u32, @bitCast(x));
+            self.sound_print *%= 0x100000001b3;
+            self.loudest = @max(self.loudest, @abs(x));
+        }
+    }
+
+    fn line(self: *const Take, label: []const u8, number: u64) void {
+        std.debug.print("{s} {d:>2}: world {x:0>16}  sound {x:0>16}  loudest {d:.3}  calls {d}  answers {d}  cues {d}  late {d}  refused {d}\n", .{
+            label,
+            number,
+            world.fingerprint(),
+            self.sound_print,
+            self.loudest,
+            world.calls,
+            world.answers,
+            self.cue_total,
+            snd.late,
+            self.refused + world.dropped,
+        });
+    }
+};
+
+fn witnesses() void {
+    for (world_mod.witness.names, 0..) |name, i| {
+        const mark = world.seen.marks[i];
+        if (mark.met) std.debug.print("witness {s} first={d} held={d}\n", .{ name, mark.first, mark.held });
+    }
+}
+
+fn fact(key: []const u8, value: f64) void {
+    std.debug.print("fact {s} {d:.3}\n", .{ key, value });
+}
+
 pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     var minutes: u32 = 10;
     if (argc > 1) minutes = std.fmt.parseInt(u32, std.mem.span(argv[1]), 10) catch 10;
+    const per_minute: u64 = 60 * world_mod.steps_per_second;
+
+    // the dark, from the scripted hands
     world = world_mod.World.init();
     snd.init();
     var script = rules.script.Script{};
-    var cues: [world_mod.max_cues]sound_mod.Cue = undefined;
-    var buf: [world_mod.samples_per_step]f32 = undefined;
-    var sound_print: u64 = 0xcbf29ce484222325;
-    var loudest: f32 = 0.0;
-    var cue_total: u64 = 0;
-    var refused: u64 = 0;
-
-    const steps: u64 = @as(u64, minutes) * 60 * world_mod.steps_per_second;
+    var dark = Take{};
+    const steps: u64 = @as(u64, minutes) * per_minute;
     var step: u64 = 0;
     while (step < steps) : (step += 1) {
-        const n = world.stepOnce(script.hands(step), &cues);
-        for (cues[0..n]) |cue| {
-            if (!snd.push(cue)) refused += 1;
-        }
-        cue_total += n;
-        snd.render(&buf);
-        for (buf) |x| {
-            sound_print ^= @as(u32, @bitCast(x));
-            sound_print *%= 0x100000001b3;
-            loudest = @max(loudest, @abs(x));
-        }
-        if ((step + 1) % (60 * world_mod.steps_per_second) == 0) {
-            std.debug.print("minute {d:>2}: world {x:0>16}  sound {x:0>16}  loudest {d:.3}  calls {d}  answers {d}  cues {d}  late {d}  refused {d}\n", .{
-                (step + 1) / (60 * world_mod.steps_per_second),
-                world.fingerprint(),
-                sound_print,
-                loudest,
-                world.calls,
-                world.answers,
-                cue_total,
-                snd.late,
-                refused + world.dropped,
-            });
-        }
+        dark.step(script.hands(step));
+        if ((step + 1) % per_minute == 0) dark.line("minute", (step + 1) / per_minute);
     }
+    witnesses();
+
+    // the walk to the great aster, by a player that plays by rules
+    world.initAsters();
+    snd.init();
+    var bot = rules.walker.Walker{};
+    var walk = Take{};
+    step = 0;
+    while (step < 5 * per_minute and !bot.done) : (step += 1) {
+        walk.step(bot.hands(&world));
+        if ((step + 1) % per_minute == 0) walk.line("asters minute", (step + 1) / per_minute);
+    }
+    walk.line("asters end, minute", step / per_minute + 1);
+    witnesses();
+
+    // what the game says of itself
+    var tallest: f32 = 0.0;
+    var shortest: f32 = 1e9;
+    var bells: u32 = 0;
+    for (world.towers[0..world.tower_count]) |tower| {
+        tallest = @max(tallest, tower.tall);
+        shortest = @min(shortest, tower.tall);
+        bells += tower.count - world_mod.asters.segments;
+    }
+    const great = world.towers[0];
+    fact("scale.one_to", world_mod.one_to);
+    fact("scale.hum_tall_m", world_mod.hum_tall);
+    fact("sound.speed_m_s", world_mod.sound_speed);
+    fact("dark.first_backlight", world_mod.first_dark_backlight);
+    fact("asters.count", @floatFromInt(world.tower_count));
+    fact("asters.tallest_m", tallest);
+    fact("asters.shortest_m", shortest);
+    fact("asters.bells", @floatFromInt(bells));
+    fact("asters.field_m", world_mod.asters.field_across);
+    fact("asters.great_tall_m", great.tall);
+    fact("asters.great_bells", @floatFromInt(great.count - world_mod.asters.segments));
+    fact("asters.great_climb_s", great.tall / world_mod.sound_speed);
+    fact("asters.walk_s", @as(f64, @floatFromInt(bot.arrived_at)) / 60.0);
+    // walking at its foot, is the crown above the top of the screen? The eye is cam_back behind
+    // Hum, who is at_foot from the stalk, and the frame's top edge is half the view above the gaze.
+    const top_edge = world_mod.walk_pitch + world_mod.place_fov * 0.5 * std.math.pi / 180.0;
+    const crown = std.math.atan2(great.tall * 0.74 - world_mod.cam_up, world_mod.at_foot + world_mod.cam_back);
+    fact("asters.top_out_of_frame", if (crown > top_edge) 1.0 else 0.0);
     return 0;
 }

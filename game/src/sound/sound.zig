@@ -16,9 +16,9 @@ const V = @Vector(4, f32);
 /// The shapes things come in, each with the overtones of that shape (spec/laws.md).
 pub const Family = enum(u8) { bell, string, stopped_pipe, bar, skin };
 
-const Recipe = struct { mult: [8]f32, gain: [8]f32 };
+pub const Recipe = struct { mult: [8]f32, gain: [8]f32 };
 
-fn recipe(family: Family) Recipe {
+pub fn recipe(family: Family) Recipe {
     return switch (family) {
         // a made bell: its third is the land's own, pure here
         .bell => .{ .mult = .{ 0.5, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0 }, .gain = .{ 0.30, 1.0, 0.45, 0.35, 0.55, 0.20, 0.22, 0.10 } },
@@ -45,7 +45,7 @@ pub const Cue = extern struct {
     pub const Kind = enum(u8) { strike, hum_on, hum_off };
 };
 
-const max_things = 96; // 8 overtones each: 768 overtones, two groups a thing
+const max_things = 192; // 8 overtones each: 1,536 overtones, two groups a thing
 const burst_len = 96; // 2 ms: what a strike is
 
 const Thing = struct {

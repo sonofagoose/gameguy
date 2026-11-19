@@ -4,9 +4,14 @@ pub const world = @import("world/world.zig");
 pub const sound = @import("sound/sound.zig");
 pub const m = @import("m.zig");
 pub const script = @import("bot/script.zig");
+pub const walker = @import("bot/walker.zig");
+pub const colour = @import("draw/colour.zig");
 
 test {
     _ = world;
+    _ = world.asters;
     _ = sound;
     _ = m;
+    _ = walker;
+    _ = colour;
 }

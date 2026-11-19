@@ -19,6 +19,20 @@ section 20, and `spec/stages.md`.
 | the room: Morgan's hand checks and the 31 listening clips, on the handheld | built and installed on the purple as GameguyRoom; it opens and leaves cleanly. Nobody has answered it yet |
 | second probe, the parts that need Morgan's hands | waiting for him to run the room: the tone, the rumble line, the backlight, the left stick, a headset. The clock check needs a power-off and on |
 
+## The promise book (2026-11-19, unfinished: the session hit its usage limit)
+
+Morgan asked for something that makes sure every claim is built at full size and felt by a person.
+
+| piece | state |
+|---|---|
+| `spec/promises.md`, `spec/promises/`, `spec/tools/promises.py` | written; the tool runs and writes `spec/promises/BOARD.md` |
+| witnesses in the world, the proof field of asters as tall as cathedrals, the walking bot | written; 12 tests pass; the laptop build runs the scene with no screen and dumps its frames |
+| the frames | dumped, **not yet looked at**: nothing is in `spec/promises/seen/` |
+| `game/build.sh` | **not yet changed**: it does not run the promise tool or the asters scene, and `results/same-take-aarch64.txt` is stale (the rules changed) |
+| the walk in the room | **not written** |
+| the purple | **not run**: none of this has been on a handheld |
+| `spec/size.md` (one to a hundred, the ring's size, the yardstick, the card) | **not written**; `spec/world.md` still has the old size estimate |
+
 ## Next
 
 1. Morgan reads and edits `SPEC.md`, and runs GameguyRoom on the purple (or the black, once the game

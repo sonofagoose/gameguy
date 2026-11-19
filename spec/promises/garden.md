@@ -1,0 +1,274 @@
+# Promises of the Garden
+
+_Part of the promise book (`../promises.md`). The Garden is the first land and the thirteenth
+morning's (`../world.md`, 1). Its eight lives are listed from `../people.md` and are sized when
+stage 2 begins._
+
+### `garden.asters` Asters as tall as cathedrals
+
+- **Said:** `spec/world.md` "Asters are as tall as cathedrals."
+- **Stage:** 2
+- **Scene:** asters
+- **The moment:** The page has just stood up, and what were small circles on the ground are towers.
+  The nearest aster is a mast as thick as you are tall, going up out of sight. You stop at its foot
+  and the view leans back by itself, and back, until the crown is overhead: dozens of flowers, each
+  one a bell wider than you are tall. You call. Your ring runs out along the ground, and it also
+  climbs: a band of light goes up the stalk, leaf by leaf, for more than two seconds before it
+  reaches the flowers. Then the crown lights in its own colours, and as long again after that, the
+  sound of its bells comes down to you, the low ones first. You have just measured a cathedral with
+  your own voice.
+- **Far:** the asters are the skyline: thin masts with lit crowns, fainter the farther they stand.
+  When any bell among them rings you see it at once and hear it late, the way far fireworks are.
+- **At its foot:** the stalk is a metre through. Leaves five to ten metres long leave it every few
+  metres, in a spiral, all the way up. Walking, you can't see the top; it has left the frame.
+- **Inside:** the leaves are a stair. You climb the spiral, and each leaf dips under you and sounds
+  its own low note. The crown is a belfry: branches you can walk, hung with bells, and from up there
+  the lake and every land's lights round it.
+- **After:** the skyline is a set of bells you know by height and by how late they answer. Ring one
+  from its foot and its kin answer across the garden, each when your sound has reached it and its
+  own has come back.
+- **A cheat would be:** a tall model. A flower scaled up beside the path, the same height as every
+  other, with one bell sound that plays the moment you press, a top you can see without looking up,
+  and nothing to climb.
+- **Full size:**
+  - `fact asters.tallest_m >= 150` As tall as the tallest churches ever built: Cologne Cathedral is
+    157 m and Ulm Minster's spire 161.5 m. A real New England aster is 0.9 to 1.85 m, and the world
+    is one to a hundred.
+  - `fact asters.shortest_m >= 90` None is merely big.
+  - `fact asters.count >= 60` A skyline of them, no two the same height.
+  - `fact asters.great_climb_s >= 2.4` How long your call takes to climb the great one, at 60 m a
+    second.
+  - `fact asters.top_out_of_frame == 1` Walking at its foot, the crown is above the top of the
+    screen.
+  - `test asters stand as tall as cathedrals, one to a hundred`
+  - `test a call climbs a tower, and its bells are heard late by their height`
+  - `take` The scripted player walks to the great aster, stops at its foot, calls, and is still
+    standing there when the bells are heard.
+  - `frame asters-far` The skyline, from where the page stood up.
+  - `frame asters-foot` At the foot, walking: the stalk leaves the top of the frame.
+  - `frame asters-lean` Stopped: the view leaned back, the crown overhead.
+  - `frame asters-answer` The crown lit by your call, in its own colours.
+  - `fact handheld.asters.late == 0` On the handheld, every frame of the walk and the call is on
+    time.
+  - `owed` Climbing by the leaves; each leaf's own note; the crown as a place to stand; the lake
+    seen from it.
+  - `owed` The swing (`garden.w07`): the tower sways at its own rate and its bells ring when it
+    does.
+  - `owed` Each aster's shape from the Garden's score, by rule and by hand. The proof field is made
+    by rule alone.
+- **Asks:** Is it as tall as a cathedral?
+
+### `garden.great` The Hose
+
+- **Said:** `spec/world.md` "A pipe stopped by its own knot."
+- **Stage:** 2
+- **The moment:** You walk into the open end of the hose standing up, because it is as wide as a
+  door. Inside it is a tunnel that goes on for two and a half kilometres, curving, lit only by what
+  sounds. The air in it moves: every few seconds a wind comes down the pipe hard enough to carry you
+  off, and between the winds there are places where the air doesn't move at all. Those places are
+  evenly spaced. You learn to run from one to the next. A kink ahead shortens the pipe, and all the
+  still places move. At the heart of it the Great Knot is counting five against seven, and you clap
+  it on the one beat in thirty-five where they meet. Then the water comes, and the whole pipe, with
+  you in it, sounds an octave higher.
+- **Far:** a green line across the whole garden, from the spigot to the pool, humming one low hollow
+  note you can hear from anywhere.
+- **At its foot:** its mouth, a door's height, breathing in and out.
+- **Inside:** its standing wave is the floor plan.
+- **After:** the pool fills, the lake rises a little, and the garden's lowest note is an octave up
+  and bright.
+- **A cheat would be:** a corridor level with fans on timers; a rhythm game at the end; a swapped
+  sound when it is over.
+- **Full size:**
+  - `owed` It is at least 1.5 km long and 1.3 m in the bore: a real hose of 15 to 30 m and 13 to 19
+    mm, one to a hundred. Hum walks inside upright, and it takes at least four minutes.
+  - `owed` The still places and the winds are the pipe's own standing wave, worked out from its
+    length. Change its length at a kink and they move to where the sum says.
+  - `owed` Stopped, it sounds its odd overtones only; opened, all of them, an octave higher. A test.
+  - `owed` Five against seven meet every thirty-fifth beat, and nowhere else. A test.
+  - `owed` The scripted player crosses it by the still places, and is blown back when it doesn't.
+  - `owed` On Gentle it can be sat with: the Knot comes undone by breathing with it.
+- **Asks:** Inside the Hose, could you tell where it was safe to stand before the wind came?
+
+### `garden.w01` The answering field
+
+- **Said:** `spec/world.md` "Ring one aster and every aster kin to it answers across the garden."
+- **Stage:** 2
+- **Scene:** asters
+- **The moment:** You ring one tower. Nothing, for a breath. Then its kin begin to answer from
+  across the garden, the near ones first, in their own colours, and the answers keep arriving for
+  half a minute, from further and further away, each one softer, until the last is a single low bell
+  from a place you haven't been.
+- **A cheat would be:** every aster flashing at once; a chord sample.
+- **Full size:**
+  - `test kin answer a call and strangers don't`
+  - `fact asters.field_m >= 1000` The proof field is over a kilometre across, so the farthest
+    answers take more than fifteen seconds to come back.
+  - `owed` Ringing a tower itself, by a strike at its foot, and its kin answering it, not only Hum's
+    voice.
+  - `owed` The answers are heard softer and duller with distance, and never louder together than the
+    first.
+- **Asks:** Did the answers coming in from far away make the garden feel big?
+
+### `garden.w02` The seed that follows
+
+- **Said:** `spec/world.md` "Put home one wedge under a seed's note and it comes to you."
+- **Stage:** 2
+- **The moment:** An aster seed hangs in the air on its tuft of down, as big as your head. You move
+  home on the wheel until it sits just under the seed's note, and the seed turns and drifts to you,
+  and follows you like a kite on no string. Move home over it and you are drawn up after it instead.
+- **A cheat would be:** a pet that follows when a button is pressed.
+- **Full size:**
+  - `owed` The pull is law 2's, from where home is. It works on any seed, and on anything else light
+    enough, with no list.
+  - `owed` A seed is its real size: 20 to 30 cm with half a metre of down.
+- **Asks:** Did it feel like the seed chose to come?
+
+### `garden.w03` The parade
+
+- **Said:** `spec/world.md` "Walk steadily and the pill bugs fall in behind."
+- **Stage:** 2
+- **The moment:** The pill bugs are as big as you are and going nowhere in particular. You walk past
+  at an even pace and one falls in behind you, then another, each a little out of step and then in
+  it. Break your pace and they scatter. Keep it, and you cross the garden at the head of twenty.
+- **A cheat would be:** followers that attach when touched.
+- **Full size:**
+  - `owed` They fall in by law 3: each one's pace is pulled toward yours only while yours is steady,
+    at the rate `laws.md` gives.
+  - `owed` The scripted player gathers twenty by walking evenly, and none by walking unevenly.
+- **Asks:** Did you change how you walked to keep them?
+
+### `garden.w04` The puddle bridge
+
+- **Said:** `spec/world.md` "Hum a pool's note and walk its still lines."
+- **Stage:** 2
+- **The moment:** A puddle from the storm is a lake two hundred metres across, and black. You hum,
+  and when you find its note, lines of light come up on the water: a ring, and spokes. They are
+  where the water isn't moving. You step out on one. Either side of you the water is heaving. Half a
+  minute later you are across. Hum the note above and the bridge redraws itself somewhere else.
+- **A cheat would be:** a bridge that appears when a button is held near the water.
+- **Full size:**
+  - `owed` The lines are the pool's own figure at that note, from its outline (`whole.law4`).
+  - `owed` The puddle is its real size: one to three metres, so 100 to 300 m to cross.
+  - `owed` Lose the note and the lines fade under you, slowly enough to run for it.
+- **Asks:** When the lines came up on the water, did you trust them enough to step out?
+
+### `garden.w05` The quiet ball
+
+- **Said:** `spec/world.md` "Sing a sound's mirror and it is gone."
+- **Stage:** 2
+- **The moment:** Something in the garden drones and won't stop. You match it and then lean your
+  note until the two fight, and at one exact place the drone vanishes, and with it the light: a ball
+  of dark and quiet with you inside it. Things that were hunting the sound walk past.
+- **A cheat would be:** a mute button with a dark circle.
+- **Full size:**
+  - `owed` The quiet is where the two sounds cancel, worked out from where each is, so it has an
+    edge you can find by walking.
+  - `owed` It is dark there because nothing is sounding there, by the same number.
+- **Asks:** Did it feel like you made the quiet, or switched it on?
+
+### `garden.w06` The far shore, late
+
+- **Said:** `spec/world.md` "Call across the water and count until the answer."
+- **Stage:** 2
+- **The moment:** You stand at the edge of the Mirror Pool and call. Your ring goes out over the
+  water and you watch it go, getting small. Five seconds. It touches the far reeds and they light.
+  Five more. Then their answer reaches you. You call again and count, and it is the same count, and
+  you understand that you have just measured the pool.
+- **A cheat would be:** an echo with a delay somebody typed in.
+- **Full size:**
+  - `test an answer is heard when it has travelled there and back`
+  - `owed` The Mirror Pool is 300 m across where you first stand: ten seconds there and back. From
+    other places on its shore the count is different, and right.
+- **Asks:** Did you count?
+
+### `garden.w07` The swing
+
+- **Said:** `spec/world.md` "Push an aster on its own beat until it rings."
+- **Stage:** 2
+- **The moment:** You lean on a tower with your voice and it moves a hand's width and comes back.
+  You push again as it comes back. A 150-metre aster sways once in about five seconds, so this takes
+  patience: six pushes, half a minute, each one on time. Then the crown is travelling metres through
+  the sky and its bells begin to ring by themselves, and the whole garden's kin answer.
+- **A cheat would be:** a bar that fills; any timing accepted.
+- **Full size:**
+  - `owed` A push in time adds and a push out of time takes away (`whole.law7`), and the tower's own
+    rate comes from its height.
+  - `owed` The bells are rung by the swing itself, each when its own clapper meets it, so a wider
+    swing rings more of them.
+  - `owed` From the top (`garden.asters`, inside) the swing can be ridden.
+- **Asks:** Did swinging something that big feel like timing, not strength?
+
+### `garden.w08` The hose's octave
+
+- **Said:** `spec/world.md` "Stopped, a pipe sounds an octave lower and hollow: it has only its odd
+  overtones."
+- **Stage:** 2
+- **The moment:** There are cut lengths of hose in the garden, open at both ends, and you ring one
+  and it is bright. You roll a pebble into one end and ring it again, and it has dropped a whole
+  octave and gone hollow, like a voice in a jar. Take the pebble out and it comes back.
+- **A cheat would be:** two samples.
+- **Full size:**
+  - `owed` Its truth as a sum: stopped, the lowest note halves and the even overtones are gone. A
+    test.
+  - `owed` Any pipe in any land does the same when anything stops it.
+- **Asks:** Could you hear that it was the same pipe?
+
+### `garden.w09` The drip's secret
+
+- **Said:** `spec/world.md` "A falling drop makes no sound. The plink is the bubble it traps,
+  ringing."
+- **Stage:** 2
+- **The moment:** The view leans in on the spigot and time thickens. A drop the size of your head
+  lets go and falls in silence, and meets the water in silence. Then a bubble closes under the
+  surface and that is the note: you see it ring, a small bright sphere, and the bigger the bubble
+  the lower it sings.
+- **A cheat would be:** a plink that plays on contact.
+- **Full size:**
+  - `owed` The note sounds when the bubble closes, not when the drop lands: late by a moment you can
+    see with time thickened.
+  - `owed` A bubble twice as wide sings an octave lower. A test.
+- **Asks:** Did you see where the sound really came from?
+
+### `garden.w10` The third man
+
+- **Said:** `spec/world.md` "Two voices lock, and a lower one sounds that neither is singing."
+- **Stage:** 2
+- **The moment:** You hold your note against Drip's a pure fifth above, and when they lock a third
+  voice is in the air under you both, an octave below yours. Nobody is singing it. Bend your note a
+  hair and it slides away and is gone.
+- **A cheat would be:** a bass note switched on when the game decides the two are in tune.
+- **Full size:**
+  - `owed` It is the difference between the two notes, made by the sound's own chain, at the level
+    `laws.md` gives. Measured from the sound by `game/tools/ears`: for C and the pure G above it, C
+    an octave down.
+  - `owed` It can be heard on the handheld's own small speaker. Morgan's yes in the room.
+- **Asks:** Did you hear a voice that neither of you was singing?
+
+### `garden.w11` Three against two
+
+- **Said:** `spec/world.md` "Hold the wheel on two drips a fifth apart and count them."
+- **Stage:** 2
+- **The moment:** Two taps are dripping. With the wheel held and time thick you hear what they are
+  doing: one falls three times while the other falls twice, and they land together on the one. A
+  fifth is the same thing, played fast: speed the drips up and they are a chord.
+- **A cheat would be:** a recorded polyrhythm.
+- **Full size:**
+  - `owed` The drips' rates are in the ratio of the fifth exactly, and they meet every sixth of a
+    second scaled by the same number. A test.
+  - `owed` The player can speed them up by hand until the rhythm is a pitch, all the way, with no
+    seam.
+- **Asks:** Did you hear the rhythm turn into a chord?
+
+### `garden.w12` The pot
+
+- **Said:** `spec/world.md` "A hollow has one note, and a bigger hollow has a lower one."
+- **Stage:** 2
+- **The moment:** A flowerpot on its side is a hall thirty metres high. You hum up and down inside
+  it, and at one note the whole pot hums with you and the air in its mouth pushes back at you like a
+  hand. A smaller pot beside it does the same thing higher up.
+- **A cheat would be:** a reverb preset.
+- **Full size:**
+  - `owed` Its note comes from its volume and its mouth by the sum in `laws.md`; a pot of any size
+    in any land gives its own.
+  - `owed` A real pot of 15 to 30 cm: 15 to 30 m, and Hum walks in.
+- **Asks:** Did the pot answer one note and no other?

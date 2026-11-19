@@ -519,6 +519,13 @@ The ladder from Part 0, each rung catching what the ones below can't:
 8. **Morgan, on the handheld.** The room (`game/tools/room/`) is where his answers are logged: a
    clip or a moment, and a button for yes, no or again. This is the only rung that says the game is
    good.
+9. **The promises.** Every claim in this file and in `spec/` that a player is meant to see, hear, do
+   or feel is a promise, with its full size and its cheat written down. A stage is done only when
+   each of its promises is kept: proven by the build, reached by the scripted player, felt by a
+   person holding the handheld, and graded by a fresh reader (`spec/promises.md`; where each one
+   stands is `spec/promises/BOARD.md`). The build refuses a stage called done before that.
+10. **The ear, before and after:** what a person can hear on the last morning that they could not on
+    the first. The room measures it both times.
 
 ## 22. Starting a build session
 
