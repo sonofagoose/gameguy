@@ -1,0 +1,4 @@
+governors: cpu ondemand, gpu simple_ondemand, memory dmc_ondemand
+memory clock changes so far: 119
+gpu clock changes so far: 10
+cpu clock changes so far: 3688

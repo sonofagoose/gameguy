@@ -100,19 +100,47 @@ var audio_last: f64 = 0.0;
 var audio_callbacks: u32 = 0;
 var audio_gaps: u32 = 0;
 var audio_worst_us: u32 = 0;
+/// The longest the synth took to fill one buffer, and when and how long each gap was (the last
+/// 32), so a gap can be told apart: the synth ran long, or the thread was kept waiting.
+var audio_render_worst_us: u32 = 0;
+/// -1 not asked yet, 0 refused, 1 granted: whether the sound thread runs ahead of everything
+/// that is not real-time (the launcher has to raise the limit for it to be allowed).
+var audio_realtime: i32 = -1;
+var audio_realtime_said: bool = false;
+var gap_clock: [32]f64 = @splat(0.0);
+var gap_us_log: [32]u32 = @splat(0);
+var gap_render_us_log: [32]u32 = @splat(0);
 
 fn audioCallback(userdata: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.c) void {
     _ = userdata;
     const frames = @as(usize, @intCast(len)) / (@sizeOf(f32) * audio_channels);
     const out: [*]f32 = @ptrCast(@alignCast(stream));
+    if (@atomicLoad(i32, &audio_realtime, .monotonic) < 0) {
+        // 0 means "this thread"
+        var param = std.mem.zeroes(c.struct_sched_param);
+        param.sched_priority = 30;
+        const granted = c.sched_setscheduler(0, c.SCHED_FIFO, &param) == 0;
+        @atomicStore(i32, &audio_realtime, if (granted) 1 else 0, .monotonic);
+    }
+    const began = platform.now();
     engine.render(&shared, out[0 .. frames * audio_channels], frames, audio_channels);
 
     // A callback arriving more than two periods after the last one means the device ran dry.
     const t = platform.now();
+    const render_us: u32 = @intFromFloat(@min((t - began) * 1e6, 4e9));
     const count = @atomicLoad(u32, &audio_callbacks, .monotonic);
     if (count > 50) {
+        if (render_us > @atomicLoad(u32, &audio_render_worst_us, .monotonic)) @atomicStore(u32, &audio_render_worst_us, render_us, .monotonic);
         const gap_us: u32 = @intFromFloat(@min((t - audio_last) * 1e6, 4e9));
-        if (gap_us > audio_period_us * 2) @atomicStore(u32, &audio_gaps, @atomicLoad(u32, &audio_gaps, .monotonic) + 1, .monotonic);
+        if (gap_us > audio_period_us * 2) {
+            const n = @atomicLoad(u32, &audio_gaps, .monotonic);
+            var wall: c.struct_timespec = undefined;
+            _ = c.clock_gettime(c.CLOCK_REALTIME, &wall);
+            gap_clock[n % 32] = @as(f64, @floatFromInt(wall.tv_sec)) + @as(f64, @floatFromInt(wall.tv_nsec)) * 1e-9;
+            gap_us_log[n % 32] = gap_us;
+            gap_render_us_log[n % 32] = render_us;
+            @atomicStore(u32, &audio_gaps, n + 1, .monotonic);
+        }
         if (gap_us > @atomicLoad(u32, &audio_worst_us, .monotonic)) @atomicStore(u32, &audio_worst_us, gap_us, .monotonic);
     }
     audio_last = t;
@@ -479,7 +507,7 @@ const Timing = struct {
     fn report(self: *const Timing, label: []const u8) void {
         if (self.frames == 0) return;
         const n: f64 = @floatFromInt(self.frames);
-        log("{s}: {d} frames, {d:.2} ms each (worst {d:.2}), {d} late; game work {d:.2} ms (worst {d:.2}); audio {d} callbacks, {d} gaps, worst gap {d:.2} ms", .{
+        log("{s}: {d} frames, {d:.2} ms each (worst {d:.2}), {d} late; game work {d:.2} ms (worst {d:.2}); audio {d} callbacks, {d} gaps, worst gap {d:.2} ms, slowest fill {d:.2} ms", .{
             label,
             self.frames,
             self.interval_sum / n * 1000.0,
@@ -490,6 +518,7 @@ const Timing = struct {
             @atomicLoad(u32, &audio_callbacks, .monotonic),
             @atomicLoad(u32, &audio_gaps, .monotonic),
             @as(f64, @floatFromInt(@atomicLoad(u32, &audio_worst_us, .monotonic))) / 1000.0,
+            @as(f64, @floatFromInt(@atomicLoad(u32, &audio_render_worst_us, .monotonic))) / 1000.0,
         });
     }
 };
@@ -584,6 +613,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     var window_timing = Timing{};
     var last_swap = platform.now();
     var last_report = last_swap;
+    var gaps_logged: u32 = 0;
     // The time one frame takes, measured from one buffer swap to the next. (The swap is where
     // the wait for the display happens, so the time from a swap to the top of the loop is
     // almost nothing.)
@@ -618,6 +648,24 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
 
         world.step(hands.input, dt, shared.beat());
         logEvents(&world);
+        if (!audio_realtime_said and @atomicLoad(i32, &audio_realtime, .monotonic) >= 0) {
+            audio_realtime_said = true;
+            if (@atomicLoad(i32, &audio_realtime, .monotonic) == 1) {
+                log("sound thread: real-time priority", .{});
+            } else {
+                log("sound thread: ordinary priority (real-time was refused; the launcher raises the limit)", .{});
+            }
+        }
+        // each gap in the sound, with the wall clock, so it can be matched against the device
+        const gaps_now = @atomicLoad(u32, &audio_gaps, .monotonic);
+        while (gaps_logged < gaps_now) : (gaps_logged += 1) {
+            log("t={d:.1} sound gap of {d:.1} ms (that buffer took {d:.2} ms to fill) at clock {d:.3}", .{
+                world.time,
+                @as(f64, @floatFromInt(gap_us_log[gaps_logged % 32])) / 1000.0,
+                @as(f64, @floatFromInt(gap_render_us_log[gaps_logged % 32])) / 1000.0,
+                gap_clock[gaps_logged % 32],
+            });
+        }
         if (clock_by_frame) {
             var left: usize = @intFromFloat(@round(dt * synth.sample_rate));
             while (left > 0) {

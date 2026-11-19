@@ -33,7 +33,24 @@ for i in $SDIRQS; do
 done
 command -v taskset > /dev/null || PIN=""
 
-$PIN ./wheel-aarch64 --out results "$@" > "results/console-$STAMP.log" 2>&1
+# The menu can start a port with the clocks left to scale themselves ("ondemand"). On this
+# handheld that leaves the GPU at its slowest, and a toy at about two thirds of its frame rate
+# with a gap in the sound every half minute (measured 2026-11-15, docs/hardware-target.md). So
+# the launcher pins the CPU, GPU and memory clocks at full speed itself. Whatever started it
+# (the menu's perfnorm, or r36s.sh) puts the clocks back afterwards.
+G_CPU=/sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+G_GPU=/sys/devices/platform/ff400000.gpu/devfreq/ff400000.gpu/governor
+G_MEM=/sys/devices/platform/dmc/devfreq/dmc/governor
+WERE="cpu $(cat $G_CPU 2>/dev/null), gpu $(cat $G_GPU 2>/dev/null), memory $(cat $G_MEM 2>/dev/null)"
+for g in $G_CPU $G_GPU $G_MEM; do echo performance | sudo -n tee "$g" > /dev/null 2>&1; done
+# Let the toy's sound thread ask for real-time priority, ahead of everything ordinary.
+sudo -n prlimit --pid $$ --rtprio=40:40 > /dev/null 2>&1
+
+{ echo "clocks as started: $WERE"
+  echo "clocks now: cpu $(cat $G_CPU 2>/dev/null), gpu $(cat $G_GPU 2>/dev/null), memory $(cat $G_MEM 2>/dev/null)"
+  echo "priority: nice $(nice), real-time limit $(ulimit -r); storage interrupts on core(s) $(for i in $SDIRQS; do cat /proc/irq/$i/smp_affinity_list; done | sort -u | tr '\n' ' '); run with: ${PIN:-no pinning}"
+} > "results/console-$STAMP.log"
+$PIN ./wheel-aarch64 --out results "$@" >> "results/console-$STAMP.log" 2>&1
 echo "exit code $?" >> "results/console-$STAMP.log"
 for i in $SDIRQS; do echo 0-3 | sudo -n tee "/proc/irq/$i/smp_affinity_list" > /dev/null 2>&1; done
 sync
