@@ -1,0 +1,10 @@
+minute  1: world 55cdf6a2e76a1e2b  sound 282b4624a84056f8  loudest 0.918  calls 15  answers 247  cues 270  late 0  refused 0
+minute  2: world 63f91f471057af9c  sound 329c394ed359b4c3  loudest 0.931  calls 32  answers 273  cues 323  late 0  refused 0
+minute  3: world 197ef4d23d665f8e  sound ebc9a5561e33b15a  loudest 0.931  calls 46  answers 273  cues 349  late 0  refused 0
+minute  4: world 7adc4e6ccbdd0558  sound 19129cb1f40e6209  loudest 0.931  calls 58  answers 273  cues 371  late 0  refused 0
+minute  5: world c62900d7dc0720f3  sound 02859ba60fc3d956  loudest 0.931  calls 71  answers 273  cues 394  late 0  refused 0
+minute  6: world 039e9ee85f5c01dc  sound 0f7ccb4b2f1bcf75  loudest 0.931  calls 85  answers 273  cues 417  late 0  refused 0
+minute  7: world be9c9f33b9c80b14  sound b3b08fcb46ba687f  loudest 0.931  calls 100  answers 273  cues 441  late 0  refused 0
+minute  8: world 11a9a43df22f82ef  sound 0de2dea459e1a6c7  loudest 0.931  calls 114  answers 273  cues 463  late 0  refused 0
+minute  9: world 6b0cb430a968cd82  sound daaa4889063c2186  loudest 0.931  calls 131  answers 273  cues 488  late 0  refused 0
+minute 10: world 4e9016695f1e48c7  sound 5ee2fd47d84b9a10  loudest 0.931  calls 149  answers 273  cues 516  late 0  refused 0

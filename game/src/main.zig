@@ -1,11 +1,13 @@
 //! gameguy: the game.
 //!
-//! So far this is the workshop: the window, the loop, frames dumped from a run with no screen,
-//! and the benchmark that says how many lines of light a frame holds (`--lines`).
+//! So far: the dark and the call (dark.zig), which is the first minute of the first evening, and
+//! the benchmark that says how many lines of light a frame holds (`--lines`). Either can run with
+//! no screen and dump its frames.
 const std = @import("std");
 const plat = @import("plat/plat.zig");
 const png = @import("plat/png.zig");
 const lines = @import("draw/lines.zig");
+const dark = @import("dark.zig");
 const m = @import("m.zig");
 const c = plat.c;
 const sdl = plat.sdl;
@@ -20,6 +22,8 @@ const Args = struct {
     dump: ?[*:0]const u8 = null,
     dump_every: u32 = 30,
     log_path: ?[*:0]const u8 = null,
+    wav: ?[*:0]const u8 = null,
+    bot: bool = false,
 };
 
 fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
@@ -34,6 +38,8 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
             args.windowed = true;
         } else if (std.mem.eql(u8, a, "--lines")) {
             args.bench_lines = true;
+        } else if (std.mem.eql(u8, a, "--bot")) {
+            args.bot = true;
         } else if (std.mem.eql(u8, a, "--frames") and i + 1 < n) {
             i += 1;
             args.frames = std.fmt.parseInt(u32, std.mem.span(argv[i]), 10) catch 0;
@@ -46,8 +52,11 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
         } else if (std.mem.eql(u8, a, "--log") and i + 1 < n) {
             i += 1;
             args.log_path = argv[i];
+        } else if (std.mem.eql(u8, a, "--wav") and i + 1 < n) {
+            i += 1;
+            args.wav = argv[i];
         } else if (std.mem.eql(u8, a, "--help")) {
-            log("gameguy [--lines] [--headless] [--windowed] [--frames N] [--dump DIR] [--dump-every N] [--log FILE]", .{});
+            log("gameguy [--lines] [--bot] [--headless] [--windowed] [--frames N] [--dump DIR] [--dump-every N] [--wav FILE] [--log FILE]", .{});
         }
     }
     return args;
@@ -307,7 +316,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     if (args.bench_lines) {
         ok = benchLines(window, args);
     } else {
-        log("nothing here yet but the workshop: try --lines", .{});
+        ok = dark.run(window, .{ .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot });
     }
     if (plat.log_file) |file| _ = c.fclose(file);
     return if (ok) 0 else 1;

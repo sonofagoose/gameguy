@@ -1,0 +1,11 @@
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+lines bench: 240 frames for each size; a third of the lines belong to things that sound
+lines   9924 ( 3324 sounding,  6600 lit), black triangles  5000: frame 17.09 ms (worst 17.24), 0 late; drawn in 7.96 ms (worst 8.47)
+lines  19960 ( 6660 sounding, 13300 lit), black triangles  5000: frame 17.09 ms (worst 17.23), 0 late; drawn in 11.85 ms (worst 12.24)
+lines  29996 ( 9996 sounding, 20000 lit), black triangles  5000: frame 18.82 ms (worst 22.11), 0 late; drawn in 15.51 ms (worst 16.23)
+lines  39932 (13332 sounding, 26600 lit), black triangles  5000: frame 21.99 ms (worst 22.70), 0 late; drawn in 18.98 ms (worst 19.67)
+lines  59992 (19992 sounding, 40000 lit), black triangles  5000: frame 30.42 ms (worst 31.40), 240 late; drawn in 27.38 ms (worst 28.23)
+lines  79964 (26664 sounding, 53300 lit), black triangles  5000: frame 38.80 ms (worst 40.18), 240 late; drawn in 35.72 ms (worst 37.15)
+lines  29996 ( 9996 sounding, 20000 lit), black triangles     0: frame 18.70 ms (worst 22.52), 0 late; drawn in 15.38 ms (worst 15.89)
+lines  29996 ( 9996 sounding, 20000 lit), black triangles 20000: frame 20.99 ms (worst 21.98), 0 late; drawn in 17.89 ms (worst 18.57)

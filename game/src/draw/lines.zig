@@ -184,6 +184,8 @@ pub const Renderer = struct {
 
     line_vao: c.GLuint = 0,
     line_vbo: c.GLuint = 0,
+    dyn_vbo: c.GLuint = 0,
+    dyn_count: u32 = 0,
     occ_vao: c.GLuint = 0,
     occ_vbo: c.GLuint = 0,
     empty_vao: c.GLuint = 0,
@@ -239,6 +241,7 @@ pub const Renderer = struct {
         // the lines: one buffer of instances, four corners each from the vertex's number
         gl.GenVertexArrays(1, &self.line_vao);
         gl.GenBuffers(1, &self.line_vbo);
+        gl.GenBuffers(1, &self.dyn_vbo);
         gl.BindVertexArray(self.line_vao);
         gl.BindBuffer(c.GL_ARRAY_BUFFER, self.line_vbo);
         const stride: c.GLsizei = @sizeOf(Inst);
@@ -348,6 +351,15 @@ pub const Renderer = struct {
         _ = plat.checkGl("land upload");
     }
 
+    /// Lines that change every frame (rings, Hum, creatures). They all go through the phosphor.
+    pub fn setDynamic(self: *Renderer, insts: []const Inst) void {
+        self.dyn_count = @intCast(insts.len);
+        if (insts.len == 0) return;
+        gl.BindBuffer(c.GL_ARRAY_BUFFER, self.dyn_vbo);
+        gl.BufferData(c.GL_ARRAY_BUFFER, @intCast(insts.len * @sizeOf(Inst)), insts.ptr, c.GL_STREAM_DRAW);
+        gl.BindBuffer(c.GL_ARRAY_BUFFER, 0);
+    }
+
     fn drawOcc(self: *Renderer, vp: *const m.M4) void {
         if (self.occ_verts == 0) return;
         gl.UseProgram(self.occ_prog);
@@ -364,7 +376,7 @@ pub const Renderer = struct {
         gl.ColorMask(c.GL_TRUE, c.GL_TRUE, c.GL_TRUE, c.GL_TRUE);
     }
 
-    fn drawLines(self: *Renderer, vp: *const m.M4, first: u32, count: u32) void {
+    fn drawLines(self: *Renderer, vp: *const m.M4, vbo: c.GLuint, first: u32, count: u32) void {
         if (count == 0) return;
         gl.UseProgram(self.line_prog);
         gl.UniformMatrix4fv(self.line_u_vp, 1, c.GL_FALSE, vp);
@@ -380,7 +392,7 @@ pub const Renderer = struct {
         gl.BlendFunc(c.GL_ONE, c.GL_ONE);
         gl.BindVertexArray(self.line_vao);
         // The instance buffer is read from `first` on: move the attribute pointers there.
-        gl.BindBuffer(c.GL_ARRAY_BUFFER, self.line_vbo);
+        gl.BindBuffer(c.GL_ARRAY_BUFFER, vbo);
         const stride: c.GLsizei = @sizeOf(Inst);
         const base: usize = @as(usize, first) * @sizeOf(Inst);
         gl.VertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "a")));
@@ -419,7 +431,8 @@ pub const Renderer = struct {
         gl.DepthMask(c.GL_TRUE);
         gl.Clear(c.GL_COLOR_BUFFER_BIT | c.GL_DEPTH_BUFFER_BIT);
         self.drawOcc(vp);
-        self.drawLines(vp, 0, self.sounding);
+        self.drawLines(vp, self.line_vbo, 0, self.sounding);
+        self.drawLines(vp, self.dyn_vbo, 0, self.dyn_count);
 
         // 2. the trail, half size
         gl.Disable(c.GL_DEPTH_TEST);
@@ -455,7 +468,7 @@ pub const Renderer = struct {
         self.fullScreen(0, self.fb_w, self.fb_h);
         gl.ActiveTexture(c.GL_TEXTURE0);
         self.drawOcc(vp);
-        self.drawLines(vp, self.sounding, self.lit);
+        self.drawLines(vp, self.line_vbo, self.sounding, self.lit);
 
         self.ping = next;
     }

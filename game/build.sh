@@ -15,10 +15,12 @@ build_for() {  # name, then extra zig flags for the target
   "$ZIG" build-exe "$@" -O ReleaseSafe --dep c -Mroot=src/main.zig -Mc="build/c-$name.zig" \
       -lc -ldl -lm -femit-bin="build/gameguy-$name" --cache-dir build/cache
   "$ZIG" build-exe "$@" -O ReleaseFast bench/modes.zig -lc -femit-bin="build/modes-$name" --cache-dir build/cache
+  "$ZIG" build-exe "$@" -O ReleaseSafe --dep rules -Mroot=tools/same_take.zig -Mrules=src/rules.zig \
+      -lc -femit-bin="build/same-take-$name" --cache-dir build/cache
 }
 
-echo "== tests"
-"$ZIG" test src/m.zig --cache-dir build/cache 2>&1 | tail -1
+echo "== tests (the rules, the sound, the arithmetic: nothing that needs a screen)"
+"$ZIG" test src/rules.zig --cache-dir build/cache 2>&1 | tail -1
 
 echo "== laptop (x86_64)"
 build_for x86_64
@@ -29,6 +31,23 @@ SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy build/gameguy-x86_64 --lines --h
     --dump build/frames > build/headless.out 2> build/headless.err
 if [ -s build/headless.err ]; then echo "the run wrote to the error stream:"; cat build/headless.err; exit 1; fi
 ls build/frames | sed 's/^/   /'
+
+echo "== no screen: the dark and the call, twenty seconds of the scripted hands, frames and sound kept"
+SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy build/gameguy-x86_64 --headless --frames 1200 \
+    --dump build/frames --dump-every 150 --wav build/dark.wav > build/dark.out 2> build/dark.err
+if [ -s build/dark.err ]; then echo "the run wrote to the error stream:"; cat build/dark.err; exit 1; fi
+tail -1 build/dark.out | sed 's/^/   /'
+
+echo "== same take: ten minutes of the world and the sound, fingerprinted"
+build/same-take-x86_64 10 2> build/same-take-x86_64.txt
+tail -1 build/same-take-x86_64.txt | sed 's/^/   /'
+if [ -f results/same-take-aarch64.txt ]; then
+  if diff -q <(grep minute build/same-take-x86_64.txt) <(grep minute results/same-take-aarch64.txt) > /dev/null; then
+    echo "   the same as the handheld's last run, minute for minute"
+  else
+    echo "   DIFFERENT from the handheld's last run (results/same-take-aarch64.txt): run it there again"
+  fi
+fi
 [ "${1:-}" = laptop ] && exit 0
 
 echo "== handheld (aarch64, glibc 2.30 floor, Cortex-A35)"
@@ -39,7 +58,7 @@ echo "== pack"
 rm -rf dist
 P=dist/ports
 mkdir -p "$P/gameguy"
-cp build/gameguy-aarch64 build/modes-aarch64 "$P/gameguy/"
+cp build/gameguy-aarch64 build/modes-aarch64 build/same-take-aarch64 "$P/gameguy/"
 cp port/Gameguy.sh "$P/"
 chmod +x "$P/Gameguy.sh" "$P/gameguy/gameguy-aarch64" "$P/gameguy/modes-aarch64"
 find dist -type f | sort | sed 's/^/   /'
