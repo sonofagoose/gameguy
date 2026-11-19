@@ -33,6 +33,7 @@ past the deepest game he knows.
 | witnesses in the world; a proof field of asters as tall as cathedrals; the walking player | done: 12 tests pass; frames looked at and kept in `spec/promises/seen/` |
 | on the purple | the asters walk: 2,398 frames, none late, 18,055 lines at most; both takes the same as the laptop |
 | the walk in the room | built and on the purple (Ports, GameguyRoom): 8 promises to walk. Nobody has answered it |
+| the ear, before and after: a staircase between a still fifth and a turning one, in the room straight after it asks who is holding it | built and on the purple. Nobody has taken it. It should be taken before a person first plays |
 | `spec/size.md`: one to a hundred, the ring's size, what the card is for | written. Its measurements are owed (its last section) |
 | `spec/years.md`: three wants, ties, meetings, being them, generations | written |
 | `spec/together.md`: the cable carries it; a world for two | written |

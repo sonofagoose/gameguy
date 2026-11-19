@@ -282,9 +282,10 @@ every land._
   turning and the other is plainly home. Nobody taught you. You walked there.
 - **A cheat would be:** a quiz about music theory; a score that only measures time played.
 - **Full size:**
-  - `owed` The ear check in the room: pairs of sounds, no words, two buttons, a staircase that finds
-    the smallest difference the person can tell: a pure fifth from a wide one, a still pair from a
-    beating one, home from a comma sharp.
-  - `owed` It is taken before the first evening and after the thirteenth morning, and both numbers
-    are kept in the book.
+  - `owed` Each person's first number, taken before their first evening. The check is in the room
+    now, straight after it asks who is holding the handheld: a pure fifth against a wide one, the
+    difference shrinking until it can't be told. Nobody has taken it yet.
+  - `owed` The other two pairs: a still pair from a beating one on a third, and home from a comma
+    sharp.
+  - `owed` The same check after the thirteenth morning, and both numbers kept in the book.
 - **Asks:** nobody: the two numbers answer it.

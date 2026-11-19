@@ -9,6 +9,9 @@
 //!
 //! The items, in order:
 //!   - who is holding the handheld;
+//!   - the ear, before (spec/promises.md): two pairs of notes, one still and one turning, and
+//!     which is still? The difference shrinks until it can't be told. The number it ends on is
+//!     that person's ear before they have played, to be set beside the same number afterwards;
 //!   - the walk (spec/promises.md): each promise that has a scene, from the folder's
 //!     `promises.txt`. It names the promise, puts the person in the moment with their own hands,
 //!     and when they come back asks its one question. What their hands did there is logged too;
@@ -161,6 +164,36 @@ var swell_left: u32 = 0;
 var swell_total: u32 = 1;
 var swell_level: u32 = 0; // 0 to 1000, for the backlight to follow
 
+// the ear check: two pairs of notes a fifth apart, one pure and one a little wide
+const ear_pair: u32 = 62400; // 1.3 s
+const ear_gap: u32 = 16800; // 0.35 s
+var ear_left: u32 = 0;
+var ear_cents: f32 = 0.0;
+var ear_first_pure: bool = true;
+
+fn earSample(at: u32) f32 {
+    const total = ear_pair * 2 + ear_gap;
+    if (at >= total) return 0.0;
+    const second = at >= ear_pair + ear_gap;
+    if (at >= ear_pair and !second) return 0.0;
+    const n: u32 = if (second) at - ear_pair - ear_gap else at;
+    const pure = (second and !ear_first_pure) or (!second and ear_first_pure);
+    const root: f64 = 261.63;
+    const fifth: f64 = root * 1.5 * (if (pure) 1.0 else std.math.pow(f64, 2.0, @as(f64, ear_cents) / 1200.0));
+    const seconds = @as(f64, @floatFromInt(n)) / 48000.0;
+    var s: f64 = 0.0;
+    for (1..6) |k| {
+        const h: f64 = @floatFromInt(k);
+        s += @sin(seconds * root * h * 6.283185307) / h;
+        if (k < 5) s += @sin(seconds * fifth * h * 6.283185307) / h;
+    }
+    // in and out over 40 ms, so nothing clicks
+    const edge: f64 = 1920.0;
+    const from_end: f64 = @floatFromInt(ear_pair - n);
+    const env = @min(1.0, @min(@as(f64, @floatFromInt(n)) / edge, from_end / edge));
+    return @floatCast(0.085 * env * s);
+}
+
 fn playCallback(userdata: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.c) void {
     _ = userdata;
     const frames = @as(usize, @intCast(len)) / (@sizeOf(f32) * out_channels);
@@ -177,6 +210,10 @@ fn playCallback(userdata: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.c) 
             if (tone_phase >= 1.0) tone_phase -= 1.0;
             s += 0.25 * @sin(tone_phase * 6.2831853);
             tone_left -= 1;
+        }
+        if (ear_left > 0) {
+            s += earSample(ear_pair * 2 + ear_gap - ear_left);
+            ear_left -= 1;
         }
         if (swell_left > 0) {
             // two swells of a pure fifth, each rising and falling
@@ -248,7 +285,65 @@ fn stopClip() void {
 
 // ------------------------------------------------------------------ the items
 
-const Kind = enum { who, promise, tone, backlight, stick, clip };
+const Kind = enum { who, ear, promise, tone, backlight, stick, clip };
+
+/// The ear check's staircase: two right in a row and the difference shrinks; one wrong and it
+/// grows. Where it turns round, eight times, is where the ear's edge is.
+const Ear = struct {
+    cents: f32 = 32.0,
+    streak: u32 = 0,
+    last_way: i32 = 0,
+    turns: [8]f32 = @splat(0.0),
+    turn_count: u32 = 0,
+    trials: u32 = 0,
+    seed: u32 = 0x6d2b79f5,
+    done: bool = false,
+
+    fn next(self: *Ear) void {
+        self.seed ^= self.seed << 13;
+        self.seed ^= self.seed >> 17;
+        self.seed ^= self.seed << 5;
+        ear_first_pure = self.seed & 0x100 != 0;
+        ear_cents = self.cents;
+        ear_left = ear_pair * 2 + ear_gap;
+    }
+
+    fn answer(self: *Ear, said_first: bool) void {
+        self.trials += 1;
+        const right = said_first == ear_first_pure;
+        var way: i32 = 0;
+        if (right) {
+            self.streak += 1;
+            if (self.streak == 2) {
+                self.cents = @max(0.5, self.cents / 1.41421);
+                self.streak = 0;
+                way = -1;
+            }
+        } else {
+            self.cents = @min(64.0, self.cents * 1.41421);
+            self.streak = 0;
+            way = 1;
+        }
+        if (way != 0) {
+            if (self.last_way != 0 and way != self.last_way and self.turn_count < self.turns.len) {
+                self.turns[self.turn_count] = self.cents;
+                self.turn_count += 1;
+            }
+            self.last_way = way;
+        }
+        self.done = self.turn_count >= self.turns.len or self.trials >= 36;
+    }
+
+    /// The middle of the last six turns, as a ratio is averaged.
+    fn edge(self: *const Ear) f32 {
+        if (self.turn_count == 0) return self.cents;
+        const from = if (self.turn_count > 6) self.turn_count - 6 else 0;
+        var sum: f32 = 0.0;
+        for (self.turns[from..self.turn_count]) |c_| sum += @log(c_);
+        return @exp(sum / @as(f32, @floatFromInt(self.turn_count - from)));
+    }
+};
+var ear = Ear{};
 
 const Item = struct {
     kind: Kind,
@@ -288,7 +383,8 @@ fn readInto(dir: []const u8, name: []const u8, into: []u8) []const u8 {
 
 fn loadItems(dir: []const u8) void {
     items[0] = .{ .kind = .who, .name = "who is holding it", .question = "The answers are kept with a name. Who is holding the handheld?" };
-    item_count = 1;
+    items[1] = .{ .kind = .ear, .name = "the ear, before", .question = "Two pairs of notes. One pair is still and one is turning. Which is STILL? It gets harder until you are guessing: guess. About two minutes." };
+    item_count = 2;
     // the walk: id|scene|title|question
     var rows = std.mem.splitScalar(u8, readInto(dir, "promises.txt", &promise_list), '\n');
     while (rows.next()) |row| {
@@ -343,6 +439,7 @@ fn setBacklight(value: i32) void {
 
 fn enter(item: *Item, dir: []const u8) void {
     stopClip();
+    ear_left = 0;
     item.plays += 1;
     switch (item.kind) {
         .tone => tone_left = 96000,
@@ -351,6 +448,9 @@ fn enter(item: *Item, dir: []const u8) void {
             swell_left = swell_total;
         },
         .who, .promise, .stick => {},
+        .ear => {
+            if (!ear.done) ear.next();
+        },
         .clip => {
             var path: [512]u8 = undefined;
             const p = std.mem.printSentinel(&path, "{s}/clips/{s}.wav", .{ dir, item.file }, 0) catch return;
@@ -416,7 +516,7 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
     var type_: Type = undefined;
     if (!type_.init(window.width, window.height)) return false;
     loadItems(dir);
-    log("room: {d} items ({d} promises to walk, {d} checks for the hands, {d} clips for the ears)", .{ item_count, promise_count, checks.len, item_count - 1 - promise_count - checks.len });
+    log("room: {d} items (the ear check, {d} promises to walk, {d} checks for the hands, {d} clips for the ears)", .{ item_count, promise_count, checks.len, item_count - 2 - promise_count - checks.len });
 
     var device = openPlay();
     defer if (device != 0) sdl.CloseAudioDevice(device);
@@ -472,6 +572,20 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
                 item.answer = 'y';
                 log("room: held by {s}", .{holder});
                 move_on_at = frame + 15;
+            }
+        } else if (item.kind == .ear) {
+            if (!ear.done and (pressed[0] or pressed[1])) {
+                ear.seed +%= frame;
+                ear.answer(pressed[0]);
+                if (ear.done) {
+                    item.answer = 'y';
+                    log("room: ear: a still fifth from a turning one: the edge is {d:.1} cents by {s} ({d} trials, {d} turns)", .{ ear.edge(), holder, ear.trials, ear.turn_count });
+                    move_on_at = frame + 90;
+                } else {
+                    ear.next();
+                }
+            } else if (!ear.done and pressed[2]) {
+                ear_left = ear_pair * 2 + ear_gap;
             }
         } else if (item.kind == .promise and !item.been) {
             if (pressed[0]) {
@@ -568,12 +682,21 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
             paragraph(&type_, shown.question, 150.0, bone);
             const keys: []const u8 = switch (shown.kind) {
                 .who => "A Morgan   B JJ   Y someone else",
+                .ear => "A the first   B the second   Y again   R1 skip",
                 .promise => "A yes   B no   Y go there again   R1 next",
                 else => "A yes   B no   Y again   R1 next   L1 back",
             };
             type_.line(30.0, 420.0, 1.0, dim, keys);
         }
-        if (shown.answer == 'y' and shown.kind != .who) type_.line(470.0, 70.0, 1.7, green, "yes");
+        if (shown.kind == .ear) {
+            var count: [48]u8 = undefined;
+            const text: []const u8 = if (ear.done)
+                (std.mem.printSentinel(&count, "done: {d:.1} cents", .{ear.edge()}, 0) catch "done")
+            else
+                (std.mem.printSentinel(&count, "pair {d}", .{ear.trials + 1}, 0) catch "");
+            type_.line(30.0, 106.0, 1.2, dim, text);
+        }
+        if (shown.answer == 'y' and shown.kind != .who and shown.kind != .ear) type_.line(470.0, 70.0, 1.7, green, "yes");
         if (shown.answer == 'n') type_.line(470.0, 70.0, 1.7, red, "no");
         type_.line(30.0, 448.0, 1.0, dim, "Select and Start together: leave");
         type_.flush();
