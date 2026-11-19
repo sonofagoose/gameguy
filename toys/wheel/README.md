@@ -97,6 +97,12 @@ SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy toys/wheel/build/wheel-x86_64 \
 `--bot` runs the same scripted player in real time with real sound, for measuring on the
 handheld. `--skip N` starts N scenes in. `--help` lists the rest.
 
+`tools/same-take.zig` checks that one take plays out the same everywhere. It runs the rules and
+sound for twenty minutes with no picture and prints a fingerprint of the world and of the sound
+each minute, with the loudest sample so far. Its header has the build lines. Its first version
+(2026-11-17, morning) never built the wavetables, so it compared silence; the results of the fixed
+version, on the laptop, the purple, WebAssembly and C, are in `docs/hardware-target.md`.
+
 ## Measured on the black unit, 2026-11-14
 
 The scripted player, 4,270 frames (`results/black-20261114/wheel-20260414-140213.txt`; the
@@ -122,7 +128,9 @@ a quarter speed while the sound ran at full speed. It is fixed in all three.
 
 ## What a session leaves behind
 
-`results/wheel-<time>.txt`: every call, every time the wheel opened and where home went, every
+`results/console-<time>.log` starts with the clocks the toy was started on and the priority it
+got. `results/wheel-<time>.txt`: whether the sound thread got real-time priority, every gap in
+the sound with its time, every call, every time the wheel opened and where home went, every
 strike (how many creatures it rang, how many on a meeting, whether it was timed true), every
 release and nudge with its distance from the one in milliseconds, every walk landed and its
 length, every lash, and every 20 seconds the frame pacing and audio gaps.
