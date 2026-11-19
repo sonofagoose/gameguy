@@ -116,8 +116,7 @@ the game, or the system in the background.
   - The game's files are better on a card in TF2 than in `/roms` on the built-in storage.
   - Three of the four cured test sessions still had a single audio gap of 8 to 12 ms, and a
     seven-minute session played by hand from the menu had 11 (the worst 15 ms), about one every
-    40 seconds, with no stalled frame. Scripted sessions started over the cable had none. So
-    storage bursts on core 3 may still delay the sound a little. Not explained yet.
+    40 seconds, with no stalled frame. The next section is what was found about those.
 - **The TF2 slot only looks for a card at boot.** Its card-detect line read "present" with no
   change recorded since boot, with the slot empty and after a card went in. A card put in while
   the unit runs is not noticed until a restart, or until that slot's controller is unbound and
@@ -125,6 +124,125 @@ the game, or the system in the background.
   eMMC's, `ff390000`). Nothing mounts a TF2 card by itself: `/etc/fstab` has no entry for it.
 - Tools and sessions: `toys/page/tools/` (the watcher, and the test launchers) and
   `toys/page/results/black-20261114/storage-stall/`.
+
+## Clocks left to scale, and the sound thread's priority (measured 2026-11-15)
+
+The menu starts a port through `perfmax` with a governor setting. If that is "ondemand", the CPU,
+GPU and memory clocks scale themselves; `r36s.sh run` always pins all three at full speed. Which
+one the menu passes on this image is recorded from now on at the top of each toy's console log.
+
+| the page toy, scripted, in the place view | frames | sound |
+|---|---|---|
+| clocks at full speed, sound thread at ordinary priority (nice -19), 427 s | 17.10 ms each, 3 late in 24,970 | no gaps (longest wait 3.1 ms) |
+| clocks scaling, ordinary priority, 290 s | 22 to 30 ms each: about two thirds of the frame rate | **10 gaps of 7 to 15 ms**, about one every 32 s |
+| clocks scaling, sound thread at real-time priority, 158 s | 28.3 ms each | **no gaps** (longest wait 3.4 ms) |
+| the launcher as it is now, started on scaling clocks, 73 s | 17.10 ms each, 2 late in 4,270 | no gaps (longest wait 3.0 ms) |
+
+- **Scaling clocks starve this kind of program.** The GPU sat at its slowest (200 MHz) for the
+  whole session and the CPU at 600 to 816 MHz. The scaling never saw enough load to speed up, and
+  the toy missed about every other frame.
+- **The gaps come at a steady 30 seconds or so.** They were not memory-clock changes (there were
+  none), and only some lined up with a storage burst. What they are is not settled. Real-time
+  priority removes them.
+- **The synth is not the cause.** Its slowest fill of a 2.67 ms buffer was 0.87 ms at full speed
+  and 1.9 ms on scaling clocks.
+- **In every launcher now:** the three clocks are pinned at full speed (`performance`), and the
+  real-time limit is raised (`prlimit --rtprio=40:40`) so that the toy's sound thread can ask for
+  real-time priority (`SCHED_FIFO`, 30). The wheel and page toys ask.
+- **Still to confirm by hand.** The session played from the menu on 2026-11-14, before these
+  changes, had 11 gaps of up to 15 ms at the same rhythm, with its frames on time. Each gap is now
+  logged with its time, so the next session played from the menu will show whether they are gone.
+- Sessions: `toys/page/results/black-20261115/sound-gaps/`. Tools: `toys/page/tools/`.
+
+## The game card in the TF2 slot (measured 2026-11-17)
+
+Both units now have a 32 GB SDHC card (`SD32G`) in TF2, erased, with one exFAT partition named
+GAMEGUY. Measured on the purple with the card fresh:
+
+| | |
+|---|---|
+| the card's mode | SDR104, the fastest SD mode; the controller is `ff380000.dwmmc`, interrupt 21 |
+| finding it again (unbind and bind that controller only) | 0.93 s |
+| checking it (`fsck.exfat -n`) | 0.26 s |
+| mounting it, unmounting it | 0.40 s, 0.25 s |
+| writing 64 MB and pushing it out | 31.1 MB/s, 52 interrupts per 256 KB |
+| reading 64 MB, past the cache | 42.7 MB/s, under one interrupt per 256 KB |
+| 4 KB appended and pushed out (`fsync`), 200 times | 1.6 ms typical, 4.4 ms for nine in ten, 48.5 ms for one in a hundred |
+| a 64 KB save: new file, pushed out, renamed over the old, folder pushed out | 9.5 ms typical, 13.3 ms worst |
+
+- **The slot only looks for a card at start-up.** A card put in later is not seen until a restart,
+  or until the slot's controller is unbound and bound again. The page toy's launcher does that
+  when it finds no card, and only if nothing in the slot is mounted and the system does not live
+  on it.
+- **Nothing mounts the card by itself.** `/etc/fstab` has no entry for it. ArkOS's own "Switch to
+  SD2 for Roms" would add one and move the whole menu to the card; it is not used.
+- The page toy's book wrote a 76.5 s recording (7.3 MB) to the card during a session with no sound
+  gaps and 2 frames one frame late (`design/the-card.md`).
+
+## Render passes cost a fixed amount (measured 2026-11-17)
+
+The page toy's beam light keeps a fading copy of the picture (a phosphor). Its first version
+(full-size copy in half floats, then three blur passes on a sixteenth-size copy for a halo) took
+the toy's work from 1.46 ms to 7.31 ms a frame on the purple, with 216 frames late in 4,270.
+
+- Moving the copy to half size brought it to 4.64 ms and 11 late.
+- Dropping only the three small blur passes brought it to 2.83 ms and 1 late. They cover a
+  sixteenth of the screen, but each pass costs this GPU a fixed amount.
+- As built (half-size copy that bleeds a little each frame for the halo, three passes in all): 3.57
+  ms, none late, worst frame 20.4 ms.
+- So: keep passes few. A pass is worth its pixels only when there are many of them.
+
+## One take plays out the same on every machine tried (measured 2026-11-17)
+
+`toys/wheel/tools/same-take.zig` runs the wheel toy's rules and sound with no picture. It plays
+twenty minutes at a fixed 60 steps a second: the scripted player, plus a seeded scatter of extra
+walks, calls and dodges. After every minute it prints a fingerprint of the world, a fingerprint of
+the sound, and the loudest sample so far.
+
+- **A correction.** The first version, run in the morning, never built the synth's wavetables: the
+  toy calls `engine.init()` and the test didn't. So the sound it fingerprinted was silence, and the
+  laptop and the purple agreed on twenty minutes of nothing. The world's fingerprints from that run
+  stand, because the world never reads the tables. The fixed version prints the loudest sample on
+  every line, so silence can't pass for a match again.
+- **The result** of the fixed version, against the laptop's own build:
+
+| build | where it ran | world | sound |
+|---|---|---|---|
+| Zig, x86_64 Linux | laptop | the reference | the reference |
+| Zig, aarch64 Linux | the purple | identical | identical |
+| Zig, WebAssembly | laptop, in Node 24 (V8) | identical | identical |
+| Zig's C output, compiled by Clang, x86_64 | laptop | identical | identical |
+| the same C, Clang, aarch64 | laptop, emulated (qemu) | identical | identical |
+| the same C with multiply-add fusion allowed, x86_64 (this laptop's own instructions) | laptop | differs from the first minute | differs |
+| the same, aarch64 | laptop, emulated | differs from the first minute, and from the x86_64 build with fusion | differs |
+| the same C, GCC 16 | | doesn't compile | |
+
+- **What it covers.** 2,515 events and 57.6 million samples, with the sound reaching 0.946 of full
+  scale.
+- **Why it holds.** The maths the rules call (`sinf`, `expf`; the page toy also `fmodf` and `tanf`)
+  is compiled into the program from Zig's own library: the symbols are local, not glibc's. And Zig
+  never fuses a multiply and an add unless asked. Keep both. With fusion allowed (the C builds
+  above), the world changes from the first minute, though after twenty minutes it still has the same
+  2,515 events: small differences in where things are, which a longer take would grow.
+- **Through C.** Zig's C output, compiled by Clang, gives the same world and sound. GCC 16 rejects
+  it (it declares thread-local variables twice). Zig's C output also computes a float `@mod` as a -
+  floor(a/b) * b, which rounds twice, so it differs from Zig's own `@mod` unless the divisor is a
+  power of two. A separate check of two million values found sine, cosine, exp, tanh and atan2
+  identical, and float `@mod` not. In the toys' rules float `@mod` only ever divides by a power of
+  two (the beat modulo 4), which is exact either way. The one other use, a grain seed modulo 997 in
+  the page toy's drawing (`toys/page/src/gfx.zig`), would differ only in the picture.
+- **Speed.** With real sound the purple did the twenty minutes in about 3 min 38 s on one core, just
+  after booting: about five and a half times faster than real time. The morning's 3 min 16 s was the
+  silent run.
+- **A trap for tests over ssh.** logind's default `RemoveIPC=yes` deletes the `ark` user's files in
+  `/dev/shm` when its last session ends. Keep a test and its output there within one ssh session, or
+  put them somewhere else.
+- **Not covered.** On the handheld the toys take their time from the display and the sound card:
+  `world.step(hands, frame time, sound clock)`. Replaying a toy session would need those two clocks
+  for every frame as well. A game that steps at a fixed rate needs only the hands.
+  - A simulated twenty-minute day of hands packs to about 0.1 MB, or 0.25 MB with the clocks
+    (`design/the-card.md`).
+  - The sticks rest at exactly zero (see Controls), so real hands should pack smaller still.
 
 ## CPU and memory
 

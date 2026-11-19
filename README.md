@@ -10,10 +10,11 @@ Start here:
 | `r36s-game-brainstorm.md` | the creative brainstorm, Morgan's material, and Part 0: how the Fable sessions run |
 | `docs/hardware-target.md` | measured hardware numbers to design against |
 | `docs/fable-handoff.md` | the platform, how to build for it, the laptop ↔ handheld deploy loop, verification |
+| `docs/other-platforms.md` | PC, other consoles and phones: what travels, what doesn't, and the rules that keep a port possible |
 | `docs/walkthrough-probe-and-flash.md` | history of how both units were set up (2026-11-11/12) |
 | `probe/` | the hardware probe (a measuring instrument; `probe/results/` has every run) |
 | `probe/tools/` | `r36s.sh` (talk to the handhelds over USB), `flash-emmc-usb.sh` (reflash), `set-dtb.sh` (change a unit's device tree with automatic undo), card tools |
-| `design/` | game design brainstorms (nothing decided): three shapes for the game, the look, memory in rhythm, an imagined ultimate form with seven imagined playthroughs, the wheel in the hand, experience fixes, the way home, the page and the place (flat and deep as one world), and listening tests |
+| `design/` | game design brainstorms (nothing decided). Start with `the-whole-game.md`, every part of the design in one place at its full scope. Then: three shapes for the game, the look, memory in rhythm, an imagined ultimate form with seven imagined playthroughs, the wheel in the hand, experience fixes, the way home, the page and the place (flat and deep as one world), drawn in light (the look, after the meadow was dropped), the card (what the game card is for), together (two consoles: letters, side by side, visits), and listening tests |
 | `material/` | Morgan's own writing given to the project as material, verbatim |
 | `toys/` | small throwaway programs that test one mechanic on the handheld before the game is designed around it |
 
