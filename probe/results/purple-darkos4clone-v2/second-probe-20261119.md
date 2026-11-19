@@ -118,6 +118,30 @@ of a 2.67 ms buffer, by the time 99 buffers in 100 came in under.
 - So one core holds about **2,100 sounding overtones** at the throttled clock with half of every
   buffer to spare.
 
+## How many lines a frame holds
+
+`game/src/main.zig --lines`, run through the launcher on the unit's own screen
+(`game/results/purple-20261119/`). A made-up land of rolling ground and bell-headed stalks, a
+camera circling it, every body's loudness changing every frame; a third of the lines go through the
+phosphor. Each line is one instance of a four-cornered strip, placed by the vertex shader. 240
+frames for each size. "Drawn" is from the first call to the end of `glFinish`.
+
+| lines | black triangles | drawn | frame |
+|---|---|---|---|
+| 9,924 | 5,000 | 6.6 ms | 17.09 ms, none late |
+| 19,960 | 5,000 | 8.8 ms | 17.09 ms, none late |
+| 29,996 | 5,000 | 11.1 ms | 17.09 ms, none late |
+| 39,932 | 5,000 | 13.2 ms | 17.09 ms, none late |
+| 59,992 | 5,000 | 18.5 ms | 21.6 ms |
+| 79,964 | 5,000 | 23.5 ms | 26.6 ms |
+| 29,996 | none | 10.7 ms | 17.09 ms, none late |
+| 29,996 | 20,000 | 13.3 ms | 17.09 ms, none late |
+
+- About 4.4 ms for the three passes, and 0.22 ms for each thousand lines.
+- Black triangles are cheap: 20,000 add 2.2 ms. They are drawn twice, to depth only.
+- With six corners to a line instead of four, the same 29,996 lines took 15.5 ms and missed frames.
+- So a view holds about **30,000 lines** inside an 11 ms budget.
+
 ## Needs a person
 
 1. A phone headset with a microphone in the jack, then a recording: does the game get a voice?

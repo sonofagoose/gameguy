@@ -439,7 +439,7 @@ Measured numbers the design rests on (`docs/hardware-target.md`; `probe/results/
 | a frame | 17.1 ms at 58.46 Hz; a 60.02 Hz mode exists |
 | cores for the game | three; the fourth takes the storage interrupts |
 | overtones one core renders in half a 2.67 ms buffer | about 2,100 at the purple's throttled clock, bit for bit the same as on the laptop |
-| picture | 76,000 triangles a frame at full rate (the meadow toy); about 50 full-screen blended layers; three render passes at most, because each costs a fixed amount |
+| picture | 30,000 lines of light a frame in 11.1 ms, and 40,000 in 13.2 ms, every frame on time, with black shapes and all three passes (`game/` on the purple); three render passes at most, because each costs a fixed amount |
 | the page toy's whole frame | 1,400 marks in 1.3 to 3.6 ms of one core |
 | memory | 918 MiB, about 815 free when a game starts |
 | the card | reads 43 MB/s with next to no interrupts; a 64 KB save in 9.5 ms |
@@ -454,7 +454,6 @@ Still to be measured, and by what:
 
 | what | how |
 |---|---|
-| lines a frame with the GPU doing the projecting, and black shapes hiding what is behind | the workshop's benchmark, on the purple |
 | button to sound, button to picture | the room, with Morgan's phone filming, or a headset if the jack records |
 | a headset's microphone through the jack; a motor on the rumble line; the breathing backlight; the speaker's loudness | the room, with Morgan's hands, eyes and ears |
 | drift between two units' sound clocks; a link that lasts hours; the cable pulled | stage 6, with the black hosting |

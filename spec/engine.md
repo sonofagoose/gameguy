@@ -50,7 +50,7 @@ game/
 |---|---|---|
 | the world's steps | 3 ms | the wheel toy's whole world: under 0.7 ms |
 | building the frame | 4 ms | the page toy: 1.3 to 3.6 ms for 1,400 marks, with every point projected on the processor |
-| the GPU | 11 ms, in three passes | the meadow toy: 8 to 12 ms for 76,000 lit triangles |
+| the GPU | 11 ms, in three passes | 30,000 lines and 5,000 black triangles: 11.1 ms |
 | the sound thread | half of each 2.67 ms buffer | 2,100 overtones (`game/bench/modes.zig`) |
 | memory | 300 MB | |
 
@@ -158,8 +158,10 @@ The thirteen rules in `docs/other-platforms.md` hold. In code they mean:
 - **Far lands** are each a few hundred lines and lights, always loaded.
 - **The backlight** is one number written each frame to a file the launcher opens for the game,
   moved smoothly, and put back when the game ends.
-- **To measure before building on it:** how many line instances a frame holds with the black shapes
-  and all three passes. The estimate is 30,000, from the meadow toy's 76,000 triangles.
+- **Measured on the purple** (`game/src/main.zig`, `--lines`): 4.4 ms for the three passes, and 0.22
+  ms for each thousand lines. 30,000 lines draw in 11.1 ms and 40,000 in 13.2 ms with every frame on
+  time; 60,000 miss. Black triangles are cheap: 20,000 of them add 2.2 ms. Each line is a strip of
+  four corners: with six corners the same 30,000 took 15.5 ms. So a view holds about 30,000 lines.
 
 ## Places and scores
 

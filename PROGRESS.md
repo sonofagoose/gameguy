@@ -12,8 +12,8 @@ section 20, and `spec/stages.md`.
 | `SPEC.md` | done |
 | `spec/` (laws, world, people, engine, stages, ideas) | done |
 | `DECISIONS.md`, `CLAUDE.md`, the index, the hardware sheet | done |
-| the workshop: `game/` builds, runs with no screen, dumps frames, packs | next |
-| lines-a-frame benchmark on the handheld | next |
+| the workshop: `game/build.sh` builds both machines, runs with no screen, dumps frames, packs | done; the sound, the world's first step and the same-take test are next |
+| lines-a-frame benchmark on the handheld | done: 30,000 lines in 11.1 ms (`game/results/purple-20261119/`) |
 | the room: Morgan's hand checks and the 31 listening clips, on the handheld | next |
 | second probe, the parts that need Morgan's hands | waiting for the room |
 

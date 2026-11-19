@@ -1,0 +1,314 @@
+//! gameguy: the game.
+//!
+//! So far this is the workshop: the window, the loop, frames dumped from a run with no screen,
+//! and the benchmark that says how many lines of light a frame holds (`--lines`).
+const std = @import("std");
+const plat = @import("plat/plat.zig");
+const png = @import("plat/png.zig");
+const lines = @import("draw/lines.zig");
+const m = @import("m.zig");
+const c = plat.c;
+const sdl = plat.sdl;
+const gl = plat.gl;
+const log = plat.log;
+
+const Args = struct {
+    headless: bool = false,
+    windowed: bool = false,
+    bench_lines: bool = false,
+    frames: u32 = 0,
+    dump: ?[*:0]const u8 = null,
+    dump_every: u32 = 30,
+    log_path: ?[*:0]const u8 = null,
+};
+
+fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
+    var args = Args{};
+    var i: usize = 1;
+    const n: usize = @intCast(argc);
+    while (i < n) : (i += 1) {
+        const a = std.mem.span(argv[i]);
+        if (std.mem.eql(u8, a, "--headless")) {
+            args.headless = true;
+        } else if (std.mem.eql(u8, a, "--windowed")) {
+            args.windowed = true;
+        } else if (std.mem.eql(u8, a, "--lines")) {
+            args.bench_lines = true;
+        } else if (std.mem.eql(u8, a, "--frames") and i + 1 < n) {
+            i += 1;
+            args.frames = std.fmt.parseInt(u32, std.mem.span(argv[i]), 10) catch 0;
+        } else if (std.mem.eql(u8, a, "--dump") and i + 1 < n) {
+            i += 1;
+            args.dump = argv[i];
+        } else if (std.mem.eql(u8, a, "--dump-every") and i + 1 < n) {
+            i += 1;
+            args.dump_every = std.fmt.parseInt(u32, std.mem.span(argv[i]), 10) catch 30;
+        } else if (std.mem.eql(u8, a, "--log") and i + 1 < n) {
+            i += 1;
+            args.log_path = argv[i];
+        } else if (std.mem.eql(u8, a, "--help")) {
+            log("gameguy [--lines] [--headless] [--windowed] [--frames N] [--dump DIR] [--dump-every N] [--log FILE]", .{});
+        }
+    }
+    return args;
+}
+
+/// A small generator with no library behind it: the same land on every machine.
+const Rand = struct {
+    s: u32,
+    fn next(self: *Rand) u32 {
+        self.s ^= self.s << 13;
+        self.s ^= self.s >> 17;
+        self.s ^= self.s << 5;
+        return self.s;
+    }
+    /// From 0 up to, not including, 1.
+    fn unit(self: *Rand) f32 {
+        return @as(f32, @floatFromInt(self.next() >> 8)) * (1.0 / 16777216.0);
+    }
+};
+
+fn ground(x: f32, z: f32) f32 {
+    return 6.0 * @sin(x * 0.021) * @cos(z * 0.017) + 3.0 * @sin(x * 0.05 + z * 0.043);
+}
+
+const half_field: f32 = 200.0;
+
+/// A made-up piece of land for the benchmark: rolling ground drawn as lines both ways, bell-headed
+/// stalks standing on it, and the ground itself as black triangles so that hills hide what is
+/// behind them.
+const Land = struct {
+    sounding: []lines.Inst,
+    lit: []lines.Inst,
+    occ: [][3]f32,
+    sounding_n: usize = 0,
+    lit_n: usize = 0,
+    occ_n: usize = 0,
+
+    fn alloc(max_lines: usize, max_occ: usize) ?Land {
+        const a: [*]lines.Inst = @ptrCast(@alignCast(c.malloc(max_lines * @sizeOf(lines.Inst)) orelse return null));
+        const b: [*]lines.Inst = @ptrCast(@alignCast(c.malloc(max_lines * @sizeOf(lines.Inst)) orelse return null));
+        const o: [*][3]f32 = @ptrCast(@alignCast(c.malloc(max_occ * 12) orelse return null));
+        return .{ .sounding = a[0..max_lines], .lit = b[0..max_lines], .occ = o[0..max_occ] };
+    }
+
+    fn make(self: *Land, want_lines: usize, occ_cell: f32) void {
+        self.sounding_n = 0;
+        self.lit_n = 0;
+        self.occ_n = 0;
+        var rand = Rand{ .s = 0x9e3779b9 };
+
+        // A third of the lines belong to things that sound: stalks with a ring for a head.
+        const per_stalk = 12;
+        const stalks = want_lines / 3 / per_stalk;
+        var body: usize = 1;
+        for (0..stalks) |_| {
+            const x = (rand.unit() * 2.0 - 1.0) * half_field * 0.95;
+            const z = (rand.unit() * 2.0 - 1.0) * half_field * 0.95;
+            const y0 = ground(x, z);
+            const tall = 3.0 + rand.unit() * 9.0;
+            const r = 0.6 + rand.unit() * 1.4;
+            const hue = rand.unit();
+            const col = [4]u8{
+                @intFromFloat(120.0 + 135.0 * @abs(@sin(hue * 6.283))),
+                @intFromFloat(120.0 + 135.0 * @abs(@sin(hue * 6.283 + 2.094))),
+                @intFromFloat(120.0 + 135.0 * @abs(@sin(hue * 6.283 + 4.189))),
+                255,
+            };
+            const b: f32 = @floatFromInt(body % lines.max_bodies);
+            self.sounding[self.sounding_n] = .{ .a = .{ x, y0, z }, .b = .{ x, y0 + tall, z }, .half_width = 1.4, .body = b, .col = col };
+            self.sounding_n += 1;
+            for (0..8) |k| {
+                const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 8.0);
+                const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 8.0);
+                self.sounding[self.sounding_n] = .{
+                    .a = .{ x + r * @cos(a0), y0 + tall + r * @sin(a0), z },
+                    .b = .{ x + r * @cos(a1), y0 + tall + r * @sin(a1), z },
+                    .half_width = 1.4,
+                    .body = b,
+                    .col = col,
+                };
+                self.sounding_n += 1;
+            }
+            for (0..3) |k| {
+                const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 3.0);
+                self.sounding[self.sounding_n] = .{
+                    .a = .{ x, y0 + tall, z },
+                    .b = .{ x + r * @cos(a0), y0 + tall + r * @sin(a0), z },
+                    .half_width = 1.2,
+                    .body = b,
+                    .col = col,
+                };
+                self.sounding_n += 1;
+            }
+            body += 1;
+        }
+
+        // The rest are the ground's own lines, both ways, in 8 m pieces.
+        const want_lit = want_lines - self.sounding_n;
+        const piece: f32 = 8.0;
+        const per_row: usize = @intFromFloat(2.0 * half_field / piece);
+        const rows = @max(@as(usize, 2), want_lit / (2 * per_row));
+        const gap = 2.0 * half_field / @as(f32, @floatFromInt(rows - 1));
+        const ground_col = [4]u8{ 150, 170, 160, 110 };
+        for (0..rows) |row| {
+            const z = -half_field + gap * @as(f32, @floatFromInt(row));
+            for (0..per_row) |k| {
+                const x0 = -half_field + piece * @as(f32, @floatFromInt(k));
+                const x1 = x0 + piece;
+                self.lit[self.lit_n] = .{ .a = .{ x0, ground(x0, z), z }, .b = .{ x1, ground(x1, z), z }, .half_width = 1.1, .body = 0.0, .col = ground_col };
+                self.lit_n += 1;
+                self.lit[self.lit_n] = .{ .a = .{ z, ground(z, x0), x0 }, .b = .{ z, ground(z, x1), x1 }, .half_width = 1.1, .body = 0.0, .col = ground_col };
+                self.lit_n += 1;
+            }
+        }
+
+        // The ground as black triangles.
+        if (occ_cell > 0.0) {
+            const cells: usize = @intFromFloat(2.0 * half_field / occ_cell);
+            for (0..cells) |iz| {
+                for (0..cells) |ix| {
+                    const x0 = -half_field + occ_cell * @as(f32, @floatFromInt(ix));
+                    const z0 = -half_field + occ_cell * @as(f32, @floatFromInt(iz));
+                    const x1 = x0 + occ_cell;
+                    const z1 = z0 + occ_cell;
+                    const p00 = [3]f32{ x0, ground(x0, z0), z0 };
+                    const p10 = [3]f32{ x1, ground(x1, z0), z0 };
+                    const p01 = [3]f32{ x0, ground(x0, z1), z1 };
+                    const p11 = [3]f32{ x1, ground(x1, z1), z1 };
+                    self.occ[self.occ_n..][0..6].* = .{ p00, p10, p11, p00, p11, p01 };
+                    self.occ_n += 6;
+                }
+            }
+        }
+    }
+};
+
+fn dumpFrame(renderer: *lines.Renderer, dir: [*:0]const u8, name: []const u8, pixels: []u8) void {
+    renderer.readFrame(pixels);
+    var path: [512]u8 = undefined;
+    const text = std.mem.printSentinel(&path, "{s}/{s}.png", .{ std.mem.span(dir), name }, 0) catch return;
+    if (!png.writeFromGl(text.ptr, @intCast(renderer.fb_w), @intCast(renderer.fb_h), pixels)) {
+        log("could not write {s}", .{text});
+    }
+}
+
+const Bench = struct { lines: usize, occ_cell: f32 };
+
+/// How many lines a frame holds: the same land at several sizes, a camera circling it, every
+/// body's loudness changing every frame.
+fn benchLines(window: plat.Window, args: Args) bool {
+    var renderer: lines.Renderer = undefined;
+    if (!renderer.init(window.width, window.height)) return false;
+    var land = Land.alloc(100_000, 90_000) orelse return false;
+    const pixels: []u8 = blk: {
+        const n: usize = @intCast(window.width * window.height * 4);
+        const p: [*]u8 = @ptrCast(c.malloc(n) orelse return false);
+        break :blk p[0..n];
+    };
+    var loud: [lines.max_bodies]u8 = @splat(255);
+
+    const runs = [_]Bench{
+        .{ .lines = 10_000, .occ_cell = 8.0 },
+        .{ .lines = 20_000, .occ_cell = 8.0 },
+        .{ .lines = 30_000, .occ_cell = 8.0 },
+        .{ .lines = 40_000, .occ_cell = 8.0 },
+        .{ .lines = 60_000, .occ_cell = 8.0 },
+        .{ .lines = 80_000, .occ_cell = 8.0 },
+        .{ .lines = 30_000, .occ_cell = 0.0 },
+        .{ .lines = 30_000, .occ_cell = 4.0 },
+    };
+    const frames_each: u32 = if (args.frames > 0) args.frames else 240;
+    const aspect = @as(f32, @floatFromInt(window.width)) / @as(f32, @floatFromInt(window.height));
+    const proj = m.perspective(50.0, aspect, 0.3, 900.0);
+    log("lines bench: {d} frames for each size; a third of the lines belong to things that sound", .{frames_each});
+
+    for (runs, 0..) |run, run_index| {
+        land.make(run.lines, run.occ_cell);
+        renderer.setLand(land.sounding[0..land.sounding_n], land.lit[0..land.lit_n], land.occ[0..land.occ_n]);
+        var work_sum: f64 = 0.0;
+        var work_worst: f64 = 0.0;
+        var gap_sum: f64 = 0.0;
+        var gap_worst: f64 = 0.0;
+        var late: u32 = 0;
+        var last_swap = plat.now();
+        var frame: u32 = 0;
+        while (frame < frames_each + 20) : (frame += 1) {
+            var event: c.SDL_Event = undefined;
+            while (sdl.PollEvent(&event) != 0) {
+                if (event.type == c.SDL_QUIT) return true;
+            }
+            const t: f32 = @as(f32, @floatFromInt(frame)) / 60.0;
+            const angle = t * 0.35 + @as(f32, @floatFromInt(run_index));
+            const ex = 150.0 * @cos(angle);
+            const ez = 150.0 * @sin(angle);
+            const eye = m.V3{ ex, ground(ex, ez) + 9.0, ez };
+            const view = m.lookAt(eye, .{ 0.0, 4.0, 0.0 }, .{ 0.0, 1.0, 0.0 });
+            const vp = m.mul(proj, view);
+            for (&loud, 0..) |*v, i| {
+                const phase = @as(f32, @floatFromInt(i % 97)) * 0.13 + t * (1.0 + @as(f32, @floatFromInt(i % 7)) * 0.4);
+                v.* = @intFromFloat(140.0 + 115.0 * @sin(phase));
+            }
+            loud[0] = 255;
+
+            const began = plat.now();
+            renderer.frame(&vp, &loud);
+            gl.Finish();
+            const done = plat.now();
+            if (args.dump) |dir| {
+                if (frame == 20 + frames_each / 2) {
+                    var name: [64]u8 = undefined;
+                    const text: []const u8 = std.mem.printSentinel(&name, "lines-{d}-{d}", .{ run.lines, @as(u32, @intFromFloat(run.occ_cell)) }, 0) catch "lines";
+                    dumpFrame(&renderer, dir, text, pixels);
+                }
+            }
+            sdl.GL_SwapWindow(window.handle);
+            const swapped = plat.now();
+            if (frame >= 20) {
+                const work = (done - began) * 1000.0;
+                const gap = (swapped - last_swap) * 1000.0;
+                work_sum += work;
+                work_worst = @max(work_worst, work);
+                gap_sum += gap;
+                gap_worst = @max(gap_worst, gap);
+                if (gap > 25.0) late += 1;
+            }
+            last_swap = swapped;
+        }
+        const n: f64 = @floatFromInt(frames_each);
+        log("lines {d:>6} ({d:>5} sounding, {d:>5} lit), black triangles {d:>5}: frame {d:.2} ms (worst {d:.2}), {d} late; drawn in {d:.2} ms (worst {d:.2})", .{
+            land.sounding_n + land.lit_n,
+            land.sounding_n,
+            land.lit_n,
+            land.occ_n / 3,
+            gap_sum / n,
+            gap_worst,
+            late,
+            work_sum / n,
+            work_worst,
+        });
+        if (!plat.checkGl("lines bench")) return false;
+    }
+    return true;
+}
+
+pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
+    const args = parseArgs(argc, argv);
+    if (args.log_path) |path| plat.log_file = c.fopen(path, "w");
+    if (!plat.loadSdl()) return 1;
+    if (sdl.Init(c.SDL_INIT_VIDEO | c.SDL_INIT_AUDIO | c.SDL_INIT_GAMECONTROLLER) != 0) {
+        log("SDL did not start: {s}", .{std.mem.span(sdl.GetError())});
+        return 1;
+    }
+    defer sdl.Quit();
+    const window = plat.openWindow(.{ .windowed = args.windowed or args.headless, .depth_bits = 16 }) orelse return 1;
+
+    var ok = true;
+    if (args.bench_lines) {
+        ok = benchLines(window, args);
+    } else {
+        log("nothing here yet but the workshop: try --lines", .{});
+    }
+    if (plat.log_file) |file| _ = c.fclose(file);
+    return if (ok) 0 else 1;
+}

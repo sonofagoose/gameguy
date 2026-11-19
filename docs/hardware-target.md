@@ -385,6 +385,21 @@ at a time, pinned to one core. "Fit" is how many render in half a 2.67 ms buffer
 - The sound is the same to the last bit on the laptop and the purple, four abreast or one at a
   time, with multiplies and adds kept separate.
 
+**A frame holds about 30,000 lines of light.** `game/src/main.zig --lines`: each line one instance
+of a four-cornered strip placed by the vertex shader, black triangles hiding what is behind them,
+three passes with the phosphor.
+
+| lines | black triangles | drawn | frames |
+|---|---|---|---|
+| 19,960 | 5,000 | 8.8 ms | all on time |
+| 29,996 | 5,000 | 11.1 ms | all on time |
+| 39,932 | 5,000 | 13.2 ms | all on time |
+| 59,992 | 5,000 | 18.5 ms | late |
+| 29,996 | 20,000 | 13.3 ms | all on time |
+
+- About 4.4 ms for the three passes and 0.22 ms for each thousand lines.
+- Six corners to a line instead of four cost 40% more.
+
 **The rest:**
 
 - **The rumble line can be driven.** GPIO 102, through the gamepad's force-feedback interface, once
@@ -404,7 +419,7 @@ at a time, pinned to one core. "Fit" is how many render in half a 2.67 ms buffer
 - From the second probe, each needing a person: a headset's microphone through the jack; a motor on
   the rumble line; how the backlight looks when it follows the music; the speaker's loudness; the
   purple's left stick; whether the set clock counts while off. Also: button to sound and button to
-  picture, and how many lines a frame holds with the GPU doing the projecting.
+  picture.
 
 - Overclocking (CPU to 1608, GPU to 650, DDR to 1040 MHz are offered by ArkOS4Clone's DTB tool) is
   untested; every number here is at stock clocks.
