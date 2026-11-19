@@ -8,6 +8,7 @@ const plat = @import("plat/plat.zig");
 const png = @import("plat/png.zig");
 const lines = @import("draw/lines.zig");
 const dark = @import("dark.zig");
+const room = @import("room.zig");
 const m = @import("m.zig");
 const c = plat.c;
 const sdl = plat.sdl;
@@ -24,6 +25,7 @@ const Args = struct {
     log_path: ?[*:0]const u8 = null,
     wav: ?[*:0]const u8 = null,
     bot: bool = false,
+    room: ?[*:0]const u8 = null,
 };
 
 fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
@@ -52,11 +54,14 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
         } else if (std.mem.eql(u8, a, "--log") and i + 1 < n) {
             i += 1;
             args.log_path = argv[i];
+        } else if (std.mem.eql(u8, a, "--room") and i + 1 < n) {
+            i += 1;
+            args.room = argv[i];
         } else if (std.mem.eql(u8, a, "--wav") and i + 1 < n) {
             i += 1;
             args.wav = argv[i];
         } else if (std.mem.eql(u8, a, "--help")) {
-            log("gameguy [--lines] [--bot] [--headless] [--windowed] [--frames N] [--dump DIR] [--dump-every N] [--wav FILE] [--log FILE]", .{});
+            log("gameguy [--lines] [--room DIR] [--bot] [--headless] [--windowed] [--frames N] [--dump DIR] [--dump-every N] [--wav FILE] [--log FILE]", .{});
         }
     }
     return args;
@@ -313,7 +318,9 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     const window = plat.openWindow(.{ .windowed = args.windowed or args.headless, .depth_bits = 16 }) orelse return 1;
 
     var ok = true;
-    if (args.bench_lines) {
+    if (args.room) |dir| {
+        ok = room.run(window, dir, args.frames, args.dump);
+    } else if (args.bench_lines) {
         ok = benchLines(window, args);
     } else {
         ok = dark.run(window, .{ .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot });

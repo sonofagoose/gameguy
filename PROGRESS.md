@@ -16,8 +16,16 @@ section 20, and `spec/stages.md`.
 | the dark and the call: the loop, two laws, the sound bank, the first playable minute | done; runs on the purple with every frame on time |
 | the same-take test on the game's own world and sound | done: ten minutes identical on the laptop and the purple |
 | lines-a-frame benchmark on the handheld | done: 30,000 lines in 11.1 ms (`game/results/purple-20261119/`) |
-| the room: Morgan's hand checks and the 31 listening clips, on the handheld | next |
-| second probe, the parts that need Morgan's hands | waiting for the room |
+| the room: Morgan's hand checks and the 31 listening clips, on the handheld | built and installed on the purple as GameguyRoom; it opens and leaves cleanly. Nobody has answered it yet |
+| second probe, the parts that need Morgan's hands | waiting for him to run the room: the tone, the rumble line, the backlight, the left stick, a headset. The clock check needs a power-off and on |
+
+## Next
+
+1. Morgan reads and edits `SPEC.md`, and runs GameguyRoom on the purple (or the black, once the game
+   is put on it).
+2. Pull the room's log and read every `room:` line; fold the answers into `docs/hardware-target.md`
+   and the specification.
+3. The build goes on from stage 1, in a session opened with the brief in `SPEC.md`, section 22.
 
 ## Stages
 

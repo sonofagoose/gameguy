@@ -38,6 +38,23 @@ SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy build/gameguy-x86_64 --headless 
 if [ -s build/dark.err ]; then echo "the run wrote to the error stream:"; cat build/dark.err; exit 1; fi
 tail -1 build/dark.out | sed 's/^/   /'
 
+echo "== no screen: the room opens, reads its clips, and writes nothing to the error stream"
+rm -rf build/room && mkdir -p build/room && ln -s ../../../design/listen build/room/clips
+python3 -I - > build/room/clips.txt <<'PY'
+import re
+rows = []
+for line in open('../design/listen/README.md'):
+    m = re.match(r'\|\s*(\d+-[a-z0-9-]+)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*$', line)
+    if m:
+        rows.append((int(m.group(1).split('-')[0]), m.group(1), m.group(3)))
+for _, name, question in sorted(rows):
+    print(f"{name}|{question}")
+PY
+SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy build/gameguy-x86_64 --room build/room --headless --frames 5 \
+    --dump build/frames > build/room.out 2> build/room.err
+if [ -s build/room.err ]; then echo "the run wrote to the error stream:"; cat build/room.err; exit 1; fi
+grep "items" build/room.out | sed 's/^/   /'
+
 echo "== same take: ten minutes of the world and the sound, fingerprinted"
 build/same-take-x86_64 10 2> build/same-take-x86_64.txt
 tail -1 build/same-take-x86_64.txt | sed 's/^/   /'
@@ -59,6 +76,9 @@ rm -rf dist
 P=dist/ports
 mkdir -p "$P/gameguy"
 cp build/gameguy-aarch64 build/modes-aarch64 build/same-take-aarch64 "$P/gameguy/"
-cp port/Gameguy.sh "$P/"
-chmod +x "$P/Gameguy.sh" "$P/gameguy/gameguy-aarch64" "$P/gameguy/modes-aarch64"
-find dist -type f | sort | sed 's/^/   /'
+cp port/Gameguy.sh port/GameguyRoom.sh "$P/"
+mkdir -p "$P/gameguy/room/clips"
+cp build/room/clips.txt "$P/gameguy/room/"
+cp ../design/listen/*.wav "$P/gameguy/room/clips/"
+chmod +x "$P/Gameguy.sh" "$P/GameguyRoom.sh" "$P/gameguy/gameguy-aarch64" "$P/gameguy/modes-aarch64" "$P/gameguy/same-take-aarch64"
+find dist -type f -not -name '*.wav' | sort | sed 's/^/   /'; echo "   and $(ls dist/ports/gameguy/room/clips | wc -l) clips"

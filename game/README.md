@@ -14,6 +14,10 @@ The workshop, and the first minute of the first evening.
   its overtones; Hum's voice is pulses through a closed-mouth vowel.
 - **Lines of light kept on the GPU** (`src/draw/lines.zig`): black shapes that hide, and the
   phosphor, in three passes.
+- **The room** (`src/room.zig`): where Morgan's ears, eyes and hands answer and every answer is
+  logged. Five checks for the hands (a tone, the rumble line, the backlight following a swell, the
+  left stick, a headset's microphone), then the 31 listening clips from `design/listen/`, each with
+  its question. A is yes, B is no, Y plays it again, R1 and L1 move on and back.
 - **The loop** the specification asks for: the sound card's sample count is the only clock, and a
   step of the world is 800 samples.
 
@@ -27,10 +31,12 @@ probe/tools/r36s.sh push 164 game/dist/ports/ /roms/ports/
 probe/tools/r36s.sh run 164 /roms/ports/Gameguy.sh            # play it on the handheld
 probe/tools/r36s.sh run 164 /roms/ports/Gameguy.sh --bot --frames 1800   # scripted hands, real sound
 probe/tools/r36s.sh run 164 /roms/ports/Gameguy.sh --lines    # how many lines a frame holds
+probe/tools/r36s.sh run 164 /roms/ports/GameguyRoom.sh        # the room
 probe/tools/r36s.sh pull 164 /roms/ports/gameguy/results/ game/results/purple-DATE/
 ```
 
-On the handheld it also appears under Ports as Gameguy.
+On the handheld the game appears under Ports as Gameguy, and the room as GameguyRoom. The room's
+answers are in the session log: `results/gameguy-DATE.txt`, the lines that start `room:`.
 
 With no screen, on the laptop:
 
@@ -60,6 +66,7 @@ SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy game/build/gameguy-x86_64 --head
 
 - `src/main.zig`: arguments, the window, and which thing runs.
 - `src/dark.zig`: the dark and the call: the loop, the pad, the picture, the backlight.
+- `src/room.zig`: the room.
 - `src/world/`: the rules. No platform, no clock, no allocation.
 - `src/sound/`: the bank. No platform.
 - `src/draw/lines.zig`: the line renderer.
@@ -68,5 +75,5 @@ SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy game/build/gameguy-x86_64 --head
 - `src/rules.zig`: where tests and tools that need no screen start.
 - `tools/same_take.zig`: one take on every machine.
 - `bench/modes.zig`: how many overtones a core renders.
-- `port/Gameguy.sh`: the launcher.
+- `port/Gameguy.sh`: the launcher. `port/GameguyRoom.sh`: the same, into the room.
 - `results/`: what the handheld's runs left.
