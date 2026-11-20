@@ -39,22 +39,24 @@ past the deepest game he knows.
 | `spec/together.md`: the cable carries it; a world for two | written |
 | rumble, the microphone, the comma in real air | out, on Morgan's word (`DECISIONS.md`) |
 
-## Stopped in the middle (2026-11-19, the session hit its usage limit again)
-
-All of this is committed and compiles, and the 14 rules tests pass. None of it is finished.
+## The first evening, the sky, the shape and the texture (2026-11-19 to 20)
 
 | piece | state |
 |---|---|
-| one cue mechanism (`game/src/world/cue.zig`, `World.tell`): a cue can't hold a sound without its light, and `tell` is the only way to sound | built and tested. **Not done:** the promise `whole.twice` still lists it as owed; the tool has no check that nothing else sends a sound |
-| the second staging, after a fresh reader graded all seven promises "short" (`spec/promises/graded.md`) | built: Hum small, the gaze climbs a tower at the speed of sound and rides a call up, thick grass that hides, light in the sky, a fallen bell at Hum's size. Looked at once |
-| the ground remembers (`card.ground`) | built as sixty-four small pictures; kept in a file between sessions |
-| four kinds of ground cover in the proof field | built an hour before stopping. **Weak:** where Hum starts it is all bare soil, drawn as identical pyramids, which is the same fault as the identical grass. The per-land design of covers (Morgan: "different lands have different types of foliage and different relationships to the player") is **not written** into `spec/world.md` |
-| the frames in `spec/promises/seen/` | **stale:** they are from before the covers and the cue change, so the guard will mark them changed until they are looked at again |
-| the purple | **stale:** it has the build from before the cue and the covers. Its same-take file no longer matches. One frame in each run was late, at the first call (step 41); a timing split was added to find out why and has **not been run** |
+| one cue mechanism (`game/src/world/cue.zig`, `World.tell`): a cue can't hold a sound without its light, and `tell` is the only way anything sounds | done; the promise `whole.twice` cites its tests, and the promise tool reads the world's source and counts any sound sent from outside `tell`: none |
+| the first evening as one scene (`--scene evening`): the dark page, the drip ticking far off, the second call answered, four breaths on the tick bringing its fifth true, the lock, the third note, the page standing up | done; the scripted player plays all of it; 23 tests pass |
+| ears in the take tool: Drip's pitch and the third note read back from the rendered sound | done: the two notes beat 1.79, 1.36, 0.91 and 0.46 times a second across the four breaths, then not at all; the third note is 53 dB over the quiet before |
+| takes (`game/src/keep/take.zig`): a person's hands written to the card when they leave a scene, `--replay` to play one back | done; the build plays the evening's take back from its file and checks the same moment on the same step |
+| the sky, first piece: the dawn at your feet, spreading at the speed of sound; the horn over the lake, each ring lit when the sun reaches it and heard when its note has crossed the water; the seventh dark; stars; the sun as a figure | done in the evening scene, every frame on time on the laptop (`spec/promises/sky.md`) |
+| light as loudness (`spec/texture.md`): each body's own light spread over its lines; outside light given back by what it is made of | done in the renderer's table |
+| four covers on the proof field's ground, each its own shapes; bare soil mostly bare | done for the Garden's proof; the twelve lands' covers are written in `spec/shape.md` |
+| `spec/sky.md`, `spec/shape.md`, `spec/texture.md`; `docs/two-games-as-felt.md` | written. A review of the three by four independent readers, each finding checked by a skeptic, is running |
+| the purple | **stale**: not seen on USB since 2026-11-20 03:59. It has a build from before the evening scene. Its same-take file no longer matches |
 
 ## Next
 
-1. Morgan reads and edits `SPEC.md`, `spec/size.md`, `spec/years.md` and `spec/together.md`, and
+1. Morgan reads and edits `SPEC.md`, `spec/size.md`, `spec/years.md`, `spec/together.md`,
+   `spec/sky.md`, `spec/shape.md` and `spec/texture.md`, and
    runs GameguyRoom on the purple (or the black, once the game is put on it).
 2. Pull the room's log and read every `room:` line; fold the answers into `docs/hardware-target.md`
    and the specification.
