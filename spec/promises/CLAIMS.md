@@ -35,7 +35,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: The code enforces it (section 15).
 - open: Whole alone. No door, fight or land needs a second console.
 - spoken for by `whole.alone`: Together adds; it never takes.
-- spoken for by `whole.same`: A take is its inputs. The same hands make the same world and the same sound on every machine.
+- spoken for by `whole.same`, `card.takes`: A take is its inputs. The same hands make the same world and the same sound on every machine.
 - open: Original. No existing game's world, characters, music or look.
 - open: Morgan's own layer stays his. Who the vine is, who sat on the pool's edge and in the chair, and the odd and even passage are never filled in for him.
 

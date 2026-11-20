@@ -106,6 +106,6 @@ asks its question.
 | `whole.hands` Nothing asks the hands for the impossible | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.ear` The ear, before and after | 2 | 1 | no | - | - | no | no | 3 owed |
 | `hands.voice-in-a-buffer` Your voice, at once | 1 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `card.takes` The card is the world's memory | 1 | 1 | no | - | - | no | no | 4 owed |
+| `card.takes` The card is the world's memory | 1 | 2 | no | - | - | no | no | 4 owed |
 | `light.hue` One set of numbers for sound and light | 1 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `light.beam` The beam | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |

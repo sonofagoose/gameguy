@@ -69,7 +69,7 @@ quiet_run room build/gameguy-x86_64 --room build/room --headless --frames 5 --du
 grep "items" build/room.out | sed 's/^/   /'
 
 echo "== same take: ten minutes of the dark and the walk to the great aster, fingerprinted"
-build/same-take-x86_64 10 2> build/same-take-x86_64.txt
+build/same-take-x86_64 10 build/walk.take 2> build/same-take-x86_64.txt
 grep -E "^(minute 10|asters end)" build/same-take-x86_64.txt | sed 's/^/   /'
 identical=0
 if [ -f results/same-take-aarch64.txt ]; then
@@ -81,6 +81,18 @@ if [ -f results/same-take-aarch64.txt ]; then
   fi
 fi
 echo "fact same_take.identical $identical" > build/facts.txt
+
+echo "== a take, kept as a file: the walk played back through the game itself, from the file alone"
+quiet_run replay build/gameguy-x86_64 --scene asters --headless --replay build/walk.take
+met_live=$(grep -o "^witness garden.asters first=[0-9]*" build/same-take-x86_64.txt | tail -1)
+met_back=$(grep -o "^witness garden.asters first=[0-9]*" build/replay.out | tail -1)
+if [ -n "$met_live" ] && [ "$met_live" = "$met_back" ]; then
+  echo "   the same moment on the same step: $met_back ($(stat -c %s build/walk.take) bytes)"
+  echo "fact take.file_replays_same 1" >> build/facts.txt
+else
+  echo "   NOT the same: '$met_live' when played, '$met_back' when played back from the file"
+  echo "fact take.file_replays_same 0" >> build/facts.txt
+fi
 
 echo "== the promise book: every claim, and where each promise stands (spec/promises/BOARD.md)"
 $PROMISES | sed 's/^/   /'

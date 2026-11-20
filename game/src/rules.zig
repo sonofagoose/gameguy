@@ -6,6 +6,7 @@ pub const m = @import("m.zig");
 pub const script = @import("bot/script.zig");
 pub const walker = @import("bot/walker.zig");
 pub const colour = @import("draw/colour.zig");
+pub const take = @import("keep/take.zig");
 
 test {
     _ = world;
@@ -15,4 +16,5 @@ test {
     _ = m;
     _ = walker;
     _ = colour;
+    _ = take;
 }

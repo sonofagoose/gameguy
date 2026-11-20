@@ -21,6 +21,7 @@ const world_mod = @import("world/world.zig");
 const sound_mod = @import("sound/sound.zig");
 const Script = @import("bot/script.zig").Script;
 const Walker = @import("bot/walker.zig").Walker;
+const take = @import("keep/take.zig");
 const c = plat.c;
 const sdl = plat.sdl;
 const gl = plat.gl;
@@ -468,6 +469,8 @@ pub const Options = struct {
     bot: bool = false,
     /// The promise a person was sent here to feel, from the room's walk.
     promise: ?[]const u8 = null,
+    /// A take to play back in place of anyone's hands.
+    replay: ?[*:0]const u8 = null,
 };
 
 /// What a person did on a visit from the room's walk.
@@ -488,6 +491,35 @@ var pixels: []u8 = &.{};
 var static_lines: [36_000]lines.Inst = undefined;
 var static_occ: [40_000][3]f32 = undefined;
 var moving: [9_000]lines.Inst = undefined;
+/// A person's hands, as they play: room for an hour of a thumb that never rests.
+var take_changes: [216_000]take.Change = undefined;
+var take_bytes: [take.header_size + 216_000 * take.change_size]u8 = undefined;
+
+/// Write a person's take to the card: keep/takes/SCENE-NUMBER.take, the first number not used.
+fn keepTake(recorder: *const take.Recorder, scene: Scene) void {
+    if (recorder.count == 0) return;
+    _ = c.mkdir("keep", 0o755);
+    _ = c.mkdir("keep/takes", 0o755);
+    var path: [96]u8 = undefined;
+    var number: u32 = 1;
+    while (number < 100_000) : (number += 1) {
+        const p = std.mem.printSentinel(&path, "keep/takes/{s}-{d:0>5}.take", .{ @tagName(scene), number }, 0) catch return;
+        if (c.access(p.ptr, 0) != 0) break;
+    }
+    const p = std.mem.printSentinel(&path, "keep/takes/{s}-{d:0>5}.take", .{ @tagName(scene), number }, 0) catch return;
+    const size = recorder.write(if (scene == .dark) .dark else .asters, &take_bytes);
+    const file = c.fopen(p.ptr, "wb") orelse return;
+    const wrote = c.fwrite(&take_bytes, 1, size, file);
+    _ = c.fclose(file);
+    log("the take: {d} changes of the hands over {d} steps, {d} bytes, kept as {s}{s}", .{ recorder.count, recorder.steps, wrote, p, if (recorder.lost > 0) " (NOT WHOLE: it ran out of room)" else "" });
+}
+
+fn loadTake(path: [*:0]const u8) ?take.Player {
+    const file = c.fopen(path, "rb") orelse return null;
+    defer _ = c.fclose(file);
+    const n = c.fread(&take_bytes, 1, take_bytes.len, file);
+    return take.Player.open(take_bytes[0..n]);
+}
 
 fn dumpNamed(dir: [*:0]const u8, comptime fmt: []const u8, args: anytype) void {
     renderer.readFrame(pixels);
@@ -555,7 +587,18 @@ pub fn run(window: plat.Window, options: Options) bool {
     defer if (device != 0) sdl.CloseAudioDevice(device);
     var wav: ?Wav = if (options.wav) |path| Wav.open(path) else null;
     const pad = if (options.headless) Pad{} else Pad.open();
-    const scripted = options.headless or options.bot;
+    var replay: ?take.Player = null;
+    if (options.replay) |path| {
+        replay = loadTake(path);
+        if (replay) |r| {
+            log("playing back a take: {d} steps, {d} changes of the hands", .{ r.steps, r.count });
+        } else {
+            log("that is not a take: {s}", .{std.mem.span(path)});
+            return false;
+        }
+    }
+    const scripted = options.headless or options.bot or replay != null;
+    var recorder = take.Recorder{ .changes = &take_changes };
     var script = Script{};
     var walker = Walker{};
     var backlight = Backlight{};
@@ -595,8 +638,11 @@ pub fn run(window: plat.Window, options: Options) bool {
         // the steps that are due
         var mark: ?[]const u8 = null;
         if (device == 0) {
-            const hands = if (options.scene == .asters) walker.hands(&world) else script.hands(world.step);
-            mark = walker.mark;
+            const hands = if (replay) |*r| r.hands(world.step) else if (options.scene == .asters) walker.hands(&world) else script.hands(world.step);
+            if (replay == null) mark = walker.mark;
+            if (replay) |*r| {
+                if (r.done(world.step + 1)) running = false;
+            }
             const calls_before = world.calls;
             const n = world.stepOnce(hands, &cues);
             if (options.scene == .asters) groundStep(&world, world.calls != calls_before);
@@ -613,7 +659,11 @@ pub fn run(window: plat.Window, options: Options) bool {
             const due = snd.played() / world_mod.samples_per_step;
             var ran: u32 = 0;
             while (world.step < due and ran < 3) : (ran += 1) {
-                const hands = if (!scripted) held else if (options.scene == .asters) walker.hands(&world) else script.hands(world.step);
+                const hands = if (replay) |*r| r.hands(world.step) else if (!scripted) held else if (options.scene == .asters) walker.hands(&world) else script.hands(world.step);
+                if (!scripted) recorder.note(world.step, hands);
+                if (replay) |*r| {
+                    if (r.done(world.step + 1)) running = false;
+                }
                 const calls_before = world.calls;
                 const n = world.stepOnce(hands, &cues);
                 if (options.scene == .asters) groundStep(&world, world.calls != calls_before);
@@ -734,6 +784,7 @@ pub fn run(window: plat.Window, options: Options) bool {
 
     if (wav) |*w| w.close();
     if (options.scene == .asters and !options.headless and !scripted) saveGround();
+    if (!scripted) keepTake(&recorder, options.scene);
     last_visit = .{ .calls = world.calls, .seconds = @as(f32, @floatFromInt(world.step)) / 60.0 };
     if (options.promise) |promise| {
         if (world_mod.witness.Table.find(promise)) |id| {

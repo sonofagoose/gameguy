@@ -25,19 +25,29 @@ the build (`../stages.md`)._
 
 ### `card.takes` The card is the world's memory
 
-- **Said:** `SPEC.md` "Every take is kept, a save is made every dawn"
+- **Said:** `SPEC.md` "Every take is kept, a save is made every dawn" "A take is its inputs."
 - **Stage:** 1
 - **The moment:** The battery dies in the middle of an evening. You charge it, start the game, and
   you are standing where you were, with everything you had done still done. Months later you pick
-  any day out of the book and it plays again from your hands, note for note.
+  any day out of the book and it plays again from your hands, note for note, on your handheld or
+  anyone's.
 - **A cheat would be:** one save file that is overwritten; a recording of the sound in place of the
   take.
 - **Full size:**
-  - `owed` The day's take is written to the card as it happens, 4 KB at a time. Killing the game at
-    any moment loses under five seconds. A test kills it a hundred times.
-  - `owed` A save loaded in the middle of a day reaches the same fingerprint as the day played
-    through. A test.
-  - `owed` Any kept take replays to the same fingerprints on the laptop and the purple.
+  - `test a take written down and played back makes the same world, step for step` Ten bytes for
+    each change of the hands, and nothing else.
+  - `test a file that is not a take is refused`
+  - `fact take.replays_same == 1` The walk to the great aster, written down and played back from its
+    bytes: the same world and the same sound.
+  - `fact take.file_replays_same == 1` The same take as a file, played back through the game itself:
+    the promise's moment happens on the same step.
+  - `fact take.bytes <= 4096` That whole walk is this small.
+  - `owed` A person's take is written to the card when they leave a scene (it is, into
+    `keep/takes/`). Owed: written as it happens, 4 KB at a time by its own thread, so that killing
+    the game at any moment loses under five seconds. A test kills it a hundred times.
+  - `owed` A save made every dawn; a save loaded in the middle of a day reaches the same fingerprint
+    as the day played through. A test.
+  - `owed` A person's take played back on the handheld gives the same fingerprints as on the laptop.
   - `owed` Measured on the handheld: writing the take never makes a frame late or a gap in the
     sound.
 - **Asks:** nobody: a pulled battery answers it.

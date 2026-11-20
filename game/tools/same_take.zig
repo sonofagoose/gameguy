@@ -16,6 +16,13 @@ const rules = @import("rules");
 const world_mod = rules.world;
 const sound_mod = rules.sound;
 
+extern "c" fn fopen(path: [*:0]const u8, mode: [*:0]const u8) ?*anyopaque;
+extern "c" fn fwrite(ptr: [*]const u8, size: usize, count: usize, file: *anyopaque) usize;
+extern "c" fn fclose(file: *anyopaque) c_int;
+
+var walk_changes: [4096]rules.take.Change = undefined;
+var walk_bytes: [rules.take.header_size + 4096 * rules.take.change_size]u8 = undefined;
+
 var world: world_mod.World = undefined;
 var snd: sound_mod.Sound = undefined;
 
@@ -91,13 +98,39 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     snd.init();
     var bot = rules.walker.Walker{};
     var walk = Take{};
+    var recorder = rules.take.Recorder{ .changes = &walk_changes };
     step = 0;
     while (step < 5 * per_minute and !bot.done) : (step += 1) {
-        walk.step(bot.hands(&world));
+        const hands = bot.hands(&world);
+        recorder.note(step, hands);
+        walk.step(hands);
         if ((step + 1) % per_minute == 0) walk.line("asters minute", (step + 1) / per_minute);
     }
     walk.line("asters end, minute", step / per_minute + 1);
     witnesses();
+    const walk_end = world.fingerprint();
+
+    // the same walk, written down as a take and played back from its bytes alone
+    const size = recorder.write(.asters, &walk_bytes);
+    var same_again = false;
+    if (rules.take.Player.open(walk_bytes[0..size])) |opened| {
+        var player = opened;
+        world.initAsters();
+        snd.init();
+        var back = Take{};
+        var at: u64 = 0;
+        while (!player.done(at)) : (at += 1) back.step(player.hands(at));
+        same_again = world.fingerprint() == walk_end and back.sound_print == walk.sound_print;
+    }
+    fact("take.changes", @floatFromInt(recorder.count));
+    fact("take.bytes", @floatFromInt(size));
+    fact("take.replays_same", if (same_again) 1.0 else 0.0);
+    if (argc > 2) {
+        if (fopen(argv[2], "wb")) |file| {
+            _ = fwrite(&walk_bytes, 1, size, file);
+            _ = fclose(file);
+        }
+    }
 
     // what the game says of itself
     var tallest: f32 = 0.0;
