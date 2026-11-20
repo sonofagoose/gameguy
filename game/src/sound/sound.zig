@@ -38,7 +38,9 @@ pub const Cue = extern struct {
     family: Family = .bell,
     /// For a held voice: whose it is. 0 is Hum.
     voice: u8 = 0,
-    _pad: u8 = 0,
+    /// 1: Hum's own call or hum, for a press or a let-go, which the hands may already have started
+    /// on this very sample (ownNow). Then it is not sounded twice, and not counted late.
+    own: u8 = 0,
     /// The lowest note of the thing, in hertz.
     hz: f32 = 0.0,
     /// How hard, 0 to 1.
@@ -129,6 +131,12 @@ pub const Sound = struct {
     sample: u64 = 0,
     /// Cues that arrived after their sample had passed. They sound at once, and are counted.
     late: u32 = 0,
+    /// Where the hands last started Hum's own call, hum and let-go before the world told them.
+    own_call_at: u64 = std.math.maxInt(u64),
+    own_on_at: u64 = std.math.maxInt(u64),
+    own_off_at: u64 = std.math.maxInt(u64),
+    /// How many of the world's own cues found their sound already started by the hands.
+    own_met: u32 = 0,
 
     // cues from the world, one writer and one reader
     queue: [256]Cue = undefined,
@@ -236,8 +244,8 @@ pub const Sound = struct {
                 const cue = self.queue[tail % self.queue.len];
                 const now = self.sample + done;
                 if (cue.at <= now) {
-                    if (cue.at < now) self.late += 1;
-                    self.apply(cue);
+                    if (cue.at < now and cue.own == 0) self.late += 1;
+                    if (!self.startedByHands(cue)) self.apply(cue);
                     @atomicStore(u32, &self.tail, tail +% 1, .release);
                     continue;
                 }
@@ -249,6 +257,41 @@ pub const Sound = struct {
             done = until;
         }
         @atomicStore(u64, &self.sample, self.sample + out.len, .release);
+    }
+
+    /// The hands start Hum's own sound now, on the next sample to be rendered, before the world has
+    /// stepped: called on the sound's own thread, just before it renders. The return is the sample
+    /// it starts on, which is the hands' stamp.
+    pub fn ownNow(self: *Sound, cue: Cue) u64 {
+        const at = self.sample;
+        switch (cue.kind) {
+            .strike => self.own_call_at = at,
+            .hum_on => self.own_on_at = at,
+            .hum_off => self.own_off_at = at,
+            .tone => {},
+        }
+        self.apply(cue);
+        return at;
+    }
+
+    /// Whether the world's cue is one the hands have already started on its very sample.
+    fn startedByHands(self: *Sound, cue: Cue) bool {
+        if (cue.own == 0) return false;
+        const slot = switch (cue.kind) {
+            .strike => &self.own_call_at,
+            .hum_on => &self.own_on_at,
+            .hum_off => &self.own_off_at,
+            .tone => return false,
+        };
+        // the same press, if the hands started it within a step of where the world tells it (two
+        // buttons changing in one step share a stamp); used once, so a later press is not missed
+        const at = slot.*;
+        if (at == std.math.maxInt(u64)) return false;
+        const apart = if (at > cue.at) at - cue.at else cue.at - at;
+        if (apart > 800) return false;
+        slot.* = std.math.maxInt(u64);
+        self.own_met += 1;
+        return true;
     }
 
     /// How many samples have been rendered, for the loop on another thread to count steps by.

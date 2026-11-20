@@ -23,6 +23,8 @@ const Script = @import("bot/script.zig").Script;
 const Walker = @import("bot/walker.zig").Walker;
 const take = @import("keep/take.zig");
 const save = @import("keep/save.zig");
+const card_mod = @import("plat/card.zig");
+const shoulders_mod = @import("plat/shoulders.zig");
 const Type = @import("room.zig").Type;
 const c = plat.c;
 const sdl = plat.sdl;
@@ -37,6 +39,47 @@ var audio_channels: usize = 2;
 var audio_realtime: i32 = -1;
 var audio_slowest_us: u32 = 0;
 
+/// R1 and R2 straight from the kernel, looked at before every buffer (plat/shoulders.zig).
+var shoulders = shoulders_mod.Shoulders{};
+/// What the hands started, for the main thread: which edge, on which sample, how long after the
+/// kernel saw it. One writer (the sound thread), one reader (the main thread).
+const Started = struct { what: shoulders_mod.What, sample: u64, late_us: u32 };
+var started: [128]Started = undefined;
+var started_head: u32 = 0;
+var started_tail: u32 = 0;
+/// The cover under Hum, as the main thread last saw it, so the hands' call is as strong as the
+/// world's will be.
+var ready_cover: u8 = 0;
+var hands_most_us: u32 = 0;
+var hands_started: u32 = 0;
+
+/// On the sound's thread, before a buffer: whatever R1 and R2 did since the last one. A press
+/// starts Hum's own call or hum on this buffer's first sample; a let-go is only noted, since the
+/// world decides whether a let-go ends the hum or locks the breath.
+fn handsNow() void {
+    var edges: [16]shoulders_mod.Edge = undefined;
+    const n = shoulders.poll(&edges);
+    if (n == 0) return;
+    const now_s = plat.now();
+    for (edges[0..n]) |e| {
+        const at: u64 = switch (e.what) {
+            .call_down => snd.ownNow(.{ .at = 0, .kind = .strike, .family = .string, .own = 1, .hz = world_mod.garden_hz, .gain = world_mod.callStrength(@enumFromInt(@atomicLoad(u8, &ready_cover, .monotonic))) * world_mod.voice_level, .ring = 0.35 }),
+            .sing_down => snd.ownNow(.{ .at = 0, .kind = .hum_on, .own = 1, .hz = world_mod.garden_hz, .gain = world_mod.voice_level }),
+            .call_up, .sing_up => snd.sample,
+        };
+        const late_us: u32 = @intFromFloat(std.math.clamp((now_s - e.at_s) * 1e6, 0.0, 4e9));
+        if (e.what == .call_down or e.what == .sing_down) {
+            @atomicStore(u32, &hands_started, hands_started + 1, .monotonic);
+            if (late_us > hands_most_us) @atomicStore(u32, &hands_most_us, late_us, .monotonic);
+        }
+        const head = @atomicLoad(u32, &started_head, .monotonic);
+        const tail = @atomicLoad(u32, &started_tail, .acquire);
+        if (head -% tail >= started.len) continue;
+        started[head % started.len] = .{ .what = e.what, .sample = at, .late_us = late_us };
+        @atomicStore(u32, &started_head, head +% 1, .release);
+    }
+}
+
 fn audioCallback(userdata: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.c) void {
     _ = userdata;
     const frames = @as(usize, @intCast(len)) / (@sizeOf(f32) * audio_channels);
@@ -49,6 +92,7 @@ fn audioCallback(userdata: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.c)
         @atomicStore(i32, &audio_realtime, if (granted) 1 else 0, .monotonic);
     }
     const began = plat.now();
+    handsNow();
     var mono: [512]f32 = undefined;
     var done: usize = 0;
     while (done < frames) {
@@ -130,6 +174,57 @@ const Wav = struct {
     }
 };
 
+/// The edges the sound thread has passed on, waiting for the steps they fall in.
+var edges_waiting: [128]Started = undefined;
+var edges_n: usize = 0;
+var r1_down = false;
+var r2_down = false;
+
+fn takeEdges() void {
+    var tail = @atomicLoad(u32, &started_tail, .monotonic);
+    const head = @atomicLoad(u32, &started_head, .acquire);
+    while (tail != head) : (tail +%= 1) {
+        if (edges_n < edges_waiting.len) {
+            edges_waiting[edges_n] = started[tail % started.len];
+            edges_n += 1;
+        }
+    }
+    @atomicStore(u32, &started_tail, tail, .release);
+}
+
+/// R1 and R2 for a step, from the edges the sound thread stamped: each edge on the step its sample
+/// falls in, and the step's stamp where the first of them fell. A press and its let-go inside one
+/// step keep the press for this step and leave the let-go for the next, so no tap is lost.
+fn shoulderHands(hands: *Hands, step: u64) void {
+    const begin = step * world_mod.samples_per_step;
+    const end = begin + world_mod.samples_per_step;
+    var stamp: ?u16 = null;
+    var changed_r1 = false;
+    var changed_r2 = false;
+    var used: usize = 0;
+    while (used < edges_n and edges_waiting[used].sample < end) : (used += 1) {
+        const e = edges_waiting[used];
+        const r1 = e.what == .call_down or e.what == .call_up;
+        if ((r1 and changed_r1) or (!r1 and changed_r2)) break;
+        switch (e.what) {
+            .call_down => r1_down = true,
+            .call_up => r1_down = false,
+            .sing_down => r2_down = true,
+            .sing_up => r2_down = false,
+        }
+        if (r1) changed_r1 = true else changed_r2 = true;
+        if (stamp == null) stamp = @intCast(if (e.sample > begin) e.sample - begin else 0);
+    }
+    if (used > 0) {
+        std.mem.copyForwards(Started, edges_waiting[0 .. edges_n - used], edges_waiting[used..edges_n]);
+        edges_n -= used;
+    }
+    hands.buttons &= ~(Hands.call | Hands.sing);
+    if (r1_down) hands.buttons |= Hands.call;
+    if (r2_down) hands.buttons |= Hands.sing;
+    hands.stamp = stamp orelse 0;
+}
+
 const Pad = struct {
     handle: ?*c.SDL_GameController = null,
     faces: plat.Faces = .{},
@@ -145,6 +240,16 @@ const Pad = struct {
                 pad.faces = plat.Faces.find(handle);
                 var said: [128]u8 = undefined;
                 log("controls: {s}; {s}", .{ std.mem.span(sdl.GameControllerName(handle)), pad.faces.describe(&said) });
+                if (shoulders.fd < 0) {
+                    if (sdl.GameControllerGetJoystick(handle)) |joystick| {
+                        if (sdl.JoystickName(joystick)) |name| shoulders = shoulders_mod.Shoulders.open(std.mem.span(name));
+                    }
+                }
+                if (shoulders.fd >= 0) {
+                    log("controls: R1 and R2 read from the kernel on the sound's own thread (/dev/input/event{d})", .{shoulders.event});
+                } else {
+                    log("controls: R1 and R2 read with the rest of the hands, a step at a time", .{});
+                }
                 break;
             }
         }
@@ -606,7 +711,20 @@ pub const Options = struct {
     replay: ?[*:0]const u8 = null,
     /// A save to open the world from (keep/save.zig): the scene goes on from where it was.
     load: ?[*:0]const u8 = null,
+    /// Keep the take and the dawns' saves on the card even when the hands are scripted, as a
+    /// person's session does: for the test that kills the game and starts it again.
+    keep: bool = false,
+    /// Start as a person would after a flat battery, go on from the take that was cut off, say
+    /// where that is, and stop: for the same test.
+    resume_only: bool = false,
+    /// Play a take through from its first step with nothing drawn and nothing heard, say where it
+    /// ends, and stop.
+    check_take: ?[*:0]const u8 = null,
 };
+
+/// The take being written as it is played, and its dawns.
+var card = card_mod.Card{};
+var dawns_kept: u32 = 0;
 
 /// What a person did on a visit from the room's walk.
 pub const Visit = struct {
@@ -655,31 +773,7 @@ fn shine(sounding: f32, lit: f32, share: f32, gives: f32) lines.Shine {
 var static_occ: [40_000][3]f32 = undefined;
 var moving: [16_000]lines.Inst = undefined;
 /// A person's hands, as they play: room for an hour of a thumb that never rests.
-var take_changes: [216_000]take.Change = undefined;
 var take_bytes: [take.header_size + 216_000 * take.change_size]u8 = undefined;
-
-/// Write a person's take to the card: keep/takes/SCENE-NUMBER.take, the first number not used.
-fn keepTake(recorder: *const take.Recorder, scene: Scene) void {
-    if (recorder.count == 0) return;
-    _ = c.mkdir("keep", 0o755);
-    _ = c.mkdir("keep/takes", 0o755);
-    var path: [96]u8 = undefined;
-    var number: u32 = 1;
-    while (number < 100_000) : (number += 1) {
-        const p = std.mem.printSentinel(&path, "keep/takes/{s}-{d:0>5}.take", .{ @tagName(scene), number }, 0) catch return;
-        if (c.access(p.ptr, 0) != 0) break;
-    }
-    const p = std.mem.printSentinel(&path, "keep/takes/{s}-{d:0>5}.take", .{ @tagName(scene), number }, 0) catch return;
-    const size = recorder.write(switch (scene) {
-        .dark => .dark,
-        .evening => .evening,
-        .asters => .asters,
-    }, &take_bytes);
-    const file = c.fopen(p.ptr, "wb") orelse return;
-    const wrote = c.fwrite(&take_bytes, 1, size, file);
-    _ = c.fclose(file);
-    log("the take: {d} changes of the hands over {d} steps, {d} bytes, kept as {s}{s}", .{ recorder.count, recorder.steps, wrote, p, if (recorder.lost > 0) " (NOT WHOLE: it ran out of room)" else "" });
-}
 
 var save_bytes: [save.size]u8 = undefined;
 
@@ -689,17 +783,13 @@ fn keepSave(scene: Scene) void {
     _ = c.mkdir("keep", 0o755);
     _ = c.mkdir("keep/dawns", 0o755);
     var path: [96]u8 = undefined;
-    var number: u32 = 1;
-    while (number < 1_000_000) : (number += 1) {
-        const p = std.mem.printSentinel(&path, "keep/dawns/{s}-{d:0>6}.save", .{ @tagName(scene), number }, 0) catch return;
-        if (c.access(p.ptr, 0) != 0) break;
-    }
-    const p = std.mem.printSentinel(&path, "keep/dawns/{s}-{d:0>6}.save", .{ @tagName(scene), number }, 0) catch return;
+    // named after the take that is being written, so a take and its dawns are found together
+    dawns_kept += 1;
+    const p = card_mod.dawnPath(&path, sceneOfTake(scene), card.number, dawns_kept) orelse return;
     const n = save.write(&world, &save_bytes);
-    const file = c.fopen(p.ptr, "wb") orelse return;
-    const wrote = c.fwrite(&save_bytes, 1, n, file);
-    _ = c.fclose(file);
-    log("the dawn: the world kept as {s}, {d} bytes, at step {d}", .{ p, wrote, world.step });
+    // the card's own thread writes it, after the hands that led to it
+    card.keepSave(save_bytes[0..n], p);
+    log("the dawn: the world kept as {s}, {d} bytes, at step {d}", .{ p, n, world.step });
 }
 
 /// Open the world from a save. False, with the reason in the log, if it can't be.
@@ -716,6 +806,25 @@ fn openSave(path: [*:0]const u8) bool {
     };
     log("opened from a save at step {d}: {s}", .{ world.step, std.mem.span(path) });
     return true;
+}
+
+fn sceneOfTake(scene: Scene) take.Scene {
+    return switch (scene) {
+        .dark => .dark,
+        .evening => .evening,
+        .asters => .asters,
+    };
+}
+
+/// Play a take on from wherever the world is now, with nothing drawn and nothing heard: what a
+/// flat battery cut off, or a take being checked. The ground's light is painted as it goes.
+fn playOn(player: *take.Player, scene: Scene) void {
+    var cues: [world_mod.max_cues]sound_mod.Cue = undefined;
+    while (!player.done(world.step)) {
+        const calls_before = world.calls;
+        _ = world.stepOnce(player.hands(world.step), &cues);
+        if (scene != .dark) groundStep(&world, world.calls != calls_before);
+    }
 }
 
 fn loadTake(path: [*:0]const u8) ?take.Player {
@@ -805,8 +914,51 @@ pub fn run(window: plat.Window, options: Options) bool {
     if (options.load) |path| {
         if (!openSave(path)) return false;
     }
+    if (options.check_take) |path| {
+        var player = loadTake(path) orelse {
+            log("that is not a take: {s}", .{std.mem.span(path)});
+            return false;
+        };
+        playOn(&player, options.scene);
+        log("the take ends: step {d}, world {x:0>16}", .{ world.step, world.fingerprint() });
+        return true;
+    }
+    // a person's session writes its take as it is played; after a flat battery, it goes on from
+    // where the take was cut off
+    const keeping = options.keep or !(options.headless or options.bot or options.replay != null);
+    var resumed = false;
+    dawns_kept = 0;
+    if (keeping and options.load == null and options.replay == null) {
+        const scene_t = sceneOfTake(options.scene);
+        if (options.scene == .evening) {
+            if (card_mod.lastCut(scene_t, &take_bytes)) |cut| {
+                if (take.Player.open(cut.bytes)) |opened| {
+                    var player = opened;
+                    dawns_kept = card_mod.dawnsOf(scene_t, cut.number);
+                    if (dawns_kept > 0) {
+                        var path: [96]u8 = undefined;
+                        if (card_mod.dawnPath(&path, scene_t, cut.number, dawns_kept)) |p| _ = openSave(p.ptr);
+                    }
+                    playOn(&player, options.scene);
+                    const last = if (player.count > 0) player.now else Hands{};
+                    _ = card.reopen(scene_t, cut.number, player.count, last, if (player.steps > 0) player.steps - 1 else 0);
+                    resumed = true;
+                    log("resumed where you were: the take cut off at step {d} ({d} s into the evening), from its dawn {d}; world {x:0>16}", .{ world.step, world.step / world_mod.steps_per_second, dawns_kept, world.fingerprint() });
+                    if (options.resume_only) {
+                        card.finish(world.step);
+                        return true;
+                    }
+                }
+            }
+        }
+        if (options.resume_only and !resumed) {
+            log("nothing to go on from", .{});
+            return true;
+        }
+        if (!resumed) _ = card.begin(scene_t);
+    }
     snd.init();
-    if (options.load != null) {
+    if (options.load != null or resumed) {
         // the sound's count is the clock: it starts where the world was, and what was being held
         // is told again
         snd.sample = world.step * world_mod.samples_per_step;
@@ -830,7 +982,6 @@ pub fn run(window: plat.Window, options: Options) bool {
         }
     }
     const scripted = options.headless or options.bot or replay != null;
-    var recorder = take.Recorder{ .changes = &take_changes };
     var script = Script{};
     var walker = Walker{};
     var backlight = Backlight{};
@@ -876,8 +1027,11 @@ pub fn run(window: plat.Window, options: Options) bool {
             if (replay) |*r| {
                 if (r.done(world.step + 1)) running = false;
             }
+            if (keeping) card.note(world.step, hands);
             const calls_before = world.calls;
             const n = world.stepOnce(hands, &cues);
+            if (keeping and world.dawn_from != world_mod.never and world.dawn_from + 1 == world.step) keepSave(options.scene);
+            if (options.keep and world.step % 60 == 0) log("at step {d}", .{world.step});
             if (options.scene != .dark) groundStep(&world, world.calls != calls_before);
             for (cues[0..n]) |cue| {
                 if (!snd.push(cue)) refused += 1;
@@ -890,17 +1044,21 @@ pub fn run(window: plat.Window, options: Options) bool {
             if (held.held(Hands.select) and held.held(Hands.start)) leaving += 1 else leaving = 0;
             if (leaving > 30) running = false;
             const due = snd.played() / world_mod.samples_per_step;
+            // what the hands started, read after the count: every edge before it is here
+            takeEdges();
+            @atomicStore(u8, &ready_cover, @intFromEnum(world.cover), .monotonic);
             var ran: u32 = 0;
             while (world.step < due and ran < 3) : (ran += 1) {
-                const hands = if (replay) |*r| r.hands(world.step) else if (!scripted) held else if (options.scene != .dark) walker.hands(&world) else script.hands(world.step);
-                if (!scripted) recorder.note(world.step, hands);
+                var hands = if (replay) |*r| r.hands(world.step) else if (!scripted) held else if (options.scene != .dark) walker.hands(&world) else script.hands(world.step);
+                if (!scripted and replay == null and shoulders.fd >= 0) shoulderHands(&hands, world.step);
+                if (keeping) card.note(world.step, hands);
                 if (replay) |*r| {
                     if (r.done(world.step + 1)) running = false;
                 }
                 const calls_before = world.calls;
                 const n = world.stepOnce(hands, &cues);
                 // the day has just begun: keep the world as it is at its dawn
-                if (!scripted and world.dawn_from != world_mod.never and world.dawn_from + 1 == world.step) keepSave(options.scene);
+                if (keeping and world.dawn_from != world_mod.never and world.dawn_from + 1 == world.step) keepSave(options.scene);
                 if (options.scene != .dark) groundStep(&world, world.calls != calls_before);
                 for (cues[0..n]) |cue| {
                     if (!snd.push(cue)) refused += 1;
@@ -1077,7 +1235,7 @@ pub fn run(window: plat.Window, options: Options) bool {
 
     if (wav) |*w| w.close();
     if (options.scene != .dark and !options.headless and !scripted) saveGround();
-    if (!scripted) keepTake(&recorder, options.scene);
+    if (keeping) card.finish(world.step);
     last_visit = .{ .calls = world.calls, .seconds = @as(f32, @floatFromInt(world.step)) / 60.0 };
     if (options.promise) |promise| {
         if (world_mod.witness.Table.find(promise)) |id| {
@@ -1103,6 +1261,11 @@ pub fn run(window: plat.Window, options: Options) bool {
         if (@atomicLoad(i32, &audio_realtime, .monotonic) == 1) "yes" else "no",
         most_lines,
     });
+    if (shoulders.fd >= 0) {
+        // how soon Hum answered the hands: from the kernel seeing a press to the buffer that began
+        // the sound, the most of any press this scene
+        log("the hands: {d} presses of R1 and R2 started Hum's own sound on the buffer after them, the latest {d:.2} ms after the kernel saw the press; the world found {d} of them already sounding", .{ @atomicLoad(u32, &hands_started, .monotonic), @as(f64, @floatFromInt(@atomicLoad(u32, &hands_most_us, .monotonic))) / 1000.0, snd.own_met });
+    }
     log("the slowest frame was {d} (step {d}): steps done by {d:.2} ms, the land by {d:.2}, the moving lines by {d:.2}, sent to the GPU by {d:.2}, drawn by {d:.2}, the backlight set by {d:.2}; {s}", .{ worst_at, worst_step, worst_parts[0], worst_parts[1], worst_parts[2], worst_parts[3], worst_parts[4], worst_parts[5], worst_why });
     for (world_mod.witness.names, 0..) |promise, i| {
         const seen = world.seen.marks[i];

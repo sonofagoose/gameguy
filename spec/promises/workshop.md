@@ -14,11 +14,17 @@ the build (`../stages.md`)._
 - **A cheat would be:** a voice that starts on the world's next step, a sixtieth of a second or more
   late, with a soft attack to hide it.
 - **Full size:**
-  - `owed` Hands are stamped with the sound card's own count, and the sound thread starts Hum's
-    breath on the buffer after the stamp: under 3 ms later, shown by the stamps in a log from the
-    handheld.
-  - `owed` The same on a replay: the take holds the stamps, so the voice starts on the same sample
-    every time.
+  - `test Hum's own call starts on the sample the hands were stamped with, and is not sounded twice`
+    The sound thread reads R1 and R2 straight from the kernel before every buffer
+    (`game/src/plat/shoulders.zig`) and starts Hum's call or hum on the buffer after the press; the
+    world, a step later, tells the same sound on the stamped sample, and it is not sounded twice.
+  - `test a take cut off while it was written is read as far as it got` Each change in a take keeps
+    its stamp, so a replay starts the voice on the same sample every time.
+  - `fact handheld.hands.most_ms <= 3` From the kernel seeing a press to the buffer that starts
+    Hum's sound, the most of any press in a session on the handheld, from its log.
+  - `owed` A let-go is heard at the world's next step, up to a sixtieth of a second late, because
+    the world decides whether it ends the hum or locks the breath: the sound thread is to be told
+    the lock's windows, so a let-go is heard at once too.
   - `owed` Button to sound, measured from outside with Morgan's phone filming the handheld, or with
     a headset if the jack records.
 - **Asks:** When you hum, does it start the moment you press?
@@ -43,9 +49,15 @@ the build (`../stages.md`)._
     the promise's moment happens on the same step.
   - `fact take.bytes <= 16384` The whole scripted evening, seven minutes from the dark to the far
     side of the bridge puddle, is this small: ten bytes for each change of the hands.
-  - `owed` A person's take is written to the card when they leave a scene (it is, into
-    `keep/takes/`). Owed: written as it happens, 4 KB at a time by its own thread, so that killing
-    the game at any moment loses under five seconds. A test kills it a hundred times.
+  - `fact take.kills_survived >= 100` Killed at a random moment a hundred times while it plays the
+    first evening (`game/tools/kill_test.sh`), it goes on from where it was every time: the same
+    world as the take played through from its first step, from the take's last dawn when it had
+    one. The take is written as it is played, by a thread of its own that drains it to the card
+    twenty times a second and makes the card hold it once a second; a dawn's save is written by the
+    same thread after the hands that led to it.
+  - `fact take.kill_most_lost_steps <= 299` Never more than five seconds of the evening lost.
+  - `owed` On the handheld, a flat battery rather than a kill: the card holds the take once a
+    second, but nobody has pulled the battery yet.
   - `test a save made in the middle of the evening and loaded again reaches the same end` The whole
     world is its bytes, with a print of its layout, so a build that has changed it refuses the save
     rather than misreading it.
@@ -55,8 +67,8 @@ the build (`../stages.md`)._
     played on by the same hands: the same end, in the take tool.
   - `fact save.file_opens_same == 1` The same save as a file, opened by the game itself and played
     on by the take: the puddle is crossed on the same step.
-  - `owed` A save is written at every dawn a person plays (it is, into `keep/dawns/`), and the game
-    starts where the last one and its take leave off: owed until the take is written as it happens.
+  - `owed` After leaving on purpose the next start begins the evening again; choosing between going
+    on and beginning again waits for the songbook.
   - `owed` A person's take played back on the handheld gives the same fingerprints as on the laptop.
   - `owed` Measured on the handheld: writing the take never makes a frame late or a gap in the
     sound.

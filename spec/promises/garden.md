@@ -229,7 +229,10 @@ stage 2 begins._
 
 - **Said:** `spec/world.md` "Hum a pool's note and walk its still lines."
 - **Stage:** 2
-- **The moment:** A puddle from the storm is a lake two hundred metres across, and black, with gold
+- **Scene:** asters
+- **The moment:** (From the room: it is behind you as the day begins, half a minute's walk south;
+  turn round with the right stick.) A puddle from the storm is a lake two hundred metres across, and
+  black, with gold
   pollen scattered on it. You hum, and lines of light come up on the water: a ring, and a cross.
   They
   are where the water isn't moving, and the pollen streams onto them. You step out on one. Either

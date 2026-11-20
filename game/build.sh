@@ -112,6 +112,15 @@ else
 fi
 grep -h "^fact save\." build/same-take-x86_64.txt >> build/facts.txt || true
 
+echo "== the card keeps a take through anything: killed a hundred times at random, it goes on from where it was"
+if [ "${1:-}" = laptop ]; then
+  echo "   (the full build kills it; the last full build's count is used)"
+else
+  tools/kill_test.sh 100 > build/kill-test.out 2> build/kill-facts.txt
+  tail -1 build/kill-test.out | sed 's/^/   /'
+fi
+[ -f build/kill-facts.txt ] && cat build/kill-facts.txt >> build/facts.txt
+
 echo "== the promise book: every claim, and where each promise stands (spec/promises/BOARD.md)"
 $PROMISES | sed 's/^/   /'
 [ "${PIPESTATUS[0]}" -eq 0 ] || { echo "the promise book refused something: see above"; exit 1; }

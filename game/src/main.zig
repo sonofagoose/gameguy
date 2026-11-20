@@ -28,6 +28,9 @@ const Args = struct {
     scene: dark.Scene = .evening,
     replay: ?[*:0]const u8 = null,
     load: ?[*:0]const u8 = null,
+    keep: bool = false,
+    resume_only: bool = false,
+    check_take: ?[*:0]const u8 = null,
     room: ?[*:0]const u8 = null,
     /// Only report which controller is found and where its face buttons are, then stop: no
     /// window, no sound, so it can be run over a cable without touching the screen.
@@ -50,6 +53,13 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
             args.controls = true;
         } else if (std.mem.eql(u8, a, "--bot")) {
             args.bot = true;
+        } else if (std.mem.eql(u8, a, "--keep")) {
+            args.keep = true;
+        } else if (std.mem.eql(u8, a, "--resume-only")) {
+            args.resume_only = true;
+        } else if (std.mem.eql(u8, a, "--check-take") and i + 1 < n) {
+            i += 1;
+            args.check_take = argv[i];
         } else if (std.mem.eql(u8, a, "--load") and i + 1 < n) {
             i += 1;
             args.load = argv[i];
@@ -365,7 +375,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     } else if (args.bench_lines) {
         ok = benchLines(window, args);
     } else {
-        ok = dark.run(window, .{ .scene = args.scene, .replay = args.replay, .load = args.load, .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot });
+        ok = dark.run(window, .{ .scene = args.scene, .replay = args.replay, .load = args.load, .keep = args.keep, .resume_only = args.resume_only, .check_take = args.check_take, .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot });
     }
     if (plat.log_file) |file| _ = c.fclose(file);
     return if (ok) 0 else 1;

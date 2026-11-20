@@ -417,7 +417,7 @@ def read_source(facts):
     except OSError:
         return
     # every sound is sent on its way by `send`, and only `tell` may call it
-    tell = re.search(r'\n    fn tell\(.*?\n    }\n', text, re.S)
+    tell = re.search(r'\n    (?:pub )?fn tell\(.*?\n    }\n', text, re.S)
     inside = tell.group(0).count('self.send(') if tell else 0
     facts['cue.sounds_outside_tell'] = float(text.count('self.send(') - inside)
     facts['cue.tells'] = float(text.count('self.tell('))
@@ -436,6 +436,10 @@ def read_handhelds(facts):
                     facts[f'handheld.{scene}.frames'] = float(m.group(1))
                     facts[f'handheld.{scene}.late'] = float(m.group(2))
                     facts[f'handheld.{scene}.sound_ms'] = float(m.group(3))
+            m = re.search(r'the hands: (\d+) presses of R1 and R2 started .*?the latest ([0-9.]+) ms after the kernel saw the press', line)
+            if m and int(m.group(1)) > 0:
+                facts['handheld.hands.presses'] = float(m.group(1))
+                facts['handheld.hands.most_ms'] = float(m.group(2))
             m = re.search(r'room: promise (\S+) (yes|no) by (\w+)(.*)$', line)
             if m:
                 hands.setdefault(m.group(1), {})[m.group(3)] = (m.group(2), where, m.group(4).strip(' ;'))

@@ -64,3 +64,34 @@ test "the face buttons are found by the kernel's codes, as the purple has them" 
     try std.testing.expectEqual(@as(u32, 3), index);
     try std.testing.expect(keysOf(text, "nobody") == null);
 }
+
+/// Which /dev/input/eventN a named input device is, from the "H: Handlers=" line of its block.
+pub fn eventOf(text: []const u8, name: []const u8) ?u32 {
+    var blocks = std.mem.splitSequence(u8, text, "\n\n");
+    while (blocks.next()) |block| {
+        var named = false;
+        var handlers: ?[]const u8 = null;
+        var lines = std.mem.splitScalar(u8, block, '\n');
+        while (lines.next()) |line| {
+            if (std.mem.startsWith(u8, line, "N: Name=\"")) {
+                const rest = line["N: Name=\"".len..];
+                const end = std.mem.lastIndexOfScalar(u8, rest, '"') orelse rest.len;
+                named = std.mem.eql(u8, rest[0..end], name);
+            }
+            if (std.mem.startsWith(u8, line, "H: Handlers=")) handlers = line["H: Handlers=".len..];
+        }
+        if (!named) continue;
+        var it = std.mem.tokenizeScalar(u8, handlers orelse return null, ' ');
+        while (it.next()) |h| {
+            if (std.mem.startsWith(u8, h, "event")) return std.fmt.parseInt(u32, h["event".len..], 10) catch null;
+        }
+        return null;
+    }
+    return null;
+}
+
+test "the purple's pad is event2" {
+    const text = "I: Bus=0019\nN: Name=\"GO-Super Gamepad\"\nH: Handlers=js0 event2 dmcfreq\nB: KEY=1f\n\nN: Name=\"other\"\nH: Handlers=event0\n";
+    try std.testing.expectEqual(@as(u32, 2), eventOf(text, "GO-Super Gamepad").?);
+    try std.testing.expect(eventOf(text, "nobody") == null);
+}

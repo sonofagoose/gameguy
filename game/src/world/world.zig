@@ -109,6 +109,12 @@ pub const beside: f32 = 5.0;
 /// Once locked, both notes hold by themselves for this many steps.
 pub const lock_holds: u64 = 170;
 
+/// How hard Hum's call is, standing on a cover: moss takes half (spec/shape.md). The hands' early
+/// start of the call (sound.zig, ownNow) uses the same sum.
+pub fn callStrength(cover: ground.Cover) f32 {
+    return 0.857 * (if (cover == .moss) moss_carries else 1.0);
+}
+
 /// The step the tick numbered `k` falls on.
 pub fn tickStep(k: u64) u64 {
     return k * tick_every + (if (k % 2 == 1) @as(u64, tick_swing) else 0);
@@ -205,6 +211,10 @@ pub const Hands = extern struct {
     rx: i8 = 0,
     ry: i8 = 0,
     buttons: u16 = 0,
+    /// Where in this step, in samples from its start, R1 or R2 last went down or up: Hum's own
+    /// call and hum start on that very sample (spec/promises/workshop.md, hands.voice-in-a-buffer),
+    /// and a breath is judged by it. Nought when nobody knows better than the step.
+    stamp: u16 = 0,
 
     pub const call: u16 = 1 << 0; // R1
     pub const sing: u16 = 1 << 1; // R2
@@ -391,6 +401,10 @@ pub const World = struct {
     bee: flyers.Bee = .{},
     /// Set while a thing is being told to answer Hum's call, so its arrival is known as one.
     answering: bool = false,
+    /// Set while Hum's own call or hum is told for a press or a let-go of this step: it is sent on
+    /// the stamped sample, and marked as Hum's own, since the hands may have started it already.
+    own_now: bool = false,
+    own_at: u64 = 0,
     /// Puddles from the storm (pools.zig), and where Hum stepped onto one.
     pools: [max_pools]pools.Pool = undefined,
     pool_count: u32 = 0,
@@ -585,7 +599,8 @@ pub const World = struct {
                     .glow => {},
                 }
                 self.hum_light = @max(self.hum_light, what.light.brightness);
-                self.send(now_sample + lead, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .voice = what.sound.voice, .hz = what.sound.hz, .gain = what.sound.strength * voice_level, .ring = what.sound.ring }, no_thing, what.light);
+                const at = if (self.own_now) self.own_at else now_sample + lead;
+                self.send(at, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .voice = what.sound.voice, .own = @intFromBool(self.own_now), .hz = what.sound.hz, .gain = what.sound.strength * voice_level, .ring = what.sound.ring }, no_thing, what.light);
             },
             .thing => |index| {
                 const thing = &self.things[index];
@@ -720,18 +735,24 @@ pub const World = struct {
             self.look(hands);
         }
 
+        // Hum's own sounds start on the sample the hands were stamped with
+        self.own_at = now_sample + @min(hands.stamp, samples_per_step - 1);
+
         // the call: a ring of light and Hum's own short note, as one cue
         if (pressed & Hands.call != 0) {
             self.calls += 1;
-            const carries: f32 = if (self.cover == .moss) moss_carries else 1.0;
-            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = garden_hz, .strength = 0.857 * carries, .ring = 0.35 }, .ring_on_the_ground));
+            self.own_now = true;
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = garden_hz, .strength = callStrength(self.cover), .ring = 0.35 }, .ring_on_the_ground));
+            self.own_now = false;
         }
 
         // singing: Hum's one note for as long as R2 is held, and Hum swelling for as long. Beside
         // Drip, it hums with you. While a lock holds, both notes hold by themselves.
         const holding = self.step < self.hold_until;
         if (pressed & Hands.sing != 0 and !holding) {
+            self.own_now = true;
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = garden_hz, .strength = 1.0, .ring = 0.0 }, .swell));
+            self.own_now = false;
             if (self.besideDrip()) {
                 self.drip_humming = true;
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.7, .ring = 0.0 }, .swell));
@@ -742,7 +763,7 @@ pub const World = struct {
             if (self.drip_humming) {
                 // letting go on its tick is a breath together, and each one brings its note truer.
                 // Letting go off the tick is nothing: no penalty, and nobody says so.
-                if (fromTick(self.step) <= breath_window and self.breaths < breaths_to_lock) {
+                if (self.fromHeardTick(self.own_at) <= breath_window * samples_per_step and self.breaths < breaths_to_lock) {
                     self.breaths += 1;
                     locking = self.breaths == breaths_to_lock;
                 }
@@ -762,7 +783,10 @@ pub const World = struct {
                 self.seen.meet(.evening_breathe, self.step);
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.7, .ring = 0.0 }, .swell));
             } else {
+                // let go: Hum's hum ends on the sample it was let go
+                self.own_now = true;
                 self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = garden_hz, .strength = 0.0, .ring = 0.0 }, .dims));
+                self.own_now = false;
                 if (self.drip_humming) {
                     self.drip_humming = false;
                     self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_off, .voice = 1, .hz = self.dripHz(), .strength = 0.0, .ring = 0.0 }, .dims));
@@ -908,6 +932,28 @@ pub const World = struct {
         }
         // standing water sings again at its next turn
         for (self.pools[0..self.pool_count]) |*p| p.sent = .{ 0.0, 0.0 };
+    }
+
+    /// How many samples from `sample` to the nearest of Drip's ticks as Hum hears it: told on its
+    /// step, a lead later, and late by the way from Drip to Hum. A breath is judged against what
+    /// is heard, to the sample.
+    pub fn fromHeardTick(self: *const World, sample: u64) u64 {
+        var delay: u64 = lead;
+        if (self.drip != no_thing) {
+            const d = self.things[self.drip];
+            const dx = d.x - self.hum_x;
+            const dz = d.z - self.hum_z;
+            delay += @intFromFloat(@sqrt(dx * dx + dz * dz + d.y * d.y) / sound_speed * sound.rate);
+        }
+        const step = if (sample > delay) (sample - delay) / samples_per_step else 0;
+        const k = step / tick_every;
+        var best: u64 = never;
+        var i: u64 = if (k > 0) k - 1 else 0;
+        while (i <= k + 1) : (i += 1) {
+            const heard_at = tickStep(i) * samples_per_step + delay;
+            best = @min(best, if (heard_at > sample) heard_at - sample else sample - heard_at);
+        }
+        return best;
     }
 
     /// How many seconds since the sun rose; below nought before it has.
@@ -1926,4 +1972,38 @@ test "a call makes a puddle stand for a moment in the shape of the call's note" 
     step = 0;
     while (step < 60 * 20) : (step += 1) _ = w.stepOnce(.{}, &cues);
     try std.testing.expect(w.pools[0].loud() < 0.01);
+}
+
+test "Hum's own call starts on the sample the hands were stamped with, and is not sounded twice" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.* = World.init();
+    var cues: [max_cues]sound.Cue = undefined;
+    var step: u32 = 0;
+    while (step < 10) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    // R1 went down 300 samples into this step
+    const began = w.step * samples_per_step;
+    const n = w.stepOnce(.{ .buttons = Hands.call, .stamp = 300 }, &cues);
+    var call: ?sound.Cue = null;
+    for (cues[0..n]) |cue| {
+        if (cue.own == 1 and cue.kind == .strike) call = cue;
+    }
+    try std.testing.expect(call != null);
+    try std.testing.expectEqual(began + 300, call.?.at);
+    // the hands started it already, on the sound's own thread, on that sample: the world's telling
+    // of it is then neither sounded again nor counted late
+    var snd: sound.Sound = undefined;
+    snd.init();
+    var out: [256]f32 = undefined;
+    var played: u64 = 0;
+    while (played + out.len <= began + 300) : (played += out.len) snd.render(&out);
+    var rest: [300]f32 = undefined;
+    snd.render(rest[0 .. began + 300 - played]);
+    const started = snd.ownNow(.{ .at = 0, .kind = .strike, .family = .string, .hz = garden_hz, .gain = callStrength(.soil) * voice_level, .ring = 0.35 });
+    try std.testing.expectEqual(began + 300, started);
+    snd.render(&out);
+    _ = snd.push(call.?);
+    snd.render(&out);
+    try std.testing.expectEqual(@as(u32, 1), snd.own_met);
+    try std.testing.expectEqual(@as(u32, 0), snd.late);
 }
