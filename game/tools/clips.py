@@ -36,7 +36,7 @@ CLIPS = [
      'home moved to wonder, the F below; Hum hums at the puddle sized for it, and it stands and sings F back',
      'does home on wonder sound like another place than sunny home?'),
     ('36-the-amen', 'swell', 6.0, 9.0,
-     'the swell: Hum holds its note two bars, steps home back up a fifth on a downbeat, and lets go on the next one; the amen lands, a chord from Hum, and the garden answers',
+     'the swell, Gentle: Hum holds its note and never touches the stick; after a bar home drifts up a fifth beside the grey knots, and Hum lets go on the next downbeat: the amen lands, a chord from Hum, the knots sigh and settle asleep, and the garden answers',
      'does letting go on the one feel like landing somewhere?'),
     ('37-placed-then-timed', 'placed', 0.5, 6.0,
      'a strike pressed well off the beat, which the game places on the next beat, its note alone; then the downbeat struck on time by the hands, its note with its octave, and the knots ringing harder',

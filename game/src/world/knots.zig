@@ -21,6 +21,31 @@
 const std = @import("std");
 
 pub const max_knots = 8;
+
+/// How a fight with a knot ended (design/the-wheel.md, "Four doors"): by where home stood against
+/// its root when a cadence landed on the downbeat. One to its left, the full close: it rings open
+/// and comes home, and whatever has its root on the wedge home landed on goes grey and leans in
+/// turn. One to its right, the amen: it settles and sleeps, Gentle's comfort. Two to its right, the
+/// turn: for one phrase it is kin and fights beside Hum, then comes home. At the far end of either
+/// string, five fifths away, the slide: it comes home by a half step, quietly. Anywhere else, home
+/// on its root among them, a plain ending: still grey, and calmer a while.
+pub const Fate = enum(u8) { none, full_close, amen, turn, slide };
+
+pub fn doorOf(off: i32) Fate {
+    return switch (off) {
+        -1 => .full_close,
+        1 => .amen,
+        2 => .turn,
+        5, -5 => .slide,
+        else => .none,
+    };
+}
+
+/// The turn: kin for a phrase of four bars. A plain ending: no lunges for two bars.
+pub const kin_bars: u64 = 4;
+pub const calm_bars: u64 = 2;
+/// How hard a kin knot's pulse lands on a knot still coloured, against a strike's.
+pub const kin_part: f32 = 0.35;
 /// A strand: its note, and which overtone of the knot's root it is.
 pub const Strand = struct { hz: f32, over: u8 };
 
@@ -45,8 +70,13 @@ pub const Knot = struct {
     strands: [2]Strand = .{ .{ .hz = 0.0, .over = 1 }, .{ .hz = 0.0, .over = 1 } },
     /// Its colour, drained by strikes to nought: grey.
     colour: f32 = 1.0,
-    /// Brought home: a loop, still, keeping the mood it was brought home in.
+    /// Brought home: a loop, still, keeping the mood it was brought home in; and by which door.
     home: bool = false,
+    fate: Fate = .none,
+    /// The turn: until when, in steps of the world's beat, it is kin and fights beside Hum. A plain
+    /// ending: until when it is calmer and does not lunge.
+    kin_until: u64 = 0,
+    calm_until: u64 = 0,
     gift: u8 = 0,
     /// Where on the circle round Hum it keeps.
     around: f32 = 0.0,
@@ -119,10 +149,10 @@ pub fn pulsesAt(clock: u64, cycle: f64, over: u8) bool {
 }
 
 /// What a strike at a moment of the beat takes from a knot: alone, with one strand, or a meeting.
-pub fn drainAt(k: *const Knot, clock: f64, cycle: f64) f32 {
+pub fn drainAt(k: *const Knot, clock: f64, cycle: f64, window: f64) f32 {
     var met: u32 = 0;
     for (k.strands) |s| {
-        if (fromPulse(clock, cycle, s.over) <= meet_window) met += 1;
+        if (fromPulse(clock, cycle, s.over) <= window) met += 1;
     }
     return switch (met) {
         0 => drain_alone,
@@ -139,13 +169,25 @@ test "a knot dances on Hum's one with home on its root, and stumbles anywhere el
     const at_root = cycleSteps(bar, f, f);
     try std.testing.expectEqual(bar, at_root);
     var k = Knot{ .root_hz = f, .strands = .{ .{ .hz = c, .over = 3 }, .{ .hz = c * 5.0 / 3.0, .over = 5 } } };
-    try std.testing.expectEqual(drain_meeting, drainAt(&k, 400.0, at_root));
+    try std.testing.expectEqual(drain_meeting, drainAt(&k, 400.0, at_root, meet_window));
     // on Hum's other beats only... nothing meets: three and five fall between them
-    try std.testing.expectEqual(drain_alone, drainAt(&k, 450.0, at_root));
+    try std.testing.expectEqual(drain_alone, drainAt(&k, 450.0, at_root, meet_window));
     // with home on C the cycle is three quarters of a bar: C meets every beat, A only some
     const at_c = cycleSteps(bar, c, f);
     try std.testing.expect(@abs(at_c - 150.0) < 0.01);
-    try std.testing.expectEqual(drain_strand, drainAt(&k, 50.0, at_c));
+    try std.testing.expectEqual(drain_strand, drainAt(&k, 50.0, at_c, meet_window));
     // and the downbeat is no meeting: the dance's one is not Hum's
-    try std.testing.expect(drainAt(&k, 200.0, at_c) < drain_meeting);
+    try std.testing.expect(drainAt(&k, 200.0, at_c, meet_window) < drain_meeting);
+}
+
+test "the four doors stand where home is against the root" {
+    try std.testing.expectEqual(Fate.full_close, doorOf(-1));
+    try std.testing.expectEqual(Fate.amen, doorOf(1));
+    try std.testing.expectEqual(Fate.turn, doorOf(2));
+    try std.testing.expectEqual(Fate.slide, doorOf(5));
+    try std.testing.expectEqual(Fate.slide, doorOf(-5));
+    // on its root, or anywhere else, a plain ending
+    try std.testing.expectEqual(Fate.none, doorOf(0));
+    try std.testing.expectEqual(Fate.none, doorOf(3));
+    try std.testing.expectEqual(Fate.none, doorOf(-2));
 }

@@ -25,6 +25,8 @@ pub const Walker = struct {
     pocket_marked: bool = false,
     afterimage_marked: bool = false,
     placed_tried: bool = false,
+    asleep_marked: bool = false,
+    lean_marked: bool = false,
     nudged: bool = false,
     nudge_left: u8 = 0,
     nudged_at: u64 = 0,
@@ -424,28 +426,36 @@ pub const Walker = struct {
                 if (after > 60 * 60) self.next(step);
             },
             18 => {
-                // the swell: hold R2 and let it grow two bars; on the next downbeat nudge home back up
-                // to sunny home, beside the knots' root; let go on the one after, the amen lands, and
-                // the grey knots come home
+                // the swell, Gentle: hold R2 and never touch the stick. After a bar home drifts
+                // beside the grey knots on their amen side, sunny home; let go on the next downbeat,
+                // the amen lands, and they settle and sleep (SPEC.md 6.1; design/the-wheel.md)
                 h.buttons |= Hands.sing;
+                // the knots are grey, and each leans toward the wedge on its left
+                if (after > 12 and !self.lean_marked) {
+                    self.lean_marked = true;
+                    self.mark = "grey";
+                }
                 if (after > 30 and w.swell_bars >= 2 and !self.swell_marked) {
                     self.swell_marked = true;
                     self.mark = "swell";
                 }
-                if (!self.nudged and after > 30 and w.swell_bars >= 2 and w.downbeat_at != world_mod.never and w.downbeat_at + 1 == w.step) self.nudge_left = 4;
-                if (self.nudge_left > 0) {
-                    h.rx = 110;
-                    self.nudge_left -= 1;
-                    if (self.nudge_left == 0) {
-                        self.nudged = true;
-                        self.nudged_at = step;
-                    }
+                if (w.leans_for_you > 0 and !self.nudged) {
+                    self.nudged = true;
+                    self.nudged_at = step;
                 }
                 if (self.nudged and w.downbeat_at != world_mod.never and w.downbeat_at + 1 == w.step and w.home_k == 0 and w.step > self.nudged_at + 60) {
                     h.buttons &= ~Hands.sing;
                     self.next(step);
                 }
                 if (after > 60 * 40) self.next(step);
+            },
+            19 => {
+                // a while beside them as they sleep
+                if (!self.asleep_marked and after > 60 * 3) {
+                    self.asleep_marked = true;
+                    self.mark = "asleep";
+                }
+                if (after > 60 * 4) self.next(step);
             },
             else => self.done = true,
         }

@@ -1103,13 +1103,15 @@ pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
         const kdz = kn.z - cz;
         if (kdx * kdx + kdz * kdz > 160.0 * 160.0) continue;
         // both strands' threads run to the same wedge: the root they are overtones of
-        const rk = world_mod.wedgeOfHz(w.day_hz, kn.root_hz);
+        // grey, its point tips toward the wedge on its left, where the full close would bring it home
+        const rk = world_mod.wedgeOfHz(w.day_hz, kn.root_hz) - (if (kn.colour <= 0.0 and kn.fate != .turn) @as(i8, 1) else 0);
         const ra = @as(f32, @floatFromInt(rk)) * (std.math.pi / 6.0);
         const rex = fx * @cos(ra) + rx * @sin(ra);
         const rez = fz * @cos(ra) + rz * @sin(ra);
         for (kn.strands) |st| {
             if (n >= out.len) return n;
-            out[n] = .{ .a = .{ kn.x, 1.5, kn.z }, .b = .{ cx + rex * (outer + 1.0), y, cz + rez * (outer + 1.0) }, .half_width = 1.3, .body = 0.0, .col = col8(colour.ofNote(world_mod.garden_hz, st.hz), 0.6) };
+            const thread = if (kn.colour <= 0.0) [3]f32{ 0.62, 0.62, 0.66 } else colour.ofNote(world_mod.garden_hz, st.hz);
+            out[n] = .{ .a = .{ kn.x, 1.5, kn.z }, .b = .{ cx + rex * (outer + 1.0), y, cz + rez * (outer + 1.0) }, .half_width = 1.3, .body = 0.0, .col = col8(thread, 0.6) };
             n += 1;
         }
     }
@@ -1203,22 +1205,43 @@ pub fn knotLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
         if (ex * ex + ez * ez > 420.0 * 420.0) continue;
         const cy: f32 = 1.5;
         if (kn.home) {
+            // by its door: rung open, a still loop in the mood it keeps; settled by the amen, a
+            // smaller one curled low and breathing; slid home, a quieter loop
             const k: i8 = @as(i8, @intCast(kn.gift)) + world_mod.lit_least;
-            const tint = col8(colour.ofNote(world_mod.garden_hz, world_mod.wedgeHz(w.day_hz, k)), 0.8);
-            for (0..32) |i| {
-                if (n >= out.len) return n;
-                const a0 = @as(f32, @floatFromInt(i)) * (6.2831853 / 32.0);
-                const a1 = @as(f32, @floatFromInt(i + 1)) * (6.2831853 / 32.0);
-                out[n] = .{ .a = .{ kn.x + 1.1 * @cos(a0), 0.15, kn.z + 1.1 * @sin(a0) }, .b = .{ kn.x + 1.1 * @cos(a1), 0.15, kn.z + 1.1 * @sin(a1) }, .half_width = 1.6, .body = 0.0, .col = tint };
-                n += 1;
+            const mood = colour.ofNote(world_mod.garden_hz, world_mod.wedgeHz(w.day_hz, k));
+            const asleep = kn.fate == .amen;
+            const breath = 1.0 + 0.1 * @sin(@as(f32, @floatFromInt(w.clock % 400)) * (6.2831853 / 400.0));
+            const rings = [2]f32{ if (asleep) 0.75 * breath else 1.1, if (asleep) 0.42 * breath else 0.0 };
+            const bright: f32 = if (asleep) 0.45 else if (kn.fate == .slide) 0.55 else 0.8;
+            for (rings) |r| {
+                if (r <= 0.0) continue;
+                for (0..32) |i| {
+                    if (n >= out.len) return n;
+                    const a0 = @as(f32, @floatFromInt(i)) * (6.2831853 / 32.0);
+                    const a1 = @as(f32, @floatFromInt(i + 1)) * (6.2831853 / 32.0);
+                    const y: f32 = if (asleep) 0.1 else 0.15;
+                    out[n] = .{ .a = .{ kn.x + r * @cos(a0), y, kn.z + r * @sin(a0) }, .b = .{ kn.x + r * @cos(a1), y, kn.z + r * @sin(a1) }, .half_width = 1.6, .body = 0.0, .col = col8(mood, bright) };
+                    n += 1;
+                }
             }
             continue;
         }
+        // kin for a phrase: both strands in home's colour. Grey and still out: it leans toward the
+        // wedge on its left, where the full close would bring it home
+        const kin = kn.fate == .turn;
+        const home_note = colour.ofNote(world_mod.garden_hz, w.home_hz);
+        const lean_k = world_mod.wedgeOfHz(w.day_hz, kn.root_hz) - 1;
+        const la = @as(f32, @floatFromInt(lean_k)) * (std.math.pi / 6.0);
+        const vfx = @sin(w.look_yaw);
+        const vfz = -@cos(w.look_yaw);
+        const lean: f32 = if (kn.colour <= 0.0 and !kin) 0.45 else 0.0;
+        const lx = (vfx * @cos(la) - vfz * @sin(la)) * lean;
+        const lz = (vfz * @cos(la) + vfx * @sin(la)) * lean;
         for (kn.strands, 0..) |st, s| {
             const since: f32 = if (w.clock >= kn.pulsed[s]) @floatFromInt(w.clock - kn.pulsed[s]) else 99.0;
             const jerk = 1.0 + 0.4 * std.math.clamp(1.0 - since / 8.0, 0.0, 1.0);
-            const note = colour.ofNote(world_mod.garden_hz, st.hz);
-            const c = kn.colour;
+            const note = if (kin) home_note else colour.ofNote(world_mod.garden_hz, st.hz);
+            const c: f32 = if (kin) 1.0 else kn.colour;
             const tint = col8(.{ note[0] * c + grey[0] * (1.0 - c), note[1] * c + grey[1] * (1.0 - c), note[2] * c + grey[2] * (1.0 - c) }, 0.28 + 0.72 * c);
             const plane = turn + @as(f32, @floatFromInt(s)) * (std.math.pi / 2.0);
             const ux = @cos(plane);
@@ -1231,9 +1254,11 @@ pub fn knotLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
                 const a1 = @as(f32, @floatFromInt(i + 1)) * (6.2831853 / @as(f32, parts));
                 const r0 = 1.0 * jerk * (1.0 + 0.32 * @cos(lobes * a0 + @as(f32, @floatFromInt(s)) * 0.7));
                 const r1 = 1.0 * jerk * (1.0 + 0.32 * @cos(lobes * a1 + @as(f32, @floatFromInt(s)) * 0.7));
+                const h0 = cy + r0 * @sin(a0);
+                const h1 = cy + r1 * @sin(a1);
                 out[n] = .{
-                    .a = .{ kn.x + ux * r0 * @cos(a0), cy + r0 * @sin(a0), kn.z + uz * r0 * @cos(a0) },
-                    .b = .{ kn.x + ux * r1 * @cos(a1), cy + r1 * @sin(a1), kn.z + uz * r1 * @cos(a1) },
+                    .a = .{ kn.x + ux * r0 * @cos(a0) + lx * h0, h0, kn.z + uz * r0 * @cos(a0) + lz * h0 },
+                    .b = .{ kn.x + ux * r1 * @cos(a1) + lx * h1, h1, kn.z + uz * r1 * @cos(a1) + lz * h1 },
                     .half_width = 1.5,
                     .body = 0.0,
                     .col = tint,

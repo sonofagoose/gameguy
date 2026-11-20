@@ -78,13 +78,13 @@ fn followJack(step: u64) void {
 
 /// The world's beat as the main thread last left it, for the sound's thread to tell a timed strike
 /// from one the game will place: two copies, the one not being written is the one to read.
-const Beat = struct { clock: u64 = 0, part: f32 = 0.0, tempo: f32 = 1.0, at_sample: u64 = 0, can_strike: bool = false };
+const Beat = struct { clock: u64 = 0, part: f32 = 0.0, tempo: f32 = 1.0, at_sample: u64 = 0, can_strike: bool = false, window: f64 = world_mod.strike_window };
 var beats: [2]Beat = .{ .{}, .{} };
 var beat_now: u32 = 0;
 
 fn publishBeat(w: *const World) void {
     const next = (@atomicLoad(u32, &beat_now, .monotonic) + 1) % 2;
-    beats[next] = .{ .clock = w.clock, .part = w.clock_part, .tempo = w.tempo, .at_sample = w.step * world_mod.samples_per_step, .can_strike = w.canStrike() };
+    beats[next] = .{ .clock = w.clock, .part = w.clock_part, .tempo = w.tempo, .at_sample = w.step * world_mod.samples_per_step, .can_strike = w.canStrike(), .window = w.widen(world_mod.strike_window) };
     @atomicStore(u32, &beat_now, next, .release);
 }
 
@@ -110,7 +110,7 @@ fn timedNow(sample: u64) bool {
         }
     }
     const at = World.beatOf(clock, @floatCast(part), b.tempo, stamp);
-    return at.from_beat <= world_mod.strike_window - strike_margin;
+    return at.from_beat <= b.window - strike_margin;
 }
 
 /// Each of Hum's strikes, timed or placed, with its sample and note, for the ears

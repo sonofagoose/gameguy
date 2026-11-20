@@ -79,7 +79,15 @@ cadences._
     it home`
     Hits drain a knot's colour, and a cadence on the downbeat brings a grey one home.
   - `frame evening-swell` Struck grey, the knots circle Hum as dim ghosts.
-  - `owed` Grey, a creature leans toward the wedge that would bring it home.
+  - `frame evening-grey` Grey, each knot leans toward the wedge on its left, where the full close
+    would bring it home; on the wheel its threads bend there too.
+  - `test the four doors: rung open and the next grey, settled, kin for a phrase, slid home, and a
+    plain ending`
+    Where home stands against a grey creature's root when the cadence lands decides its door: one
+    to its left rings it open and greys what has its root where home landed; one to its right
+    settles it to sleep; two to its right makes it kin for a phrase, then home; five fifths away it
+    slides home by a half step; anywhere else, home on its root among them, a plain ending.
+  - `frame evening-asleep` After the amen the knots lie curled and breathing, asleep.
   - `test a knot struck on the one with home on its root greys, and a cadence beside its root brings
     it home`
     It keeps the mood home was in: sunny home, for the amen landed there.
@@ -135,6 +143,15 @@ cadences._
   the beat.
 - **A cheat would be:** an easy mode that halves damage.
 - **Full size:**
-  - `owed` A test: Gentle widens every timing window and ledge by one sum, leans home for you, and a
-    fight on Gentle can end by comfort.
+  - `test Gentle widens each window of timing by half again, and Fierce keeps them` The strike's,
+    the dodge's, a meeting's, the downbeat's and the breath's, by one sum.
+  - `test on Gentle a swell held a bar unsteered leans home beside the grey knot on its amen side;
+    on Fierce the amen is a plain ending`
+    Gentle leans for you: hold the swell and never touch the stick, and after a bar home drifts
+    beside the grey knot on its amen side; let go on the one and it settles and sleeps, a fight
+    ended by comfort. Fierce asks for the full close, and leans for nobody.
+  - `owed` The ledges, when there are ledges to widen.
+  - `owed` On Gentle the knot is calmed by sitting with it (`spec/laws.md`: pushes against the
+    swing calm it), when there is sitting.
+  - `owed` Choosing, any night, when there are nights; until then the first evening is Gentle.
 - **Asks:** Which did you choose, and did you ever want the other?

@@ -50,6 +50,9 @@ pub const strike_strength: f32 = 0.6;
 pub const strike_ring: f32 = 0.5;
 pub const strike_window: f64 = @as(f64, @floatFromInt(tick_every)) / 8.0;
 pub const timed_takes: f32 = 1.25;
+/// Gentle widens every window of timing by one sum (SPEC.md 10: "Gentle widens the timing and the
+/// ledges"): the strike's, the dodge's, a meeting's, the downbeat's and the breath's.
+pub const gentle_widens: f64 = 1.5;
 pub const run_speed: f32 = 6.0;
 /// The garden's note: middle C.
 pub const garden_hz: f32 = 261.63;
@@ -622,6 +625,15 @@ pub const World = struct {
     ghost_at: u64 = never,
     claps: u32 = 0,
     clap_at: u64 = never,
+    /// Gentle or Fierce (SPEC.md 10), chosen any night; the first evening is Gentle. Gentle widens
+    /// the timing, leans home for you and lets fights end by comfort; Fierce asks for the full close.
+    fierce: bool = false,
+    /// This swell: whether the thumb has steered it, and whether Gentle has leaned home for you.
+    swell_steered: bool = false,
+    swell_leaned: bool = false,
+    leans_for_you: u32 = 0,
+    /// The doors met: rung open, settled, turned kin, slid home, and plain endings.
+    doors: [5]u32 = @splat(0),
     /// A strike pressed off the beat waits for the beat the game places it on: that beat, in steps
     /// of the world's beat. And how many strikes were timed and how many placed.
     strike_due: u64 = never,
@@ -1000,7 +1012,7 @@ pub const World = struct {
         // game places it on the next beat
         if (self.canStrike() and pressed & Hands.strike != 0) {
             const at = self.beatAt(hands.stamp);
-            if (at.from_beat <= strike_window) {
+            if (at.from_beat <= self.widen(strike_window)) {
                 self.strike_due = never;
                 self.strike(at.pos, true);
             } else if (self.strike_due == never) {
@@ -1028,6 +1040,8 @@ pub const World = struct {
         if (pressed & Hands.sing != 0 and !holding) {
             self.swell_from = self.home_k;
             self.swell_bars = 0;
+            self.swell_steered = false;
+            self.swell_leaned = false;
             self.own_now = sound.own_hands;
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = self.home_hz, .strength = 1.0, .ring = 0.0 }, .swell));
             self.own_now = sound.own_world;
@@ -1041,7 +1055,7 @@ pub const World = struct {
             if (self.drip_humming) {
                 // letting go on its tick is a breath together, and each one brings its note truer.
                 // Letting go off the tick is nothing: no penalty, and nobody says so.
-                if (self.fromHeardTick(self.own_at) <= breath_window * samples_per_step and self.breaths < breaths_to_lock) {
+                if (@as(f64, @floatFromInt(self.fromHeardTick(self.own_at))) <= self.widen(@floatFromInt(breath_window * samples_per_step)) and self.breaths < breaths_to_lock) {
                     self.breaths += 1;
                     locking = self.breaths == breaths_to_lock;
                 }
@@ -1242,14 +1256,13 @@ pub const World = struct {
 
     /// Whether a step is within the window of a downbeat: the first of every four of Drip's ticks.
     pub fn nearDownbeat(self: *const World, step: u64) bool {
-        _ = self;
         const k = step / tick_every;
         var i: u64 = if (k > 0) k - 1 else 0;
         while (i <= k + 1) : (i += 1) {
             if (i % 4 != 0) continue;
             const at = tickStep(i);
             const apart = if (at > step) at - step else step - at;
-            if (apart <= downbeat_window) return true;
+            if (@as(f64, @floatFromInt(apart)) <= self.widen(@floatFromInt(downbeat_window))) return true;
         }
         return false;
     }
@@ -1262,13 +1275,37 @@ pub const World = struct {
             self.downbeat_beat = self.clock;
             self.downbeat_at = self.step;
             if (self.swell_bars < swell_most) self.swell_bars += 1;
+            // Gentle leans for you: a swell held a bar without steering, and home drifts beside the
+            // nearest grey creature on its amen side (design/the-wheel.md, "Gentle and fierce")
+            if (!self.fierce and !self.swell_steered and !self.swell_leaned and self.swell_bars >= 2) {
+                if (self.nearestGrey()) |g| {
+                    const amen_side: i8 = wedgeOfHz(self.day_hz, self.knots[g].root_hz) + 1;
+                    self.swell_leaned = true;
+                    if (self.home_k != amen_side and self.moveHome(amen_side)) {
+                        self.leans_for_you += 1;
+                        self.own_now = sound.own_only;
+                        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = self.home_hz, .strength = 1.0, .ring = 0.0 }, .swell));
+                        self.own_now = sound.own_world;
+                    }
+                }
+            }
         }
         const rx = @as(f32, @floatFromInt(hands.rx)) * (1.0 / 127.0);
         if (!self.nudge_out and @abs(rx) >= nudge_least) {
             self.nudge_out = true;
             if (self.nearDownbeat(self.clock)) {
+                self.swell_steered = true;
+                const from = self.home_k;
                 const to: i8 = self.home_k + (if (rx > 0.0) @as(i8, 1) else -1);
                 if (self.moveHome(to)) {
+                    // walking home the long way: a grey creature whose full close home stood on comes
+                    // home in passing as home walks on to the left (design/the-wheel.md, "A pack at dusk")
+                    if (to < from) {
+                        for (self.knots[0..self.knot_count]) |*kn| {
+                            if (kn.home or kn.colour > 0.0 or !self.inReach(kn)) continue;
+                            if (@as(i32, from) - @as(i32, wedgeOfHz(self.day_hz, kn.root_hz)) == -1) self.meetDoor(kn, .full_close);
+                        }
+                    }
                     // the hum moves with home, on this very step
                     self.own_now = sound.own_only;
                     self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = self.home_hz, .strength = 1.0, .ring = 0.0 }, .swell));
@@ -1295,25 +1332,91 @@ pub const World = struct {
         }
         self.startRing(self.hum_x, self.hum_z, self.home_hz, true, fullness);
         self.swell_bars = 0;
-        // a grey knot near, with home on its root or beside it, comes home: a loop, keeping the mood
-        const root_k = wedgeOfHz(self.day_hz, garden_hz * 2.0 / 3.0);
+        // each grey creature near meets the door where home stands against its root; on Fierce only
+        // the full close is a door, and the rest are plain endings
         for (self.knots[0..self.knot_count]) |*kn| {
-            if (kn.home or kn.colour > 0.0) continue;
+            if (kn.home or kn.colour > 0.0 or kn.fate == .turn or !self.inReach(kn)) continue;
+            const off: i32 = @as(i32, self.home_k) - @as(i32, wedgeOfHz(self.day_hz, kn.root_hz));
+            const door = knots.doorOf(off);
+            self.meetDoor(kn, if (self.fierce and door != .full_close) .none else door);
+        }
+    }
+
+    fn inReach(self: *const World, kn: *const knots.Knot) bool {
+        const dx = kn.x - self.hum_x;
+        const dz = kn.z - self.hum_z;
+        return dx * dx + dz * dz <= knots.home_reach * knots.home_reach;
+    }
+
+    /// The nearest grey creature still out in the world, within reach of a cadence.
+    fn nearestGrey(self: *const World) ?usize {
+        var best: ?usize = null;
+        var best_d: f32 = knots.home_reach * knots.home_reach;
+        for (self.knots[0..self.knot_count], 0..) |kn, i| {
+            if (kn.home or kn.colour > 0.0 or kn.fate == .turn) continue;
             const dx = kn.x - self.hum_x;
             const dz = kn.z - self.hum_z;
-            if (dx * dx + dz * dz > knots.home_reach * knots.home_reach) continue;
-            const off: i32 = @as(i32, self.home_k) - @as(i32, wedgeOfHz(self.day_hz, kn.root_hz));
-            _ = root_k;
-            if (off < -1 or off > 1) continue;
-            kn.home = true;
-            kn.gift = @intFromEnum(moodOf(self.home_k));
-            self.knots_home += 1;
-            for (kn.thing) |th| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * 2.0, .strength = 0.5, .ring = 2.4 }, .glow));
+            const d = dx * dx + dz * dz;
+            if (d <= best_d) {
+                best_d = d;
+                best = i;
+            }
         }
+        return best;
+    }
+
+    /// A grey creature meets a door (knots.Fate), heard and seen.
+    fn meetDoor(self: *World, kn: *knots.Knot, door: knots.Fate) void {
+        const bar: u64 = 4 * tick_every;
+        self.doors[@intFromEnum(door)] += 1;
+        const mood: u8 = @intFromEnum(moodOf(self.home_k));
+        switch (door) {
+            .none => {
+                // still grey, and calmer a while: one soft note from it, and no lunges
+                kn.calm_until = self.clock + knots.calm_bars * bar;
+                self.tell(.{ .thing = kn.thing[0] }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.root_hz * 2.0, .strength = 0.12, .ring = 0.6 }, .glow));
+                return;
+            },
+            .full_close => {
+                // it rings open at home's notes, and whatever has its root where home landed goes
+                // grey and leans in turn
+                for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * (if (s == 0) @as(f32, 2.0) else 3.0), .strength = 0.5, .ring = 2.4 }, .glow));
+                for (self.knots[0..self.knot_count]) |*other| {
+                    if (other.home or other.colour <= 0.0 or !self.inReach(other)) continue;
+                    if (wedgeOfHz(self.day_hz, other.root_hz) == self.home_k) other.colour = 0.0;
+                }
+            },
+            .amen => {
+                // it settles: one long soft sigh at its own root, and sleeps
+                self.tell(.{ .thing = kn.thing[0] }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.root_hz * 2.0, .strength = 0.25, .ring = 3.0 }, .glow));
+            },
+            .turn => {
+                // for a phrase it is kin: it sings home's notes and fights beside Hum, then comes home
+                kn.kin_until = self.clock + knots.kin_bars * bar;
+                kn.fate = .turn;
+                kn.gift = mood;
+                for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * (if (s == 0) @as(f32, 2.0) else 2.5), .strength = 0.35, .ring = 1.2 }, .glow));
+                return;
+            },
+            .slide => {
+                // home by a half step, quietly: a pure half step under its root, then its root
+                self.tell(.{ .thing = kn.thing[0] }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.root_hz * 2.0 * 15.0 / 16.0, .strength = 0.18, .ring = 0.5 }, .glow));
+                self.tell(.{ .thing = kn.thing[1] }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.root_hz * 2.0, .strength = 0.2, .ring = 2.0 }, .glow));
+            },
+        }
+        kn.fate = door;
+        kn.home = true;
+        kn.gift = mood;
+        self.knots_home += 1;
     }
 
     /// The left face: Hum's fork rings at home's note, and every knot within reach is drained by how
     /// its strands meet the strike (knots.zig).
+    /// A window of timing as this way of playing has it: wider on Gentle.
+    pub fn widen(self: *const World, base: f64) f64 {
+        return if (self.fierce) base else base * gentle_widens;
+    }
+
     /// Whether Hum can strike now: standing, in the place. Told to the sound's thread too, so it
     /// never starts a strike the world would not make.
     pub fn canStrike(self: *const World) bool {
@@ -1389,7 +1492,7 @@ pub const World = struct {
             const dz = kn.z - self.hum_z;
             if (dx * dx + dz * dz > knots.strike_reach * knots.strike_reach) continue;
             const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
-            const take = more * knots.drainAt(kn, @max(0.0, at - @as(f64, @floatFromInt(kn.phase_from))), cycle) + (if (self.step < self.pocket_until) knots.pocket_drain else 0.0);
+            const take = more * knots.drainAt(kn, @max(0.0, at - @as(f64, @floatFromInt(kn.phase_from))), cycle, self.widen(knots.meet_window)) + (if (self.step < self.pocket_until) knots.pocket_drain else 0.0);
             kn.colour = @max(0.0, kn.colour - take);
             // it rings at its own notes, as hard as the strike met it
             for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.4 + take, .ring = 0.8 }, .glow));
@@ -1455,7 +1558,7 @@ pub const World = struct {
             const dz = kn.z - self.hum_z;
             if (dx * dx + dz * dz > knots.strike_reach * knots.strike_reach) continue;
             const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
-            kn.colour = @max(0.0, kn.colour - level * knots.ghost_part * knots.drainAt(kn, @floatFromInt(self.clock - kn.phase_from), cycle));
+            kn.colour = @max(0.0, kn.colour - level * knots.ghost_part * knots.drainAt(kn, @floatFromInt(self.clock - kn.phase_from), cycle, self.widen(knots.meet_window)));
         }
     }
 
@@ -1503,7 +1606,7 @@ pub const World = struct {
             if (kn.lunge_from == knots.never_lunged) continue;
             const arrives = kn.lunge_from + knots.lunge_steps / 2;
             const apart = if (arrives > self.clock) arrives - self.clock else self.clock - arrives;
-            if (apart > knots.dodge_window) continue;
+            if (@as(f64, @floatFromInt(apart)) > self.widen(@floatFromInt(knots.dodge_window))) continue;
             self.pocket_until = self.step + knots.pocket_steps;
             self.pockets += 1;
             self.bar_pocketed = true;
@@ -1521,7 +1624,7 @@ pub const World = struct {
     fn lungeLands(self: *World, kn: *knots.Knot) void {
         if (self.dodged_at != never) {
             const apart = if (self.dodged_at > self.clock) self.dodged_at - self.clock else self.clock - self.dodged_at;
-            if (apart <= knots.dodge_window) return;
+            if (@as(f64, @floatFromInt(apart)) <= self.widen(@floatFromInt(knots.dodge_window))) return;
         }
         const dx = self.hum_x - kn.x;
         const dz = self.hum_z - kn.z;
@@ -1540,8 +1643,15 @@ pub const World = struct {
     fn knotStep(self: *World) void {
         const bar: f64 = @floatFromInt(4 * tick_every);
         const beat_moves = self.clock_part + self.tempo >= 1.0;
-        for (self.knots[0..self.knot_count]) |*kn| {
+        for (self.knots[0..self.knot_count], 0..) |*kn, ki| {
             if (kn.home) continue;
+            // the turn's phrase is over: it comes home
+            if (kn.fate == .turn and self.clock >= kn.kin_until) {
+                kn.home = true;
+                self.knots_home += 1;
+                continue;
+            }
+            const kin = kn.fate == .turn;
             const dx = self.hum_x - kn.x;
             const dz = self.hum_z - kn.z;
             const far = @sqrt(dx * dx + dz * dz);
@@ -1560,7 +1670,7 @@ pub const World = struct {
             kn.around += 0.2 * dt * self.tempo;
             // a lunge: begun so it arrives on the knot's one, closing most of the way to Hum
             const cycle_now = knots.cycleSteps(@floatFromInt(4 * tick_every), self.home_hz, kn.root_hz);
-            if (kn.lunge_from == knots.never_lunged and kn.colour > 0.0 and far < knots.keeps_off + 2.0) {
+            if (kn.lunge_from == knots.never_lunged and kn.colour > 0.0 and !kin and self.clock >= kn.calm_until and far < knots.keeps_off + 2.0) {
                 const ahead = self.clock - kn.phase_from + knots.lunge_steps / 2;
                 if (knots.nextOne(ahead, cycle_now) == ahead) kn.lunge_from = self.clock;
             }
@@ -1580,11 +1690,23 @@ pub const World = struct {
                 self.things[th].z = kn.z;
             }
             if (!beat_moves) continue;
-            const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
+            // kin dances on Hum's one, a bar to its cycle, and each pulse lands on a creature still
+            // coloured near it
+            const cycle = if (kin) bar else knots.cycleSteps(bar, self.home_hz, kn.root_hz);
             for (kn.strands, 0..) |st, s| {
                 if (!knots.pulsesAt(self.clock - kn.phase_from, cycle, st.over)) continue;
                 kn.pulsed[s] = self.clock;
-                if (far < 80.0) self.tell(.{ .thing = kn.thing[s] }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = st.hz, .strength = 0.08 + 0.17 * kn.colour, .ring = 0.3 }, .glow));
+                const hz = if (kin) self.home_hz * (if (s == 0) @as(f32, 2.0) else 2.5) else st.hz;
+                if (far < 80.0) self.tell(.{ .thing = kn.thing[s] }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = hz, .strength = 0.08 + 0.17 * (if (kin) 1.0 else kn.colour), .ring = 0.3 }, .glow));
+                if (kin) {
+                    for (self.knots[0..self.knot_count], 0..) |*other, oi| {
+                        if (oi == ki or other.home or other.colour <= 0.0 or other.fate == .turn) continue;
+                        const ox = other.x - kn.x;
+                        const oz = other.z - kn.z;
+                        if (ox * ox + oz * oz > knots.strike_reach * knots.strike_reach) continue;
+                        other.colour = @max(0.0, other.colour - knots.kin_part * knots.drain_alone);
+                    }
+                }
             }
         }
     }
@@ -2225,6 +2347,8 @@ pub const World = struct {
         mixIn(&h, self.claps);
         mixIn(&h, self.calls_taken_back);
         mixIn(&h, self.timed_strikes);
+        mixIn(&h, self.leans_for_you);
+        for (self.doors) |d| mixIn(&h, d);
         mixIn(&h, self.placed_strikes);
         mixIn(&h, self.knocked);
         for (self.knots[0..self.knot_count]) |kn| mixIn(&h, @as(u32, @bitCast(kn.colour)));
@@ -3107,8 +3231,9 @@ test "struck with home elsewhere, a knot drains slower: the dance's one is not H
     const dx = w.knots[0].x - w.hum_x;
     const dz = w.knots[0].z - w.hum_z;
     try std.testing.expect(dx * dx + dz * dz < knots.strike_reach * knots.strike_reach);
-    // home on sunny home: three strikes timed on the downbeat, which greyed it with home on its
-    // root, leave it coloured
+    // home on sunny home, the windows as Fierce keeps them: three strikes timed on the downbeat,
+    // which greyed it with home on its root, leave it coloured
+    w.fierce = true;
     var struck: u32 = 0;
     while (struck < 3) {
         if (w.clock % (4 * tick_every) == 0 and w.clock > 0) {
@@ -3321,4 +3446,131 @@ test "a strike timed within an eighth of a beat lands at once with its octave; o
     }
     try std.testing.expect(plain);
     try std.testing.expectEqual(never, w.strike_due);
+}
+
+test "the four doors: rung open and the next grey, settled, kin for a phrase, slid home, and a plain ending" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    w.awake = 0xff;
+    const bar: u64 = 4 * tick_every;
+    var cues: [max_cues]sound.Cue = undefined;
+    const Case = struct { root: i8, home: i8, fate: knots.Fate, home_now: bool };
+    const cases = [_]Case{
+        .{ .root = 0, .home = -1, .fate = .full_close, .home_now = true },
+        .{ .root = -1, .home = 0, .fate = .amen, .home_now = true },
+        .{ .root = 0, .home = 2, .fate = .turn, .home_now = false },
+        .{ .root = 0, .home = 5, .fate = .slide, .home_now = true },
+        .{ .root = 0, .home = 0, .fate = .none, .home_now = false },
+        .{ .root = 0, .home = 3, .fate = .none, .home_now = false },
+    };
+    for (cases) |cs| {
+        // one grey knot beside Hum, the others far off
+        for (w.knots[0..w.knot_count], 0..) |*kn, i| {
+            kn.home = false;
+            kn.fate = .none;
+            kn.colour = 1.0;
+            kn.calm_until = 0;
+            kn.kin_until = 0;
+            kn.x = w.hum_x + 500.0;
+            kn.z = w.hum_z + 500.0 + @as(f32, @floatFromInt(i));
+        }
+        const kn = &w.knots[0];
+        kn.x = w.hum_x + 3.0;
+        kn.z = w.hum_z;
+        kn.root_hz = wedgeHz(w.day_hz, cs.root);
+        kn.colour = 0.0;
+        w.home_k = cs.home;
+        w.home_hz = wedgeHz(w.day_hz, cs.home);
+        w.landCadence();
+        try std.testing.expectEqual(cs.fate, kn.fate);
+        try std.testing.expectEqual(cs.home_now, kn.home);
+        if (cs.fate == .none) try std.testing.expect(kn.calm_until > w.clock);
+        // the turn: kin for a phrase, and then home
+        if (cs.fate == .turn) {
+            var step: u64 = 0;
+            while (step < (knots.kin_bars + 1) * bar + 10) : (step += 1) _ = w.stepOnce(.{}, &cues);
+            try std.testing.expect(kn.home);
+        }
+    }
+    // the full close's chain: a coloured knot with its root where home landed goes grey and leans
+    for (w.knots[0..w.knot_count]) |*kn| {
+        kn.home = false;
+        kn.fate = .none;
+        kn.x = w.hum_x + 500.0;
+    }
+    w.knots[0] = .{ .x = w.hum_x + 3.0, .z = w.hum_z, .root_hz = wedgeHz(w.day_hz, 0), .colour = 0.0, .thing = w.knots[0].thing };
+    w.knots[1] = .{ .x = w.hum_x - 3.0, .z = w.hum_z, .root_hz = wedgeHz(w.day_hz, -1), .colour = 1.0, .thing = w.knots[1].thing };
+    w.home_k = -1;
+    w.home_hz = wedgeHz(w.day_hz, -1);
+    w.landCadence();
+    try std.testing.expectEqual(knots.Fate.full_close, w.knots[0].fate);
+    try std.testing.expectEqual(@as(f32, 0.0), w.knots[1].colour);
+    try std.testing.expect(!w.knots[1].home);
+}
+
+test "Gentle widens each window of timing by half again, and Fierce keeps them" {
+    var cues: [max_cues]sound.Cue = undefined;
+    var timed: [2]u32 = undefined;
+    for ([2]bool{ false, true }, 0..) |fierce, k| {
+        const w = try std.testing.allocator.create(World);
+        defer std.testing.allocator.destroy(w);
+        w.initAsters();
+        w.fierce = fierce;
+        var step: u32 = 0;
+        while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
+        // a strike eight steps after a beat: outside an eighth of a beat, inside half again of it
+        while (w.clock % tick_every != 8) _ = w.stepOnce(.{}, &cues);
+        _ = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+        timed[k] = w.timed_strikes;
+    }
+    try std.testing.expectEqual(@as(u32, 1), timed[0]);
+    try std.testing.expectEqual(@as(u32, 0), timed[1]);
+}
+
+test "on Gentle a swell held a bar unsteered leans home beside the grey knot on its amen side; on Fierce the amen is a plain ending" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    w.hum_x = -110.0;
+    w.hum_z = 400.0;
+    var step: u32 = 0;
+    while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    _ = w.moveHome(-1);
+    for (w.knots[0..w.knot_count]) |*kn| kn.colour = 0.0;
+    // hold the swell from just before a downbeat, and never touch the stick
+    const bar = (w.clock / tick_every / 4 + 1) * 4;
+    while (w.clock < tickStep(bar) - 10) _ = w.stepOnce(.{}, &cues);
+    while (w.clock < tickStep(bar + 4) + 2) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    // after a bar, home has drifted to sunny home, one to the right of the knots' root
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    try std.testing.expectEqual(@as(u32, 1), w.leans_for_you);
+    // let go on the next downbeat: the amen, and they settle and sleep
+    while (w.clock < tickStep(bar + 8)) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(Cadence.amen, w.cadence);
+    try std.testing.expectEqual(@as(u32, 3), w.knots_home);
+    for (w.knots[0..w.knot_count]) |kn| try std.testing.expectEqual(knots.Fate.amen, kn.fate);
+
+    // the same on Fierce: nothing leans for you, and a nudge to the amen side is a plain ending
+    const f = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(f);
+    f.initAsters();
+    f.fierce = true;
+    f.hum_x = -110.0;
+    f.hum_z = 400.0;
+    step = 0;
+    while (step < 60 * 25) : (step += 1) _ = f.stepOnce(.{}, &cues);
+    _ = f.moveHome(-1);
+    for (f.knots[0..f.knot_count]) |*kn| kn.colour = 0.0;
+    const fbar = (f.clock / tick_every / 4 + 1) * 4;
+    while (f.clock < tickStep(fbar) - 10) _ = f.stepOnce(.{}, &cues);
+    while (f.clock < tickStep(fbar + 4) + 2) _ = f.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), f.home_k);
+    _ = f.stepOnce(.{ .buttons = Hands.sing, .rx = 110 }, &cues);
+    while (f.clock < tickStep(fbar + 8)) _ = f.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = f.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(u32, 0), f.knots_home);
+    try std.testing.expect(f.doors[0] >= 3);
 }
