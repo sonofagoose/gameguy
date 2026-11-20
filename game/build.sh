@@ -38,6 +38,9 @@ echo "== the promise book: which moments the world must witness (spec/promises.m
 $PROMISES --zig src/world/promise_list.zig
 grep -c '^    "' src/world/promise_list.zig | sed 's/^/   witnessed promises: /'
 
+echo "== the land's tables from its score (scores/garden.txt, tools/score.py)"
+python3 -I tools/score.py scores/garden.txt src/world/land.zig
+
 echo "== tests (the rules, the sound, the arithmetic: nothing that needs a screen)"
 "$ZIG" test src/rules.zig --cache-dir build/cache 2>&1 | tail -1
 "$ZIG" test tools/ears.zig -lc --cache-dir build/cache 2>&1 | tail -1 | sed 's/^/   the ears: /'

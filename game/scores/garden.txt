@@ -1,0 +1,54 @@
+# The Garden's score (spec/world.md 1; spec/shape.md, "The Garden: a bowl"; spec/engine.md,
+# "Places and scores"). tools/score.py turns it into the land's tables (src/world/land.zig).
+#
+# For now it holds the proof field exactly as the first evening was built on it: flat, the asters
+# on a loose grid, the puddles and the first knots where the scripted walk finds them. The Garden
+# as spec/shape.md draws it, a bowl a kilometre and a half across with the Mirror Pool at its
+# lowest point, the spigot on the highest rise at the back and the hose down across it, is written
+# into this file next, one thing at a time, each looked at from above and from inside.
+#
+# Metres, one to a hundred. x runs east and z runs south; Hum wakes facing north, toward -z.
+# A note is a ratio over the land's own note: 4/3 is the F above the garden's C.
+
+# the land's own note, in hertz: C
+note 261.63
+
+# where Hum wakes in the dark
+wake 0 0
+
+# the great aster, a hundred and fifty metres ahead of where Hum wakes, and how tall
+great 0 -150 tall 172
+
+# the clearing in the reeds where Drip waits in the dark
+clear -34 -52
+
+# where the lake lies, for the sun's rings of light over it
+lake 1100 -2700
+
+# the rest of the asters, by rule: a grid of cells across the field from its south edge, each
+# aster thrown about its cell, of a height between the least and the least and more, one cell in
+# so many left empty, all from one seed
+asters across 1200 cells 9 from 150 jitter 90 tall 92 76 skip 11 seed 0x51ed270b
+
+# how far the asters keep from where Hum wakes, from the great aster, from Drip's clearing, and
+# from a puddle's edge
+keep wake 45
+keep great 60
+keep clear 32
+keep puddle 25
+
+# the puddles from the storm: where, which standing shape the garden's note makes in each, and the
+# note it is sized for (the last is sized for wonder, the F above)
+puddle 175 215 shape 7
+puddle -130 160 shape 1
+puddle -10 360 shape 3
+puddle 330 450 shape 4
+puddle -230 330 shape 7 note 4/3
+
+# the first knots, south of the puddle sized for wonder: where each waits, and what each is,
+# two strands over a root (spec/world.md, "stand where they meet"): C and the A above it, the third
+# and fifth overtones of the F below, pulsing three and five to a cycle
+knot -110 440
+knot -95 455
+knot -125 458
+knots root 2/3 strand 1/1 3 strand 5/3 5

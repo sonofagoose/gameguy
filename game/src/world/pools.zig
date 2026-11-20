@@ -95,12 +95,12 @@ pub const Puddle = struct { x: f32, z: f32, shape: u8, note: f32 = 1.0 };
 /// third as one ring with no way to it, and the fourth as three spokes. The fifth is sized for the
 /// F a fifth below: silent to the garden's own note, it stands as a ring and a cross when home is
 /// moved to wonder, whose law is standing waves (spec/laws.md, "Home over the laws").
-pub const garden = [_]Puddle{
-    .{ .x = 175.0, .z = 215.0, .shape = 7 },
-    .{ .x = -130.0, .z = 160.0, .shape = 1 },
-    .{ .x = -10.0, .z = 360.0, .shape = 3 },
-    .{ .x = 330.0, .z = 450.0, .shape = 4 },
-    .{ .x = -230.0, .z = 330.0, .shape = 7, .note = 4.0 / 3.0 },
+pub const garden = blk: {
+    // where they lie and what they are sized for comes from the Garden's score
+    const land = @import("land.zig");
+    var out: [land.puddles.len]Puddle = undefined;
+    for (land.puddles, 0..) |p, k| out[k] = .{ .x = p.x, .z = p.z, .shape = p.shape, .note = p.note };
+    break :blk out;
 };
 
 /// The overtones of Hum's closed "mm" on middle C, each against the first: measured from its vowel

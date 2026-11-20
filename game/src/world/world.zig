@@ -19,6 +19,8 @@ pub const ground = @import("ground.zig");
 pub const flyers = @import("flyers.zig");
 pub const pools = @import("pools.zig");
 pub const knots = @import("knots.zig");
+/// The land's tables, from its score (scores/garden.txt, through tools/score.py).
+pub const land = @import("land.zig");
 
 /// The puddles on the ground at once (pools.zig).
 pub const max_pools = pools.garden.len;
@@ -55,7 +57,7 @@ pub const timed_takes: f32 = 1.25;
 pub const gentle_widens: f64 = 1.5;
 pub const run_speed: f32 = 6.0;
 /// The garden's note: middle C.
-pub const garden_hz: f32 = 261.63;
+pub const garden_hz: f32 = land.note;
 /// Every cue is stamped at least this many samples after its step begins, so the sound thread
 /// has not already passed it.
 pub const lead: u64 = 1600;
@@ -76,8 +78,8 @@ pub const voice_level: f32 = 0.35;
 /// Height is the octave, and an octave is 100 m.
 pub const octave_m: f32 = 100.0;
 /// The lake's middle, beyond the far edge of the proof field, and the radius of its shore.
-pub const lake_x: f32 = 1100.0;
-pub const lake_z: f32 = -2700.0;
+pub const lake_x: f32 = land.lake[0];
+pub const lake_z: f32 = land.lake[1];
 pub const lake_r: f32 = 1850.0;
 /// The sun holds the day's note itself: middle C on the garden's morning (spec/sky.md).
 pub const sun_hz: f32 = garden_hz;
@@ -811,13 +813,14 @@ pub const World = struct {
         self.pool_count = pools.garden.len;
         // the first knots: two strands each, C and the A above it, over the F below that both are
         // overtones of (design/the-wheel.md); three of them south of the puddle sized for wonder
-        const knot_at = [3][2]f32{ .{ -110.0, 440.0 }, .{ -95.0, 455.0 }, .{ -125.0, 458.0 } };
+        const knot_at = land.knots;
+        const st = land.knot_strands;
         for (knot_at, 0..) |p, i| {
             var kn = knots.Knot{
                 .x = p[0],
                 .z = p[1],
-                .root_hz = garden_hz * 2.0 / 3.0,
-                .strands = .{ .{ .hz = garden_hz, .over = 3 }, .{ .hz = garden_hz * 5.0 / 3.0, .over = 5 } },
+                .root_hz = garden_hz * land.knot_root[0] / land.knot_root[1],
+                .strands = .{ .{ .hz = garden_hz * st[0].num / st[0].den, .over = st[0].over }, .{ .hz = garden_hz * st[1].num / st[1].den, .over = st[1].over } },
                 .around = @as(f32, @floatFromInt(i)) * (2.0 * std.math.pi / 3.0),
             };
             for (0..2) |s| {

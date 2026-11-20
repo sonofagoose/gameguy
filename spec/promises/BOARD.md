@@ -40,7 +40,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | rung | promises |
 |---|---|
 | sized: its moment, its cheat, its full size and its question written | 138 of 138 |
-| proven: every measure passes today and nothing is owed | 3 |
+| proven: every measure passes today and nothing is owed | 4 |
 | reached: the scripted player met it by playing | 8 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
 | graded full by a fresh reader | 0 |
@@ -83,7 +83,7 @@ asks its question.
 | `card.light` Why nothing on the card was a picture | 2 | 5 | no | - | - | no | no | 1 owed |
 | `card.no-copies` Nothing is a copy | 2 | 5 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `card.kept` Nothing is forgotten | 2 | 8 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `card.years` A card is a number of years | 2 | 14 | no | - | - | no | no | 2 owed; same_take.identical == 1  (is 0) |
+| `card.years` A card is a number of years | 2 | 14 | no | - | - | no | no | 2 owed |
 | `card.carried` The handheld can carry it | 2 | 2 | no | - | no | no | no | 1 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
 | `fight.beat` On the beat | 2 | 3 | no | - | no | no | no | ears.strike_timed_octave_db >= -10  (is -10.2); no yes from Morgan yet |
 | `fight.looper` The looper in a fight | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
@@ -204,7 +204,7 @@ asks its question.
 | `whole.law6` Travel | 1 | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |
 | `whole.law7` Building up | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.twice` Every cue twice | 1 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `whole.same` A take is its inputs | 1 | 1 | no | - | - | no | no | same_take.identical == 1  (is 0) |
+| `whole.same` A take is its inputs | 1 | 1 | yes | - | - | no | no | not graded |
 | `whole.alone` Whole alone, more together | 6 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.endless` The mornings never repeat | 5 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.lights` Every land's lights across the water | 3 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |

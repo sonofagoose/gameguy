@@ -158,44 +158,49 @@ fn note(home_hz: f32, triad: [3]f32, r: f32, pick: f32) f32 {
     return home_hz * ratio * octave;
 }
 
-pub const great_tall: f32 = 172.0;
-pub const great_x: f32 = 0.0;
-pub const great_z: f32 = -150.0;
-pub const field_across: f32 = 1200.0;
+// where they stand comes from the Garden's score (scores/garden.txt, through tools/score.py)
+const land = @import("land.zig");
+pub const great_tall: f32 = land.great_tall;
+pub const great_x: f32 = land.great[0];
+pub const great_z: f32 = land.great[1];
+pub const field_across: f32 = land.aster_rule.across;
 /// A place in the field that is kept clear of asters: where Drip waits in the dark.
-pub const clear_x: f32 = -34.0;
-pub const clear_z: f32 = -52.0;
+pub const clear_x: f32 = land.clear[0];
+pub const clear_z: f32 = land.clear[1];
 
 /// The proof field: the great aster a hundred and fifty metres ahead of where Hum stands, and
 /// the rest on a loose grid over a field more than a kilometre across. The return is how many.
 pub fn field(out: *[max_towers]Plan, home_hz: f32) usize {
     out[0] = plan(0, great_x, great_z, great_tall, home_hz);
     var n: usize = 1;
-    var rnd = Rand{ .s = 0x51ed_270b };
-    const cells = 9;
-    const cell = field_across / @as(f32, cells);
+    const rule = land.aster_rule;
+    var rnd = Rand{ .s = rule.seed };
+    const cells = rule.cells;
+    const cell = field_across / @as(f32, @floatFromInt(cells));
     for (0..cells) |iz| {
         for (0..cells) |ix| {
             const cx = -field_across * 0.5 + (@as(f32, @floatFromInt(ix)) + 0.5) * cell;
-            const cz = 150.0 - (@as(f32, @floatFromInt(iz)) + 0.5) * cell;
-            const x = cx + (rnd.unit() - 0.5) * 90.0;
-            const z = cz + (rnd.unit() - 0.5) * 90.0;
-            const tall = 92.0 + 76.0 * rnd.unit();
-            const skip = rnd.next() % 11 == 0;
+            const cz = rule.from - (@as(f32, @floatFromInt(iz)) + 0.5) * cell;
+            const x = cx + (rnd.unit() - 0.5) * rule.jitter;
+            const z = cz + (rnd.unit() - 0.5) * rule.jitter;
+            const tall = rule.tall_least + rule.tall_more * rnd.unit();
+            const skip = rnd.next() % rule.skip == 0;
             // nothing on top of where Hum stands, or on the great aster
-            const near_start = x * x + z * z < 45.0 * 45.0;
+            const wx = x - land.wake[0];
+            const wz = z - land.wake[1];
+            const near_start = wx * wx + wz * wz < land.keep_wake * land.keep_wake;
             const gx = x - great_x;
             const gz = z - great_z;
-            const near_great = gx * gx + gz * gz < 60.0 * 60.0;
+            const near_great = gx * gx + gz * gz < land.keep_great * land.keep_great;
             const dx = x - clear_x;
             const dz = z - clear_z;
-            const near_clear = dx * dx + dz * dz < 32.0 * 32.0;
+            const near_clear = dx * dx + dz * dz < land.keep_clear * land.keep_clear;
             // and nothing standing in a puddle, nor so near one that it leans over the water
             var in_water = false;
             for (pools.garden) |pd| {
                 const px = x - pd.x;
                 const pz = z - pd.z;
-                const keep = pools.radiusFor(pd.shape, home_hz) + 25.0;
+                const keep = pools.radiusFor(pd.shape, home_hz) + land.keep_puddle;
                 if (px * px + pz * pz < keep * keep) in_water = true;
             }
             if (skip or near_start or near_great or near_clear or in_water or n >= max_towers) continue;
