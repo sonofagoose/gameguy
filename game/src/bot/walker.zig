@@ -29,6 +29,9 @@ pub const Walker = struct {
     waited_from: u64 = 0,
     knots_from: u64 = 0,
     asleep_marked: bool = false,
+    open_marked: bool = false,
+    water_marked: bool = false,
+    edge_marked: bool = false,
     lean_marked: bool = false,
     nudged: bool = false,
     nudge_left: u8 = 0,
@@ -477,12 +480,35 @@ pub const Walker = struct {
                 if (after > 60 * 40) self.next(step);
             },
             19 => {
-                // a while beside them as they sleep
+                // a while beside them as they sleep; every knot home, the hose springs open
+                if (w.hose_open and !self.open_marked) {
+                    self.open_marked = true;
+                    self.mark = "open";
+                }
                 if (!self.asleep_marked and after > 60 * 3) {
                     self.asleep_marked = true;
                     self.mark = "asleep";
                 }
                 if (after > 60 * 4) self.next(step);
+            },
+            20 => {
+                // to the north shore beside the hose's coil, staying north of the hose, and looking
+                // along the edge to where the figure will sit, so it is seen from its side
+                const view = [2]f32{ 40.0, -15.0 };
+                const vx = view[0] - w.hum_x;
+                const vz = view[1] - w.hum_z;
+                if (vx * vx + vz * vz > 9.0) _ = toward(w, &h, view[0], view[1]);
+                _ = face(w, &h, world_mod.figure_at[0], world_mod.figure_at[1]);
+                if (w.water_at != world_mod.never and !self.water_marked and w.step > w.water_at + 20) {
+                    self.water_marked = true;
+                    self.mark = "water";
+                }
+                if (w.figureNow() and !self.edge_marked and w.step > w.figure_from + 25) {
+                    self.edge_marked = true;
+                    self.mark = "edge";
+                }
+                if (self.edge_marked and !w.figureNow()) self.next(step);
+                if (after > 60 * 60) self.next(step);
             },
             else => self.done = true,
         }

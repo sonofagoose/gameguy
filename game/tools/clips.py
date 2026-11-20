@@ -41,6 +41,9 @@ CLIPS = [
     ('37-placed-then-timed', 'placed', 0.5, 6.0,
      'a strike pressed well off the beat, which the game places on the next beat, its note alone; then the downbeat struck on time by the hands, its note with its octave, and the knots ringing harder',
      'does the strike you time yourself sound like more power than the one the game placed?'),
+    ('38-the-hose-opens', 'open', 6.0, 12.0,
+     'the hose stopped by its knot hums low and hollow, odd overtones only, from wherever you are; the knots settle and it springs open: an octave up, every overtone back, and the water runs down it and pours into the pool',
+     'did the hose sound like the same pipe, opened?'),
 ]
 
 

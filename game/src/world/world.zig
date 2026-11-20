@@ -44,6 +44,25 @@ pub const clap_strength: f32 = 0.7;
 pub const clap_ring: f32 = 0.15;
 pub const clap_over: f32 = 4.0;
 pub const clap_takes_back: u64 = 7;
+/// The hose as an instrument (spec/world.md, "Its great instrument: the Hose", and wonder 8): stopped
+/// by its knot it is a pipe sounding two octaves under the garden's note, its odd overtones only,
+/// hollow; sprung open, an octave up with every overtone back. It is heard from anywhere in the
+/// garden, louder the nearer the hose: its least, how much more near it, and from how far.
+pub const hose_stopped_hz: f32 = garden_hz / 4.0;
+pub const hose_open_hz: f32 = garden_hz / 2.0;
+pub const hose_voice: u8 = 15;
+pub const hose_least: f32 = 0.05;
+pub const hose_more: f32 = 0.18;
+pub const hose_heard: f32 = 450.0;
+pub const hose_open_more: f32 = 1.3;
+/// Once the knot springs open the water runs down the hose to the pool, metres a second; a moment
+/// after it pours in, a blue figure sits on the pool's edge, for a second (SPEC.md 6.1): on the north
+/// edge a little west of where Hum woke, facing out over the water, so that from the knot's side of
+/// the garden it is seen side-on.
+pub const water_speed: f32 = 40.0;
+pub const figure_after: u64 = 90;
+pub const figure_for: u64 = 60;
+pub const figure_at = [2]f32{ land.pool[0] - land.pool[2] * 0.2588, land.pool[1] - land.pool[2] * 0.9659 };
 /// A strike pressed within an eighth of a beat of Hum's beat is timed: it lands at once and rings
 /// fuller, its note with its octave and a brighter light, and takes more (law 7: a push within an
 /// eighth of a cycle of the right moment adds its whole size). Off the beat the game places it on
@@ -632,6 +651,15 @@ pub const World = struct {
     /// Built from the Garden's score (scores/garden.txt), with its Mirror Pool; a world made for a
     /// test of one thing has none.
     in_garden: bool = false,
+    /// The hose (world/hose.zig): its thing, which sounds and shines as the drone from its nearest
+    /// stretch; whether its knot has sprung open; when the water set out from the knot and when it
+    /// reached the pool; when the figure sat on the pool's edge.
+    hose_thing: u32 = no_thing,
+    hose_open: bool = false,
+    hose_opened_at: u64 = never,
+    water_from: u64 = never,
+    water_at: u64 = never,
+    figure_from: u64 = never,
     /// Gentle or Fierce (SPEC.md 10), chosen any night; the first evening is Gentle. Gentle widens
     /// the timing, leans home for you and lets fights end by comfort; Fierce asks for the full close.
     fierce: bool = false,
@@ -841,6 +869,10 @@ pub const World = struct {
             self.knots[i] = kn;
         }
         self.knot_count = knot_at.len;
+        // the hose, sounding from its stretch nearest Hum
+        self.hose_thing = at;
+        self.things[at] = .{ .x = hose.knot[0], .y = 1.0, .z = hose.knot[1], .tall = 1.0, .hz = hose_stopped_hz, .family = .stopped_pipe, .ring = 0.0, .carry = 1e9, .sounds = false };
+        at += 1;
         // the sun rises on the shore, at the first rung's place
         self.sun_x = self.things[self.rung_first].x;
         self.sun_z = self.things[self.rung_first].z;
@@ -1116,6 +1148,7 @@ pub const World = struct {
         if (self.clock_part + self.tempo >= 1.0) self.bee.step(self);
         if (self.pool_count > 0) self.poolStep();
         if (self.knot_count > 0) self.knotStep();
+        if (self.in_garden and self.hose_thing != no_thing) self.hoseStep();
         if (self.clock_part + self.tempo >= 1.0) self.looperStep();
         self.dawn = self.dayAt(self.hum_x, self.hum_z);
         if (self.singing) self.hum_light = @max(self.hum_light, 0.8);
@@ -1360,6 +1393,45 @@ pub const World = struct {
         const dx = kn.x - self.hum_x;
         const dz = kn.z - self.hum_z;
         return dx * dx + dz * dz <= knots.home_reach * knots.home_reach;
+    }
+
+    /// The hose: its drone heard from where Hum stands; its knot springing open once every knot is
+    /// home; the water running to the pool; the figure.
+    fn hoseStep(self: *World) void {
+        if (!self.hose_open and self.knot_count > 0 and self.knots_home >= self.knot_count) self.openHose();
+        if (self.step % 15 == 0) {
+            const near = hose.nearest(self.hum_x, self.hum_z);
+            const th = &self.things[self.hose_thing];
+            th.x = near.p[0];
+            th.z = near.p[1];
+            const more = hose_more * @max(0.0, 1.0 - near.d / hose_heard);
+            const level = (hose_least + more) * (if (self.hose_open) hose_open_more else 1.0);
+            self.tell(.{ .thing = self.hose_thing }, cues_mod.Cue.of(.{ .kind = .tone, .voice = hose_voice, .family = if (self.hose_open) .open_pipe else .stopped_pipe, .hz = if (self.hose_open) hose_open_hz else hose_stopped_hz, .strength = level, .ring = 0.0 }, .glow));
+        }
+        if (self.water_from != never and self.water_at == never) {
+            const ran = @as(f32, @floatFromInt(self.step - self.water_from)) * dt * water_speed;
+            if (ran >= land.hose_knot) {
+                // it pours into the pool, and the pool rings low
+                self.water_at = self.step;
+                const m = hose.path[hose.count - 1];
+                self.tell(.{ .at = .{ .x = m[0], .y = 0.5, .z = m[1] } }, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = garden_hz * 0.5, .strength = 0.6, .ring = 3.5 }, .glow));
+            }
+        }
+        if (self.water_at != never and self.figure_from == never and self.step >= self.water_at + figure_after) self.figure_from = self.step;
+    }
+
+    /// Every knot home: the hose springs open where it was knotted, and the water runs.
+    fn openHose(self: *World) void {
+        self.hose_open = true;
+        self.hose_opened_at = self.step;
+        self.water_from = self.step;
+        const k = hose.knot;
+        self.tell(.{ .at = .{ .x = k[0], .y = 1.0, .z = k[1] } }, cues_mod.Cue.of(.{ .kind = .strike, .family = .open_pipe, .hz = hose_open_hz * 2.0, .strength = 0.7, .ring = 2.5 }, .glow));
+    }
+
+    /// Whether the figure sits on the pool's edge now.
+    pub fn figureNow(self: *const World) bool {
+        return self.figure_from != never and self.step >= self.figure_from and self.step < self.figure_from + figure_for;
     }
 
     /// The nearest grey creature still out in the world, within reach of a cadence.
@@ -2381,6 +2453,8 @@ pub const World = struct {
         mixIn(&h, self.calls_taken_back);
         mixIn(&h, self.timed_strikes);
         mixIn(&h, self.leans_for_you);
+        mixIn(&h, @intFromBool(self.hose_open));
+        mixIn(&h, @truncate(self.water_at));
         for (self.doors) |d| mixIn(&h, d);
         mixIn(&h, self.placed_strikes);
         mixIn(&h, self.knocked);
@@ -3606,4 +3680,52 @@ test "on Gentle a swell held a bar unsteered leans home beside the grey knot on 
     _ = f.stepOnce(.{}, &cues);
     try std.testing.expectEqual(@as(u32, 0), f.knots_home);
     try std.testing.expect(f.doors[0] >= 3);
+}
+
+test "every knot home, the hose springs open an octave up, the water runs to the pool, and for a second a figure sits on its edge" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    // stopped: the drone is the hollow pipe two octaves under the garden's note, heard when it has
+    // come from the hose's nearest stretch
+    var heard_stopped = false;
+    var step: u32 = 0;
+    while (step < 150) : (step += 1) {
+        const n = w.stepOnce(.{}, &cues);
+        for (cues[0..n]) |cue| {
+            if (cue.kind == .tone and cue.voice == hose_voice and cue.family == .stopped_pipe and cue.hz == hose_stopped_hz) heard_stopped = true;
+        }
+    }
+    try std.testing.expect(heard_stopped);
+    try std.testing.expect(!w.hose_open);
+    // the knots come home
+    for (w.knots[0..w.knot_count]) |*kn| {
+        kn.home = true;
+        kn.fate = .amen;
+    }
+    w.knots_home = w.knot_count;
+    var heard_open = false;
+    var opened_at: u64 = 0;
+    step = 0;
+    while (step < 60 * 12 and w.figure_from == never) : (step += 1) {
+        const n = w.stepOnce(.{}, &cues);
+        if (w.hose_open and opened_at == 0) opened_at = w.step;
+        for (cues[0..n]) |cue| {
+            if (cue.kind == .tone and cue.voice == hose_voice and cue.family == .open_pipe and cue.hz == hose_open_hz) heard_open = true;
+        }
+    }
+    try std.testing.expect(w.hose_open);
+    try std.testing.expect(heard_open);
+    // the water took as long as the run from the knot to the mouth at its speed
+    const took = @as(f32, @floatFromInt(w.water_at - w.water_from)) * dt;
+    try std.testing.expect(@abs(took - land.hose_knot / water_speed) < 0.1);
+    // and the figure sits for one second, then is gone
+    step = 0;
+    var seen_for: u32 = 0;
+    while (step < 200) : (step += 1) {
+        _ = w.stepOnce(.{}, &cues);
+        if (w.figureNow()) seen_for += 1;
+    }
+    try std.testing.expect(seen_for + 2 >= figure_for and seen_for <= figure_for);
 }

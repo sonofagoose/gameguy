@@ -96,7 +96,7 @@ asks its question.
 | `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
 | `evening.in` "Oh. You're in." | 2 | 5 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.instrument` Everything is an instrument | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `evening.knot` The knot, and the first fight | 2 | 10 | no | - | no | no | no | 5 owed; no yes from Morgan yet |
+| `evening.knot` The knot, and the first fight | 2 | 10 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.dusk` The river sings your day back | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `garden.land` The Garden, home | 2 | 14 | no | - | no | no | no | 7 owed; no yes from Morgan yet |
 | `garden.ground` What the Garden's ground wears | 2 | 6 | no | - | no | no | no | 5 owed; no yes from Morgan yet |
@@ -105,7 +105,7 @@ asks its question.
 | `garden.w01` The answering field | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w02` The seed that follows | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w03` The parade | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `garden.w04` The puddle bridge | 2 | 1 | no | yes | no | no | no | 4 owed; ears.pool_adds_db >= 3  (is -0.744); no yes from Morgan yet |
+| `garden.w04` The puddle bridge | 2 | 1 | no | yes | no | no | no | 4 owed; ears.pool_adds_db >= 3  (is 2.903); no yes from Morgan yet |
 | `garden.w05` The quiet ball | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w06` The far shore, late | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `garden.w07` The swing | 2 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
@@ -174,7 +174,7 @@ asks its question.
 | `scale.ring` The ring round the lake | 2 | 13 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `sky.dawn` The first dawn | 2 | 7 | no | yes | no | no | no | 5 owed; no yes from Morgan yet |
 | `sky.bee` The bee | 2 | 3 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
-| `texture.frame` What makes a frame beautiful | 2 | 4 | no | - | no | no | no | 4 owed; beauty.page_black_least >= 0.8  (is 0.7919); no yes from Morgan yet |
+| `texture.frame` What makes a frame beautiful | 2 | 4 | no | - | no | no | no | 4 owed; beauty.page_black_least >= 0.8  (is 0.7953); no yes from Morgan yet |
 | `texture.light` Light is loudness | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `texture.one-rule` How a thing looks is how it sounds | 2 | 10 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `texture.at-rest` A line at rest | 2 | 5 | no | - | no | no | no | 2 owed; frame evening-climb: nobody has looked at it yet; no yes from Morgan yet |

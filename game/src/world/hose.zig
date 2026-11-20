@@ -69,6 +69,39 @@ pub fn backFromEnd(d: f32) [2]f32 {
 /// Where the hose is knotted.
 pub const knot: [2]f32 = backFromEnd(land.hose_knot);
 
+pub const Near = struct { p: [2]f32, d: f32, along: f32 };
+
+/// The hose's nearest point to a place, how far it is, and how far along the hose from the spigot.
+pub fn nearest(x: f32, z: f32) Near {
+    var best: f32 = std.math.floatMax(f32);
+    var out = Near{ .p = path[0], .d = 0.0, .along = 0.0 };
+    for (0..count - 1) |i| {
+        const ax = path[i][0];
+        const az = path[i][1];
+        const dx = path[i + 1][0] - ax;
+        const dz = path[i + 1][1] - az;
+        const l2 = dx * dx + dz * dz;
+        var t: f32 = 0.0;
+        if (l2 > 0.0) t = std.math.clamp(((x - ax) * dx + (z - az) * dz) / l2, 0.0, 1.0);
+        const qx = ax + dx * t;
+        const qz = az + dz * t;
+        const px = x - qx;
+        const pz = z - qz;
+        const d2 = px * px + pz * pz;
+        if (d2 < best) {
+            best = d2;
+            out = .{ .p = .{ qx, qz }, .d = 0.0, .along = along[i] + (along[i + 1] - along[i]) * t };
+        }
+    }
+    out.d = @sqrt(best);
+    return out;
+}
+
+/// The point this far along the hose from the spigot.
+pub fn at(d: f32) [2]f32 {
+    return backFromEnd(length - d);
+}
+
 /// How far a place is from the hose's line.
 pub fn distance(x: f32, z: f32) f32 {
     var best: f32 = std.math.floatMax(f32);

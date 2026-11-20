@@ -174,7 +174,12 @@ stage 2 begins._
   - `owed` Hum walks inside it upright, and it takes at least four minutes.
   - `owed` The still places and the winds are the pipe's own standing wave, worked out from its
     length. Change its length at a kink and they move to where the sum says.
-  - `owed` Stopped, it sounds its odd overtones only; opened, all of them, an octave higher. A test.
+  - `test a pipe stopped at one end sounds only its odd overtones, an octave under the same pipe
+    open`
+    Stopped, it sounds its odd overtones only; opened, all of them, an octave higher.
+  - `owed` The Great Knot inside draws it closed again after the first evening, until it is freed
+    for
+    good (`DECISIONS.md`).
   - `owed` Five against seven meet every thirty-fifth beat, and nowhere else. A test.
   - `owed` The scripted player crosses it by the still places, and is blown back when it doesn't.
   - `owed` On Gentle it can be sat with: the Knot comes undone by breathing with it.
@@ -343,8 +348,11 @@ stage 2 begins._
   octave and gone hollow, like a voice in a jar. Take the pebble out and it comes back.
 - **A cheat would be:** two samples.
 - **Full size:**
-  - `owed` Its truth as a sum: stopped, the lowest note halves and the even overtones are gone. A
-    test.
+  - `test a pipe stopped at one end sounds only its odd overtones, an octave under the same pipe
+    open`
+    Its truth as a sum: stopped, the lowest note halves and the even overtones are gone. The hose
+    in the first evening is this pipe at the garden's size.
+  - `owed` The cut lengths of hose, open at both ends, and the pebble that stops one.
   - `owed` Any pipe in any land does the same when anything stops it.
 - **Asks:** Could you hear that it was the same pipe?
 

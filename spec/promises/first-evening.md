@@ -183,14 +183,24 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 - **A cheat would be:** enemies with health bars and a music track; a wheel that pauses the game for
   a menu; the hose's change as a swapped sound.
 - **Full size:**
-  - `owed` Every strike rings the knot at its own note, in key, and a strike you time yourself rings
+  - `test a strike timed within an eighth of a beat lands at once with its octave; off the beat the
+    game places it on the next beat, plain`
+    Every strike rings the knot at its own note, in key, and a strike you time yourself rings
     fuller than one the game placed.
   - `owed` The pocket: a dodge on the beat opens it, and the scripted player can't open it off the
     beat.
-  - `owed` The hose's octave is the pipe's own sum: stopped, odd overtones only; opened, all of them
-    and an octave up. A test.
+  - `test a pipe stopped at one end sounds only its odd overtones, an octave under the same pipe
+    open`
+    The hose's octave is the pipe's own sum: stopped, odd overtones only; opened, all of them and
+    an octave up (`game/src/sound/sound.zig`, held pipes).
+  - `test every knot home, the hose springs open an octave up, the water runs to the pool, and for a
+    second a figure sits on its edge`
+    In the world: the drone is the stopped pipe until every knot is home, then the open one; the
+    water runs from the knot to the mouth at its speed and pours into the pool.
+  - `frame evening-open` The hose springing open as the knots settle.
   - `owed` Thumbs: the fight is played without the right stick and a face button together.
-  - `owed` The blue figure on the pool's edge, for one second, with no face and no name. Who it is
+  - `frame evening-edge` The blue figure on the pool's edge, for one second, with no face and no
+    name: drawn at the garden's own size, a person sitting by a pond, in lines only. Who it is
     stays Morgan's.
 - **Asks:** Did a strike you timed yourself feel like power?
 

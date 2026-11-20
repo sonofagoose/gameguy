@@ -14,7 +14,7 @@ pub const rate: f32 = 48000.0;
 const V = @Vector(4, f32);
 
 /// The shapes things come in, each with the overtones of that shape (spec/laws.md).
-pub const Family = enum(u8) { bell, string, stopped_pipe, bar, skin, tone, fork, fork_octave };
+pub const Family = enum(u8) { bell, string, stopped_pipe, bar, skin, tone, fork, fork_octave, open_pipe };
 
 pub const Recipe = struct {
     mult: [8]f32,
@@ -34,6 +34,8 @@ pub fn recipe(family: Family) Recipe {
         .skin => .{ .mult = .{ 1.0, 1.593, 2.136, 2.295, 2.653, 2.917, 3.156, 3.501 }, .gain = .{ 1.0, 0.55, 0.40, 0.30, 0.25, 0.18, 0.12, 0.10 } },
         // Hum's tuning fork: nearly a pure tone (spec/laws.md, "The families")
         .fork => .{ .mult = .{ 1.0, 6.27, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, .gain = .{ 1.0, 0.22, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 } },
+        // a pipe open at both ends: every overtone (spec/laws.md, "The families")
+        .open_pipe => .{ .mult = .{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0 }, .gain = .{ 1.0, 0.50, 0.33, 0.25, 0.20, 0.16, 0.14, 0.12 } },
         // a strike you timed yourself: the same note with its octave, fuller (SPEC.md 10)
         .fork_octave => .{ .mult = .{ 1.0, 2.0, 6.27, 12.54, 0.0, 0.0, 0.0, 0.0 }, .gain = .{ 1.0, 0.6, 0.22, 0.12, 0.0, 0.0, 0.0, 0.0 } },
         // one standing shape alone: a single tone
@@ -104,13 +106,67 @@ const Voice = struct {
 };
 /// Held pure notes that are not voices: water standing in a shape sings its note for as long as
 /// it stands (world/pools.zig).
-pub const max_tones = 8;
+pub const max_tones = 16;
 const Tone = struct {
     phase: f32 = 0.0,
     step: f32 = 0.0,
     level: f32 = 0.0,
     target: f32 = 0.0,
+    /// A pure note, or a pipe held sounding: stopped (its odd overtones) or open (all of them).
+    family: Family = .tone,
 };
+
+/// A held note's overtones, as the speaker or headphones are given them: which multiples of the
+/// note and how strong each is. A pure note is one; a stopped pipe its odd overtones, each the
+/// weaker for being higher; an open pipe all of them. Under the speaker's floor a partial is softer
+/// and its octave and twelfth carry what it lost; a stopped pipe has no octaves, so its twelfths
+/// carry it all and it stays hollow.
+pub const Held = struct { mult: [6]f32 = @splat(0.0), gain: [6]f32 = @splat(0.0), n: usize = 0 };
+
+pub fn heldParts(family: Family, hz: f32, speaker: bool) Held {
+    var h = Held{};
+    switch (family) {
+        .stopped_pipe => {
+            h.n = 6;
+            for (0..6) |k| {
+                const m: f32 = @floatFromInt(2 * k + 1);
+                h.mult[k] = m;
+                h.gain[k] = 1.0 / m;
+            }
+        },
+        .open_pipe => {
+            h.n = 6;
+            for (0..6) |k| {
+                const m: f32 = @floatFromInt(k + 1);
+                h.mult[k] = m;
+                h.gain[k] = 1.0 / m;
+            }
+        },
+        else => {
+            h.n = 3;
+            h.mult = .{ 1.0, 2.0, 3.0, 0.0, 0.0, 0.0 };
+            h.gain = .{ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+        },
+    }
+    if (!speaker) return h;
+    const stopped = family == .stopped_pipe;
+    var k: usize = 0;
+    while (k < h.n) : (k += 1) {
+        const w = underFloor(hz * h.mult[k]);
+        if (w >= 1.0) continue;
+        const lost = h.gain[k] * h.gain[k] * (1.0 - w * w);
+        h.gain[k] *= w;
+        const ups = [2]f32{ 2.0, 3.0 };
+        const shares = [2]f32{ if (stopped) 0.0 else to_octave, if (stopped) 1.0 else to_twelfth };
+        for (ups, shares) |up, share| {
+            if (share == 0.0) continue;
+            for (0..h.n) |j| {
+                if (@abs(h.mult[j] - h.mult[k] * up) < 0.01) h.gain[j] = @sqrt(h.gain[j] * h.gain[j] + share * lost);
+            }
+        }
+    }
+    return h;
+}
 
 /// A sine of a whole turn's part, by a parabola made true to within a thousandth: the same sum on
 /// every machine, and no library's.
@@ -333,6 +389,7 @@ pub const Sound = struct {
                 const tone = &self.tones[cue.voice % max_tones];
                 tone.step = cue.hz / rate;
                 tone.target = cue.gain;
+                tone.family = cue.family;
             },
             .tempo => self.restretch(cue.gain),
             .strike => {
@@ -608,21 +665,21 @@ pub const Sound = struct {
             var tones: [128]f32 = @splat(0.0);
             for (&self.tones) |*tone| {
                 if (tone.level == 0.0 and tone.target == 0.0) continue;
-                // under the speaker's floor a pure note is rebuilt from its second and third
-                // harmonics, the energy kept, so the ear supplies the root
-                const w = if (self.speaker) underFloor(tone.step * rate) else 1.0;
-                const lost = 1.0 - w * w;
-                const a2 = @sqrt(to_octave * lost);
-                const a3 = @sqrt(to_twelfth * lost);
+                // its overtones as the speaker or headphones are given them (heldParts): under the
+                // speaker's floor a note is rebuilt from its own overtones, so the ear supplies it
+                const held = heldParts(tone.family, tone.step * rate, self.speaker);
                 for (0..n) |i| {
                     tone.level += (tone.target - tone.level) * 0.0004;
                     tone.phase += tone.step;
                     if (tone.phase >= 1.0) tone.phase -= 1.0;
-                    var p2 = tone.phase * 2.0;
-                    if (p2 >= 1.0) p2 -= 1.0;
-                    var p3 = tone.phase * 3.0;
-                    while (p3 >= 1.0) p3 -= 1.0;
-                    tones[i] += (sineOfTurn(tone.phase) * w + sineOfTurn(p2) * a2 + sineOfTurn(p3) * a3) * tone.level;
+                    var sum: f32 = 0.0;
+                    for (0..held.n) |k| {
+                        if (held.gain[k] == 0.0) continue;
+                        var pk = tone.phase * held.mult[k];
+                        pk -= @floor(pk);
+                        sum += sineOfTurn(pk) * held.gain[k];
+                    }
+                    tones[i] += sum * tone.level;
                 }
                 if (tone.target == 0.0 and tone.level < 1e-6) {
                     tone.level = 0.0;
@@ -891,4 +948,49 @@ test "on the speaker a low held tone is rebuilt from its octave and twelfth, its
     try std.testing.expect(twelfth > 0.5 * note);
     const energy = note * note + octave * octave + twelfth * twelfth;
     try std.testing.expect(@abs(energy - 0.04) < 0.004);
+}
+
+test "a pipe stopped at one end sounds only its odd overtones, an octave under the same pipe open" {
+    const at = struct {
+        fn f(samples: []const f32, hz: f32) f32 {
+            var re: f32 = 0.0;
+            var im: f32 = 0.0;
+            for (samples, 0..) |x, i| {
+                const a = 2.0 * std.math.pi * hz * @as(f32, @floatFromInt(i)) / rate;
+                re += x * @cos(a);
+                im += x * @sin(a);
+            }
+            return 2.0 * @sqrt(re * re + im * im) / @as(f32, @floatFromInt(samples.len));
+        }
+    }.f;
+    const s = try std.testing.allocator.create(Sound);
+    defer std.testing.allocator.destroy(s);
+    const out = try std.testing.allocator.alloc(f32, 48000);
+    defer std.testing.allocator.free(out);
+    // with headphones, the pipe's own sum in its full range: the open pipe at C3, the stopped at C2
+    const open_hz: f32 = 130.8128;
+    s.init();
+    s.setSpeaker(false);
+    _ = s.push(.{ .at = 0, .kind = .tone, .voice = 15, .family = .stopped_pipe, .hz = open_hz * 0.5, .gain = 0.3 });
+    s.render(out);
+    // thirty of the stopped note's periods, so every overtone falls on whole cycles
+    const span = out[24000 .. 24000 + 22016];
+    const f0 = open_hz * 0.5;
+    try std.testing.expect(at(span, f0) > 0.2);
+    try std.testing.expect(at(span, 3.0 * f0) > 0.06);
+    // no even overtone: hollow
+    try std.testing.expect(at(span, 2.0 * f0) < 0.01);
+    try std.testing.expect(at(span, 4.0 * f0) < 0.01);
+    // open: an octave up, and the even overtones come back
+    s.init();
+    s.setSpeaker(false);
+    _ = s.push(.{ .at = 0, .kind = .tone, .voice = 15, .family = .open_pipe, .hz = open_hz, .gain = 0.3 });
+    s.render(out);
+    const span2 = out[24000 .. 24000 + 22016];
+    try std.testing.expect(at(span2, open_hz) > 0.2);
+    try std.testing.expect(at(span2, 2.0 * open_hz) > 0.1);
+    try std.testing.expect(at(span2, f0) < 0.01);
+    // and on the speaker the stopped pipe stays hollow: its octaves are not made up for it
+    const sp = heldParts(.stopped_pipe, f0, true);
+    for (0..sp.n) |k| try std.testing.expect(@mod(sp.mult[k], 2.0) == 1.0);
 }
