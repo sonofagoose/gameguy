@@ -139,7 +139,8 @@ const Pad = struct {
     }
 
     fn button(handle: *c.SDL_GameController, which: c_int) bool {
-        return sdl.GameControllerGetButton(handle, which) != 0;
+        // face buttons by where they are, whatever the controller database calls them
+        return platform.padButton(handle, which);
     }
 
     fn axis(handle: *c.SDL_GameController, which: c_int) f32 {

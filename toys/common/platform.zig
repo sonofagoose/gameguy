@@ -2,6 +2,7 @@
 //! on whatever SDL2 and GPU driver the handheld's firmware ships, and on the laptop.
 const std = @import("std");
 pub const c = @import("c");
+const keys = @import("keys.zig");
 
 fn SdlFn(comptime name: []const u8) type {
     return *const @TypeOf(@field(c, "SDL_" ++ name));
@@ -38,6 +39,10 @@ pub const sdl = struct {
     pub var GameControllerName: SdlFn("GameControllerName") = undefined;
     pub var GameControllerGetButton: SdlFn("GameControllerGetButton") = undefined;
     pub var GameControllerGetAxis: SdlFn("GameControllerGetAxis") = undefined;
+    pub var GameControllerGetJoystick: SdlFn("GameControllerGetJoystick") = undefined;
+    pub var JoystickName: SdlFn("JoystickName") = undefined;
+    pub var JoystickGetButton: SdlFn("JoystickGetButton") = undefined;
+    pub var JoystickNumButtons: SdlFn("JoystickNumButtons") = undefined;
 };
 
 fn GlFn(comptime name: []const u8) type {
@@ -285,4 +290,59 @@ fn openWindowWith(options: WindowOptions) ?Window {
         std.mem.span(@as([*:0]const u8, @ptrCast(gl.GetString(c.GL_VERSION)))),
     });
     return .{ .handle = handle, .context = context, .width = w, .height = h };
+}
+
+/// A pad's button by SDL's names, with the four face buttons taken by where they are, which is
+/// SDL's own convention (A bottom, B right, X left, Y top). The game does the same
+/// (game/src/plat/plat.zig, Faces): controller databases don't agree on the names, and
+/// PortMaster's for the R36S names them after the printed letters, so each face button is found
+/// by the kernel's code for its position instead. Measured on the purple, 2026-11-20: bottom 0,
+/// right 1, top 2, left 3.
+pub fn padButton(handle: *c.SDL_GameController, which: c_int) bool {
+    const slot: ?usize = switch (which) {
+        c.SDL_CONTROLLER_BUTTON_A => 0,
+        c.SDL_CONTROLLER_BUTTON_B => 1,
+        c.SDL_CONTROLLER_BUTTON_X => 2,
+        c.SDL_CONTROLLER_BUTTON_Y => 3,
+        else => null,
+    };
+    const i = slot orelse return sdl.GameControllerGetButton(handle, which) != 0;
+    if (faces_for != handle) {
+        faces = findFaces(handle);
+        faces_for = handle;
+    }
+    if (faces_joystick) |joystick| {
+        if (faces[i] >= 0) return sdl.JoystickGetButton(joystick, faces[i]) != 0;
+    }
+    return sdl.GameControllerGetButton(handle, which) != 0;
+}
+
+var faces: [4]i32 = .{ -1, -1, -1, -1 };
+var faces_for: ?*c.SDL_GameController = null;
+var faces_joystick: ?*c.SDL_Joystick = null;
+
+fn findFaces(handle: *c.SDL_GameController) [4]i32 {
+    var raw = [4]i32{ -1, -1, -1, -1 };
+    const joystick = sdl.GameControllerGetJoystick(handle) orelse return raw;
+    faces_joystick = joystick;
+    const name = std.mem.span(sdl.JoystickName(joystick) orelse return raw);
+    var buf: [32768]u8 = undefined;
+    const file = c.fopen("/proc/bus/input/devices", "r") orelse return raw;
+    const got = c.fread(&buf, 1, buf.len, file);
+    _ = c.fclose(file);
+    const codes = keys.keysOf(buf[0..got], name) orelse return raw;
+    // bottom, right, left, top
+    const wanted = [4]u32{ 0x130, 0x131, 0x134, 0x133 };
+    const count: i32 = sdl.JoystickNumButtons(joystick);
+    for (wanted, 0..) |code, i| {
+        if (!codes.has(code)) continue;
+        var index: i32 = 0;
+        var k: u32 = 0x120;
+        while (k < code) : (k += 1) {
+            if (codes.has(k)) index += 1;
+        }
+        if (index < count) raw[i] = index;
+    }
+    log("controls: face buttons by the kernel's codes: bottom {d}, right {d}, left {d}, top {d}", .{ raw[0], raw[1], raw[2], raw[3] });
+    return raw;
 }

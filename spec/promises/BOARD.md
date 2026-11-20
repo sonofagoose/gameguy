@@ -53,7 +53,7 @@ asks its question.
 
 | promise | it asks | answers so far |
 |---|---|---|
-| `evening.black` Black, and a drip | Did the screen look switched off until you called? | none |
+| `evening.black` Black, and a drip | Did the screen look switched off until you called? | jj: no |
 | `evening.call` You call, and you are answered | When you called in the dark and something answered, did it feel like being answered? | none |
 | `evening.breathe` You breathe with it, and it locks | When the figure stopped, did it feel like the two of you locking? | none |
 | `evening.in` "Oh. You're in." | When the world stood up, did you say something out loud? | none |

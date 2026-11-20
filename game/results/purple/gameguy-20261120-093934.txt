@@ -1,0 +1,10 @@
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the dark: R1 calls, R2 hums, the left stick walks; Select and Start together leave
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+the dark: 3049 frames, 0 late, 2.48 ms of work a frame (worst 4.23); 3127 steps, 155 frames ran two; 20 calls, 511 answers; cues late 0, refused 0; slowest sound buffer 0.50 ms; real-time sound yes; most lines in a frame 267
+the slowest frame was 1771 (step 1817): steps done by 0.50 ms, the land by 0.51, the moving lines by 0.53, drawn by 4.23; nothing was picked
+witness evening.call first=231 held=259
+witness whole.law1 first=231 held=0
+witness whole.law6 first=231 held=0

@@ -131,6 +131,7 @@ const Wav = struct {
 
 const Pad = struct {
     handle: ?*c.SDL_GameController = null,
+    faces: plat.Faces = .{},
 
     fn open() Pad {
         var pad = Pad{};
@@ -139,8 +140,10 @@ const Pad = struct {
         while (i < count) : (i += 1) {
             if (sdl.IsGameController(i) == c.SDL_FALSE) continue;
             pad.handle = sdl.GameControllerOpen(i);
-            if (pad.handle != null) {
-                log("controls: {s}", .{std.mem.span(sdl.GameControllerName(pad.handle))});
+            if (pad.handle) |handle| {
+                pad.faces = plat.Faces.find(handle);
+                var said: [128]u8 = undefined;
+                log("controls: {s}; {s}", .{ std.mem.span(sdl.GameControllerName(handle)), pad.faces.describe(&said) });
                 break;
             }
         }
@@ -161,19 +164,24 @@ const Pad = struct {
             .rx = stick(handle, c.SDL_CONTROLLER_AXIS_RIGHTX),
             .ry = stick(handle, c.SDL_CONTROLLER_AXIS_RIGHTY),
         };
-        // Face buttons are named by position: SDL's A is the bottom one, whatever is printed on it.
         const map = [_]struct { sdl_button: c_int, bit: u16 }{
             .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, .bit = Hands.call },
             .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_LEFTSHOULDER, .bit = Hands.voice },
-            .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_A, .bit = Hands.jump },
-            .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_B, .bit = Hands.dodge },
-            .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_X, .bit = Hands.strike },
-            .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_Y, .bit = Hands.grab },
             .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_BACK, .bit = Hands.select },
             .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_START, .bit = Hands.start },
         };
         for (map) |entry| {
             if (sdl.GameControllerGetButton(handle, entry.sdl_button) != 0) h.buttons |= entry.bit;
+        }
+        // face buttons by where they are (SPEC.md, 10), found by the kernel's codes (plat.Faces)
+        const faces = [_]struct { face: plat.Face, bit: u16 }{
+            .{ .face = .bottom, .bit = Hands.jump },
+            .{ .face = .right, .bit = Hands.dodge },
+            .{ .face = .left, .bit = Hands.strike },
+            .{ .face = .top, .bit = Hands.grab },
+        };
+        for (faces) |entry| {
+            if (self.faces.down(handle, entry.face)) h.buttons |= entry.bit;
         }
         if (sdl.GameControllerGetAxis(handle, c.SDL_CONTROLLER_AXIS_TRIGGERRIGHT) > 16000) h.buttons |= Hands.sing;
         if (sdl.GameControllerGetAxis(handle, c.SDL_CONTROLLER_AXIS_TRIGGERLEFT) > 16000) h.buttons |= Hands.guard;

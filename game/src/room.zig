@@ -522,11 +522,17 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
     defer if (device != 0) sdl.CloseAudioDevice(device);
 
     var pad: ?*c.SDL_GameController = null;
+    var faces = plat.Faces{};
     var j: c_int = 0;
     while (j < sdl.NumJoysticks()) : (j += 1) {
         if (sdl.IsGameController(j) == c.SDL_FALSE) continue;
         pad = sdl.GameControllerOpen(j);
-        if (pad != null) break;
+        if (pad) |handle| {
+            faces = plat.Faces.find(handle);
+            var said: [128]u8 = undefined;
+            log("room: controls: {s}; {s}", .{ std.mem.span(sdl.GameControllerName(handle)), faces.describe(&said) });
+            break;
+        }
     }
 
     var current: usize = 0;
@@ -547,16 +553,18 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
         }
         var down: [7]bool = @splat(false);
         if (pad) |handle| {
-            const buttons = [7]c_int{
-                c.SDL_CONTROLLER_BUTTON_B, // right face, printed A: yes
-                c.SDL_CONTROLLER_BUTTON_A, // bottom face, printed B: no
-                c.SDL_CONTROLLER_BUTTON_X, // left face, printed Y: again
+            // the face buttons by where they are, found by the kernel's codes: on this handheld
+            // the right one is printed A (yes), the bottom B (no), the left Y (again)
+            down[0] = faces.down(handle, .right);
+            down[1] = faces.down(handle, .bottom);
+            down[2] = faces.down(handle, .left);
+            const others = [4]c_int{
                 c.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
                 c.SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
                 c.SDL_CONTROLLER_BUTTON_BACK,
                 c.SDL_CONTROLLER_BUTTON_START,
             };
-            for (buttons, 0..) |button, i| down[i] = sdl.GameControllerGetButton(handle, button) != 0;
+            for (others, 3..) |button, i| down[i] = sdl.GameControllerGetButton(handle, button) != 0;
         }
         var pressed: [7]bool = undefined;
         for (0..7) |i| pressed[i] = down[i] and !was[i];

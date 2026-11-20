@@ -3,6 +3,7 @@
 //! Taken from toys/common/platform.zig, with what the game's renderer and loop need added.
 const std = @import("std");
 pub const c = @import("c");
+const keys = @import("keys.zig");
 
 fn SdlFn(comptime name: []const u8) type {
     return *const @TypeOf(@field(c, "SDL_" ++ name));
@@ -39,6 +40,10 @@ pub const sdl = struct {
     pub var GameControllerName: SdlFn("GameControllerName") = undefined;
     pub var GameControllerGetButton: SdlFn("GameControllerGetButton") = undefined;
     pub var GameControllerGetAxis: SdlFn("GameControllerGetAxis") = undefined;
+    pub var GameControllerGetJoystick: SdlFn("GameControllerGetJoystick") = undefined;
+    pub var JoystickName: SdlFn("JoystickName") = undefined;
+    pub var JoystickGetButton: SdlFn("JoystickGetButton") = undefined;
+    pub var JoystickNumButtons: SdlFn("JoystickNumButtons") = undefined;
     pub var GetTicks: SdlFn("GetTicks") = undefined;
     pub var Delay: SdlFn("Delay") = undefined;
     pub var GetNumDisplayModes: SdlFn("GetNumDisplayModes") = undefined;
@@ -301,3 +306,69 @@ fn openWindowWith(options: WindowOptions) ?Window {
     });
     return .{ .handle = handle, .context = context, .width = w, .height = h };
 }
+
+/// The four face buttons, named by where they are on the handheld (SPEC.md, section 10), never by
+/// what is printed on them.
+pub const Face = enum(u2) { bottom, right, left, top };
+
+/// Which of a joystick's own buttons each face button is.
+///
+/// The kernel names a gamepad's face buttons by where they sit: BTN_SOUTH (0x130) is the bottom
+/// one, BTN_EAST (0x131) the right, BTN_NORTH (0x133) the top and BTN_WEST (0x134) the left,
+/// whatever letters are printed on them. SDL numbers a joystick's buttons in the order of the
+/// kernel's codes, from 0x120 up. So the joystick's list of codes in /proc/bus/input/devices says
+/// which of its buttons is where. Controller databases don't agree: PortMaster's for the R36S's
+/// "GO-Super Gamepad" names SDL's buttons after the printed letters (its "A" is the right button),
+/// where SDL's own convention is by position (its "A" is the bottom one). Measured on the purple,
+/// 2026-11-20: bottom 0, right 1, top 2, left 3.
+pub const Faces = struct {
+    raw: [4]i32 = .{ -1, -1, -1, -1 },
+    joystick: ?*c.SDL_Joystick = null,
+
+    pub fn find(handle: *c.SDL_GameController) Faces {
+        var faces = Faces{};
+        const joystick = sdl.GameControllerGetJoystick(handle) orelse return faces;
+        faces.joystick = joystick;
+        const name_ptr = sdl.JoystickName(joystick) orelse return faces;
+        const name = std.mem.span(name_ptr);
+        var buf: [32768]u8 = undefined;
+        const file = c.fopen("/proc/bus/input/devices", "r") orelse return faces;
+        const got = c.fread(&buf, 1, buf.len, file);
+        _ = c.fclose(file);
+        const codes = keys.keysOf(buf[0..got], name) orelse return faces;
+        const wanted = [4]u32{ 0x130, 0x131, 0x134, 0x133 }; // bottom, right, left, top
+        const count: i32 = sdl.JoystickNumButtons(joystick);
+        for (wanted, 0..) |code, i| {
+            if (!codes.has(code)) continue;
+            // SDL counts the codes the joystick has from 0x120 up
+            var index: i32 = 0;
+            var k: u32 = 0x120;
+            while (k < code) : (k += 1) {
+                if (codes.has(k)) index += 1;
+            }
+            if (index < count) faces.raw[i] = index;
+        }
+        return faces;
+    }
+
+    pub fn down(self: Faces, handle: *c.SDL_GameController, which: Face) bool {
+        const raw = self.raw[@intFromEnum(which)];
+        if (self.joystick) |joystick| {
+            if (raw >= 0) return sdl.JoystickGetButton(joystick, raw) != 0;
+        }
+        // nothing better known: SDL's own convention, which is by position
+        const button: c_int = switch (which) {
+            .bottom => c.SDL_CONTROLLER_BUTTON_A,
+            .right => c.SDL_CONTROLLER_BUTTON_B,
+            .left => c.SDL_CONTROLLER_BUTTON_X,
+            .top => c.SDL_CONTROLLER_BUTTON_Y,
+        };
+        return sdl.GameControllerGetButton(handle, button) != 0;
+    }
+
+    /// For the session log.
+    pub fn describe(self: Faces, out: []u8) []const u8 {
+        if (self.raw[0] < 0 and self.raw[1] < 0) return "face buttons by SDL's own names";
+        return std.fmt.bufPrint(out, "face buttons by the kernel's codes: bottom {d}, right {d}, left {d}, top {d}", .{ self.raw[0], self.raw[1], self.raw[2], self.raw[3] }) catch "face buttons by the kernel's codes";
+    }
+};

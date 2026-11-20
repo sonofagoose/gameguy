@@ -13,6 +13,7 @@ test {
     _ = world.asters;
     _ = world.cues_mod;
     _ = world.pools;
+    _ = @import("plat/keys.zig");
     _ = sound;
     _ = m;
     _ = walker;

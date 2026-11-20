@@ -28,6 +28,9 @@ const Args = struct {
     scene: dark.Scene = .dark,
     replay: ?[*:0]const u8 = null,
     room: ?[*:0]const u8 = null,
+    /// Only report which controller is found and where its face buttons are, then stop: no
+    /// window, no sound, so it can be run over a cable without touching the screen.
+    controls: bool = false,
 };
 
 fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
@@ -42,6 +45,8 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
             args.windowed = true;
         } else if (std.mem.eql(u8, a, "--lines")) {
             args.bench_lines = true;
+        } else if (std.mem.eql(u8, a, "--controls")) {
+            args.controls = true;
         } else if (std.mem.eql(u8, a, "--bot")) {
             args.bot = true;
         } else if (std.mem.eql(u8, a, "--replay") and i + 1 < n) {
@@ -69,7 +74,7 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
             i += 1;
             args.wav = argv[i];
         } else if (std.mem.eql(u8, a, "--help")) {
-            log("gameguy [--lines] [--room DIR] [--bot] [--headless] [--windowed] [--frames N] [--dump DIR] [--dump-every N] [--wav FILE] [--log FILE]", .{});
+            log("gameguy [--controls] [--lines] [--room DIR] [--bot] [--headless] [--windowed] [--frames N] [--dump DIR] [--dump-every N] [--wav FILE] [--log FILE]", .{});
         }
     }
     return args;
@@ -314,10 +319,35 @@ fn benchLines(window: plat.Window, args: Args) bool {
     return true;
 }
 
+/// Which controllers there are and where each one's face buttons are found (plat.Faces).
+fn controls() c_int {
+    if (sdl.Init(c.SDL_INIT_GAMECONTROLLER) != 0) {
+        log("SDL did not start: {s}", .{std.mem.span(sdl.GetError())});
+        return 1;
+    }
+    defer sdl.Quit();
+    const count = sdl.NumJoysticks();
+    log("controls: {d} joysticks", .{count});
+    var i: c_int = 0;
+    while (i < count) : (i += 1) {
+        if (sdl.IsGameController(i) == c.SDL_FALSE) {
+            log("controls: joystick {d} is not a game controller here", .{i});
+            continue;
+        }
+        const handle = sdl.GameControllerOpen(i) orelse continue;
+        defer sdl.GameControllerClose(handle);
+        const faces = plat.Faces.find(handle);
+        var said: [128]u8 = undefined;
+        log("controls: {s}; {s}", .{ std.mem.span(sdl.GameControllerName(handle)), faces.describe(&said) });
+    }
+    return 0;
+}
+
 pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     const args = parseArgs(argc, argv);
     if (args.log_path) |path| plat.log_file = c.fopen(path, "w");
     if (!plat.loadSdl()) return 1;
+    if (args.controls) return controls();
     if (sdl.Init(c.SDL_INIT_VIDEO | c.SDL_INIT_AUDIO | c.SDL_INIT_GAMECONTROLLER) != 0) {
         log("SDL did not start: {s}", .{std.mem.span(sdl.GetError())});
         return 1;

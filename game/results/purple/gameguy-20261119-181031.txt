@@ -1,0 +1,11 @@
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the ground: black: nothing has been sung on it yet
+the asters: 70 of them, 2621 things; R1 calls, the left stick walks, the right stick looks; stand still at a foot and the view leans back; Select and Start together leave
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+the asters: 2996 frames, 2 late, 5.22 ms of work a frame (worst 20.76); 3074 steps, 154 frames ran two; 2 calls, 1279 answers; cues late 5, refused 0; slowest sound buffer 0.81 ms; real-time sound yes; most lines in a frame 18055
+witness evening.call first=299 held=409
+witness garden.asters first=2186 held=581
+witness whole.law1 first=299 held=0
+witness whole.law6 first=299 held=0

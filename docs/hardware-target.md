@@ -273,9 +273,19 @@ the sound, and the loudest sample so far.
   and handled by the system.
 - The `SDL_GameController` mapping comes from PortMaster's controller database: a Ports launcher
   that sources `control.txt` and runs `get_controls` gets it in `SDL_GAMECONTROLLERCONFIG`
-  (see `probe/port/GameguyProbe.sh`). SDL's controller buttons are *positional* (`A` = bottom face
-  button), while the handheld's printed labels follow the Nintendo layout; check which physical
-  button a prompt refers to.
+  (see `probe/port/GameguyProbe.sh`).
+- **PortMaster's mapping names the face buttons after the printed letters, not by position**
+  (measured on the purple, 2026-11-20; the black's mapping is the same). The printed letters
+  follow the Nintendo layout: A right, B bottom, X top, Y left. The device tree gives each its
+  positional kernel code (`GPIO BTN-A` is `BTN_EAST` 0x131, `BTN-B` is `BTN_SOUTH` 0x130, `BTN-X`
+  is `BTN_NORTH` 0x133, `BTN-Y` is `BTN_WEST` 0x134), SDL numbers the joystick's buttons in code
+  order (bottom 0, right 1, top 2, left 3), and PortMaster's `a:b1,b:b0,x:b2,y:b3` makes SDL's `A`
+  the right button. SDL's own convention is positional (`A` bottom), so code that trusts SDL's
+  names puts every face button one place off. It did, in the game, the room and the toys, until
+  2026-11-20: the room logged a press of A as "no" and as JJ. The game and the toys now find
+  each face button by its kernel code in `/proc/bus/input/devices` (`game/src/plat/plat.zig`,
+  `Faces`), and `gameguy-aarch64 --controls` reports what it found without opening a window:
+  `bottom 0, right 1, left 3, top 2` on the purple.
 - Stick values change at most ~56–58 times per second (the driver polls the ADC at ~60 Hz);
   buttons are GPIO-driven.
 - One probe log from the purple (2026-11-12, `probe-9b4d0e-20260413-163420.txt`) recorded its left

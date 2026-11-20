@@ -1,0 +1,14 @@
+clocks as started: cpu performance, gpu performance, memory performance
+clocks now: cpu performance, gpu performance, memory performance
+priority: nice -19, real-time limit 40; storage interrupts on core(s) 3 ; run with: taskset -c 0-2
+backlight as started: 200
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the dark: R1 calls, R2 hums, the left stick walks; Select and Start together leave
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+the dark: 1800 frames, 0 late, 1.96 ms of work a frame (worst 2.61); 1846 steps, 91 frames ran two; 8 calls, 175 answers; cues late 0, refused 0; slowest sound buffer 0.26 ms; real-time sound yes; most lines in a frame 139
+witness evening.call first=59 held=465
+witness whole.law1 first=59 held=0
+witness whole.law6 first=59 held=0
+exit code 0
