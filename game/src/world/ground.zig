@@ -57,7 +57,7 @@ const world = @import("world.zig");
 /// there but what floats.
 pub fn wet(x: f32, z: f32) bool {
     inline for (pools.garden) |p| {
-        const r = comptime pools.radiusFor(p.shape, world.garden_hz);
+        const r = comptime pools.radiusFor(p.shape, world.garden_hz * p.note);
         const dx = x - p.x;
         const dz = z - p.z;
         if (dx * dx + dz * dz < r * r) return true;

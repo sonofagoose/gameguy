@@ -1037,3 +1037,83 @@ pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
     }
     return n;
 }
+
+/// The wheel, while R1 holds it open (SPEC.md 9; spec/promises/wheel.md): drawn large on the ground
+/// round Hum in the ground's cool light, its top the way the view looks, as the right stick's top
+/// is. Twelve wedges round by fifths: the seven lit ones bright, the awake ones brightest, the five
+/// dark ones faint under the horizon; home marked, and the wedge the stick points at lit up. From
+/// every sounding thing near, a faint thread to the wedge that would make it kin.
+pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
+    if (!w.wheel_open) return 0;
+    var n: usize = 0;
+    const cool = [3]f32{ 0.62, 0.78, 0.95 };
+    const fx = @sin(w.look_yaw);
+    const fz = -@cos(w.look_yaw);
+    const rx = -fz;
+    const rz = fx;
+    const inner: f32 = 9.0;
+    const outer: f32 = 36.0;
+    const y: f32 = 0.25;
+    const cx = w.hum_x;
+    const cz = w.hum_z;
+    var k: i8 = -6;
+    while (k <= 5) : (k += 1) {
+        const lit = k >= world_mod.lit_least and k <= world_mod.lit_most;
+        const awake = lit and (w.awake & (@as(u8, 1) << @intFromEnum(world_mod.moodOf(k)))) != 0;
+        const home = k == w.home_k;
+        const pointed = if (w.wheel_point) |p| p == k else false;
+        const hz = if (lit) world_mod.wedgeHz(w.day_hz, k) else w.day_hz * std.math.pow(f32, 2.0, @as(f32, @floatFromInt(@mod(@as(i32, k) * 7, 12))) / 12.0);
+        const tint = colour.ofNote(world_mod.garden_hz, hz);
+        const bright: f32 = if (pointed) 1.0 else if (home) 0.85 else if (awake) 0.6 else if (lit) 0.3 else 0.1;
+        const col = col8(if (lit) tint else cool, bright);
+        const mid = @as(f32, @floatFromInt(k)) * (std.math.pi / 6.0);
+        // the wedge's two edges, and its arc
+        const edges = [2]f32{ mid - std.math.pi / 12.0, mid + std.math.pi / 12.0 };
+        for (edges) |a| {
+            if (n >= out.len) return n;
+            const dx = fx * @cos(a) + rx * @sin(a);
+            const dz = fz * @cos(a) + rz * @sin(a);
+            out[n] = .{ .a = .{ cx + dx * inner, y, cz + dz * inner }, .b = .{ cx + dx * outer, y, cz + dz * outer }, .half_width = 1.2, .body = 0.0, .col = col8(cool, 0.25) };
+            n += 1;
+        }
+        const arcs: u32 = 6;
+        const radii = if (pointed or home) [2]f32{ outer, outer - 2.5 } else [2]f32{ outer, outer };
+        const rings: usize = if (pointed or home) 2 else 1;
+        for (radii[0..rings]) |rr| {
+            var s: u32 = 0;
+            while (s < arcs) : (s += 1) {
+                if (n >= out.len) return n;
+                const a0 = edges[0] + (edges[1] - edges[0]) * @as(f32, @floatFromInt(s)) / @as(f32, @floatFromInt(arcs));
+                const a1 = edges[0] + (edges[1] - edges[0]) * @as(f32, @floatFromInt(s + 1)) / @as(f32, @floatFromInt(arcs));
+                const d0x = fx * @cos(a0) + rx * @sin(a0);
+                const d0z = fz * @cos(a0) + rz * @sin(a0);
+                const d1x = fx * @cos(a1) + rx * @sin(a1);
+                const d1z = fz * @cos(a1) + rz * @sin(a1);
+                out[n] = .{ .a = .{ cx + d0x * rr, y, cz + d0z * rr }, .b = .{ cx + d1x * rr, y, cz + d1z * rr }, .half_width = if (pointed) 3.0 else 2.0, .body = 0.0, .col = col };
+                n += 1;
+            }
+        }
+    }
+    // threads: every sounding thing near, to the wedge where home would make it kin
+    var threads: usize = 0;
+    for (w.things[0..w.thing_count]) |t| {
+        if (!t.sounds or threads >= 160) continue;
+        const dx = t.x - cx;
+        const dz = t.z - cz;
+        if (dx * dx + dz * dz > 160.0 * 160.0) continue;
+        // its pitch class in fifths from the day's note
+        const c = 1200.0 * @log2(t.hz / w.day_hz);
+        const pc = @mod(c, 1200.0);
+        const steps: i32 = @intFromFloat(@round(pc / 100.0));
+        var fifths: i32 = @mod(steps * 7, 12);
+        if (fifths > 5) fifths -= 12;
+        const a = @as(f32, @floatFromInt(fifths)) * (std.math.pi / 6.0);
+        const ex = fx * @cos(a) + rx * @sin(a);
+        const ez = fz * @cos(a) + rz * @sin(a);
+        if (n >= out.len) return n;
+        out[n] = .{ .a = .{ t.x, @min(t.y, 6.0), t.z }, .b = .{ cx + ex * (outer + 1.0), y, cz + ez * (outer + 1.0) }, .half_width = 0.9, .body = 0.0, .col = col8(colour.ofNote(world_mod.garden_hz, t.hz), 0.22) };
+        n += 1;
+        threads += 1;
+    }
+    return n;
+}

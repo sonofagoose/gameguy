@@ -269,8 +269,13 @@ stage 2 begins._
   - `frame evening-pool` The puddle standing in its shape, the still lines drawn on the water and
     the pollen gathered on them, seen from over the shore.
   - `frame evening-bridge` Hum out on the still line, the water heaving either side.
-  - `owed` Hum the note above: the swell's walk to the next wedge (`SPEC.md` 9) is not built, so Hum
-    has one note and each puddle one figure.
+  - `test a puddle silent to the garden's note stands when home is moved to wonder` Moving home
+    on the wheel changes Hum's note, and the puddles redraw: the small one stands as a cross, and
+    the
+    fifth, sized for F, stands only then.
+  - `frame evening-wonder` Home on wonder: the F puddle standing as a ring and a cross.
+  - `owed` The swell's step to the next wedge on a downbeat (`swell.walk`), so the bridge redraws
+    while you are on it.
   - `owed` A pool of any outline has its own figures, worked out from its outline by
     `game/tools/modes`. The proof's puddles are round.
   - `owed` Lose the note and the lines fade under you, slowly enough to run for it: the water holds

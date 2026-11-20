@@ -22,9 +22,10 @@ actionable differentiation"._
 - **A cheat would be:** a menu of seven choices; a colour filter over the same world; wedges that
   slide round under the thumb.
 - **Full size:**
-  - `owed` A test: Moving home changes what every thing is to Hum. Every thing's interval to home,
-    and so
-    its shape, how near it keeps and its pulse, comes from where home is: one sum, no table.
+  - `test home moves on the wheel, Hum's note with it, and what answers a call changes` Hum sings
+    home's note, and moving home changes what answers.
+  - `test R1 held opens the wheel; the right stick points at a wedge; letting go puts home there`
+    Only an awake mood can be home; on the first days, wonder and sunny home.
   - `owed` A test: The seven lit wedges stay put while the twelve notes turn a notch each morning.
     The moods
     are where the thumb learned them; the notes behind them are the morning's.

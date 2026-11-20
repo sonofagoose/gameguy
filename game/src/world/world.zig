@@ -60,6 +60,46 @@ pub const lake_z: f32 = -2700.0;
 pub const lake_r: f32 = 1850.0;
 /// The sun holds the day's note itself: middle C on the garden's morning (spec/sky.md).
 pub const sun_hz: f32 = garden_hz;
+
+/// The wheel (SPEC.md 9). Twelve wedges round by fifths; the day's seven notes are lit, and home is
+/// one of them. Where home sits among the seven is the mood, brightest to darkest, and each mood is
+/// one of the seven modes: wonder (Lift) a fifth below the day's note, sunny home (Bind) on it,
+/// drive, cool soul, tenderness, fierceness and the darkest a fifth, two, three, four and five
+/// above.
+pub const Mood = enum(u3) { lift, bind, drive, flow, remember, strike, darkest };
+/// A wedge is counted in fifths from the day's note: the lit seven are -1 to 5.
+pub const lit_least: i8 = -1;
+pub const lit_most: i8 = 5;
+/// The Garden's tuning is pure (spec/laws.md, "Tuning"): the lit seven as ratios to the day's
+/// note, in the order of the wedges: F, C, G, D, A, E, B for a day on C.
+const pure_lit = [7]f32{ 4.0 / 3.0, 1.0, 3.0 / 2.0, 9.0 / 8.0, 5.0 / 3.0, 5.0 / 4.0, 15.0 / 8.0 };
+
+/// The wedge a direction of the right stick points at. The day's note is at the top, the sharp
+/// side to the right and the flat side to the left, a twelfth of a turn for each fifth; the five
+/// dark wedges are under the horizon. Up on the stick is negative y.
+pub fn wedgeAt(rx: f32, ry: f32) i8 {
+    const turn = std.math.atan2(rx, -ry); // 0 at the top, clockwise
+    var k: i32 = @intFromFloat(@round(turn / (std.math.pi / 6.0)));
+    if (k > 5) k -= 12;
+    if (k < -6) k += 12;
+    return @intCast(k);
+}
+
+/// The mood of a lit wedge.
+pub fn moodOf(k: i8) Mood {
+    return @enumFromInt(@as(u3, @intCast(k - lit_least)));
+}
+
+/// A lit wedge's note, sung in Hum's own register: folded into the octave round the day's note.
+pub fn wedgeHz(day_hz: f32, k: i8) f32 {
+    const kk = std.math.clamp(k, lit_least, lit_most);
+    var hz = day_hz * pure_lit[@intCast(kk - lit_least)];
+    const high = day_hz * std.math.sqrt2;
+    const low = day_hz / std.math.sqrt2;
+    while (hz >= high) hz *= 0.5;
+    while (hz < low) hz *= 2.0;
+    return hz;
+}
 /// The rungs of the horn that are things of the world: one for each of the sun's first sixteen
 /// overtones, standing in the air over the lake.
 pub const rungs: u32 = 16;
@@ -199,6 +239,16 @@ pub const rise_rate: f32 = 0.0045;
 pub const fold_rate: f32 = 0.03;
 /// R1 held this many steps folds the place back to the page for as long as it is held.
 pub const fold_after: u32 = 15;
+/// R1 held this long opens the wheel, once the place has stood up (SPEC.md 9; the wheel toy's
+/// 0.17 s).
+pub const wheel_after: u32 = 10;
+/// While the wheel is open the place lies back this far toward the page, and no further.
+pub const wheel_stand: f32 = 0.7;
+/// While the wheel is open the view rises this high, this far behind Hum, and looks down at it.
+pub const wheel_up: f32 = 78.0;
+pub const wheel_back: f32 = 46.0;
+/// How far the right stick must be pushed to point at a wedge.
+pub const wheel_point_least: f32 = 0.55;
 /// Standing still within this of a tall thing's foot, the view leans back to take it in.
 pub const lean_within: f32 = 18.0;
 /// How near a tower's foot counts as standing at it.
@@ -382,6 +432,13 @@ const bell_gain = [8]f32{ 0.30, 1.0, 0.45, 0.35, 0.55, 0.20, 0.22, 0.10 };
 
 pub const World = struct {
     step: u64 = 0,
+    /// The day's note, the wheel's lit seven round it, and where home is among them: Hum always
+    /// sings home's note (SPEC.md 5, "you never choose a note"). Which moods are awake: on the first
+    /// days in the Garden, wonder and sunny home (design/the-wheel.md).
+    day_hz: f32 = garden_hz,
+    home_k: i8 = 0,
+    home_hz: f32 = garden_hz,
+    awake: u8 = (1 << @intFromEnum(Mood.lift)) | (1 << @intFromEnum(Mood.bind)),
     hum_x: f32 = 0.0,
     hum_z: f32 = 0.0,
     /// Which way Hum faces, in radians: 0 is toward -z.
@@ -401,6 +458,13 @@ pub const World = struct {
     stand: f32 = 1.0,
     /// How many steps R1 has been held.
     call_held: u32 = 0,
+    /// The wheel: open while R1 is held after the place has stood up; the wedge the right stick
+    /// points at, in fifths from the day's note (none while the stick is at rest).
+    wheel_open: bool = false,
+    wheel_point: ?i8 = null,
+    wheel_opens: u32 = 0,
+    /// How far the view has risen to look down on the open wheel, 0 to 1.
+    wheel_view: f32 = 0.0,
     /// The step the page stands up from: when the drop lands on Hum's head.
     stand_from: u64 = never,
     /// The day coming up: 0 is the dark, where a thing is seen only when it sounds or a call
@@ -535,6 +599,9 @@ pub const World = struct {
         self.drip_met = true;
         self.breaths = breaths_to_lock;
         self.answered = true;
+        // the two locked before the morning began
+        self.locked_at = 0;
+        self.hold_until = 0;
     }
 
     /// The first evening, from its first second: the same field, in the dark, as a page. Drip
@@ -616,7 +683,7 @@ pub const World = struct {
         // stands in it as a figure of its own
         self.pool_first = at;
         for (pools.garden, 0..) |pd, i| {
-            const r = pools.radiusFor(pd.shape, garden_hz);
+            const r = pools.radiusFor(pd.shape, garden_hz * pd.note);
             self.things[at] = .{ .x = pd.x, .y = 0.0, .z = pd.z, .tall = r, .spread = r, .hz = pools.skin_k / r, .family = .skin, .ring = 2.5, .carry = 120.0 };
             self.pools[i] = pools.Pool.init(pd.x, pd.z, r, at, 0x9e37_79b9 +% @as(u32, @intCast(i)) *% 0x85eb_ca6b);
             at += 1;
@@ -776,9 +843,15 @@ pub const World = struct {
         if (self.view == .place) {
             // the hinge: the world is a page until it stands, and holding R1 lays it down again
             self.call_held = if (hands.held(Hands.call)) self.call_held +| 1 else 0;
+            self.wheelStep(hands);
             const standing = self.step >= self.stand_from and self.call_held < fold_after;
             if (self.step == self.stand_from and self.dawn_from == never) self.dawn_from = self.step;
-            self.stand = if (standing) @min(1.0, self.stand + rise_rate) else @max(0.0, self.stand - fold_rate);
+            if (self.wheel_open) {
+                // the place lies back toward the page while home is chosen, and no further
+                self.stand = if (self.stand > wheel_stand) @max(wheel_stand, self.stand - fold_rate) else @min(wheel_stand, self.stand + rise_rate);
+            } else {
+                self.stand = if (standing) @min(1.0, self.stand + rise_rate) else @max(0.0, self.stand - fold_rate);
+            }
             self.look(hands);
         }
 
@@ -789,7 +862,7 @@ pub const World = struct {
         if (pressed & Hands.call != 0) {
             self.calls += 1;
             self.own_now = true;
-            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = garden_hz, .strength = callStrength(self.cover), .ring = 0.35 }, .ring_on_the_ground));
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz, .strength = callStrength(self.cover), .ring = 0.35 }, .ring_on_the_ground));
             self.own_now = false;
         }
 
@@ -798,7 +871,7 @@ pub const World = struct {
         const holding = self.step < self.hold_until;
         if (pressed & Hands.sing != 0 and !holding) {
             self.own_now = true;
-            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = garden_hz, .strength = 1.0, .ring = 0.0 }, .swell));
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = self.home_hz, .strength = 1.0, .ring = 0.0 }, .swell));
             self.own_now = false;
             if (self.besideDrip()) {
                 self.drip_humming = true;
@@ -832,7 +905,7 @@ pub const World = struct {
             } else {
                 // let go: Hum's hum ends on the sample it was let go
                 self.own_now = true;
-                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = garden_hz, .strength = 0.0, .ring = 0.0 }, .dims));
+                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = self.home_hz, .strength = 0.0, .ring = 0.0 }, .dims));
                 self.own_now = false;
                 if (self.drip_humming) {
                     self.drip_humming = false;
@@ -842,7 +915,7 @@ pub const World = struct {
         }
         if (self.hold_until != 0 and self.step == self.hold_until) {
             // the hold ends: both let go, the drop lands on Hum's head, and the page begins to stand
-            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = garden_hz, .strength = 0.0, .ring = 0.0 }, .dims));
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = self.home_hz, .strength = 0.0, .ring = 0.0 }, .dims));
             self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_off, .voice = 1, .hz = self.dripHz(), .strength = 0.0, .ring = 0.0 }, .dims));
             self.drip_humming = false;
             self.drip_met = true;
@@ -903,7 +976,7 @@ pub const World = struct {
                     continue;
                 }
                 const rec = sound.recipe(thing.family);
-                const kin = sympathy(garden_hz, thing.hz, rec.mult, rec.gain);
+                const kin = sympathy(self.home_hz, thing.hz, rec.mult, rec.gain);
                 if (kin < 0.08) continue;
                 // how hard the call rings it: less with distance, as sound is. One number, and it
                 // is both how loud the thing is and how bright
@@ -925,7 +998,7 @@ pub const World = struct {
                 if (edge < before or edge > reach) continue;
                 self.things[p.thing].lit = 1.0;
                 const strength = ring.strength / (1.0 + (edge / 120.0) * (edge / 120.0));
-                p.struck(garden_hz, &call_overtones, strength * 0.8, ring.x, ring.z);
+                p.struck(self.home_hz, &call_overtones, strength * 0.8, ring.x, ring.z);
             }
         }
 
@@ -977,13 +1050,23 @@ pub const World = struct {
     pub fn soundAgain(self: *World) void {
         const holding = self.step < self.hold_until;
         if (self.singing or holding) {
-            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = garden_hz, .strength = 1.0, .ring = 0.0 }, .swell));
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = self.home_hz, .strength = 1.0, .ring = 0.0 }, .swell));
         }
         if (self.drip != no_thing and (self.drip_humming or holding)) {
             self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.7, .ring = 0.0 }, .swell));
         }
         // standing water sings again at its next turn
         for (self.pools[0..self.pool_count]) |*p| p.sent = .{ 0.0, 0.0 };
+    }
+
+    /// Home moves to a lit wedge: Hum's note, and so what everything is to Hum, changes at once
+    /// (spec/laws.md, law 2). Only a wedge whose mood is awake can be home.
+    pub fn moveHome(self: *World, k: i8) bool {
+        if (k < lit_least or k > lit_most) return false;
+        if (self.awake & (@as(u8, 1) << @intFromEnum(moodOf(k))) == 0) return false;
+        self.home_k = k;
+        self.home_hz = wedgeHz(self.day_hz, k);
+        return true;
     }
 
     /// Whether a thing rings its kin and is rung by them. The sky's rungs, the bee, Drip and the
@@ -1204,7 +1287,7 @@ pub const World = struct {
     /// overtones builds while the note is held (law 7) and dies away when it stops. Standing, a
     /// shape sings its note from the water (law 4), and throws the pollen onto its still lines.
     fn poolStep(self: *World) void {
-        const note: f32 = if (self.singing) garden_hz else 0.0;
+        const note: f32 = if (self.singing) self.home_hz else 0.0;
         for (self.pools[0..self.pool_count], 0..) |*p, pi| {
             p.drive(note, self.hum_x, self.hum_z);
             p.stepMotes(dt, self.hum_x, self.hum_z);
@@ -1348,11 +1431,40 @@ pub const World = struct {
     /// The view of the place: the right stick turns and tilts it, and standing still at the foot
     /// of something tall leans it back to take the thing in (SPEC.md 8: "leaning in also happens
     /// by stopping").
+    /// R1 held, once the place has stood up, opens the wheel: the right stick points at a wedge, and
+    /// letting go puts home there if its mood is awake (SPEC.md 9). The call went out on the press.
+    fn wheelStep(self: *World, hands: Hands) void {
+        const stood = self.stand_from != never and self.step >= self.stand_from + 60 and self.locked_at != never and self.step >= self.hold_until;
+        if (!self.wheel_open) {
+            if (stood and self.call_held >= wheel_after and !self.singing) {
+                self.wheel_open = true;
+                self.wheel_opens += 1;
+                self.wheel_point = null;
+            }
+            return;
+        }
+        if (hands.held(Hands.call)) {
+            const rx = @as(f32, @floatFromInt(hands.rx)) * (1.0 / 127.0);
+            const ry = @as(f32, @floatFromInt(hands.ry)) * (1.0 / 127.0);
+            if (rx * rx + ry * ry >= wheel_point_least * wheel_point_least) {
+                self.wheel_point = wedgeAt(rx, ry);
+            }
+            return;
+        }
+        // let go: home goes where the stick pointed, if that mood is awake
+        if (self.wheel_point) |k| _ = self.moveHome(k);
+        self.wheel_open = false;
+        self.wheel_point = null;
+    }
+
     fn look(self: *World, hands: Hands) void {
         const rx = @as(f32, @floatFromInt(hands.rx)) * (1.0 / 127.0);
         const ry = @as(f32, @floatFromInt(hands.ry)) * (1.0 / 127.0);
-        if (@abs(rx) > 0.15) self.look_yaw += rx * 2.2 * dt;
-        if (@abs(ry) > 0.15) self.look_tilt = std.math.clamp(self.look_tilt - ry * 1.4 * dt, -0.35, 0.9);
+        // while the wheel is open the right stick points at wedges, and the view stays
+        if (!self.wheel_open) {
+            if (@abs(rx) > 0.15) self.look_yaw += rx * 2.2 * dt;
+            if (@abs(ry) > 0.15) self.look_tilt = std.math.clamp(self.look_tilt - ry * 1.4 * dt, -0.35, 0.9);
+        }
 
         self.near_tower = no_tower;
         self.near_far = 1e9;
@@ -1377,6 +1489,8 @@ pub const World = struct {
                 self.pool_seen = @intCast(i);
             }
         }
+        self.wheel_view += ((if (self.wheel_open) @as(f32, 1.0) else 0.0) - self.wheel_view) * 0.08;
+        if (self.wheel_view < 0.0005) self.wheel_view = 0.0;
         self.pool_view += (over_pool - self.pool_view) * 0.012;
         if (self.pool_view < 0.0005) self.pool_view = 0.0;
         // out on standing water the view lifts behind Hum and looks down, so the line ahead and
@@ -1439,6 +1553,22 @@ pub const World = struct {
             dir = .{ walking[0] + (gx / far - walking[0]) * k, walking[1] + (gy / far - walking[1]) * k, walking[2] + (gz / far - walking[2]) * k };
             const narrow = std.math.clamp(2.0 * std.math.atan2(lean_frame * 0.5, far) * (180.0 / std.math.pi), lean_fov_least, place_fov);
             fov = place_fov + (narrow - place_fov) * k;
+        }
+        if (self.wheel_view > 0.0) {
+            // the wheel open: the view rises behind Hum and looks down on it, the wheel spread on
+            // the ground round it
+            const k = self.wheel_view * self.wheel_view * (3.0 - 2.0 * self.wheel_view);
+            const high = [3]f32{ self.hum_x - fx * wheel_back, wheel_up, self.hum_z - fz * wheel_back };
+            const hx = self.hum_x - high[0];
+            const hy = -high[1];
+            const hz = self.hum_z - high[2];
+            const hl = @sqrt(hx * hx + hy * hy + hz * hz);
+            const dl = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
+            const down = [3]f32{ hx / hl, hy / hl, hz / hl };
+            for (0..3) |i| {
+                eye[i] += (high[i] - eye[i]) * k;
+                dir[i] = dir[i] / dl + (down[i] - dir[i] / dl) * k;
+            }
         }
         if (self.pool_view > 0.0 and self.pool_seen < self.pool_count) {
             // above the shore behind Hum, looking down across the water at its middle
@@ -1564,6 +1694,8 @@ pub const World = struct {
         }
         mixIn(&h, self.crossed);
         mixIn(&h, self.echoed);
+        mixIn(&h, @as(u32, @bitCast(@as(i32, self.home_k))));
+        mixIn(&h, self.wheel_opens);
         if (self.bee.thing != no_thing) {
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].x)));
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].z)));
@@ -2228,4 +2360,100 @@ test "a rung bell rings its kin, and they ring theirs, more faintly each time (l
     try std.testing.expect(hard[1] < hard[0] and hard[2] < hard[1] and hard[2] > 0.0);
     // and C, which rang first, was not rung straight back by G
     try std.testing.expectEqual(@as(u32, 100), w.things[0].rung_at);
+}
+
+test "home moves on the wheel, Hum's note with it, and what answers a call changes" {
+    // the lit seven on a day of C: F C G D A E B, each in Hum's own register
+    try std.testing.expect(@abs(wedgeHz(garden_hz, -1) / garden_hz - 4.0 / 3.0) < 1e-4);
+    try std.testing.expect(@abs(wedgeHz(garden_hz, 1) / garden_hz - 0.75) < 1e-4);
+    try std.testing.expect(@abs(wedgeHz(garden_hz, 4) / garden_hz - 1.25) < 1e-4);
+    try std.testing.expectEqual(Mood.lift, moodOf(-1));
+    try std.testing.expectEqual(Mood.darkest, moodOf(5));
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.* = World.init();
+    // two moods are awake on the first days: wonder and sunny home; drive is asleep
+    try std.testing.expect(!w.moveHome(1));
+    try std.testing.expect(w.moveHome(-1));
+    try std.testing.expect(@abs(w.home_hz - garden_hz * 4.0 / 3.0) < 0.01);
+    // a bell on F: a stranger to C at a semitone's grind is kin to the new home
+    w.things[0] = .{ .x = 20.0, .z = 0.0, .hz = garden_hz * 4.0 / 3.0 * 2.0, .ring = 2.0 };
+    w.thing_count = 1;
+    var cues: [max_cues]sound.Cue = undefined;
+    _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    var call: ?sound.Cue = null;
+    for (cues) |c| {
+        if (c.own == 1 and c.kind == .strike) call = c;
+    }
+    // Hum calls on home's note
+    try std.testing.expect(call != null and @abs(call.?.hz - garden_hz * 4.0 / 3.0) < 0.01);
+    var step: u32 = 0;
+    while (step < 60) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.answers >= 1);
+}
+
+test "a puddle silent to the garden's note stands when home is moved to wonder" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    const f_pool = pools.garden.len - 1;
+    const p = &w.pools[f_pool];
+    var cues: [max_cues]sound.Cue = undefined;
+    // stand at its edge and hum the garden's own note: hardly anything
+    w.hum_x = p.x - p.r - 3.0;
+    w.hum_z = p.z;
+    var step: u32 = 0;
+    while (step < 300) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expect(!p.standing());
+    _ = w.stepOnce(.{}, &cues);
+    // home on wonder, the F below: it stands as a ring and a cross
+    try std.testing.expect(w.moveHome(-1));
+    step = 0;
+    while (step < 300) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expect(p.standing());
+    const loudest = if (p.figs[0].loud >= p.figs[1].loud) p.figs[0] else p.figs[1];
+    try std.testing.expectEqual(@as(u8, 7), loudest.mode);
+    try std.testing.expect(loudest.loud > 0.9);
+}
+
+test "R1 held opens the wheel; the right stick points at a wedge; letting go puts home there" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    w.locked_at = 0;
+    w.hold_until = 0;
+    var cues: [max_cues]sound.Cue = undefined;
+    var step: u32 = 0;
+    while (step < 70) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    // the right stick's directions are the wedges: up is the day's note, a twelfth of a turn left
+    // is the fifth below
+    try std.testing.expectEqual(@as(i8, 0), wedgeAt(0.0, -1.0));
+    try std.testing.expectEqual(@as(i8, -1), wedgeAt(-0.5, -0.866));
+    try std.testing.expectEqual(@as(i8, 3), wedgeAt(1.0, 0.0));
+    try std.testing.expectEqual(@as(i8, -6), wedgeAt(0.0, 1.0));
+    // a tap is a call and opens nothing
+    _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(!w.wheel_open);
+    // held, it opens, and the place lies back part of the way, no further
+    step = 0;
+    while (step < 40) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    try std.testing.expect(w.wheel_open);
+    try std.testing.expect(w.stand <= wheel_stand + 0.01 and w.stand > 0.3);
+    // point a twelfth of a turn left, at wonder, and the view does not turn
+    const yaw = w.look_yaw;
+    step = 0;
+    while (step < 10) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.call, .rx = -63, .ry = -110 }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.wheel_point.?);
+    try std.testing.expectEqual(yaw, w.look_yaw);
+    // let go: home is wonder, the F below, and Hum's note with it
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(!w.wheel_open);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expect(@abs(w.home_hz - garden_hz * 4.0 / 3.0) < 0.01);
+    // pointed at an asleep mood (drive, to the right), letting go leaves home where it is
+    step = 0;
+    while (step < 30) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 63, .ry = -110 }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
 }

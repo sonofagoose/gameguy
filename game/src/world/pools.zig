@@ -86,17 +86,21 @@ pub fn radiusFor(shape: usize, note: f32) f32 {
     return skin_k * modes[shape].j / (modes[0].j * note);
 }
 
-/// A puddle on a land's ground: where it is, and which shape the land's own note stands in.
-pub const Puddle = struct { x: f32, z: f32, shape: u8 };
+/// A puddle on a land's ground: where it is, and which shape it stands in for the note it is sized
+/// for, as a part of the land's own note (one for the land's note itself).
+pub const Puddle = struct { x: f32, z: f32, shape: u8, note: f32 = 1.0 };
 
 /// The Garden's puddles from the storm, south of where Hum wakes. On the garden's note the first
-/// stands as a ring and a cross, the second as one spoke, the third as one ring with no way to
-/// it, and the fourth as three spokes.
+/// stands as a ring and a cross, the second as one spoke (and as a cross with home on wonder), the
+/// third as one ring with no way to it, and the fourth as three spokes. The fifth is sized for the
+/// F a fifth below: silent to the garden's own note, it stands as a ring and a cross when home is
+/// moved to wonder, whose law is standing waves (spec/laws.md, "Home over the laws").
 pub const garden = [_]Puddle{
     .{ .x = 175.0, .z = 215.0, .shape = 7 },
     .{ .x = -130.0, .z = 160.0, .shape = 1 },
     .{ .x = -10.0, .z = 360.0, .shape = 3 },
     .{ .x = 330.0, .z = 450.0, .shape = 4 },
+    .{ .x = -230.0, .z = 330.0, .shape = 7, .note = 4.0 / 3.0 },
 };
 
 /// The overtones of Hum's closed "mm" on middle C, each against the first: measured from its vowel

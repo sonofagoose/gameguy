@@ -47,8 +47,8 @@ the build (`../stages.md`)._
     bytes: the same world and the same sound.
   - `fact take.file_replays_same == 1` The same take as a file, played back through the game itself:
     the promise's moment happens on the same step.
-  - `fact take.bytes <= 16384` The whole scripted evening, seven minutes from the dark to the far
-    side of the bridge puddle, is this small: ten bytes for each change of the hands.
+  - `fact take.bytes <= 65536` The whole scripted evening, nine minutes from the dark to wonder's
+    puddle, is this small: twelve bytes for each change of the hands.
   - `fact take.kills_survived >= 100` Killed at a random moment a hundred times while it plays the
     first evening (`game/tools/kill_test.sh`), it goes on from where it was every time: the same
     world as the take played through from its first step, from the take's last dawn when it had

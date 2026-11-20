@@ -50,6 +50,8 @@ var started_tail: u32 = 0;
 /// The cover under Hum, as the main thread last saw it, so the hands' call is as strong as the
 /// world's will be.
 var ready_cover: u8 = 0;
+/// Home's note, as the main thread last saw it, for the hands' early start of Hum's own sounds.
+var ready_home: u32 = @bitCast(world_mod.garden_hz);
 var hands_most_us: u32 = 0;
 var hands_started: u32 = 0;
 
@@ -63,8 +65,8 @@ fn handsNow() void {
     const now_s = plat.now();
     for (edges[0..n]) |e| {
         const at: u64 = switch (e.what) {
-            .call_down => snd.ownNow(.{ .at = 0, .kind = .strike, .family = .string, .own = 1, .hz = world_mod.garden_hz, .gain = world_mod.callStrength(@enumFromInt(@atomicLoad(u8, &ready_cover, .monotonic))) * world_mod.voice_level, .ring = 0.35 }),
-            .sing_down => snd.ownNow(.{ .at = 0, .kind = .hum_on, .own = 1, .hz = world_mod.garden_hz, .gain = world_mod.voice_level }),
+            .call_down => snd.ownNow(.{ .at = 0, .kind = .strike, .family = .string, .own = 1, .hz = @bitCast(@atomicLoad(u32, &ready_home, .monotonic)), .gain = world_mod.callStrength(@enumFromInt(@atomicLoad(u8, &ready_cover, .monotonic))) * world_mod.voice_level, .ring = 0.35 }),
+            .sing_down => snd.ownNow(.{ .at = 0, .kind = .hum_on, .own = 1, .hz = @bitCast(@atomicLoad(u32, &ready_home, .monotonic)), .gain = world_mod.voice_level }),
             .call_up, .sing_up => snd.sample,
         };
         const late_us: u32 = @intFromFloat(std.math.clamp((now_s - e.at_s) * 1e6, 0.0, 4e9));
@@ -908,7 +910,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             ground_dirty[((0 - @as(i32, @intFromFloat(ground_from[1]))) * ground_size / @as(i32, @intFromFloat(ground_span)) / ground_block) * ground_blocks + ((0 - @as(i32, @intFromFloat(ground_from[0]))) * ground_size / @as(i32, @intFromFloat(ground_span)) / ground_block)] = true;
             renderer.setGround(ground_size, ground_from, .{ ground_from[0] + ground_span, ground_from[1] + ground_span }, &ground);
             log("the ground: {s}", .{if (remembered) "as it was left" else "black: nothing has been sung on it yet"});
-            log("the {s}: {d} asters, {d} things; R1 calls (held, the place lies down), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave", .{ name, world.tower_count, world.thing_count });
+            log("the {s}: {d} asters, {d} things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave", .{ name, world.tower_count, world.thing_count });
         },
     }
     if (options.load) |path| {
@@ -1047,6 +1049,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             // what the hands started, read after the count: every edge before it is here
             takeEdges();
             @atomicStore(u8, &ready_cover, @intFromEnum(world.cover), .monotonic);
+            @atomicStore(u32, &ready_home, @bitCast(world.home_hz), .monotonic);
             var ran: u32 = 0;
             while (world.step < due and ran < 3) : (ran += 1) {
                 var hands = if (replay) |*r| r.hands(world.step) else if (!scripted) held else if (options.scene != .dark) walker.hands(&world) else script.hands(world.step);
@@ -1179,6 +1182,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             moving_n += aster_lines.sparks(&world, moving[moving_n..]);
             moving_n += aster_lines.beeLines(&world, moving[moving_n..]);
             moving_n += aster_lines.poolLines(&world, eye, moving[moving_n..]);
+            moving_n += aster_lines.wheelLines(&world, moving[moving_n..]);
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);

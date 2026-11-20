@@ -183,14 +183,14 @@ asks its question.
 | `texture.sound-grain` The texture of the sound | 2 | 8 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `texture.across-time` Across time | 2 | 6 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `texture.beautiful` A beautiful frame, checked | 2 | 15 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `wheel.home` The wheel decides where home is | 2 | 3 | no | - | no | no | no | 3 owed; frame evening-wheel: nobody has looked at it yet; no yes from Morgan yet |
+| `wheel.home` The wheel decides where home is | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `wheel.groove` Each mood is a groove | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `wheel.borrow` The dark wedges | 3 | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `voices.five` Five voices | 2 | 4 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `swell.walk` The swell walks home | 2 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `swell.touch` Push hard for bright | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `swell.lean` The lean | 3 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `hands.told-apart` R1 and R2 told apart | 2 | 7 | no | - | no | no | no | 3 owed; frame evening-wheel: nobody has looked at it yet; frame evening-swell: nobody has looked at it yet; no yes from Morgan yet |
+| `hands.told-apart` R1 and R2 told apart | 2 | 7 | no | - | no | no | no | 3 owed; frame evening-swell: nobody has looked at it yet; no yes from Morgan yet |
 | `breath.one` One breath | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `whole.scale` One to a hundred | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.true` Literally true | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |

@@ -49,6 +49,29 @@ pub const Walker = struct {
         return true;
     }
 
+    /// Where to head for on the way to a place: straight there, unless the straight way crosses a
+    /// puddle, and then round its shore, the shorter way.
+    fn detour(w: *const World, x: f32, z: f32) [2]f32 {
+        for (w.pools[0..w.pool_count]) |*p| {
+            if (p.holds(x, z)) continue;
+            const ax = x - w.hum_x;
+            const az = z - w.hum_z;
+            const len2 = ax * ax + az * az;
+            if (len2 < 1.0) continue;
+            const t = std.math.clamp(((p.x - w.hum_x) * ax + (p.z - w.hum_z) * az) / len2, 0.0, 1.0);
+            const qx = w.hum_x + ax * t - p.x;
+            const qz = w.hum_z + az * t - p.z;
+            if (qx * qx + qz * qz > (p.r + 4.0) * (p.r + 4.0)) continue;
+            const here = std.math.atan2(w.hum_z - p.z, w.hum_x - p.x);
+            var gap = std.math.atan2(z - p.z, x - p.x) - here;
+            while (gap > std.math.pi) gap -= 2.0 * std.math.pi;
+            while (gap < -std.math.pi) gap += 2.0 * std.math.pi;
+            const ang = here + std.math.clamp(gap, -0.3, 0.3);
+            return .{ p.x + (p.r + 8.0) * @cos(ang), p.z + (p.r + 8.0) * @sin(ang) };
+        }
+        return .{ x, z };
+    }
+
     /// Push the stick toward a place in the world, read against the way the view looks.
     fn toward(w: *const World, h: *Hands, x: f32, z: f32) f32 {
         const dx = x - w.hum_x;
@@ -296,6 +319,45 @@ pub const Walker = struct {
                     self.mark = "bridge";
                 }
                 if (w.crossed > 0 or far < 2.0 or after > 60 * 60) self.next(step);
+            },
+            13 => {
+                // stand still, hold R1: the wheel opens; point a twelfth of a turn left, at wonder,
+                // and let go there
+                if (after < 15) return h;
+                if (after < 95) {
+                    h.buttons |= Hands.call;
+                    if (after >= 40) {
+                        h.rx = -63;
+                        h.ry = -110;
+                    }
+                    if (after == 80) self.mark = "wheel";
+                    return h;
+                }
+                if (after > 110) self.next(step);
+            },
+            14 => {
+                // home is wonder now: to the puddle sized for it
+                const fp = &w.pools[w.pool_count - 1];
+                const dx = fp.x - w.hum_x;
+                const dz = fp.z - w.hum_z;
+                const far = @sqrt(dx * dx + dz * dz);
+                const way = detour(w, fp.x, fp.z);
+                if (far > fp.r + 3.0) {
+                    if (!face(w, &h, way[0], way[1]) and after < 240) return h;
+                    var probe = Hands{};
+                    _ = toward(w, &probe, way[0], way[1]);
+                    h.lx = probe.lx;
+                    h.ly = probe.ly;
+                    // keep the view turned the way it walks
+                    _ = face(w, &h, way[0], way[1]);
+                } else self.next(step);
+                if (after > 60 * 150) self.next(step);
+            },
+            15 => {
+                // hum at its edge: silent to the garden's note, it stands for wonder's
+                h.buttons |= Hands.sing;
+                if (after == 60 * 12) self.mark = "wonder";
+                if (after > 60 * 13) self.next(step);
             },
             else => self.done = true,
         }

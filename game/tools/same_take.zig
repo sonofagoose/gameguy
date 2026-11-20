@@ -172,7 +172,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     pool_alone.n = 0;
     pool_standing.n = 0;
     step = 0;
-    while (step < 8 * per_minute and !bot.done) : (step += 1) {
+    while (step < 14 * per_minute and !bot.done) : (step += 1) {
         const hands = bot.hands(&world);
         recorder.note(step, hands);
         // which stretch of the evening this step belongs to, judged before it is made
