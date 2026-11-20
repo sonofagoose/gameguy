@@ -18,6 +18,7 @@ pub const cues_mod = @import("cue.zig");
 pub const ground = @import("ground.zig");
 pub const flyers = @import("flyers.zig");
 pub const pools = @import("pools.zig");
+pub const knots = @import("knots.zig");
 
 /// The puddles on the ground at once (pools.zig).
 pub const max_pools = pools.garden.len;
@@ -83,6 +84,23 @@ pub fn wedgeAt(rx: f32, ry: f32) i8 {
     if (k > 5) k -= 12;
     if (k < -6) k += 12;
     return @intCast(k);
+}
+
+/// The lit wedge a note falls on, in fifths from the day's note, by its pitch class; a note off the
+/// lit seven gives the nearest of them.
+pub fn wedgeOfHz(day_hz: f32, hz: f32) i8 {
+    var best: i8 = 0;
+    var best_off: f32 = 1e9;
+    var k: i8 = lit_least;
+    while (k <= lit_most) : (k += 1) {
+        const c = 1200.0 * @log2(hz / wedgeHz(day_hz, k));
+        const off = @abs(c - 1200.0 * @round(c / 1200.0));
+        if (off < best_off) {
+            best_off = off;
+            best = k;
+        }
+    }
+    return best;
 }
 
 /// The mood of a lit wedge.
@@ -559,6 +577,11 @@ pub const World = struct {
     pool_seen: u8 = 0,
     /// How far the view has lifted behind Hum while it walks standing water, 0 to 1.
     water_view: f32 = 0.0,
+    /// Knots (knots.zig): the first three, which come at Hum near the puddle sized for wonder.
+    knots: [knots.max_knots]knots.Knot = @splat(.{}),
+    knot_count: u32 = 0,
+    knots_home: u32 = 0,
+    strikes: u32 = 0,
     /// Each thing's kin, and the things due to ring because their kin rang (law 1).
     kin: [max_things][kin_most]Kin = @splat(@splat(.{})),
     echoes: [max_echoes]Echo = @splat(.{}),
@@ -724,6 +747,25 @@ pub const World = struct {
             at += 1;
         }
         self.pool_count = pools.garden.len;
+        // the first knots: two strands each, C and the A above it, over the F below that both are
+        // overtones of (design/the-wheel.md); three of them south of the puddle sized for wonder
+        const knot_at = [3][2]f32{ .{ -110.0, 440.0 }, .{ -95.0, 455.0 }, .{ -125.0, 458.0 } };
+        for (knot_at, 0..) |p, i| {
+            var kn = knots.Knot{
+                .x = p[0],
+                .z = p[1],
+                .root_hz = garden_hz * 2.0 / 3.0,
+                .strands = .{ .{ .hz = garden_hz, .over = 3 }, .{ .hz = garden_hz * 5.0 / 3.0, .over = 5 } },
+                .around = @as(f32, @floatFromInt(i)) * (2.0 * std.math.pi / 3.0),
+            };
+            for (0..2) |s| {
+                self.things[at] = .{ .x = p[0], .y = 1.5, .z = p[1], .tall = 1.2, .hz = kn.strands[s].hz, .family = .string, .ring = 0.6, .carry = 60.0 };
+                kn.thing[s] = at;
+                at += 1;
+            }
+            self.knots[i] = kn;
+        }
+        self.knot_count = knot_at.len;
         // the sun rises on the shore, at the first rung's place
         self.sun_x = self.things[self.rung_first].x;
         self.sun_z = self.things[self.rung_first].z;
@@ -896,6 +938,9 @@ pub const World = struct {
             self.look(hands);
         }
 
+        // the left face strikes with Hum's fork (SPEC.md 10)
+        if (self.view == .place and self.stand >= 1.0 and pressed & Hands.strike != 0) self.strike();
+
         // Hum's own sounds start on the sample the hands were stamped with
         self.own_at = now_sample + @min(hands.stamp, samples_per_step - 1);
 
@@ -972,6 +1017,7 @@ pub const World = struct {
         if (self.rung_first != no_thing) self.skyStep();
         if (self.clock_part + self.tempo >= 1.0) self.bee.step(self);
         if (self.pool_count > 0) self.poolStep();
+        if (self.knot_count > 0) self.knotStep();
         self.dawn = self.dayAt(self.hum_x, self.hum_z);
         if (self.singing) self.hum_light = @max(self.hum_light, 0.8);
         self.hum_light *= 0.94;
@@ -1178,6 +1224,80 @@ pub const World = struct {
         }
         self.startRing(self.hum_x, self.hum_z, self.home_hz, true, fullness);
         self.swell_bars = 0;
+        // a grey knot near, with home on its root or beside it, comes home: a loop, keeping the mood
+        const root_k = wedgeOfHz(self.day_hz, garden_hz * 2.0 / 3.0);
+        for (self.knots[0..self.knot_count]) |*kn| {
+            if (kn.home or kn.colour > 0.0) continue;
+            const dx = kn.x - self.hum_x;
+            const dz = kn.z - self.hum_z;
+            if (dx * dx + dz * dz > knots.home_reach * knots.home_reach) continue;
+            const off: i32 = @as(i32, self.home_k) - @as(i32, wedgeOfHz(self.day_hz, kn.root_hz));
+            _ = root_k;
+            if (off < -1 or off > 1) continue;
+            kn.home = true;
+            kn.gift = @intFromEnum(moodOf(self.home_k));
+            self.knots_home += 1;
+            for (kn.thing) |th| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * 2.0, .strength = 0.5, .ring = 2.4 }, .glow));
+        }
+    }
+
+    /// The left face: Hum's fork rings at home's note, and every knot within reach is drained by how
+    /// its strands meet the strike (knots.zig).
+    fn strike(self: *World) void {
+        self.strikes += 1;
+        self.own_now = true;
+        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.home_hz * 2.0, .strength = 0.6, .ring = 0.5 }, .glow));
+        self.own_now = false;
+        const bar: f32 = @floatFromInt(4 * tick_every);
+        for (self.knots[0..self.knot_count]) |*kn| {
+            if (kn.home) continue;
+            const dx = kn.x - self.hum_x;
+            const dz = kn.z - self.hum_z;
+            if (dx * dx + dz * dz > knots.strike_reach * knots.strike_reach) continue;
+            const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
+            const take = knots.drainAt(kn, @floatFromInt(self.clock), cycle);
+            kn.colour = @max(0.0, kn.colour - take);
+            // it rings at its own notes, as hard as the strike met it
+            for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.4 + take, .ring = 0.8 }, .glow));
+        }
+    }
+
+    /// Knots near Hum come and keep a circle round it, and each strand pulses on its own count of
+    /// the knot's cycle, which is a bar stretched by home's pitch against the knot's root. Their
+    /// pulses are heard and seen once for each step of the world's beat.
+    fn knotStep(self: *World) void {
+        const bar: f32 = @floatFromInt(4 * tick_every);
+        const beat_moves = self.clock_part + self.tempo >= 1.0;
+        for (self.knots[0..self.knot_count]) |*kn| {
+            if (kn.home) continue;
+            const dx = self.hum_x - kn.x;
+            const dz = self.hum_z - kn.z;
+            const far = @sqrt(dx * dx + dz * dz);
+            if (far > knots.notices_within) continue;
+            // to its place on a circle round Hum, at the world's pace
+            const tx = self.hum_x + knots.keeps_off * @cos(kn.around);
+            const tz = self.hum_z + knots.keeps_off * @sin(kn.around);
+            const gx = tx - kn.x;
+            const gz = tz - kn.z;
+            const gap = @sqrt(gx * gx + gz * gz);
+            const stride = knots.speed * dt * self.tempo;
+            if (gap > stride) {
+                kn.x += gx / gap * stride;
+                kn.z += gz / gap * stride;
+            }
+            kn.around += 0.2 * dt * self.tempo;
+            for (kn.thing) |th| {
+                self.things[th].x = kn.x;
+                self.things[th].z = kn.z;
+            }
+            if (!beat_moves) continue;
+            const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
+            for (kn.strands, 0..) |st, s| {
+                if (!knots.pulsesAt(self.clock, cycle, st.over)) continue;
+                kn.pulsed[s] = self.clock;
+                if (far < 80.0) self.tell(.{ .thing = kn.thing[s] }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = st.hz, .strength = 0.08 + 0.17 * kn.colour, .ring = 0.3 }, .glow));
+            }
+        }
     }
 
     /// Whether a thing rings its kin and is rung by them. The sky's rungs, the bee, Drip and the
@@ -1809,6 +1929,9 @@ pub const World = struct {
         mixIn(&h, @as(u32, @bitCast(@as(i32, self.home_k))));
         mixIn(&h, self.wheel_opens);
         mixIn(&h, self.cadences);
+        mixIn(&h, self.knots_home);
+        mixIn(&h, self.strikes);
+        for (self.knots[0..self.knot_count]) |kn| mixIn(&h, @as(u32, @bitCast(kn.colour)));
         mixIn(&h, self.swell_bars);
         mixIn(&h, @truncate(self.clock));
         if (self.bee.thing != no_thing) {
@@ -2634,4 +2757,67 @@ test "R1 held thickens time: the beat runs at a quarter, and lets go when the wh
     step = 0;
     while (step < 60) : (step += 1) _ = w.stepOnce(.{}, &cues);
     try std.testing.expectEqual(after, w.step - w.clock);
+}
+
+test "a knot struck on the one with home on its root greys, and a cadence beside its root brings it home" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    // stand near the first knots: they come and keep a circle round Hum
+    w.hum_x = -110.0;
+    w.hum_z = 400.0;
+    var step: u32 = 0;
+    while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    for (w.knots[0..w.knot_count]) |kn| {
+        const dx = kn.x - w.hum_x;
+        const dz = kn.z - w.hum_z;
+        try std.testing.expect(dx * dx + dz * dz < 8.0 * 8.0);
+    }
+    // home on wonder, the knots' root: strikes on Hum's downbeats are meetings
+    try std.testing.expect(w.moveHome(-1));
+    var struck: u32 = 0;
+    while (struck < 3) {
+        if (w.clock % (4 * tick_every) == 0 and w.clock > 0) {
+            _ = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+            struck += 1;
+        } else _ = w.stepOnce(.{}, &cues);
+    }
+    _ = w.stepOnce(.{}, &cues);
+    for (w.knots[0..w.knot_count]) |k| try std.testing.expectEqual(@as(f32, 0.0), k.colour);
+    // the swell, a nudge up to sunny home beside the root on a downbeat, and let go on the one
+    const bar = (w.clock / tick_every / 4 + 1) * 4;
+    while (w.clock < tickStep(bar) - 10) _ = w.stepOnce(.{}, &cues);
+    while (w.clock < tickStep(bar)) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.sing, .rx = 110 }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    while (w.clock < tickStep(bar + 4)) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(Cadence.amen, w.cadence);
+    try std.testing.expectEqual(@as(u32, 3), w.knots_home);
+    // each keeps the mood it was brought home in: sunny home
+    try std.testing.expectEqual(@as(u8, @intFromEnum(Mood.bind)), w.knots[0].gift);
+}
+
+test "struck with home elsewhere, a knot drains slower: the dance's one is not Hum's" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    w.hum_x = -110.0;
+    w.hum_z = 400.0;
+    var step: u32 = 0;
+    while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    const dx = w.knots[0].x - w.hum_x;
+    const dz = w.knots[0].z - w.hum_z;
+    try std.testing.expect(dx * dx + dz * dz < knots.strike_reach * knots.strike_reach);
+    // home on sunny home: three strikes on the downbeat leave it coloured
+    var struck: u32 = 0;
+    while (struck < 3) {
+        if (w.clock % (4 * tick_every) == 0 and w.clock > 0) {
+            _ = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+            struck += 1;
+        } else _ = w.stepOnce(.{}, &cues);
+    }
+    try std.testing.expect(w.knots[0].colour > 0.3 and w.knots[0].colour < 1.0);
 }

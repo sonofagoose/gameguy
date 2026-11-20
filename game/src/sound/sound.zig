@@ -14,7 +14,7 @@ pub const rate: f32 = 48000.0;
 const V = @Vector(4, f32);
 
 /// The shapes things come in, each with the overtones of that shape (spec/laws.md).
-pub const Family = enum(u8) { bell, string, stopped_pipe, bar, skin, tone };
+pub const Family = enum(u8) { bell, string, stopped_pipe, bar, skin, tone, fork };
 
 pub const Recipe = struct { mult: [8]f32, gain: [8]f32 };
 
@@ -26,6 +26,8 @@ pub fn recipe(family: Family) Recipe {
         .stopped_pipe => .{ .mult = .{ 1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0 }, .gain = .{ 1.0, 0.33, 0.20, 0.14, 0.11, 0.09, 0.07, 0.06 } },
         .bar => .{ .mult = .{ 1.0, 2.756, 5.404, 8.933, 13.34, 18.64, 0.0, 0.0 }, .gain = .{ 1.0, 0.45, 0.25, 0.12, 0.06, 0.03, 0.0, 0.0 } },
         .skin => .{ .mult = .{ 1.0, 1.593, 2.136, 2.295, 2.653, 2.917, 3.156, 3.501 }, .gain = .{ 1.0, 0.55, 0.40, 0.30, 0.25, 0.18, 0.12, 0.10 } },
+        // Hum's tuning fork: nearly a pure tone (spec/laws.md, "The families")
+        .fork => .{ .mult = .{ 1.0, 6.27, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, .gain = .{ 1.0, 0.22, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 } },
         // one standing shape alone: a single tone
         .tone => .{ .mult = .{ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, .gain = .{ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 } },
     };

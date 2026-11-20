@@ -1097,8 +1097,29 @@ pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
     }
     // threads: every sounding thing near, to the wedge where home would make it kin
     var threads: usize = 0;
-    for (w.things[0..w.thing_count]) |t| {
+    for (w.knots[0..w.knot_count]) |kn| {
+        if (kn.home) continue;
+        const kdx = kn.x - cx;
+        const kdz = kn.z - cz;
+        if (kdx * kdx + kdz * kdz > 160.0 * 160.0) continue;
+        // both strands' threads run to the same wedge: the root they are overtones of
+        const rk = world_mod.wedgeOfHz(w.day_hz, kn.root_hz);
+        const ra = @as(f32, @floatFromInt(rk)) * (std.math.pi / 6.0);
+        const rex = fx * @cos(ra) + rx * @sin(ra);
+        const rez = fz * @cos(ra) + rz * @sin(ra);
+        for (kn.strands) |st| {
+            if (n >= out.len) return n;
+            out[n] = .{ .a = .{ kn.x, 1.5, kn.z }, .b = .{ cx + rex * (outer + 1.0), y, cz + rez * (outer + 1.0) }, .half_width = 1.3, .body = 0.0, .col = col8(colour.ofNote(world_mod.garden_hz, st.hz), 0.6) };
+            n += 1;
+        }
+    }
+    for (w.things[0..w.thing_count], 0..) |t, ti| {
         if (!t.sounds or threads >= 160) continue;
+        var strand = false;
+        for (w.knots[0..w.knot_count]) |kn| {
+            if (kn.thing[0] == ti or kn.thing[1] == ti) strand = true;
+        }
+        if (strand) continue;
         const dx = t.x - cx;
         const dz = t.z - cz;
         if (dx * dx + dz * dz > 160.0 * 160.0) continue;
@@ -1164,6 +1185,61 @@ pub fn swellLines(w: *const world_mod.World, out: []Inst) usize {
             if (n >= out.len) return n;
             out[n] = .{ .a = pts[i], .b = pts[(i + 1) % 4], .half_width = 1.6, .body = 0.0, .col = col8(tint, bright) };
             n += 1;
+        }
+    }
+    return n;
+}
+
+/// Knots (world/knots.zig): each strand a tangle of light in its note's colour, a closed loop with as
+/// many lobes as its count, in two upright planes at right angles, jerking out on each pulse; drained,
+/// it greys. Brought home, the two are one still loop in the colour of the mood it keeps.
+pub fn knotLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
+    var n: usize = 0;
+    const grey = [3]f32{ 0.55, 0.55, 0.58 };
+    const turn = @as(f32, @floatFromInt(w.clock % 3600)) * (6.2831853 / 3600.0);
+    for (w.knots[0..w.knot_count]) |kn| {
+        const ex = kn.x - eye[0];
+        const ez = kn.z - eye[2];
+        if (ex * ex + ez * ez > 420.0 * 420.0) continue;
+        const cy: f32 = 1.5;
+        if (kn.home) {
+            const k: i8 = @as(i8, @intCast(kn.gift)) + world_mod.lit_least;
+            const tint = col8(colour.ofNote(world_mod.garden_hz, world_mod.wedgeHz(w.day_hz, k)), 0.8);
+            for (0..32) |i| {
+                if (n >= out.len) return n;
+                const a0 = @as(f32, @floatFromInt(i)) * (6.2831853 / 32.0);
+                const a1 = @as(f32, @floatFromInt(i + 1)) * (6.2831853 / 32.0);
+                out[n] = .{ .a = .{ kn.x + 1.1 * @cos(a0), 0.15, kn.z + 1.1 * @sin(a0) }, .b = .{ kn.x + 1.1 * @cos(a1), 0.15, kn.z + 1.1 * @sin(a1) }, .half_width = 1.6, .body = 0.0, .col = tint };
+                n += 1;
+            }
+            continue;
+        }
+        for (kn.strands, 0..) |st, s| {
+            const since: f32 = if (w.clock >= kn.pulsed[s]) @floatFromInt(w.clock - kn.pulsed[s]) else 99.0;
+            const jerk = 1.0 + 0.4 * std.math.clamp(1.0 - since / 8.0, 0.0, 1.0);
+            const note = colour.ofNote(world_mod.garden_hz, st.hz);
+            const c = kn.colour;
+            const tint = col8(.{ note[0] * c + grey[0] * (1.0 - c), note[1] * c + grey[1] * (1.0 - c), note[2] * c + grey[2] * (1.0 - c) }, 0.28 + 0.72 * c);
+            const plane = turn + @as(f32, @floatFromInt(s)) * (std.math.pi / 2.0);
+            const ux = @cos(plane);
+            const uz = @sin(plane);
+            const lobes: f32 = @floatFromInt(st.over);
+            const parts = 48;
+            for (0..parts) |i| {
+                if (n >= out.len) return n;
+                const a0 = @as(f32, @floatFromInt(i)) * (6.2831853 / @as(f32, parts));
+                const a1 = @as(f32, @floatFromInt(i + 1)) * (6.2831853 / @as(f32, parts));
+                const r0 = 1.0 * jerk * (1.0 + 0.32 * @cos(lobes * a0 + @as(f32, @floatFromInt(s)) * 0.7));
+                const r1 = 1.0 * jerk * (1.0 + 0.32 * @cos(lobes * a1 + @as(f32, @floatFromInt(s)) * 0.7));
+                out[n] = .{
+                    .a = .{ kn.x + ux * r0 * @cos(a0), cy + r0 * @sin(a0), kn.z + uz * r0 * @cos(a0) },
+                    .b = .{ kn.x + ux * r1 * @cos(a1), cy + r1 * @sin(a1), kn.z + uz * r1 * @cos(a1) },
+                    .half_width = 1.5,
+                    .body = 0.0,
+                    .col = tint,
+                };
+                n += 1;
+            }
         }
     }
     return n;

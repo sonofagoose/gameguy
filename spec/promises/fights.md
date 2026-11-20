@@ -16,7 +16,9 @@ cadences._
 - **A cheat would be:** hit points and a damage number; strikes snapped to the beat with no
   difference for timing them yourself.
 - **Full size:**
-  - `owed` A test: a strike rings the struck creature's own note, through its own overtones.
+  - `test a knot struck on the one with home on its root greys, and a cadence beside its root brings
+    it home`
+    A strike rings the struck knot at its own strands' notes, as hard as the strike met it.
   - `owed` A test: a dodge on the beat opens the pocket; off the beat it is only a dodge.
   - `owed` A test: a strike timed by the hands within the window rings fuller than one the game
     placed, by a sum of how near the beat it fell (the stamps, `hands.voice-in-a-buffer`).
@@ -49,9 +51,14 @@ cadences._
   small tender thing remains.
 - **A cheat would be:** an enemy that vanishes with a puff.
 - **Full size:**
-  - `owed` A test: hits drain a creature's colour; grey, it leans toward the wedge that would bring
-    it home; a cadence on the downbeat brings it home.
-  - `owed` A test: what it leaves is the mood home was in when it came home.
+  - `test a knot struck on the one with home on its root greys, and a cadence beside its root brings
+    it home`
+    Hits drain a knot's colour, and a cadence on the downbeat brings a grey one home.
+  - `frame evening-swell` Struck grey, the knots circle Hum as dim ghosts.
+  - `owed` Grey, a creature leans toward the wedge that would bring it home.
+  - `test a knot struck on the one with home on its root greys, and a cadence beside its root brings
+    it home`
+    It keeps the mood home was in: sunny home, for the amen landed there.
 - **Asks:** Did bringing a creature home feel kinder than beating it?
 
 ### `fight.kinds` Wolves, knots and greys
@@ -64,8 +71,15 @@ cadences._
   they meet on the one.
 - **A cheat would be:** three enemy types told apart by colour only.
 - **Full size:**
-  - `owed` A test: a knot is two strands at rates that don't share a beat until home is where they
-    meet (law 3).
+  - `test a knot dances on Hum's one with home on its root, and stumbles anywhere else` A knot's
+    strands pulse three and five to its cycle, which is a bar stretched by home's pitch against its
+    root: rhythm is pitch, slowed (`game/src/world/knots.zig`).
+  - `test a knot struck on the one with home on its root greys, and a cadence beside its root brings
+    it home`
+    Three meeting strikes grey it; the amen with home beside its root brings it home.
+  - `test struck with home elsewhere, a knot drains slower: the dance's one is not Hum's` Every hit
+    works, and home on the root works best.
+  - `frame evening-knots` A knot: two strands tangled, a loop of three lobes and one of five.
   - `owed` Wolves (the comma) and greys (the grid) come with the lands that have them (stage 3).
 - **Asks:** Could you hear what kind of creature it was before you saw it?
 

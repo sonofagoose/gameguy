@@ -21,6 +21,7 @@ pub const Walker = struct {
     bee_marked: bool = false,
     bridge_marked: bool = false,
     swell_marked: bool = false,
+    knots_marked: bool = false,
     nudged: bool = false,
     nudge_left: u8 = 0,
     nudged_at: u64 = 0,
@@ -373,8 +374,29 @@ pub const Walker = struct {
                 if (after > 480) self.next(step);
             },
             17 => {
+                // the first knots come and circle, stumbling. Home is on wonder, their root: strike on
+                // the downbeats, where both strands meet Hum's one, until they are grey
+                var near = false;
+                var coloured = false;
+                for (w.knots[0..w.knot_count]) |kn| {
+                    if (kn.home) continue;
+                    const dx = kn.x - w.hum_x;
+                    const dz = kn.z - w.hum_z;
+                    if (dx * dx + dz * dz < 9.0 * 9.0) near = true;
+                    if (kn.colour > 0.0) coloured = true;
+                }
+                if (near and !self.knots_marked) {
+                    self.knots_marked = true;
+                    self.mark = "knots";
+                }
+                if (near and coloured and w.clock % (4 * world_mod.tick_every) == 0 and w.clock > 0) h.buttons |= Hands.strike;
+                if (near and !coloured) self.next(step);
+                if (after > 60 * 60) self.next(step);
+            },
+            18 => {
                 // the swell: hold R2 and let it grow two bars; on the next downbeat nudge home back up
-                // to sunny home; let go on the one after, and the amen lands
+                // to sunny home, beside the knots' root; let go on the one after, the amen lands, and
+                // the grey knots come home
                 h.buttons |= Hands.sing;
                 if (after > 30 and w.swell_bars >= 2 and !self.swell_marked) {
                     self.swell_marked = true;

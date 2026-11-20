@@ -1187,6 +1187,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             moving_n += aster_lines.poolLines(&world, eye, moving[moving_n..]);
             moving_n += aster_lines.wheelLines(&world, moving[moving_n..]);
             moving_n += aster_lines.swellLines(&world, moving[moving_n..]);
+            moving_n += aster_lines.knotLines(&world, eye, moving[moving_n..]);
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);
