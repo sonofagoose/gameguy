@@ -41,7 +41,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 |---|---|
 | sized: its moment, its cheat, its full size and its question written | 49 of 49 |
 | proven: every measure passes today and nothing is owed | 0 |
-| reached: the scripted player met it by playing | 7 |
+| reached: the scripted player met it by playing | 8 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
 | graded full by a fresh reader | 0 |
 | **kept** | **0** |
@@ -88,7 +88,7 @@ asks its question.
 | `garden.w01` The answering field | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w02` The seed that follows | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w03` The parade | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `garden.w04` The puddle bridge | 2 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `garden.w04` The puddle bridge | 2 | 1 | no | yes | no | no | no | 4 owed; no yes from Morgan yet |
 | `garden.w05` The quiet ball | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w06` The far shore, late | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `garden.w07` The swing | 2 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
@@ -120,6 +120,6 @@ asks its question.
 | `whole.hands` Nothing asks the hands for the impossible | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.ear` The ear, before and after | 2 | 1 | no | - | - | no | no | 3 owed |
 | `hands.voice-in-a-buffer` Your voice, at once | 1 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `card.takes` The card is the world's memory | 1 | 2 | no | - | - | no | no | 4 owed; take.bytes <= 4096  (is 5246) |
+| `card.takes` The card is the world's memory | 1 | 2 | no | - | - | no | no | 4 owed; take.bytes <= 4096  (is 8296) |
 | `light.hue` One set of numbers for sound and light | 1 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `light.beam` The beam | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |

@@ -44,7 +44,7 @@ pub const Bee = struct {
                 const a = @as(f32, @floatFromInt(k)) * (6.2831853 / 12.0) + ring * 0.05;
                 const x = near[0] + ring * @cos(a);
                 const z = near[1] + ring * @sin(a);
-                if (ground.coverAt(x, z) != .clover) continue;
+                if (ground.coverAt(x, z) != .clover or ground.wet(x, z)) continue;
                 // not two stops close together
                 var apart = true;
                 for (self.stops[0..found]) |s| {

@@ -229,15 +229,51 @@ stage 2 begins._
 
 - **Said:** `spec/world.md` "Hum a pool's note and walk its still lines."
 - **Stage:** 2
-- **The moment:** A puddle from the storm is a lake two hundred metres across, and black. You hum,
-  and when you find its note, lines of light come up on the water: a ring, and spokes. They are
-  where the water isn't moving. You step out on one. Either side of you the water is heaving. Half a
-  minute later you are across. Hum the note above and the bridge redraws itself somewhere else.
+- **The moment:** A puddle from the storm is a lake two hundred metres across, and black, with gold
+  pollen scattered on it. You hum, and lines of light come up on the water: a ring, and a cross.
+  They
+  are where the water isn't moving, and the pollen streams onto them. You step out on one. Either
+  side
+  of you the water is heaving. Half a minute later you are across. Hum the note above and the bridge
+  redraws itself somewhere else.
 - **A cheat would be:** a bridge that appears when a button is held near the water.
 - **Full size:**
-  - `owed` The lines are the pool's own figure at that note, from its outline (`whole.law4`).
-  - `owed` The puddle is its real size: one to three metres, so 100 to 300 m to cross.
-  - `owed` Lose the note and the lines fade under you, slowly enough to run for it.
+  - `test a round skin's still rings and spokes are where the Bessel functions are nought` The
+    figure is the real one: a round skin's shapes are Bessel functions, and the still lines are
+    their
+    zeros, the same overtones the skin in the sound has.
+  - `test a pool's figure is still on its spokes and rings, and heaves to one at its highest` The
+    garden's note stands in the bridge puddle as a ring and a cross, with a belly toward the singer.
+  - `test a pool hummed at its note stands in that shape, and holds Hum on its still line across`
+    Humming builds the shape (law 7); out on the still line Hum is held there all the way over, in
+    under forty-five seconds.
+  - `test a belly throws Hum back onto the still line, and still water floats Hum to the shore`
+    Walking up into a belly is turned back; when the note stops and the water stills, it floats you
+    ashore.
+  - `test pollen on a standing pool gathers on its still lines, and stays there when it stills`
+    Whatever is on the water is thrown onto the still lines, and a puddle keeps the figure of the
+    last note that stood in it.
+  - `test a call makes a puddle stand for a moment in the shape of the call's note` A call passing
+    over a puddle makes it flash its figure and sing it as it dies away.
+  - `fact ears.pool_beats_hz <= 0.1` Read back from the sound: the water sings the very note it is
+    sung, so the two never beat.
+  - `fact ears.pool_near_note_db <= -30` Nothing a little off the note, which would be heard as
+    roughness.
+  - `fact ears.pool_adds_db >= 3` The note blooms as the water stands: measured at about four
+    decibels louder. Whether that is too much or too little is for a person to say.
+  - `take` The scripted player hums at the bridge puddle's edge until the figure stands, walks round
+    the shore to the end of a still spoke, and crosses on it.
+  - `frame evening-pool` The puddle standing in its shape, the still lines drawn on the water and
+    the pollen gathered on them, seen from over the shore.
+  - `frame evening-bridge` Hum out on the still line, the water heaving either side.
+  - `owed` Hum the note above: the swell's walk to the next wedge (`SPEC.md` 9) is not built, so Hum
+    has one note and each puddle one figure.
+  - `owed` A pool of any outline has its own figures, worked out from its outline by
+    `game/tools/modes`. The proof's puddles are round.
+  - `owed` Lose the note and the lines fade under you, slowly enough to run for it: the water holds
+    for about three and a half seconds after the note stops; whether that is enough is for a person
+    to say.
+  - `owed` The water mirrors the lights near it (`spec/shape.md`): Hum's light is not yet in it.
 - **Asks:** When the lines came up on the water, did you trust them enough to step out?
 
 ### `garden.w05` The quiet ball

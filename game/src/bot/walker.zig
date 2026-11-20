@@ -19,6 +19,8 @@ pub const Walker = struct {
     six_at: ?u64 = null,
     in_open: bool = false,
     bee_marked: bool = false,
+    bridge_marked: bool = false,
+    cross_from: f32 = 0.0,
     breathing: bool = false,
     ticks_held: u32 = 0,
     rising_marked: bool = false,
@@ -30,6 +32,21 @@ pub const Walker = struct {
     fn next(self: *Walker, step: u64) void {
         self.phase += 1;
         self.since = step;
+    }
+
+    /// Turn the view toward a place with the right stick; true once it is facing it.
+    fn face(w: *const World, h: *Hands, x: f32, z: f32) bool {
+        const want = std.math.atan2(x - w.hum_x, -(z - w.hum_z));
+        var turn = want - w.look_yaw;
+        while (turn > std.math.pi) turn -= 2.0 * std.math.pi;
+        while (turn < -std.math.pi) turn += 2.0 * std.math.pi;
+        if (@abs(turn) > 0.04) {
+            // never inside the stick's dead middle, or the view would stop just short
+            const push = std.math.clamp(turn * 300.0, -110.0, 110.0);
+            h.rx = @intFromFloat(if (push > 0.0) @max(push, 24.0) else @min(push, -24.0));
+            return false;
+        }
+        return true;
     }
 
     /// Push the stick toward a place in the world, read against the way the view looks.
@@ -199,6 +216,86 @@ pub const Walker = struct {
                 }
                 if (w.rung_heard >= 6) self.next(step);
                 if (after > 60 * 400) self.next(step);
+            },
+            9 => {
+                // to the bridge puddle: facing it, walk until just short of its edge
+                if (w.pool_count == 0) {
+                    self.phase = 99;
+                    return h;
+                }
+                const p = &w.pools[0];
+                const dx = p.x - w.hum_x;
+                const dz = p.z - w.hum_z;
+                const far = @sqrt(dx * dx + dz * dz);
+                if (!face(w, &h, p.x, p.z)) return h;
+                if (far > p.r + 3.0) {
+                    var probe = Hands{};
+                    _ = toward(w, &probe, p.x, p.z);
+                    h.lx = probe.lx;
+                    h.ly = probe.ly;
+                } else self.next(step);
+            },
+            10 => {
+                // hum at its edge, standing still, while the figure comes up, the view rises over
+                // it, and the pollen gathers on its still lines
+                h.buttons |= Hands.sing;
+                if (after == 60 * 14) self.mark = "pool";
+                if (after > 60 * 15) self.next(step);
+            },
+            11 => {
+                // still humming, round the shore to the nearest end of a still spoke
+                h.buttons |= Hands.sing;
+                const p = &w.pools[0];
+                const f = &p.figs[0];
+                const m = world_mod.pools.modes[f.mode].m;
+                const here = std.math.atan2(w.hum_z - p.z, w.hum_x - p.x);
+                if (m == 0) {
+                    self.phase = 99;
+                    return h;
+                }
+                // the spokes' ends lie at the turn plus an odd number of half-spacings
+                const turn = std.math.atan2(f.turn_s, f.turn_c);
+                const spacing = std.math.pi / @as(f32, @floatFromInt(m));
+                var goal: f32 = 0.0;
+                var nearest: f32 = 1e9;
+                var e: u32 = 0;
+                while (e < 2 * m) : (e += 1) {
+                    const at_end = turn + (@as(f32, @floatFromInt(e)) + 0.5) * spacing;
+                    var gap = at_end - here;
+                    while (gap > std.math.pi) gap -= 2.0 * std.math.pi;
+                    while (gap < -std.math.pi) gap += 2.0 * std.math.pi;
+                    if (@abs(gap) < @abs(nearest)) {
+                        nearest = gap;
+                        goal = at_end;
+                    }
+                }
+                if (@abs(nearest) > 0.01) {
+                    const ang = here + std.math.clamp(nearest, -0.08, 0.08);
+                    _ = toward(w, &h, p.x + (p.r + 3.0) * @cos(ang), p.z + (p.r + 3.0) * @sin(ang));
+                } else {
+                    self.cross_from = goal;
+                    self.next(step);
+                }
+            },
+            12 => {
+                // face across, and walk the still line to the far side, humming all the way
+                h.buttons |= Hands.sing;
+                const p = &w.pools[0];
+                const tx = p.x - (p.r + 8.0) * @cos(self.cross_from);
+                const tz = p.z - (p.r + 8.0) * @sin(self.cross_from);
+                if (after < 240 and !face(w, &h, tx, tz)) return h;
+                var probe = Hands{};
+                const far = toward(w, &probe, tx, tz);
+                h.lx = probe.lx;
+                h.ly = probe.ly;
+                // a third of the way over, out on the still line with the water heaving either side
+                const cx = w.hum_x - p.x;
+                const cz = w.hum_z - p.z;
+                if (!self.bridge_marked and w.on_pool != 0 and cx * cx + cz * cz < (p.r * 0.45) * (p.r * 0.45)) {
+                    self.bridge_marked = true;
+                    self.mark = "bridge";
+                }
+                if (w.crossed > 0 or far < 2.0 or after > 60 * 60) self.next(step);
             },
             else => self.done = true,
         }

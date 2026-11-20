@@ -17,6 +17,14 @@ pub const asters = @import("asters.zig");
 pub const cues_mod = @import("cue.zig");
 pub const ground = @import("ground.zig");
 pub const flyers = @import("flyers.zig");
+pub const pools = @import("pools.zig");
+
+/// The puddles on the ground at once (pools.zig).
+pub const max_pools = pools.garden.len;
+/// How loud standing water sings its note back, at full loudness, against a voice.
+pub const pool_voice: f32 = 0.8;
+/// A call's overtones, for which shape of a puddle it strikes: the string's (sound.zig).
+const call_overtones = [4]f32{ 1.0, 0.5, 0.33, 0.25 };
 pub const witness = @import("witness.zig");
 
 pub const steps_per_second = 60;
@@ -165,6 +173,10 @@ pub const cam_up: f32 = 2.2;
 pub const walk_pitch: f32 = 0.24;
 pub const place_fov: f32 = 55.0;
 pub const lean_back: f32 = 14.0;
+/// Out on standing water: the view this far behind Hum, this high, and looking this much lower.
+pub const water_back: f32 = 30.0;
+pub const water_up: f32 = 15.0;
+pub const water_down: f32 = 0.55;
 pub const lean_up: f32 = 1.0;
 /// How many metres of the thing the leaned view frames, top to bottom, and how narrow it may go.
 pub const lean_frame: f32 = 30.0;
@@ -238,6 +250,9 @@ pub const Thing = struct {
     /// How loud it stays for as long as something holds it sounding: a rung of the horn while
     /// the sun stands at or above it.
     held: f32 = 0.0,
+    /// How far it reaches from its middle over the ground, as a pool does: its sound comes from
+    /// its nearest part.
+    spread: f32 = 0.0,
 };
 
 /// A tall thing with a foot: the view leans back at it, and a call climbs it.
@@ -376,6 +391,19 @@ pub const World = struct {
     bee: flyers.Bee = .{},
     /// Set while a thing is being told to answer Hum's call, so its arrival is known as one.
     answering: bool = false,
+    /// Puddles from the storm (pools.zig), and where Hum stepped onto one.
+    pools: [max_pools]pools.Pool = undefined,
+    pool_count: u32 = 0,
+    pool_first: u32 = no_thing,
+    on_pool: u8 = 0,
+    pool_in_x: f32 = 0.0,
+    pool_in_z: f32 = 0.0,
+    crossed: u32 = 0,
+    /// How far the view has risen over a standing pool, 0 to 1, and over which.
+    pool_view: f32 = 0.0,
+    pool_seen: u8 = 0,
+    /// How far the view has lifted behind Hum while it walks standing water, 0 to 1.
+    water_view: f32 = 0.0,
     /// A flower head that has fallen by the great aster's foot: a bell at Hum's own size.
     fallen: u32 = no_thing,
     /// The tower Hum is nearest, and how far its foot is.
@@ -524,6 +552,16 @@ pub const World = struct {
         const bee_thing = at;
         self.things[at] = .{ .y = flyers.Bee.over_clover, .tall = 0.65, .hz = garden_hz, .family = .skin, .ring = 0.4, .carry = flyers.Bee.carry };
         at += 1;
+        // the puddles from the storm (pools.zig), each a skin of water sized so the garden's note
+        // stands in it as a figure of its own
+        self.pool_first = at;
+        for (pools.garden, 0..) |pd, i| {
+            const r = pools.radiusFor(pd.shape, garden_hz);
+            self.things[at] = .{ .x = pd.x, .y = 0.0, .z = pd.z, .tall = r, .spread = r, .hz = pools.skin_k / r, .family = .skin, .ring = 2.5, .carry = 120.0 };
+            self.pools[i] = pools.Pool.init(pd.x, pd.z, r, at, 0x9e37_79b9 +% @as(u32, @intCast(i)) *% 0x85eb_ca6b);
+            at += 1;
+        }
+        self.pool_count = pools.garden.len;
         // the sun rises on the shore, at the first rung's place
         self.sun_x = self.things[self.rung_first].x;
         self.sun_z = self.things[self.rung_first].z;
@@ -557,7 +595,8 @@ pub const World = struct {
                 // way it has come; its light is where it is, as bright as it sounds there
                 const hx = thing.x - self.hum_x;
                 const hz = thing.z - self.hum_z;
-                const far = @sqrt(hx * hx + hz * hz + thing.y * thing.y);
+                const flat = @max(0.0, @sqrt(hx * hx + hz * hz) - thing.spread);
+                const far = @sqrt(flat * flat + thing.y * thing.y);
                 const delay: u64 = @intFromFloat(far / sound_speed * sound.rate);
                 const level: f32 = if (what.sound.kind == .strike) answer_level else voice_level;
                 const kept = 1.0 / (1.0 + (far / thing.carry) * (far / thing.carry));
@@ -646,6 +685,8 @@ pub const World = struct {
         const mx = @as(f32, @floatFromInt(hands.lx)) * (1.0 / 127.0);
         const mz = @as(f32, @floatFromInt(hands.ly)) * (1.0 / 127.0);
         const size = @sqrt(mx * mx + mz * mz);
+        var go_x: f32 = 0.0;
+        var go_z: f32 = 0.0;
         if (size > 0.12) {
             const scale = @min(size, 1.0) / size * run_speed * dt;
             var wx = mx;
@@ -656,15 +697,20 @@ pub const World = struct {
                 wx = cy * mx - sy * mz;
                 wz = sy * mx + cy * mz;
             }
-            self.hum_x += wx * scale;
-            self.hum_z += wz * scale;
+            go_x = wx * scale;
+            go_z = wz * scale;
             self.hum_face = std.math.atan2(wx, -wz);
             self.still = 0;
-            if (self.view == .place and self.stand >= 1.0) self.underfoot();
         } else {
             self.still +|= 1;
         }
-        if (self.view == .place) self.cover = ground.coverAt(self.hum_x, self.hum_z);
+        // on the water, the water has its say in where a step goes
+        if (self.view == .place and self.pool_count > 0) self.onWater(&go_x, &go_z);
+        self.hum_x += go_x;
+        self.hum_z += go_z;
+        if (size > 0.12 and self.view == .place and self.stand >= 1.0) self.underfoot();
+        if (self.view == .place and self.pool_count > 0) self.crossings();
+        if (self.view == .place) self.cover = ground.underfootAt(self.hum_x, self.hum_z);
         if (self.view == .place) {
             // the hinge: the world is a page until it stands, and holding R1 lays it down again
             self.call_held = if (hands.held(Hands.call)) self.call_held +| 1 else 0;
@@ -734,6 +780,7 @@ pub const World = struct {
         if (self.drip != no_thing) self.dripStep();
         if (self.rung_first != no_thing) self.skyStep();
         self.bee.step(self);
+        if (self.pool_count > 0) self.poolStep();
         self.dawn = self.dayAt(self.hum_x, self.hum_z);
         if (self.singing) self.hum_light = @max(self.hum_light, 0.8);
         self.hum_light *= 0.94;
@@ -776,6 +823,7 @@ pub const World = struct {
                 thing.lit = 1.0;
                 if (!thing.sounds) continue;
                 if (index == self.bee.thing) continue;
+                if (self.pool_first != no_thing and index >= self.pool_first and index < self.pool_first + self.pool_count) continue;
                 if (index == self.drip) {
                     // the second call is always answered: Drip's own ring comes back
                     if (self.calls >= 2 and !self.drip_met) {
@@ -794,6 +842,17 @@ pub const World = struct {
                 self.answering = true;
                 self.tell(.{ .thing = @intCast(index) }, cues_mod.Cue.of(.{ .kind = .strike, .family = thing.family, .hz = thing.hz, .strength = strength, .ring = thing.ring }, .glow));
                 self.answering = false;
+            }
+            // a puddle the call reaches stands for a moment in the shape the call's note stands in,
+            // from the edge it reaches first, and sings it as it dies away
+            for (self.pools[0..self.pool_count]) |*p| {
+                const dx = p.x - ring.x;
+                const dz = p.z - ring.z;
+                const edge = @max(0.0, @sqrt(dx * dx + dz * dz) - p.r);
+                if (edge < before or edge > reach) continue;
+                self.things[p.thing].lit = 1.0;
+                const strength = ring.strength / (1.0 + (edge / 120.0) * (edge / 120.0));
+                p.struck(garden_hz, &call_overtones, strength * 0.8, ring.x, ring.z);
             }
         }
 
@@ -904,10 +963,100 @@ pub const World = struct {
         }
     }
 
+    /// The puddles (pools.zig): hummed at, whichever of their shapes has a note among Hum's
+    /// overtones builds while the note is held (law 7) and dies away when it stops. Standing, a
+    /// shape sings its note from the water (law 4), and throws the pollen onto its still lines.
+    fn poolStep(self: *World) void {
+        const note: f32 = if (self.singing) garden_hz else 0.0;
+        for (self.pools[0..self.pool_count], 0..) |*p, pi| {
+            p.drive(note, self.hum_x, self.hum_z);
+            p.stepMotes(dt, self.hum_x, self.hum_z);
+            for (&p.figs, 0..) |*f, k| {
+                const was = p.sent[k];
+                const due = (self.step % 6 == 0 and @abs(f.loud - was) > 0.01) or (f.loud == 0.0 and was > 0.0);
+                if (!due) continue;
+                p.sent[k] = f.loud;
+                // its end is told as the water settling: a light going down
+                const shape: cues_mod.Light.Shape = if (f.loud == 0.0) .dims else .glow;
+                self.tell(.{ .thing = p.thing }, cues_mod.Cue.of(.{ .kind = .tone, .voice = @intCast(pi * 2 + k), .hz = f.hz, .strength = pool_voice * f.loud, .ring = 1.0 / pools.build * dt }, shape));
+            }
+        }
+    }
+
+    /// Hum on the water (law 4). Standing water holds Hum on its still lines: walking along them,
+    /// or down off a belly, is free; walking up into a belly is turned along the line, and a belly
+    /// throws Hum back toward the line, harder the louder it is. Still water gives no grip: a step
+    /// on it is a fifth of one, and it floats Hum back to the nearest shore.
+    fn onWater(self: *World, go_x: *f32, go_z: *f32) void {
+        const to_x = self.hum_x + go_x.*;
+        const to_z = self.hum_z + go_z.*;
+        for (self.pools[0..self.pool_count]) |*p| {
+            const on = p.holds(self.hum_x, self.hum_z);
+            if (!on and !p.holds(to_x, to_z)) continue;
+            if (!p.standing()) {
+                if (!on) continue;
+                const dx = self.hum_x - p.x;
+                const dz = self.hum_z - p.z;
+                const far = @max(@sqrt(dx * dx + dz * dz), 0.01);
+                go_x.* = go_x.* * 0.2 + dx / far * pools.float_speed * dt;
+                go_z.* = go_z.* * 0.2 + dz / far * pools.float_speed * dt;
+                continue;
+            }
+            const there = p.amp(to_x, to_z);
+            if (there > pools.hold_band) {
+                if (!on) {
+                    // the water heaves there: it won't take a step
+                    go_x.* = 0.0;
+                    go_z.* = 0.0;
+                    continue;
+                }
+                const s = p.ampSlope(self.hum_x, self.hum_z);
+                const slope = @sqrt(s[1] * s[1] + s[2] * s[2]);
+                if (there > s[0] and slope > 1e-6) {
+                    const nx = s[1] / slope;
+                    const nz = s[2] / slope;
+                    const up = go_x.* * nx + go_z.* * nz;
+                    if (up > 0.0) {
+                        go_x.* -= up * nx;
+                        go_z.* -= up * nz;
+                    }
+                }
+            }
+            if (on) {
+                const t_ = p.throw(self.hum_x, self.hum_z, dt);
+                go_x.* += t_[0];
+                go_z.* += t_[1];
+            }
+        }
+    }
+
+    /// Stepping on and stepping off: a crossing is coming off well across from where you came on.
+    fn crossings(self: *World) void {
+        var on: u8 = 0;
+        for (self.pools[0..self.pool_count], 0..) |*p, i| {
+            if (p.holds(self.hum_x, self.hum_z)) on = @intCast(i + 1);
+        }
+        if (on != 0 and self.on_pool == 0) {
+            self.pool_in_x = self.hum_x;
+            self.pool_in_z = self.hum_z;
+        }
+        if (on == 0 and self.on_pool != 0) {
+            const p = self.pools[self.on_pool - 1];
+            const dx = self.hum_x - self.pool_in_x;
+            const dz = self.hum_z - self.pool_in_z;
+            if (dx * dx + dz * dz > (1.5 * p.r) * (1.5 * p.r)) {
+                self.crossed += 1;
+                self.seen.meet(.garden_w04, self.step);
+            }
+        }
+        self.on_pool = on;
+    }
+
     /// What the ground does under Hum's feet as it walks (spec/shape.md, the Garden). Lawn bends
     /// away and springs back in its wake, shedding dew that lands behind it: your path is heard
     /// just after you. A fallen leaf is a bar with its own note, and rings when it is stepped on.
     fn underfoot(self: *World) void {
+        if (ground.wet(self.hum_x, self.hum_z)) return;
         self.walked +%= 1;
         switch (self.cover) {
             .lawn => if (self.walked % dew_every == 0) {
@@ -979,7 +1128,26 @@ pub const World = struct {
                 self.near_tower = @intCast(i);
             }
         }
-        const leaning = self.still >= 30 and self.near_tower != no_tower and self.near_far < lean_within and self.stand > 0.98;
+        // standing still on the shore of a standing pool, the view rises over the water to see its
+        // figure whole; a step, or the water stilling, brings it down
+        var over_pool: f32 = 0.0;
+        for (self.pools[0..self.pool_count], 0..) |*p, i| {
+            const dx = self.hum_x - p.x;
+            const dz = self.hum_z - p.z;
+            const far = @sqrt(dx * dx + dz * dz);
+            if (self.still >= 45 and far < p.r + 25.0 and !p.holds(self.hum_x, self.hum_z) and p.loud() > 0.3) {
+                over_pool = 1.0;
+                self.pool_seen = @intCast(i);
+            }
+        }
+        self.pool_view += (over_pool - self.pool_view) * 0.012;
+        if (self.pool_view < 0.0005) self.pool_view = 0.0;
+        // out on standing water the view lifts behind Hum and looks down, so the line ahead and
+        // the water heaving either side of it are both in sight
+        const on_standing = self.on_pool != 0 and self.pools[self.on_pool - 1].standing();
+        self.water_view += ((if (on_standing) @as(f32, 1.0) else 0.0) - self.water_view) * 0.02;
+        if (self.water_view < 0.0005) self.water_view = 0.0;
+        const leaning = self.still >= 30 and self.near_tower != no_tower and self.near_far < lean_within and self.stand > 0.98 and over_pool == 0.0;
         const want: f32 = if (leaning) 1.0 else 0.0;
         self.lean += (want - self.lean) * 0.035;
         if (leaning) {
@@ -1015,10 +1183,11 @@ pub const World = struct {
     pub fn camera(self: *const World) Camera {
         const fx = @sin(self.look_yaw);
         const fz = -@cos(self.look_yaw);
-        const back = cam_back + self.lean * (lean_back - cam_back);
-        const up = cam_up + self.lean * (lean_up - cam_up);
+        const wv = self.water_view * self.water_view * (3.0 - 2.0 * self.water_view);
+        const back = cam_back + self.lean * (lean_back - cam_back) + wv * (water_back - cam_back);
+        const up = cam_up + self.lean * (lean_up - cam_up) + wv * (water_up - cam_up);
         var eye = [3]f32{ self.hum_x - fx * back, up, self.hum_z - fz * back };
-        const pitch = std.math.clamp(walk_pitch + self.look_tilt, -0.35, 1.2);
+        const pitch = std.math.clamp(walk_pitch + self.look_tilt - wv * water_down, -0.35 - wv * water_down, 1.2);
         const walking = [3]f32{ fx * @cos(pitch), @sin(pitch), fz * @cos(pitch) };
         var dir = walking;
         var fov = place_fov;
@@ -1033,6 +1202,25 @@ pub const World = struct {
             dir = .{ walking[0] + (gx / far - walking[0]) * k, walking[1] + (gy / far - walking[1]) * k, walking[2] + (gz / far - walking[2]) * k };
             const narrow = std.math.clamp(2.0 * std.math.atan2(lean_frame * 0.5, far) * (180.0 / std.math.pi), lean_fov_least, place_fov);
             fov = place_fov + (narrow - place_fov) * k;
+        }
+        if (self.pool_view > 0.0 and self.pool_seen < self.pool_count) {
+            // above the shore behind Hum, looking down across the water at its middle
+            const p = &self.pools[self.pool_seen];
+            const k = self.pool_view * self.pool_view * (3.0 - 2.0 * self.pool_view);
+            const ax = self.hum_x - p.x;
+            const az = self.hum_z - p.z;
+            const away = @max(@sqrt(ax * ax + az * az), 1.0);
+            const high = [3]f32{ p.x + ax / away * p.r * 1.7, p.r * 1.1, p.z + az / away * p.r * 1.7 };
+            const hx = p.x - high[0];
+            const hy = -high[1];
+            const hz = p.z - high[2];
+            const hl = @sqrt(hx * hx + hy * hy + hz * hz);
+            const dl = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
+            const down = [3]f32{ hx / hl, hy / hl, hz / hl };
+            for (0..3) |i| {
+                eye[i] += (high[i] - eye[i]) * k;
+                dir[i] = dir[i] / dl + (down[i] - dir[i] / dl) * k;
+            }
         }
         const len = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
         var at = [3]f32{ eye[0] + dir[0] / len * 10.0, eye[1] + dir[1] / len * 10.0, eye[2] + dir[2] / len * 10.0 };
@@ -1127,6 +1315,17 @@ pub const World = struct {
         mixIn(&h, self.rung_lit);
         mixIn(&h, self.walked);
         mixIn(&h, self.bee.visits);
+        for (self.pools[0..self.pool_count]) |*p| {
+            for (p.figs) |f| {
+                mixIn(&h, @as(u32, @bitCast(f.loud)));
+                mixIn(&h, f.mode);
+            }
+            for (0..p.motes) |i| {
+                mixIn(&h, @as(u32, @bitCast(p.mote_x[i])));
+                mixIn(&h, @as(u32, @bitCast(p.mote_z[i])));
+            }
+        }
+        mixIn(&h, self.crossed);
         if (self.bee.thing != no_thing) {
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].x)));
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].z)));
@@ -1618,4 +1817,98 @@ test "the bee's note falls a fifth as it passes" {
     try std.testing.expect(@abs(highest / lowest - 1.5) < 0.02);
     // and every buzz was told with its light
     try std.testing.expectEqual(w.told, w.sent);
+}
+
+/// A world with one puddle in it, sized so the garden's note stands as a ring and a cross.
+fn onePool(w: *World) void {
+    w.* = .{};
+    w.view = .place;
+    w.stand = 1.0;
+    w.stand_from = 0;
+    const r = pools.radiusFor(7, garden_hz);
+    w.things[0] = .{ .x = 0.0, .z = 0.0, .tall = r, .spread = r, .hz = pools.skin_k / r, .family = .skin, .ring = 2.5, .carry = 120.0 };
+    w.thing_count = 1;
+    w.pool_first = 0;
+    w.pools[0] = pools.Pool.init(0.0, 0.0, r, 0, 5);
+    w.pool_count = 1;
+}
+
+test "a pool hummed at its note stands in that shape, and holds Hum on its still line across" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    onePool(w);
+    const r = w.pools[0].r;
+    var cues: [max_cues]sound.Cue = undefined;
+    // stand at its west edge and hum: the ring and the cross build, a belly toward Hum
+    w.hum_x = -r - 2.0;
+    w.hum_z = 0.0;
+    var step: u32 = 0;
+    while (step < 300) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expectEqual(@as(u8, 7), w.pools[0].figs[0].mode);
+    try std.testing.expect(w.pools[0].figs[0].loud > 0.9);
+    // the spokes lie at forty-five degrees to Hum: one runs from south-west to north-east
+    try std.testing.expect(w.pools[0].amp(-40.0, -40.0) < 0.01);
+    // the water sings its note back, and every tone was told with its light
+    try std.testing.expect(w.pools[0].sent[0] > 0.8);
+    try std.testing.expectEqual(w.told, w.sent);
+    // step on at its south-west end, humming, and walk straight across to the north-east
+    w.hum_x = -(r + 1.0) * 0.7071;
+    w.hum_z = -(r + 1.0) * 0.7071;
+    step = 0;
+    var widest: f32 = 0.0;
+    while (step < 60 * 50 and w.crossed == 0) : (step += 1) {
+        _ = w.stepOnce(.{ .lx = 78, .ly = 78, .buttons = Hands.sing }, &cues);
+        if (w.on_pool != 0) widest = @max(widest, @abs(w.hum_x - w.hum_z) * 0.7071);
+    }
+    // held on the still line all the way over, and the crossing is witnessed
+    try std.testing.expectEqual(@as(u32, 1), w.crossed);
+    try std.testing.expect(widest < 3.0);
+    try std.testing.expect(w.seen.get(.garden_w04).met);
+    try std.testing.expect(@as(f32, @floatFromInt(step)) * dt < 45.0);
+}
+
+test "a belly throws Hum back onto the still line, and still water floats Hum to the shore" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    onePool(w);
+    const r = w.pools[0].r;
+    var cues: [max_cues]sound.Cue = undefined;
+    w.hum_x = -r - 2.0;
+    w.hum_z = 0.0;
+    var step: u32 = 0;
+    while (step < 300) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    // out on the spoke, a third of the way in, then pushing hard to the side for five seconds
+    w.hum_x = -r * 0.5 * 0.7071;
+    w.hum_z = -r * 0.5 * 0.7071;
+    step = 0;
+    while (step < 300) : (step += 1) _ = w.stepOnce(.{ .lx = 110, .ly = -110, .buttons = Hands.sing }, &cues);
+    try std.testing.expect(w.pools[0].holds(w.hum_x, w.hum_z));
+    try std.testing.expect(w.pools[0].amp(w.hum_x, w.hum_z) <= pools.hold_band + 0.02);
+    // let go of the note: the figure dies away, the water stills, and floats Hum ashore
+    step = 0;
+    while (step < 60 * 40 and w.pools[0].holds(w.hum_x, w.hum_z)) : (step += 1) _ = w.stepOnce(.{ .ly = 110 }, &cues);
+    try std.testing.expect(!w.pools[0].holds(w.hum_x, w.hum_z));
+    try std.testing.expect(!w.pools[0].standing());
+}
+
+test "a call makes a puddle stand for a moment in the shape of the call's note" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    onePool(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    w.hum_x = -w.pools[0].r - 30.0;
+    w.hum_z = 0.0;
+    _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    var most: f32 = 0.0;
+    var step: u32 = 0;
+    while (step < 120) : (step += 1) {
+        _ = w.stepOnce(.{}, &cues);
+        most = @max(most, w.pools[0].figs[0].loud);
+    }
+    try std.testing.expectEqual(@as(u8, 7), w.pools[0].figs[0].mode);
+    try std.testing.expect(most > 0.4);
+    // and dies away by itself
+    step = 0;
+    while (step < 60 * 20) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.pools[0].loud() < 0.01);
 }

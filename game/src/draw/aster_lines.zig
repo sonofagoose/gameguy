@@ -357,6 +357,7 @@ fn blade(ix: i32, iz: i32, k: u32, cell: f32, body: f32, out: []Inst, n: *usize,
     const s = hash(ix, iz, k);
     const x = (@as(f32, @floatFromInt(ix)) + unit01(s)) * cell;
     const z = (@as(f32, @floatFromInt(iz)) + unit01(hash(iz, ix, k + 7))) * cell;
+    if (world_mod.ground.wet(x, z)) return;
     const tall = 4.0 + 5.0 * unit01(s *% 2654435761);
     const way = unit01(s *% 40503) * 6.2831853;
     const bend = tall * (0.12 + 0.30 * unit01(s *% 69069));
@@ -396,6 +397,8 @@ pub fn coverGives(cover: Cover) f32 {
         .leaves => 0.8,
         .clover => 0.9,
         .moss => 0.45,
+        // still water is a black mirror: it gives back only the lights near it
+        .water => 0.3,
     };
 }
 
@@ -425,6 +428,7 @@ const Out = struct {
 /// Clover: a real leaf stands 3 to 7 cm high on a thread of a stalk, three leaflets each a
 /// centimetre or so across. Here it is a roof three to seven metres up, and it hides the sky.
 fn clover(x: f32, z: f32, s: u32, out: Out) void {
+    if (world_mod.ground.wet(x, z)) return;
     const tint = col8(.{ 0.40, 0.72, 0.56 }, 0.22);
     const rib = col8(.{ 0.40, 0.72, 0.56 }, 0.11);
     const tall = 3.0 + 4.0 * unit01(s *% 2654435761);
@@ -450,6 +454,7 @@ fn clover(x: f32, z: f32, s: u32, out: Out) void {
 
 /// Moss: a cushion a few metres across and a metre or so high, bristling with its thin stalks.
 fn moss(x: f32, z: f32, s: u32, near: bool, out: Out) void {
+    if (world_mod.ground.wet(x, z)) return;
     const tint = col8(.{ 0.30, 0.58, 0.36 }, 0.20);
     const fine = col8(.{ 0.52, 0.70, 0.40 }, 0.16);
     const r = 2.0 + 3.0 * unit01(s *% 2654435761);
@@ -480,6 +485,7 @@ fn moss(x: f32, z: f32, s: u32, near: bool, out: Out) void {
 /// A crumb of soil: a boulder from half a metre to three metres across, and no two alike. A real
 /// crumb is half a centimetre to three.
 fn crumb(x: f32, z: f32, s: u32, out: Out) void {
+    if (world_mod.ground.wet(x, z)) return;
     const stone = col8(.{ 0.62, 0.56, 0.50 }, 0.20);
     const big = unit01(s *% 40503);
     const r = 0.4 + 2.4 * big * big;
@@ -509,6 +515,7 @@ fn crumb(x: f32, z: f32, s: u32, out: Out) void {
 
 /// A pebble: a mark on the ground no bigger than Hum, to show where the ground is.
 fn pebble(x: f32, z: f32, s: u32, out: Out) void {
+    if (world_mod.ground.wet(x, z)) return;
     const stone = col8(.{ 0.62, 0.56, 0.50 }, 0.16);
     const r = 0.15 + 0.35 * unit01(s *% 40503);
     const turn = unit01(s *% 69069) * 6.2831853;
@@ -525,6 +532,7 @@ fn fallenLeaf(cx: i32, cz: i32, out: Out) void {
     const s = world_mod.ground.hash32(cx, cz, 41);
     const x = (@as(f32, @floatFromInt(cx)) + 0.2 + 0.6 * unit01(s)) * 6.0;
     const z = (@as(f32, @floatFromInt(cz)) + 0.2 + 0.6 * unit01(s *% 2654435761)) * 6.0;
+    if (world_mod.ground.wet(x, z)) return;
     const len = 2.5 + 2.5 * unit01(s *% 40503);
     const wide = len * (0.25 + 0.12 * unit01(s *% 69069));
     const turn = unit01(s *% 22695477) * 6.2831853;
@@ -593,6 +601,8 @@ fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
                 }
             }
         },
+        // a puddle's water is drawn by its own (poolLines): nothing grows in it
+        .water => {},
         .soil => {
             // bare ground after the storm: mostly nothing, a few pebbles, and now and then a crumb
             for (0..many) |k| {
@@ -881,6 +891,148 @@ pub fn beeLines(w: *const world_mod.World, out: []Inst) usize {
                 .col = col8(tint, 0.5 * (1.0 - k0 / 6.0)),
             };
             n += 1;
+        }
+    }
+    return n;
+}
+
+/// The puddles (world/pools.zig). Still water is black, with only its edge drawn. A shape standing
+/// in it draws its still lines in the colour of its note, as bright as it is loud (law 4); between
+/// them the water heaves, drawn as a net of lines on the surface rising and falling at the note
+/// eight octaves down and lit as much as it moves; and the pollen floating on it, thrown onto the
+/// still lines, draws the figure again in gold and keeps it when the water stills.
+pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
+    const pools = world_mod.pools;
+    var n: usize = 0;
+    const water = [3]f32{ 0.55, 0.75, 0.92 };
+    const pollen = [3]f32{ 1.0, 0.82, 0.38 };
+    const seconds: f64 = @as(f64, @floatFromInt(w.step)) * (1.0 / 60.0);
+    for (w.pools[0..w.pool_count]) |*p| {
+        const body: f32 = @floatFromInt(thing_body + p.thing);
+        const ex = eye[0] - p.x;
+        const ez = eye[2] - p.z;
+        const eye_far = @sqrt(ex * ex + ez * ez);
+        // the water's edge, a still line of its own
+        const rim_n: usize = 96;
+        for (0..rim_n) |k| {
+            if (n >= out.len) return n;
+            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, @floatFromInt(rim_n)));
+            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, @floatFromInt(rim_n)));
+            out[n] = .{ .a = .{ p.x + p.r * @cos(a0), 0.06, p.z + p.r * @sin(a0) }, .b = .{ p.x + p.r * @cos(a1), 0.06, p.z + p.r * @sin(a1) }, .half_width = 1.3, .body = body, .col = col8(water, 0.45) };
+            n += 1;
+        }
+        // where each figure is in its heave, as a sine of its slowed note
+        var swing: [2]f32 = .{ 0.0, 0.0 };
+        for (p.figs, 0..) |f, k| {
+            if (f.loud <= 0.0) continue;
+            const turns = @mod(seconds * @as(f64, f.hz) / @as(f64, pools.heave_octaves), 1.0);
+            swing[k] = @sin(@as(f32, @floatCast(turns)) * 6.2831853);
+        }
+        // the still lines of each standing shape
+        for (p.figs) |f| {
+            if (f.loud < 0.03) continue;
+            const md = pools.modes[f.mode];
+            const tint = col8(colour.ofNote(world_mod.garden_hz, f.hz), @min(1.0, f.loud * 1.3));
+            var k: u32 = 0;
+            while (k < md.m) : (k += 1) {
+                // a still diameter halfway between two bellies
+                const a = (@as(f32, @floatFromInt(k)) + 0.5) * std.math.pi / @as(f32, @floatFromInt(md.m));
+                const ca = @cos(a);
+                const sa = @sin(a);
+                const dx = f.turn_c * ca - f.turn_s * sa;
+                const dz = f.turn_s * ca + f.turn_c * sa;
+                for (0..24) |s| {
+                    if (n >= out.len) return n;
+                    const f0 = -1.0 + 2.0 * @as(f32, @floatFromInt(s)) / 24.0;
+                    const f1 = -1.0 + 2.0 * @as(f32, @floatFromInt(s + 1)) / 24.0;
+                    out[n] = .{ .a = .{ p.x + dx * p.r * f0, 0.15, p.z + dz * p.r * f0 }, .b = .{ p.x + dx * p.r * f1, 0.15, p.z + dz * p.r * f1 }, .half_width = 2.0, .body = 0.0, .col = tint };
+                    n += 1;
+                }
+            }
+            var i: u32 = 0;
+            while (i + 1 < md.n) : (i += 1) {
+                const rr = p.r * pools.zeros[md.m][i] / md.j;
+                for (0..96) |s| {
+                    if (n >= out.len) return n;
+                    const a0 = @as(f32, @floatFromInt(s)) * (6.2831853 / 96.0);
+                    const a1 = @as(f32, @floatFromInt(s + 1)) * (6.2831853 / 96.0);
+                    out[n] = .{ .a = .{ p.x + rr * @cos(a0), 0.15, p.z + rr * @sin(a0) }, .b = .{ p.x + rr * @cos(a1), 0.15, p.z + rr * @sin(a1) }, .half_width = 2.0, .body = 0.0, .col = tint };
+                    n += 1;
+                }
+            }
+        }
+        // the heaving water: a net of rings and spokes over the surface, each crossing as high as
+        // the water there is in its heave, lit as much as the water there moves
+        if (p.loud() > 0.01 and eye_far < p.r * 3.0 + 400.0) {
+            const rings_n = 16;
+            const around = 96;
+            var heave: [rings_n + 1][around]f32 = undefined;
+            var moves: [rings_n + 1][around]f32 = undefined;
+            var px: [rings_n + 1][around]f32 = undefined;
+            var pz: [rings_n + 1][around]f32 = undefined;
+            for (0..rings_n + 1) |ri| {
+                const rr = p.r * @as(f32, @floatFromInt(ri)) / @as(f32, rings_n);
+                for (0..around) |ai| {
+                    const ang = @as(f32, @floatFromInt(ai)) * (6.2831853 / @as(f32, around));
+                    const dx = rr * @cos(ang);
+                    const dz = rr * @sin(ang);
+                    var h: f32 = 0.0;
+                    var e: f32 = 0.0;
+                    for (p.figs, 0..) |f, k| {
+                        if (f.loud <= 0.0) continue;
+                        const s = f.shape(dx, dz, p.r) * f.loud;
+                        h += s * swing[k];
+                        e += s * s;
+                    }
+                    heave[ri][ai] = h * pools.heave_m;
+                    moves[ri][ai] = @sqrt(e);
+                    px[ri][ai] = p.x + dx;
+                    pz[ri][ai] = p.z + dz;
+                }
+            }
+            // a lobe on its way up catches the light and one on its way down goes dark, so the
+            // heaving is seen even in a single frame: lit and dark lobes, changing places
+            const lift = 1.0 / pools.heave_m;
+            for (1..rings_n) |ri| {
+                for (0..around) |ai| {
+                    const bi = (ai + 1) % around;
+                    const m = @max(moves[ri][ai], moves[ri][bi]);
+                    if (m < 0.04) continue;
+                    if (n >= out.len) return n;
+                    const up = @max(0.0, (heave[ri][ai] + heave[ri][bi]) * 0.5 * lift);
+                    out[n] = .{ .a = .{ px[ri][ai], 0.1 + heave[ri][ai], pz[ri][ai] }, .b = .{ px[ri][bi], 0.1 + heave[ri][bi], pz[ri][bi] }, .half_width = 1.0, .body = 0.0, .col = col8(water, 0.04 + 0.16 * m + 0.62 * up) };
+                    n += 1;
+                }
+            }
+            var ai: usize = 0;
+            while (ai < around) : (ai += 2) {
+                for (0..rings_n) |ri| {
+                    const m = @max(moves[ri][ai], moves[ri + 1][ai]);
+                    if (m < 0.04) continue;
+                    if (n >= out.len) return n;
+                    const up = @max(0.0, (heave[ri][ai] + heave[ri + 1][ai]) * 0.5 * lift);
+                    out[n] = .{ .a = .{ px[ri][ai], 0.1 + heave[ri][ai], pz[ri][ai] }, .b = .{ px[ri + 1][ai], 0.1 + heave[ri + 1][ai], pz[ri + 1][ai] }, .half_width = 1.0, .body = 0.0, .col = col8(water, 0.04 + 0.16 * m + 0.62 * up) };
+                    n += 1;
+                }
+            }
+        }
+        // the pollen, riding the surface
+        if (eye_far < p.r * 2.0 + 300.0) {
+            for (0..p.motes) |i| {
+                if (n >= out.len) return n;
+                const mx = p.mote_x[i];
+                const mz = p.mote_z[i];
+                var h: f32 = 0.0;
+                for (p.figs, 0..) |f, k| {
+                    if (f.loud <= 0.0) continue;
+                    h += f.shape(mx, mz, p.r) * f.loud * swing[k];
+                }
+                const turn = @as(f32, @floatFromInt((i *% 2654435761) % 628)) * 0.01;
+                const half = 0.22;
+                const y = 0.2 + h * pools.heave_m;
+                out[n] = .{ .a = .{ p.x + mx - @cos(turn) * half, y, p.z + mz - @sin(turn) * half }, .b = .{ p.x + mx + @cos(turn) * half, y, p.z + mz + @sin(turn) * half }, .half_width = 2.4, .body = 0.0, .col = col8(pollen, 0.8) };
+                n += 1;
+            }
         }
     }
     return n;

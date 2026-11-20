@@ -3,7 +3,7 @@
 //! the same sum to draw it, so what is seen and what is felt can't disagree. No platform.
 
 /// The Garden's covers. Each does something to Hum by a law (spec/shape.md, the Garden).
-pub const Cover = enum { soil, lawn, leaves, clover, moss };
+pub const Cover = enum { soil, lawn, leaves, clover, moss, water };
 
 pub fn hash32(a: i32, b: i32, k: u32) u32 {
     var s: u32 = @as(u32, @bitCast(a)) *% 0x9e3779b1 ^ @as(u32, @bitCast(b)) *% 0x85ebca6b ^ (k +% 1) *% 0xc2b2ae35;
@@ -48,4 +48,24 @@ pub const five = [5]f32{ 1.0, 9.0 / 8.0, 5.0 / 4.0, 3.0 / 2.0, 5.0 / 3.0 };
 /// A fallen leaf is a bar with its own note: one leaf to every six metres square of leaf fall.
 pub fn leafNote(x: f32, z: f32) usize {
     return hash32(@intFromFloat(@floor(x / 6.0)), @intFromFloat(@floor(z / 6.0)), 23) % 5;
+}
+
+const pools = @import("pools.zig");
+const world = @import("world.zig");
+
+/// Whether a place is under a puddle's water (pools.zig): nothing grows there, and nothing lies
+/// there but what floats.
+pub fn wet(x: f32, z: f32) bool {
+    inline for (pools.garden) |p| {
+        const r = comptime pools.radiusFor(p.shape, world.garden_hz);
+        const dx = x - p.x;
+        const dz = z - p.z;
+        if (dx * dx + dz * dz < r * r) return true;
+    }
+    return false;
+}
+
+/// What is underfoot: water where a puddle is, and the ground's cover everywhere else.
+pub fn underfootAt(x: f32, z: f32) Cover {
+    return if (wet(x, z)) .water else coverAt(x, z);
 }

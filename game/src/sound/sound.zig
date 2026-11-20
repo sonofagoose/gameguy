@@ -14,7 +14,7 @@ pub const rate: f32 = 48000.0;
 const V = @Vector(4, f32);
 
 /// The shapes things come in, each with the overtones of that shape (spec/laws.md).
-pub const Family = enum(u8) { bell, string, stopped_pipe, bar, skin };
+pub const Family = enum(u8) { bell, string, stopped_pipe, bar, skin, tone };
 
 pub const Recipe = struct { mult: [8]f32, gain: [8]f32 };
 
@@ -26,6 +26,8 @@ pub fn recipe(family: Family) Recipe {
         .stopped_pipe => .{ .mult = .{ 1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0 }, .gain = .{ 1.0, 0.33, 0.20, 0.14, 0.11, 0.09, 0.07, 0.06 } },
         .bar => .{ .mult = .{ 1.0, 2.756, 5.404, 8.933, 13.34, 18.64, 0.0, 0.0 }, .gain = .{ 1.0, 0.45, 0.25, 0.12, 0.06, 0.03, 0.0, 0.0 } },
         .skin => .{ .mult = .{ 1.0, 1.593, 2.136, 2.295, 2.653, 2.917, 3.156, 3.501 }, .gain = .{ 1.0, 0.55, 0.40, 0.30, 0.25, 0.18, 0.12, 0.10 } },
+        // one standing shape alone: a single tone
+        .tone => .{ .mult = .{ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, .gain = .{ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 } },
     };
 }
 
@@ -48,7 +50,9 @@ pub const Cue = extern struct {
     /// distance").
     dull: f32 = 0.0,
 
-    pub const Kind = enum(u8) { strike, hum_on, hum_off };
+    /// `tone`: a held pure note that is not a voice, such as standing water. `voice` is which of
+    /// them; `gain` is how loud it should now be, and nought ends it.
+    pub const Kind = enum(u8) { strike, hum_on, hum_off, tone };
 };
 
 /// A held voice: Hum's closed "mm", Drip's "oh", and room for two more.
@@ -65,6 +69,25 @@ const Voice = struct {
     target: f32 = 0.0,
     noise: u32 = 0x1234_5678,
 };
+/// Held pure notes that are not voices: water standing in a shape sings its note for as long as
+/// it stands (world/pools.zig).
+pub const max_tones = 8;
+const Tone = struct {
+    phase: f32 = 0.0,
+    step: f32 = 0.0,
+    level: f32 = 0.0,
+    target: f32 = 0.0,
+};
+
+/// A sine of a whole turn's part, by a parabola made true to within a thousandth: the same sum on
+/// every machine, and no library's.
+fn sineOfTurn(p: f32) f32 {
+    // the parabola for sin(2 pi p - pi) = -sin(2 pi p), on x from -1 to 1
+    const x = 2.0 * p - 1.0;
+    const y = 4.0 * x * (1.0 - @abs(x));
+    return -(0.225 * (y * @abs(y) - y) + y);
+}
+
 /// How much of the voices' sum squared is added back. Two voices together then make a third
 /// note between them, the difference of the two, which neither is singing (spec/laws.md).
 const third_voice: f32 = 0.70;
@@ -99,6 +122,7 @@ pub const Sound = struct {
 
     // held voices: each is pulses through three resonators that are its vowel
     voices: [max_voices]Voice = @splat(.{}),
+    tones: [max_tones]Tone = @splat(.{}),
     /// What the voices' sum has just been, to take the standing part out of its square.
     bus_dc: f32 = 0.0,
     /// Samples rendered so far: the only clock there is.
@@ -155,6 +179,11 @@ pub const Sound = struct {
                 voice.target = cue.gain;
             },
             .hum_off => self.voices[@min(cue.voice, max_voices - 1)].target = 0.0,
+            .tone => {
+                const tone = &self.tones[cue.voice % max_tones];
+                tone.step = cue.hz / rate;
+                tone.target = cue.gain;
+            },
             .strike => {
                 const slot = self.next_thing % max_things;
                 self.next_thing +%= 1;
@@ -324,8 +353,24 @@ pub const Sound = struct {
                 bus[i] += third_voice * (squared - self.bus_dc);
             }
 
+            // held pure notes, eased toward the loudness last asked for so no step is heard
+            var tones: [128]f32 = @splat(0.0);
+            for (&self.tones) |*tone| {
+                if (tone.level == 0.0 and tone.target == 0.0) continue;
+                for (0..n) |i| {
+                    tone.level += (tone.target - tone.level) * 0.0004;
+                    tone.phase += tone.step;
+                    if (tone.phase >= 1.0) tone.phase -= 1.0;
+                    tones[i] += sineOfTurn(tone.phase) * tone.level;
+                }
+                if (tone.target == 0.0 and tone.level < 1e-6) {
+                    tone.level = 0.0;
+                    tone.phase = 0.0;
+                }
+            }
+
             for (0..n) |i| {
-                const s = ((acc[i][0] + acc[i][1]) + (acc[i][2] + acc[i][3])) + bus[i];
+                const s = ((acc[i][0] + acc[i][1]) + (acc[i][2] + acc[i][3])) + bus[i] + tones[i];
                 // a soft limit: straight up to 0.7, then bending toward 1
                 const a = @abs(s);
                 out[at + i] = if (a <= 0.7) s else std.math.copysign(0.7 + 0.3 * (1.0 - 1.0 / (1.0 + (a - 0.7) * 3.3333)), s);
@@ -400,4 +445,31 @@ test "two voices together make a third between them, and one alone makes none" {
     const together = at(out[48000..], high - low);
     try std.testing.expect(together > alone * 8.0);
     try std.testing.expect(together > 1e-5);
+}
+
+test "a held tone is a clean sine at its note, and eases in and out" {
+    var s: Sound = undefined;
+    s.init();
+    _ = s.push(.{ .at = 0, .kind = .tone, .voice = 3, .hz = 261.63, .gain = 0.2 });
+    var out: [48000]f32 = undefined;
+    s.render(&out);
+    // eased in: quiet at first, at its level by a tenth of a second
+    try std.testing.expect(@abs(out[10]) < 0.01);
+    var most: f32 = 0.0;
+    for (out[24000..]) |v| most = @max(most, @abs(v));
+    try std.testing.expect(most > 0.19 and most < 0.21);
+    // its sine: nothing above it louder than a thousandth of it
+    const e = sineOfTurn(0.25);
+    try std.testing.expect(@abs(e + 1.0) < 0.0015 or @abs(e - 1.0) < 0.0015);
+    var worst: f32 = 0.0;
+    var k: u32 = 0;
+    while (k < 1000) : (k += 1) {
+        const p = @as(f32, @floatFromInt(k)) / 1000.0;
+        worst = @max(worst, @abs(sineOfTurn(p) - @sin(2.0 * std.math.pi * p)));
+    }
+    try std.testing.expect(worst < 0.0011);
+    // and nought ends it
+    _ = s.push(.{ .at = 48000, .kind = .tone, .voice = 3, .hz = 261.63, .gain = 0.0 });
+    s.render(&out);
+    try std.testing.expect(@abs(out[47999]) < 0.001);
 }

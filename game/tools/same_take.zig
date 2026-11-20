@@ -80,6 +80,9 @@ const Stretch = struct {
 var breaths_heard: [4]Stretch = undefined;
 var hold_heard: Stretch = undefined;
 var quiet_heard: Stretch = undefined;
+/// Hum humming at the bridge puddle's edge before the water has answered, and once it stands.
+var pool_alone: Stretch = undefined;
+var pool_standing: Stretch = undefined;
 
 var world: world_mod.World = undefined;
 var snd: sound_mod.Sound = undefined;
@@ -163,6 +166,8 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     for (&breaths_heard) |*stretch| stretch.n = 0;
     hold_heard.n = 0;
     quiet_heard.n = 0;
+    pool_alone.n = 0;
+    pool_standing.n = 0;
     step = 0;
     while (step < 8 * per_minute and !bot.done) : (step += 1) {
         const hands = bot.hands(&world);
@@ -171,7 +176,12 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
         const breath_now: ?usize = if (world.drip_humming and world.locked_at == world_mod.never and world.breaths < 4) world.breaths else null;
         const holding = world.locked_at != world_mod.never and world.step > world.locked_at + 30 and world.step + 20 < world.hold_until;
         const quiet = world.step > 100 and world.step < 200;
+        const at_pool = bot.phase == 10 and world.singing and world.pool_count > 0;
+        const pool_quiet = at_pool and world.pools[0].loud() < 0.12;
+        const pool_full = at_pool and world.pools[0].loud() > 0.97;
         walk.step(hands);
+        if (pool_quiet) pool_alone.hear(&walk.last);
+        if (pool_full) pool_standing.hear(&walk.last);
         if (breath_now) |b| breaths_heard[b].hear(&walk.last);
         if (holding) hold_heard.hear(&walk.last);
         if (quiet) quiet_heard.hear(&walk.last);
@@ -241,6 +251,28 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     const hum_itself = tone(hold_heard.samples[0..@min(hold_heard.n, 48000)], world_mod.garden_hz).size;
     fact("ears.third_note_db_under_hum", if (third > 0.0 and hum_itself > 0.0) 20.0 * @log10(third / hum_itself) else -200.0);
     fact("ears.third_note_db_over_quiet", if (third > 0.0) 20.0 * @log10(third / @max(before, 1e-9)) else -200.0);
+    // the bridge puddle sings Hum's note back: how much louder the note is once the water
+    // stands, and how fast the two beat (nought, if the water sings the very note it is sung)
+    const c4: f64 = world_mod.garden_hz;
+    if (pool_alone.n > 4800 and pool_standing.n > 48000) {
+        const alone = tone(pool_alone.samples[0..pool_alone.n], c4).size;
+        const both = tone(pool_standing.samples[0..48000], c4).size;
+        fact("ears.pool_adds_db", 20.0 * @log10(both / @max(alone, 1e-12)));
+        fact("ears.pool_beats_hz", @abs(pitchNear(pool_standing.samples[0..pool_standing.n], c4) - c4));
+        // and anything a little off the note, which would be heard as roughness: the strongest
+        // pitch within a semitone either side, below the note itself
+        var rough: f64 = 0.0;
+        var cents: f64 = -100.0;
+        while (cents <= 100.0) : (cents += 10.0) {
+            if (@abs(cents) < 15.0) continue;
+            rough = @max(rough, tone(pool_standing.samples[0..48000], c4 * std.math.pow(f64, 2.0, cents / 1200.0)).size);
+        }
+        fact("ears.pool_near_note_db", 20.0 * @log10(@max(rough, 1e-12) / @max(both, 1e-12)));
+    } else {
+        fact("ears.pool_adds_db", -200.0);
+        fact("ears.pool_beats_hz", 99.0);
+        fact("ears.pool_near_note_db", 0.0);
+    }
     fact("evening.stood_s", if (world.stand_from == world_mod.never) -1.0 else @as(f64, @floatFromInt(world.stand_from)) / 60.0);
     fact("asters.count", @floatFromInt(world.tower_count));
     fact("asters.tallest_m", tallest);

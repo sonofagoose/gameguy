@@ -642,7 +642,7 @@ fn shine(sounding: f32, lit: f32, share: f32, gives: f32) lines.Shine {
     return .{ .sounding = byte(sounding), .lit = byte(lit), .spread = byte(share), .gives = byte(gives) };
 }
 var static_occ: [40_000][3]f32 = undefined;
-var moving: [9_000]lines.Inst = undefined;
+var moving: [16_000]lines.Inst = undefined;
 /// A person's hands, as they play: room for an hour of a thumb that never rests.
 var take_changes: [216_000]take.Change = undefined;
 var take_bytes: [take.header_size + 216_000 * take.change_size]u8 = undefined;
@@ -961,6 +961,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             moving_n += eveningLines(&world, moving[moving_n..]);
             moving_n += aster_lines.sparks(&world, moving[moving_n..]);
             moving_n += aster_lines.beeLines(&world, moving[moving_n..]);
+            moving_n += aster_lines.poolLines(&world, eye, moving[moving_n..]);
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);

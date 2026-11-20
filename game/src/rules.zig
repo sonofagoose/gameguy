@@ -12,6 +12,7 @@ test {
     _ = world;
     _ = world.asters;
     _ = world.cues_mod;
+    _ = world.pools;
     _ = sound;
     _ = m;
     _ = walker;

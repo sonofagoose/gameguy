@@ -9,6 +9,7 @@
 //!
 //! The Garden's own asters will come from its score (stage 2). This field is a proof piece.
 const std = @import("std");
+const pools = @import("pools.zig");
 
 pub const segments = 12;
 pub const max_leaves = 56;
@@ -189,7 +190,15 @@ pub fn field(out: *[max_towers]Plan, home_hz: f32) usize {
             const dx = x - clear_x;
             const dz = z - clear_z;
             const near_clear = dx * dx + dz * dz < 32.0 * 32.0;
-            if (skip or near_start or near_great or near_clear or n >= max_towers) continue;
+            // and nothing standing in a puddle, nor so near one that it leans over the water
+            var in_water = false;
+            for (pools.garden) |pd| {
+                const px = x - pd.x;
+                const pz = z - pd.z;
+                const keep = pools.radiusFor(pd.shape, home_hz) + 25.0;
+                if (px * px + pz * pz < keep * keep) in_water = true;
+            }
+            if (skip or near_start or near_great or near_clear or in_water or n >= max_towers) continue;
             out[n] = plan(@intCast(n), x, z, tall, home_hz);
             n += 1;
         }
