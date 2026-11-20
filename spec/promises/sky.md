@@ -49,3 +49,35 @@ _Part of the promise book (`../promises.md`). What `../sky.md` says, sized as it
   - `owed` The reefs: what the air holds after a storm, hanging in the still places.
   - `owed` On the handheld: every frame of the dawn on time.
 - **Asks:** Did you stop to watch the sky come up?
+
+### `sky.bee` The bee
+
+- **Said:** `spec/sky.md` "Speed is an interval." "a fifth for a bee" "Size is pitch." "followed.
+  Its line leads to what is ripe."
+- **Stage:** 2
+- **Scene:** evening
+- **The moment:** Something small and bright is working the clover, low over the roof of leaves, and
+  you hear it before you find it: a hum on the garden's own note. It comes your way and the hum
+  rises; it goes past and the hum drops, a fifth from coming to going, as plainly as a car passing
+  on a road. It hovers over each flower in a little figure of eight, and when it lands among a
+  crown's bells they answer it, softly, in its note. You follow it, because where it goes something
+  is ripe.
+- **Far:** a small light moving low over the clover, and a hum that comes and goes.
+- **At its foot:** a bee as long as you are, hovering at the height of a two-storey house, its wings
+  drawing figures of eight.
+- **Inside:** riding it: the slow bus of the crowns (`sky.md`), owed.
+- **After:** you know a flyer by how far its note falls as it passes.
+- **A cheat would be:** a bee sprite on a looping path with a recorded buzz panned across.
+- **Full size:**
+  - `test the bee's note falls a fifth as it passes` Read from its buzz: coming, a third high;
+    going, a sixth low.
+  - `test nothing sounds without its light: every sound in a scripted take was told as a cue` Every
+    buzz is a cue, with its light at the bee in its own note.
+  - `take` The scripted player hears the bee within sixty metres.
+  - `frame evening-bee` The bee hovering over the clover, its wings' figures of eight.
+  - `owed` Its dance: a figure of eight whose tilt is the bearing from the sun and whose length is
+    the distance, pointing to what is ripe.
+  - `owed` Riding it from crown to crown; the bumblebee's buzz that shakes a flower open.
+  - `owed` The other flyers of `sky.md`, each its own kind: midges, mosquitoes that tune a fifth,
+    the dragonfly, swallows, the thrush, crickets, fireflies, bats.
+- **Asks:** When the bee went past, did its note drop?

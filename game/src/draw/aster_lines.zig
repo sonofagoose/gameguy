@@ -820,3 +820,68 @@ pub fn sparks(w: *const world_mod.World, out: []Inst) usize {
     }
     return n;
 }
+
+/// The bee (world/flyers.zig): a body as long as Hum, in its note's colour and as bright as it
+/// hums; hovering, its wingtips draw figures of eight, as a real hoverer's do; flying, its wings
+/// are a blur and its path a fading line behind it.
+pub fn beeLines(w: *const world_mod.World, out: []Inst) usize {
+    const b = w.bee;
+    if (b.thing == world_mod.no_thing or !b.flying) return 0;
+    const me = w.things[b.thing];
+    const body: f32 = @floatFromInt(thing_body + b.thing);
+    const tint = colour.ofNote(world_mod.garden_hz, me.hz);
+    const c = V{ me.x, me.y, me.z };
+    const speed = @sqrt(b.vel[0] * b.vel[0] + b.vel[2] * b.vel[2]);
+    const along = if (speed > 0.5) V{ b.vel[0] / speed, 0.0, b.vel[2] / speed } else V{ 1.0, 0.0, 0.0 };
+    const side = V{ -along[2], 0.0, along[0] };
+    var n: usize = 0;
+    // the body
+    for (0..10) |k| {
+        if (n >= out.len) return n;
+        const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 10.0);
+        const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 10.0);
+        out[n] = .{
+            .a = add(add(c, mul(along, 0.65 * @cos(a0))), V{ 0.0, 0.3 * @sin(a0), 0.0 }),
+            .b = add(add(c, mul(along, 0.65 * @cos(a1))), V{ 0.0, 0.3 * @sin(a1), 0.0 }),
+            .half_width = 1.6,
+            .body = body,
+            .col = col8(tint, 1.0),
+        };
+        n += 1;
+    }
+    if (b.hover_left > 0) {
+        // two figures of eight, one each side
+        for ([2]f32{ 1.0, -1.0 }) |sgn| {
+            const root = add(c, mul(side, 0.25 * sgn));
+            for (0..16) |k| {
+                if (n >= out.len) return n;
+                const t0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 16.0);
+                const t1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 16.0);
+                const p0 = add(add(root, mul(side, sgn * 0.9 * (0.5 + 0.5 * @cos(t0)))), add(mul(along, 0.5 * @sin(2.0 * t0) * 0.5), V{ 0.0, 0.2 * @sin(t0), 0.0 }));
+                const p1 = add(add(root, mul(side, sgn * 0.9 * (0.5 + 0.5 * @cos(t1)))), add(mul(along, 0.5 * @sin(2.0 * t1) * 0.5), V{ 0.0, 0.2 * @sin(t1), 0.0 }));
+                out[n] = .{ .a = p0, .b = p1, .half_width = 1.0, .body = body, .col = col8(tint, 0.6) };
+                n += 1;
+            }
+        }
+    } else {
+        // wings as a blur, and its path behind it
+        for ([2]f32{ 1.0, -1.0 }) |sgn| {
+            if (n >= out.len) return n;
+            out[n] = .{ .a = add(c, mul(side, 0.2 * sgn)), .b = add(add(c, mul(side, 1.0 * sgn)), V{ 0.0, 0.25, 0.0 }), .half_width = 1.2, .body = body, .col = col8(tint, 0.45) };
+            n += 1;
+        }
+        for (0..6) |k| {
+            if (n >= out.len) return n;
+            const k0: f32 = @floatFromInt(k);
+            out[n] = .{
+                .a = add(c, mul(along, -1.6 * k0 - 0.7)),
+                .b = add(c, mul(along, -1.6 * (k0 + 1.0) - 0.7)),
+                .half_width = 1.0,
+                .body = body,
+                .col = col8(tint, 0.5 * (1.0 - k0 / 6.0)),
+            };
+            n += 1;
+        }
+    }
+    return n;
+}

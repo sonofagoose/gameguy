@@ -16,6 +16,7 @@ const sound = @import("../sound/sound.zig");
 pub const asters = @import("asters.zig");
 pub const cues_mod = @import("cue.zig");
 pub const ground = @import("ground.zig");
+pub const flyers = @import("flyers.zig");
 pub const witness = @import("witness.zig");
 
 pub const steps_per_second = 60;
@@ -145,6 +146,9 @@ pub const Spark = struct {
 };
 pub const max_sparks = 48;
 
+/// How far the sound of something small, dew or a leaf, carries before it has fallen to half.
+pub const small_carry: f32 = 40.0;
+
 /// Moss swallows sound: a call made on it carries half as far (spec/shape.md, the Garden).
 pub const moss_carries: f32 = 0.5;
 /// Steps of walking between one drop of dew landing in your wake, and between leaves underfoot.
@@ -270,6 +274,8 @@ const Arrival = struct {
     from: u32 = no_thing,
     /// How bright the light was that this sound was told with.
     light: f32 = 0.0,
+    /// Whether it is a thing answering Hum's call, rather than sounding of its own accord.
+    answer: bool = false,
 };
 
 pub const no_thing: u32 = 0xffff_ffff;
@@ -366,6 +372,10 @@ pub const World = struct {
     walked: u32 = 0,
     sparks: [max_sparks]Spark = @splat(.{}),
     next_spark: u32 = 0,
+    /// Who lives in the sky (flyers.zig).
+    bee: flyers.Bee = .{},
+    /// Set while a thing is being told to answer Hum's call, so its arrival is known as one.
+    answering: bool = false,
     /// A flower head that has fallen by the great aster's foot: a bell at Hum's own size.
     fallen: u32 = no_thing,
     /// The tower Hum is nearest, and how far its foot is.
@@ -485,7 +495,7 @@ pub const World = struct {
         at += 1;
         // Drip: a drop 40 cm across
         self.drip = at;
-        self.things[at] = .{ .x = drip_x, .y = 0.3, .z = drip_z, .tall = 0.4, .hz = garden_hz * 1.5, .family = .bar, .ring = 0.2 };
+        self.things[at] = .{ .x = drip_x, .y = 0.3, .z = drip_z, .tall = 0.4, .hz = garden_hz * 1.5, .family = .bar, .ring = 0.2, .carry = 50.0 };
         at += 1;
         // the horn: a ring of light for each of the sun's first sixteen overtones, over the lake.
         // Each is a thing whose place is the point of its ring nearest where Hum wakes, since
@@ -510,16 +520,22 @@ pub const World = struct {
             };
             at += 1;
         }
+        // the bee: 1.3 m long, humming the garden's note
+        const bee_thing = at;
+        self.things[at] = .{ .y = flyers.Bee.over_clover, .tall = 0.65, .hz = garden_hz, .family = .skin, .ring = 0.4, .carry = flyers.Bee.carry };
+        at += 1;
         // the sun rises on the shore, at the first rung's place
         self.sun_x = self.things[self.rung_first].x;
         self.sun_z = self.things[self.rung_first].z;
+        self.thing_count = at;
+        self.bee.place(self, bee_thing, .{ (drip_x + asters.great_x) * 0.5, (drip_z + asters.great_z) * 0.5 }, 0);
         self.thing_count = at;
     }
 
     /// Tell the player something. This is the only way anything in the world makes a sound, and
     /// it takes a cue, which always has its light. The light is put on the thing here and now;
     /// the sound is sent on its way and reaches Hum's ears when it has travelled there.
-    fn tell(self: *World, from: Source, what: cues_mod.Cue) void {
+    pub fn tell(self: *World, from: Source, what: cues_mod.Cue) void {
         const now_sample = self.step * samples_per_step;
         self.told += 1;
         switch (from) {
@@ -537,13 +553,15 @@ pub const World = struct {
                 const thing = &self.things[index];
                 thing.loud = @max(thing.loud, what.light.brightness);
                 if (what.light.shape == .ring_on_the_ground) self.startRing(thing.x, thing.z, what.sound.hz, false, 1.0);
-                // heard when it has come back to where Hum is now
+                // heard when it has come back to where Hum is now, softer and duller for the
+                // way it has come; its light is where it is, as bright as it sounds there
                 const hx = thing.x - self.hum_x;
                 const hz = thing.z - self.hum_z;
-                const back = @sqrt(hx * hx + hz * hz + thing.y * thing.y) / sound_speed;
-                const delay: u64 = @intFromFloat(back * sound.rate);
+                const far = @sqrt(hx * hx + hz * hz + thing.y * thing.y);
+                const delay: u64 = @intFromFloat(far / sound_speed * sound.rate);
                 const level: f32 = if (what.sound.kind == .strike) answer_level else voice_level;
-                self.send(now_sample + lead + delay, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .voice = what.sound.voice, .hz = what.sound.hz, .gain = what.sound.strength * level, .ring = what.sound.ring }, index, what.light);
+                const kept = 1.0 / (1.0 + (far / thing.carry) * (far / thing.carry));
+                self.send(now_sample + lead + delay, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .voice = what.sound.voice, .hz = what.sound.hz, .gain = what.sound.strength * level * kept, .ring = what.sound.ring, .dull = far / (thing.carry * 4.0) }, index, what.light);
             },
             .at => |place| {
                 // its light where it is, at once; its sound when it has come to Hum
@@ -560,9 +578,10 @@ pub const World = struct {
                 self.next_spark +%= 1;
                 const hx = place.x - self.hum_x;
                 const hz = place.z - self.hum_z;
-                const back = @sqrt(hx * hx + hz * hz + place.y * place.y) / sound_speed;
-                const delay: u64 = @intFromFloat(back * sound.rate);
-                self.send(now_sample + lead + delay, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .hz = what.sound.hz, .gain = what.sound.strength * answer_level, .ring = what.sound.ring }, no_thing, what.light);
+                const far = @sqrt(hx * hx + hz * hz + place.y * place.y);
+                const delay: u64 = @intFromFloat(far / sound_speed * sound.rate);
+                const kept = 1.0 / (1.0 + (far / small_carry) * (far / small_carry));
+                self.send(now_sample + lead + delay, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .hz = what.sound.hz, .gain = what.sound.strength * answer_level * kept, .ring = what.sound.ring, .dull = far / (small_carry * 4.0) }, no_thing, what.light);
             },
         }
     }
@@ -608,7 +627,7 @@ pub const World = struct {
         const shown: f32 = if (its_light.shape == .dims) 1.0 else its_light.brightness;
         for (&self.arrivals) |*slot| {
             if (slot.live) continue;
-            slot.* = .{ .at = at, .cue = heard_as, .live = true, .from = from, .light = shown };
+            slot.* = .{ .at = at, .cue = heard_as, .live = true, .from = from, .light = shown, .answer = self.answering };
             slot.cue.at = at;
             return;
         }
@@ -714,6 +733,7 @@ pub const World = struct {
         }
         if (self.drip != no_thing) self.dripStep();
         if (self.rung_first != no_thing) self.skyStep();
+        self.bee.step(self);
         self.dawn = self.dayAt(self.hum_x, self.hum_z);
         if (self.singing) self.hum_light = @max(self.hum_light, 0.8);
         self.hum_light *= 0.94;
@@ -755,11 +775,11 @@ pub const World = struct {
                 if (far <= before or far > reach) continue;
                 thing.lit = 1.0;
                 if (!thing.sounds) continue;
+                if (index == self.bee.thing) continue;
                 if (index == self.drip) {
                     // the second call is always answered: Drip's own ring comes back
                     if (self.calls >= 2 and !self.drip_met) {
-                        const loud = 0.9 / (1.0 + (far / 60.0) * (far / 60.0));
-                        self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = self.dripHz(), .strength = loud, .ring = 0.9 }, .ring_on_the_ground));
+                        self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = self.dripHz(), .strength = 0.9, .ring = 0.9 }, .ring_on_the_ground));
                     }
                     continue;
                 }
@@ -771,7 +791,9 @@ pub const World = struct {
                 const strength = kin * ring.strength / (1.0 + (far / thing.carry) * (far / thing.carry));
                 if (strength * answer_level < quietest) continue;
                 self.answers += 1;
+                self.answering = true;
                 self.tell(.{ .thing = @intCast(index) }, cues_mod.Cue.of(.{ .kind = .strike, .family = thing.family, .hz = thing.hz, .strength = strength, .ring = thing.ring }, .glow));
+                self.answering = false;
             }
         }
 
@@ -807,7 +829,7 @@ pub const World = struct {
             self.arrivals[i].live = false;
             n += 1;
             if (self.arrivals[i].light <= 0.0) self.dark_sounds += 1;
-            if (self.arrivals[i].from != no_thing) self.heard(self.arrivals[i].from);
+            if (self.arrivals[i].from != no_thing) self.heard(self.arrivals[i].from, self.arrivals[i].answer);
         }
 
         self.step += 1;
@@ -917,8 +939,7 @@ pub const World = struct {
         const far = @sqrt(dx * dx + dz * dz);
         // its tick: a plink and a flash, softer and dimmer the farther off it is
         if (fromTick(self.step) == 0 and untilTick(self.step) == 0) {
-            const loud = 0.55 / (1.0 + (far / 40.0) * (far / 40.0));
-            self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = self.dripHz() * 2.0, .strength = loud, .ring = 0.16 }, .glow));
+            self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = self.dripHz() * 2.0, .strength = 0.55, .ring = 0.16 }, .glow));
         }
         // while it hums with Hum, or holds, it shines
         if (self.drip_humming or self.step < self.hold_until) d.loud = @max(d.loud, 0.85);
@@ -1043,7 +1064,7 @@ pub const World = struct {
     }
 
     /// An answer has reached Hum's ears: the moments that are made of being answered.
-    fn heard(self: *World, from: u32) void {
+    fn heard(self: *World, from: u32, answer: bool) void {
         if (self.rung_first != no_thing and from >= self.rung_first and from < self.rung_first + rungs) {
             const k = from - self.rung_first + 1;
             self.rung_heard = @max(self.rung_heard, k);
@@ -1051,7 +1072,16 @@ pub const World = struct {
             return;
         }
         if (from == self.drip) return;
+        if (from == self.bee.thing) {
+            const b = self.things[from];
+            const dx = b.x - self.hum_x;
+            const dz = b.z - self.hum_z;
+            if (dx * dx + dz * dz < 60.0 * 60.0) self.seen.meet(.sky_bee, self.step);
+            return;
+        }
         // where there is no Drip to answer, any answer is being answered
+        // the moments made of being answered are only met by answers to Hum's own call
+        if (!answer) return;
         if (self.drip == no_thing) self.seen.meet(.evening_call, self.step);
         self.seen.meet(.whole_law1, self.step);
         self.seen.meet(.whole_law6, self.step);
@@ -1096,6 +1126,11 @@ pub const World = struct {
         mixIn(&h, self.breaths);
         mixIn(&h, self.rung_lit);
         mixIn(&h, self.walked);
+        mixIn(&h, self.bee.visits);
+        if (self.bee.thing != no_thing) {
+            mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].x)));
+            mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].z)));
+        }
         mixIn(&h, @intFromEnum(self.cover));
         mixIn(&h, self.rung_heard);
         mixIn(&h, @intFromBool(self.drip_met));
@@ -1228,9 +1263,10 @@ test "what lights a thing by ringing is what sounds it" {
         try std.testing.expectEqual(shone[i] > 0.0, sounded[i] > 0.0);
         if (shone[i] == 0.0) continue;
         rang += 1;
-        // one number rings it. The sound at the ears is that number times answer_level, and
-        // the light is its square root, here seen one step faded
-        const strength = sounded[i] / answer_level;
+        // one number rings it. The sound at the ears is that number times answer_level, less
+        // what the 30 m back took (a carry of 30 m keeps half); the light is its square root,
+        // here seen one step faded
+        const strength = sounded[i] / (answer_level * 0.5);
         try std.testing.expect(@abs(@sqrt(strength) - shone[i]) < 0.03 * @sqrt(strength));
     }
     try std.testing.expect(rang >= 3 and rang <= 5);
@@ -1549,4 +1585,37 @@ test "fallen leaves ring underfoot and lawn sheds dew behind you, each seen at o
         try std.testing.expectEqual(w.told, w.sent);
         try std.testing.expectEqual(@as(u32, 0), w.dark_sounds);
     }
+}
+
+test "the bee's note falls a fifth as it passes" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.* = .{};
+    w.view = .place;
+    w.stand = 1.0;
+    w.stand_from = 0;
+    w.dawn_from = 0;
+    // a bee flying straight past Hum, ten metres off, from far away to far away
+    w.things[0] = .{ .x = -300.0, .y = 0.5, .z = 10.0, .tall = 0.65, .hz = garden_hz, .family = .skin, .ring = 0.4, .carry = flyers.Bee.carry };
+    w.thing_count = 1;
+    w.bee = .{ .thing = 0 };
+    w.bee.stops = @splat(.{ 300.0, 0.5, 10.0 });
+    var cues: [max_cues]sound.Cue = undefined;
+    var highest: f32 = 0.0;
+    var lowest: f32 = 1e9;
+    var step: u32 = 0;
+    while (step < 60 * 48) : (step += 1) {
+        const n = w.stepOnce(.{}, &cues);
+        for (cues[0..n]) |cue| {
+            if (cue.kind != .hum_on or cue.voice != 2) continue;
+            highest = @max(highest, cue.hz);
+            lowest = @min(lowest, cue.hz);
+        }
+    }
+    // coming, a third high; going, a sixth low; between them a pure fifth
+    try std.testing.expect(@abs(highest / garden_hz - 1.25) < 0.01);
+    try std.testing.expect(@abs(lowest / garden_hz - 1.0 / 1.2) < 0.01);
+    try std.testing.expect(@abs(highest / lowest - 1.5) < 0.02);
+    // and every buzz was told with its light
+    try std.testing.expectEqual(w.told, w.sent);
 }

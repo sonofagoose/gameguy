@@ -10,14 +10,14 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | | sentences |
 |---|---|
 | in the specification | 2139 |
-| a promise speaks for it | 113 |
+| a promise speaks for it | 116 |
 | **kept** | **0** |
-| no promise speaks for it yet | 2026 |
+| no promise speaks for it yet | 2023 |
 
 | stage | claims | spoken for | kept | open |
 |---|---|---|---|---|
 | 2 | 637 | 100 | 0 | 537 |
-| 3 | 955 | 10 | 0 | 945 |
+| 3 | 955 | 13 | 0 | 942 |
 | 4 | 274 | 2 | 0 | 272 |
 | 5 | 194 | 1 | 0 | 193 |
 | 6 | 79 | 0 | 0 | 79 |
@@ -31,7 +31,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | `spec/size.md` | 82 | 7 | 0 |
 | `spec/years.md` | 96 | 0 | 0 |
 | `spec/together.md` | 66 | 0 | 0 |
-| `spec/sky.md` | 473 | 7 | 0 |
+| `spec/sky.md` | 473 | 10 | 0 |
 | `spec/shape.md` | 286 | 6 | 0 |
 | `spec/texture.md` | 104 | 7 | 0 |
 
@@ -39,9 +39,9 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 
 | rung | promises |
 |---|---|
-| sized: its moment, its cheat, its full size and its question written | 48 of 48 |
+| sized: its moment, its cheat, its full size and its question written | 49 of 49 |
 | proven: every measure passes today and nothing is owed | 0 |
-| reached: the scripted player met it by playing | 6 |
+| reached: the scripted player met it by playing | 7 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
 | graded full by a fresh reader | 0 |
 | **kept** | **0** |
@@ -64,6 +64,7 @@ asks its question.
 | `garden.w01` The answering field | Did the answers coming in from far away make the garden feel big? | none |
 | `card.ground` The ground remembers | Coming back to it, could you see where you had been? | none |
 | `sky.dawn` The first dawn | Did you stop to watch the sky come up? | none |
+| `sky.bee` The bee | When the bee went past, did its note drop? | none |
 | `texture.frame` What makes a frame beautiful | Is every frame something you would want to look at? | none |
 | `texture.light` Light is loudness | Could you tell what was loud by looking? | none |
 | `hands.voice-in-a-buffer` Your voice, at once | When you hum, does it start the moment you press? | none |
@@ -98,6 +99,7 @@ asks its question.
 | `garden.w12` The pot | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `card.ground` The ground remembers | 2 | 7 | no | - | no | no | no | 6 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
 | `sky.dawn` The first dawn | 2 | 7 | no | yes | no | no | no | 5 owed; no yes from Morgan yet |
+| `sky.bee` The bee | 2 | 3 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
 | `texture.frame` What makes a frame beautiful | 2 | 4 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `texture.light` Light is loudness | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `whole.scale` One to a hundred | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
@@ -109,7 +111,7 @@ asks its question.
 | `whole.law5` Cancelling and beating | 2 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.law6` Travel | 1 | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |
 | `whole.law7` Building up | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `whole.twice` Every cue twice | 1 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `whole.twice` Every cue twice | 1 | 3 | no | - | no | no | no | 3 owed; cue.sounds_outside_tell == 0  (is 3); no yes from Morgan yet |
 | `whole.same` A take is its inputs | 1 | 1 | no | - | - | no | no | 1 owed; same_take.identical == 1  (is 0) |
 | `whole.alone` Whole alone, more together | 6 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.endless` The mornings never repeat | 5 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |

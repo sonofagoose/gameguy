@@ -18,6 +18,7 @@ pub const Walker = struct {
     horn_marked: bool = false,
     six_at: ?u64 = null,
     in_open: bool = false,
+    bee_marked: bool = false,
     breathing: bool = false,
     ticks_held: u32 = 0,
     rising_marked: bool = false,
@@ -46,6 +47,18 @@ pub const Walker = struct {
 
     pub fn hands(self: *Walker, w: *const World) Hands {
         self.mark = null;
+        // the bee, once: hovering near and ahead, where the view can see it
+        if (!self.bee_marked and self.phase >= 5 and w.bee.thing != world_mod.no_thing and w.bee.hover_left > 0) {
+            const b = w.things[w.bee.thing];
+            const dx = b.x - w.hum_x;
+            const dz = b.z - w.hum_z;
+            const far = @sqrt(dx * dx + dz * dz);
+            const ahead = (dx * @sin(w.look_yaw) - dz * @cos(w.look_yaw)) / @max(far, 0.1);
+            if (far < 40.0 and far > 10.0 and ahead > 0.85 and b.y < 20.0) {
+                self.bee_marked = true;
+                self.mark = "bee";
+            }
+        }
         var h = Hands{};
         const step = w.step;
         if (!self.started) {

@@ -915,6 +915,9 @@ pub fn run(window: plat.Window, options: Options) bool {
             const cam = world.camera();
             renderer.stand = cam.stand;
             eye = cam.eye;
+            // what stands between the eye and Hum is see-through
+            const to_hum = [3]f32{ world.hum_x - cam.eye[0], 0.5 - cam.eye[1], world.hum_z - cam.eye[2] };
+            renderer.clear = @max(0.0, @sqrt(to_hum[0] * to_hum[0] + to_hum[1] * to_hum[1] + to_hum[2] * to_hum[2]) - 5.0) * cam.stand;
             view = m.lookAt(cam.eye, cam.at, .{ 0.0, 1.0, 0.0 });
             proj = m.perspective(cam.fov, aspect, 0.4, 9000.0);
             const fx = @sin(world.look_yaw);
@@ -957,6 +960,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             if (world.stand > 0.6) moving_n += aster_lines.halos(&world, eye, moving[moving_n..]);
             moving_n += eveningLines(&world, moving[moving_n..]);
             moving_n += aster_lines.sparks(&world, moving[moving_n..]);
+            moving_n += aster_lines.beeLines(&world, moving[moving_n..]);
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);

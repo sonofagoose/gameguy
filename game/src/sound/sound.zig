@@ -43,6 +43,10 @@ pub const Cue = extern struct {
     gain: f32 = 0.0,
     /// How long its lowest note rings, in seconds.
     ring: f32 = 1.0,
+    /// How much of its brightness the way here has taken: nought for near, more for far. Each
+    /// overtone above the first is quieter by it (spec/engine.md: "softer and duller with
+    /// distance").
+    dull: f32 = 0.0,
 
     pub const Kind = enum(u8) { strike, hum_on, hum_off };
 };
@@ -171,7 +175,8 @@ pub const Sound = struct {
                     const r = @exp(-6.91 / (ring * rate));
                     a1[i] = 2.0 * r * @cos(2.0 * std.math.pi * hz / rate);
                     a2[i] = -(r * r);
-                    g[i] = rec.gain[i] * @sin(2.0 * std.math.pi * hz / rate) * 0.5;
+                    const duller = 1.0 / (1.0 + cue.dull * (@max(rec.mult[i], 1.0) - 1.0));
+                    g[i] = rec.gain[i] * @sin(2.0 * std.math.pi * hz / rate) * 0.5 * duller;
                 }
                 self.a1[slot * 2] = a1[0..4].*;
                 self.a1[slot * 2 + 1] = a1[4..8].*;

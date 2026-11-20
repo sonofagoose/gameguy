@@ -58,6 +58,7 @@ const line_vs =
     \\uniform vec2 u_far;
     \\uniform float u_stand;
     \\uniform float u_emit;
+    \\uniform float u_clear;
     \\out vec2 v_uv;
     \\out vec3 v_col;
     \\void main() {
@@ -95,7 +96,9 @@ const line_vs =
     \\    // its own sound, spread over its lines; and the light that falls on it, given back
     \\    float shine = t.r * t.b * u_emit + t.g * t.a;
     \\    v_uv = vec2(e, s);
-    \\    v_col = a_col.rgb * (a_col.a * shine * nearness);
+    \\    // nothing nearer the eye than Hum may hide Hum: it fades out
+    \\    float clear = sky ? 1.0 : smoothstep(u_clear * 0.55, u_clear, p.w);
+    \\    v_col = a_col.rgb * (a_col.a * shine * nearness * clear);
     \\}
 ;
 
@@ -116,16 +119,21 @@ const occ_vs =
     \\layout(location = 0) in vec3 a_pos;
     \\uniform mat4 u_vp;
     \\uniform float u_stand;
+    \\out float v_w;
     \\void main() {
     \\    gl_Position = u_vp * vec4(a_pos.x, a_pos.y * u_stand, a_pos.z, 1.0);
+    \\    v_w = gl_Position.w;
     \\}
 ;
 
 const occ_fs =
     \\#version 300 es
-    \\precision mediump float;
+    \\precision highp float;
+    \\in float v_w;
+    \\uniform float u_clear;
     \\out vec4 o;
     \\void main() {
+    \\    if (v_w < u_clear) discard;
     \\    o = vec4(0.0, 0.0, 0.0, 1.0);
     \\}
 ;
@@ -256,6 +264,10 @@ pub const Renderer = struct {
     sky_u_sky: c.GLint = -1,
     sky_u_dawn: c.GLint = -1,
     line_u_emit: c.GLint = -1,
+    line_u_clear: c.GLint = -1,
+    occ_u_clear: c.GLint = -1,
+    /// How far from the eye things are see-through, so nothing between the eye and Hum hides it.
+    clear: f32 = 0.0,
     /// How bright a thing's own sound makes it, against the light that falls on it.
     emit: f32 = 1.3,
     /// How faint a line may get with distance, and how much heavier a near line is drawn.
@@ -365,6 +377,8 @@ pub const Renderer = struct {
         self.sky_u_sky = gl.GetUniformLocation(self.sky_prog, "u_sky");
         self.sky_u_dawn = gl.GetUniformLocation(self.sky_prog, "u_dawn");
         self.line_u_emit = gl.GetUniformLocation(self.line_prog, "u_emit");
+        self.line_u_clear = gl.GetUniformLocation(self.line_prog, "u_clear");
+        self.occ_u_clear = gl.GetUniformLocation(self.occ_prog, "u_clear");
         self.ground_prog = plat.linkProgram(ground_vs, ground_fs, "the ground") orelse return false;
         self.ground_u_vp = gl.GetUniformLocation(self.ground_prog, "u_vp");
         self.ground_u_from = gl.GetUniformLocation(self.ground_prog, "u_from");
@@ -604,6 +618,7 @@ pub const Renderer = struct {
         gl.UseProgram(self.occ_prog);
         gl.UniformMatrix4fv(self.occ_u_vp, 1, c.GL_FALSE, vp);
         gl.Uniform1f(self.occ_u_stand, self.stand);
+        gl.Uniform1f(self.occ_u_clear, self.clear);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_TRUE);
@@ -628,6 +643,7 @@ pub const Renderer = struct {
         gl.Uniform2f(self.line_u_far, self.far_floor, self.heft);
         gl.Uniform1f(self.line_u_stand, self.stand);
         gl.Uniform1f(self.line_u_emit, self.emit);
+        gl.Uniform1f(self.line_u_clear, self.clear);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_FALSE);

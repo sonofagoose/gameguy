@@ -1929,14 +1929,14 @@ _Every sentence of the specification that promises a player something, read by
 
 - open: One law for everything with wings. A flyer is a pendulum, and for the small ones a resonator.
 - open: A real insect's flight muscle drives its thorax at the thorax's own rate, which is law 7 in a body.
-- open: Size is pitch. Big wings beat time and small wings sing.
+- spoken for by `sky.bee`: Size is pitch. Big wings beat time and small wings sing.
 - open: A swallow's wings are sixteenth notes.
 - open: A dragonfly's, at about 30 a second, purr on the line where rhythm turns into pitch.
 - open: A bee is a note.
 - open: A midge is a whine.
 - open: A flyer's register is its real wingbeat, and its note within that is its home land's, so it is always in tune.
 - open: Bird wings lock to the land's beat (law 3).
-- open: Speed is an interval. A flyer cruises at a fraction of the speed of sound that bends its note cleanly (law 6), so each kind is known by ear first by its own sound, a fly's buzz, a bee's hum, a dragonfly's purr, a swallow's twitter, and then by how far its note falls as it passes: a third for a fly, a fifth for a bee, an octave for a dragonfly, a twelfth for a swallow.
+- spoken for by `sky.bee`: Speed is an interval. A flyer cruises at a fraction of the speed of sound that bends its note cleanly (law 6), so each kind is known by ear first by its own sound, a fly's buzz, a bee's hum, a dragonfly's purr, a swallow's twitter, and then by how far its note falls as it passes: a third for a fly, a fifth for a bee, an octave for a dragonfly, a twelfth for a swallow.
 - open: The wing draws the body. A hovering wingtip really traces a figure of eight: two against one, the octave's figure.
 - open: So a hoverer is drawn as two glowing eights.
 - open: A cruiser's wingtips write its wave along its path in the afterglow: speed ÷ wingbeat is the wavelength.
@@ -1957,7 +1957,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: Jump to leave, and tap again to glide.
 - open: midges, the dusk column | 3 to 5 mm: 30 to 50 cm | a high whine. A model of real swarms (Gorbonos and others 2016) holds them together by each other's sound: the pull falls off the way gravity does, and each midge turns its hearing down in a crowd so the swarm never collapses | gravity, law 2 | a signpost. Columns stand over things worth finding. Walk in with home on their note and the swarm forms round you as a lantern
 - open: mosquitoes, the fifth-finders | 4 to 7 mm: half a metre, legs over a metre | the female flies at about 400 a second and the male at about 600. They shift until her third overtone and his second meet at 1,200: a pure fifth, tuned by ear | sympathy and falling into step | sung with. Hold steady beside a pair and they tune to you. The figure stops and the third voice sounds under you. They teach stillness
-- open: the bee | 12 to 15 mm: 1.2 to 1.5 m | wings at 230 a second. Its dance is a figure of eight whose tilt is the bearing from the sun and whose length is the distance | travel; the sun as compass | followed. Its line leads to what is ripe. Its dance reads on the wheel as wedges from the sun's land, so it teaches the sky's compass
+- spoken for by `sky.bee`: the bee | 12 to 15 mm: 1.2 to 1.5 m | wings at 230 a second. Its dance is a figure of eight whose tilt is the bearing from the sun and whose length is the distance | travel; the sun as compass | followed. Its line leads to what is ripe. Its dance reads on the wheel as wedges from the sun's land, so it teaches the sky's compass
 - open: the bumblebee | queen 20 to 25 mm: 2 to 2.5 m | it unlatches its wings and shakes a flower at 240 to 400 a second until the pollen bursts. Honeybees can't | building up, law 7: it gives | ridden. The slow bus of the crowns, at a ninth of the speed of sound. Every stop is a flower giving, in a cloud of ringing grains. It teaches the hold that opens glass, a dome and a knot
 - open: the dragonfly | 7 to 8 cm: 7 to 8 m, wings 11 m across | four wings at about 30 a second. Fore and hind pairs beat apart to hover and together to surge | phase; and travel | ridden. The ferry of the air, on a fixed patrol at a third of the speed of sound: the lake in three minutes. On its back your one note reaches things ahead a fifth higher and things behind a fourth lower. A ride gives you notes you never chose
 - open: the thrush | 17 cm: 17 m | a real hermit thrush builds its song from whole-number multiples of one low note it never sings | standing waves: the ladder itself | it sings the rungs the sun has reached, and never a dark one. The first time you carry the seventh into a dawn, it sings a note nobody has heard from it
