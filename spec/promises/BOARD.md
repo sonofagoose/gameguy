@@ -68,6 +68,7 @@ asks its question.
 | `sky.bee` The bee | When the bee went past, did its note drop? | none |
 | `texture.frame` What makes a frame beautiful | Is every frame something you would want to look at? | none |
 | `texture.light` Light is loudness | Could you tell what was loud by looking? | none |
+| `wheel.home` The wheel decides where home is | When the wheel opened, could you see where home would go before you let go? | none |
 | `hands.voice-in-a-buffer` Your voice, at once | When you hum, does it start the moment you press? | none |
 | `light.hue` One set of numbers for sound and light | Could you tell which bells were kin to your note by their colour? | none |
 
@@ -187,10 +188,10 @@ asks its question.
 | `wheel.groove` Each mood is a groove | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `wheel.borrow` The dark wedges | 3 | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `voices.five` Five voices | 2 | 4 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
-| `swell.walk` The swell walks home | 2 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `swell.walk` The swell walks home | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `swell.touch` Push hard for bright | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `swell.lean` The lean | 3 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `hands.told-apart` R1 and R2 told apart | 2 | 7 | no | - | no | no | no | 3 owed; frame evening-swell: nobody has looked at it yet; no yes from Morgan yet |
+| `hands.told-apart` R1 and R2 told apart | 2 | 7 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `breath.one` One breath | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `whole.scale` One to a hundred | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.true` Literally true | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |

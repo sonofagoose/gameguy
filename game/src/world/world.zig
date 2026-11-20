@@ -242,8 +242,23 @@ pub const fold_after: u32 = 15;
 /// R1 held this long opens the wheel, once the place has stood up (SPEC.md 9; the wheel toy's
 /// 0.17 s).
 pub const wheel_after: u32 = 10;
+/// While the wheel is open the world's beat runs at this part of its pace: time thickens, and what
+/// is ringing stretches into a held chord (SPEC.md 9; the wheel toy's 0.25).
+pub const thick: f32 = 0.25;
+
 /// While the wheel is open the place lies back this far toward the page, and no further.
 pub const wheel_stand: f32 = 0.7;
+/// The swell (SPEC.md 9). A nudge of the right stick this far over, within this many steps of a
+/// downbeat, walks home one wedge; most bands Hum takes. A downbeat is the first of Drip's four
+/// ticks to a bar.
+pub const nudge_least: f32 = 0.6;
+pub const nudge_back: f32 = 0.3;
+pub const downbeat_window: u64 = 8;
+pub const swell_most: u8 = 8;
+/// Where home is when R2 is let go on a downbeat, against where the swell began, decides the
+/// cadence: a fifth down is the full close, a fifth up the amen, nowhere the turn, further the slide.
+pub const Cadence = enum(u8) { none, full_close, amen, turn, slide };
+
 /// While the wheel is open the view rises this high, this far behind Hum, and looks down at it.
 pub const wheel_up: f32 = 78.0;
 pub const wheel_back: f32 = 46.0;
@@ -333,6 +348,9 @@ pub const Ring = struct {
     x: f32 = 0.0,
     z: f32 = 0.0,
     born: u64 = 0,
+    /// How far it has run, in steps of the world's beat, and how far it had reached the step before.
+    age: f32 = 0.0,
+    last_reach: f32 = 0.0,
     live: bool = false,
     /// The note that is travelling.
     hz: f32 = garden_hz,
@@ -465,6 +483,23 @@ pub const World = struct {
     wheel_opens: u32 = 0,
     /// How far the view has risen to look down on the open wheel, 0 to 1.
     wheel_view: f32 = 0.0,
+    /// The world's beat: its pace (one, or thick while the wheel is open), and its clock in steps,
+    /// the same as the step count until time first thickens. Drip's ticks, the downbeats, the bee,
+    /// rings on the ground and the water keep it; the sky keeps the sun's.
+    tempo: f32 = 1.0,
+    clock: u64 = 0,
+    clock_part: f32 = 0.0,
+    ticked_at: u64 = never,
+    /// The swell: where home was when it began, how many bars it has grown, whether the right stick
+    /// is still out from a nudge, the last cadence that landed and when, and the last downbeat.
+    swell_from: i8 = 0,
+    swell_bars: u8 = 0,
+    nudge_out: bool = false,
+    cadence: Cadence = .none,
+    cadence_at: u64 = never,
+    cadences: u32 = 0,
+    downbeat_at: u64 = never,
+    downbeat_beat: u64 = never,
     /// The step the page stands up from: when the drop lands on Hum's head.
     stand_from: u64 = never,
     /// The day coming up: 0 is the dark, where a thing is seen only when it sounds or a call
@@ -844,6 +879,12 @@ pub const World = struct {
             // the hinge: the world is a page until it stands, and holding R1 lays it down again
             self.call_held = if (hands.held(Hands.call)) self.call_held +| 1 else 0;
             self.wheelStep(hands);
+            const pace: f32 = if (self.wheel_open) thick else 1.0;
+            if (pace != self.tempo) {
+                self.tempo = pace;
+                // what is ringing stretches into a held chord while time is thick, and lets go after
+                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .tempo, .hz = self.home_hz, .strength = pace, .ring = 0.0 }, .glow));
+            }
             const standing = self.step >= self.stand_from and self.call_held < fold_after;
             if (self.step == self.stand_from and self.dawn_from == never) self.dawn_from = self.step;
             if (self.wheel_open) {
@@ -870,6 +911,8 @@ pub const World = struct {
         // Drip, it hums with you. While a lock holds, both notes hold by themselves.
         const holding = self.step < self.hold_until;
         if (pressed & Hands.sing != 0 and !holding) {
+            self.swell_from = self.home_k;
+            self.swell_bars = 0;
             self.own_now = true;
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = self.home_hz, .strength = 1.0, .ring = 0.0 }, .swell));
             self.own_now = false;
@@ -903,6 +946,9 @@ pub const World = struct {
                 self.seen.meet(.evening_breathe, self.step);
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.7, .ring = 0.0 }, .swell));
             } else {
+                // let go on a downbeat: where home stands against where the swell began decides
+                // the cadence (SPEC.md 9)
+                if (self.locked_at != never and self.nearDownbeat(self.clock)) self.landCadence();
                 // let go: Hum's hum ends on the sample it was let go
                 self.own_now = true;
                 self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = self.home_hz, .strength = 0.0, .ring = 0.0 }, .dims));
@@ -921,9 +967,10 @@ pub const World = struct {
             self.drip_met = true;
             self.stand_from = self.step + 40;
         }
+        if (self.singing and self.locked_at != never and self.step >= self.hold_until) self.swellStep(hands);
         if (self.drip != no_thing) self.dripStep();
         if (self.rung_first != no_thing) self.skyStep();
-        self.bee.step(self);
+        if (self.clock_part + self.tempo >= 1.0) self.bee.step(self);
         if (self.pool_count > 0) self.poolStep();
         self.dawn = self.dayAt(self.hum_x, self.hum_z);
         if (self.singing) self.hum_light = @max(self.hum_light, 0.8);
@@ -934,9 +981,11 @@ pub const World = struct {
         // answers as much as its own overtones share with the call
         for (&self.rings) |*ring| {
             if (!ring.live) continue;
-            const age: f32 = @floatFromInt(self.step - ring.born);
-            const reach = age * dt * sound_speed;
-            const before = @max(0.0, reach - dt * sound_speed);
+            // a ring runs on the world's beat: a quarter as far each step while time is thick
+            const reach = ring.age * dt * sound_speed;
+            const before = ring.last_reach;
+            ring.last_reach = reach;
+            ring.age += self.tempo;
             if (reach > self.ring_reach * ring.strength) {
                 ring.live = false;
                 continue;
@@ -1040,6 +1089,11 @@ pub const World = struct {
             if (self.arrivals[i].from != no_thing) self.heard(self.arrivals[i].from, self.arrivals[i].answer);
         }
 
+        self.clock_part += self.tempo;
+        while (self.clock_part >= 1.0) {
+            self.clock_part -= 1.0;
+            self.clock += 1;
+        }
         self.step += 1;
         return n;
     }
@@ -1067,6 +1121,63 @@ pub const World = struct {
         self.home_k = k;
         self.home_hz = wedgeHz(self.day_hz, k);
         return true;
+    }
+
+    /// Whether a step is within the window of a downbeat: the first of every four of Drip's ticks.
+    pub fn nearDownbeat(self: *const World, step: u64) bool {
+        _ = self;
+        const k = step / tick_every;
+        var i: u64 = if (k > 0) k - 1 else 0;
+        while (i <= k + 1) : (i += 1) {
+            if (i % 4 != 0) continue;
+            const at = tickStep(i);
+            const apart = if (at > step) at - step else step - at;
+            if (apart <= downbeat_window) return true;
+        }
+        return false;
+    }
+
+    /// While R2 is held after the lock: a bar grown at each downbeat, and a nudge of the right stick
+    /// near one walks home a wedge to the side it was pushed, if that mood is awake.
+    fn swellStep(self: *World, hands: Hands) void {
+        const k = self.clock / tick_every;
+        if (k % 4 == 0 and tickStep(k) == self.clock and self.downbeat_beat != self.clock) {
+            self.downbeat_beat = self.clock;
+            self.downbeat_at = self.step;
+            if (self.swell_bars < swell_most) self.swell_bars += 1;
+        }
+        const rx = @as(f32, @floatFromInt(hands.rx)) * (1.0 / 127.0);
+        if (!self.nudge_out and @abs(rx) >= nudge_least) {
+            self.nudge_out = true;
+            if (self.nearDownbeat(self.clock)) {
+                const to: i8 = self.home_k + (if (rx > 0.0) @as(i8, 1) else -1);
+                if (self.moveHome(to)) {
+                    // the hum moves with home, on this very step
+                    self.own_now = true;
+                    self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = self.home_hz, .strength = 1.0, .ring = 0.0 }, .swell));
+                    self.own_now = false;
+                }
+            }
+        }
+        if (self.nudge_out and @abs(rx) < nudge_back) self.nudge_out = false;
+    }
+
+    /// The cadence lands: home's chord rung from Hum, and a ring on the ground on home's note that
+    /// everything kin to the new home answers (law 1).
+    fn landCadence(self: *World) void {
+        const d: i32 = @as(i32, self.home_k) - @as(i32, self.swell_from);
+        self.cadence = if (d == -1) .full_close else if (d == 1) .amen else if (d == 0) .turn else .slide;
+        self.cadence_at = self.step;
+        self.cadences += 1;
+        const fullness: f32 = 0.5 + 0.06 * @as(f32, @floatFromInt(self.swell_bars));
+        // home's pure triad, sung by Hum and its voices
+        const chord = [3]f32{ 1.0, 5.0 / 4.0, 3.0 / 2.0 };
+        for (chord, 0..) |ratio, i| {
+            const at = Place{ .x = self.hum_x, .y = 1.2 + 0.4 * @as(f32, @floatFromInt(i)), .z = self.hum_z };
+            self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * ratio, .strength = fullness * 0.6, .ring = 1.6 }, .glow));
+        }
+        self.startRing(self.hum_x, self.hum_z, self.home_hz, true, fullness);
+        self.swell_bars = 0;
     }
 
     /// Whether a thing rings its kin and is rung by them. The sky's rungs, the bee, Drip and the
@@ -1289,8 +1400,8 @@ pub const World = struct {
     fn poolStep(self: *World) void {
         const note: f32 = if (self.singing) self.home_hz else 0.0;
         for (self.pools[0..self.pool_count], 0..) |*p, pi| {
-            p.drive(note, self.hum_x, self.hum_z);
-            p.stepMotes(dt, self.hum_x, self.hum_z);
+            p.drive(note, self.hum_x, self.hum_z, self.tempo);
+            p.stepMotes(dt * self.tempo, self.hum_x, self.hum_z);
             for (&p.figs, 0..) |*f, k| {
                 const was = p.sent[k];
                 const due = (self.step % 6 == 0 and @abs(f.loud - was) > 0.01) or (f.loud == 0.0 and was > 0.0);
@@ -1407,7 +1518,8 @@ pub const World = struct {
         const dz = d.z - self.hum_z;
         const far = @sqrt(dx * dx + dz * dz);
         // its tick: a plink and a flash, softer and dimmer the farther off it is
-        if (fromTick(self.step) == 0 and untilTick(self.step) == 0) {
+        if (self.ticked_at != self.clock and fromTick(self.clock) == 0 and untilTick(self.clock) == 0) {
+            self.ticked_at = self.clock;
             self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = self.dripHz() * 2.0, .strength = 0.55, .ring = 0.16 }, .glow));
         }
         // while it hums with Hum, or holds, it shines
@@ -1515,7 +1627,7 @@ pub const World = struct {
                 if (!ring.live) continue;
                 const dx = tower.x - ring.x;
                 const dz = tower.z - ring.z;
-                const reach = @as(f32, @floatFromInt(self.step - ring.born)) * dt * sound_speed;
+                const reach = ring.age * dt * sound_speed;
                 const flat2 = dx * dx + dz * dz;
                 if (reach * reach <= flat2 or flat2 > at_foot * at_foot * 4.0) continue;
                 const band = @sqrt(reach * reach - flat2);
@@ -1696,6 +1808,9 @@ pub const World = struct {
         mixIn(&h, self.echoed);
         mixIn(&h, @as(u32, @bitCast(@as(i32, self.home_k))));
         mixIn(&h, self.wheel_opens);
+        mixIn(&h, self.cadences);
+        mixIn(&h, self.swell_bars);
+        mixIn(&h, @truncate(self.clock));
         if (self.bee.thing != no_thing) {
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].x)));
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].z)));
@@ -2456,4 +2571,67 @@ test "R1 held opens the wheel; the right stick points at a wedge; letting go put
     while (step < 30) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 63, .ry = -110 }, &cues);
     _ = w.stepOnce(.{}, &cues);
     try std.testing.expectEqual(@as(i8, -1), w.home_k);
+}
+
+test "the swell: a nudge on a downbeat walks home one wedge, and the let-go on the one lands the cadence" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    // just before a downbeat: tick 8 is the first of a bar
+    while (w.step < tickStep(8) - 30) _ = w.stepOnce(.{}, &cues);
+    // hold R2: the swell begins at home, sunny home
+    while (w.step < tickStep(8) - 20) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expect(w.singing);
+    // a nudge off the beat does nothing
+    _ = w.stepOnce(.{ .buttons = Hands.sing, .rx = -110 }, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    // on the downbeat, a nudge left walks home to wonder, and the swell has grown a bar
+    while (w.step < tickStep(8)) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.sing, .rx = -110 }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expectEqual(@as(u8, 1), w.swell_bars);
+    // held on to the next bar's downbeat, let go on the one: home went down a fifth, the full close
+    while (w.step < tickStep(12)) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    const answers = w.answers;
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(Cadence.full_close, w.cadence);
+    // and the land answers the new home: its ring climbs to the crowns, ninety metres up and more
+    var step: u32 = 0;
+    while (step < 360) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.answers > answers);
+    // a swell from wonder walked back up a fifth and let go on the one is the amen
+    const bar = (w.step / tick_every / 4 + 1) * 4;
+    while (w.step < tickStep(bar) - 10) _ = w.stepOnce(.{}, &cues);
+    while (w.step < tickStep(bar)) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.sing, .rx = 110 }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    while (w.step < tickStep(bar + 4)) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(Cadence.amen, w.cadence);
+}
+
+test "R1 held thickens time: the beat runs at a quarter, and lets go when the wheel closes" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    while (w.step < 100) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(w.step, w.clock);
+    // a call, and the wheel held open for two seconds: the call's ring runs a quarter as fast
+    _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    var step: u32 = 0;
+    while (step < 120) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    try std.testing.expect(w.wheel_open);
+    try std.testing.expectEqual(thick, w.tempo);
+    const lost = w.step - w.clock;
+    try std.testing.expect(lost > 70 and lost < 100);
+    // let go: the pace comes back, and the beat runs with the steps again
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(f32, 1.0), w.tempo);
+    const after = w.step - w.clock;
+    step = 0;
+    while (step < 60) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(after, w.step - w.clock);
 }

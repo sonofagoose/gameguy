@@ -275,7 +275,7 @@ pub const Pool = struct {
 
     /// One step of being sung to: `note` is what Hum is humming (nought for nothing), from
     /// (hx, hz). Whichever shapes have a note among Hum's overtones build; the rest die away.
-    pub fn drive(self: *Pool, note: f32, hx: f32, hz_: f32) void {
+    pub fn drive(self: *Pool, note: f32, hx: f32, hz_: f32, pace: f32) void {
         for (&self.figs) |*f| f.driven = false;
         if (note > 0.0) {
             const dx = hx - self.x;
@@ -333,7 +333,7 @@ pub const Pool = struct {
                     const f = &self.figs[slot.?];
                     f.driven = true;
                     f.hz = best_h[b];
-                    f.loud += (best_d[b] - f.loud) * build;
+                    f.loud += (best_d[b] - f.loud) * build * pace;
                 }
             }
         }
@@ -341,7 +341,7 @@ pub const Pool = struct {
             if (f.driven or f.loud <= 0.0) continue;
             // free, it rings at its own note and dies away
             f.hz = self.modeHz(f.mode);
-            f.loud *= dies;
+            f.loud *= 1.0 - (1.0 - dies) * pace;
             if (f.loud < 0.002) f.loud = 0.0;
         }
     }
@@ -467,7 +467,7 @@ test "a pool's figure is still on its spokes and rings, and heaves to one at its
     try std.testing.expect(@abs(p.modeHz(7) - 261.63) < 0.01);
     var w: u32 = 0;
     // sung at from the west, until it stands
-    while (w < 600) : (w += 1) p.drive(261.63, -p.r - 2.0, 0.0);
+    while (w < 600) : (w += 1) p.drive(261.63, -p.r - 2.0, 0.0, 1.0);
     const f = &p.figs[0];
     try std.testing.expectEqual(@as(u8, 7), f.mode);
     try std.testing.expect(f.loud > 0.99);
@@ -494,7 +494,7 @@ test "pollen on a standing pool gathers on its still lines, and stays there when
     for (0..p.motes) |i| heaving_before += p.figs[0].shape(p.mote_x[i], p.mote_z[i], p.r);
     var w: u32 = 0;
     while (w < 60 * 20) : (w += 1) {
-        p.drive(261.63, -p.r - 2.0, 0.0);
+        p.drive(261.63, -p.r - 2.0, 0.0, 1.0);
         p.stepMotes(1.0 / 60.0, 1e6, 1e6);
     }
     // after twenty seconds nine motes in ten are where the water heaves less than a tenth
@@ -507,7 +507,7 @@ test "pollen on a standing pool gathers on its still lines, and stays there when
     const kept_x = p.mote_x[17];
     w = 0;
     while (w < 60 * 30) : (w += 1) {
-        p.drive(0.0, 0.0, 0.0);
+        p.drive(0.0, 0.0, 0.0, 1.0);
         p.stepMotes(1.0 / 60.0, 1e6, 1e6);
     }
     try std.testing.expect(p.loud() == 0.0);

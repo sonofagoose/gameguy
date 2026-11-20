@@ -61,3 +61,16 @@ Checked by measurement (Claude can't judge the sound itself):
   beat at 107.08 beats a minute. Once the third voice is in, it pulses exactly once a beat.
 - The warnings in clip 23 pulse at the same 3.57 a second.
 - Rebuilding left clips 1–16 byte for byte as they were.
+
+## From the game itself (clips 32 on)
+
+Cut from the first evening as the scripted player plays it, by `game/tools/clips.py`: the game's
+own sound at 48,000 Hz, not a sketch. Rebuilt whenever the evening changes.
+
+| clip | what it is | the question |
+|---|---|---|
+| 32-water-sings-back | Hum hums at the edge of the bridge puddle; the water comes up in a ring and a cross and sings Hum's note back, about 4 dB louder as it stands | did the note bloom nicely as the water stood, or was it too much, or too little? |
+| 33-the-bee | the bee working the clover a little way ahead of Hum, its hum the garden's note, falling as it goes by | does the bee sound like a bee you would want near you? |
+| 34-underfoot | walking to the great aster over lawn and fallen leaves: dew ticks behind Hum, leaves ring underfoot in the garden's scale | pleasant to walk through, or fussy? |
+| 35-wonder | home moved to wonder, the F below; Hum hums at the puddle sized for it, and it stands and sings F back | does home on wonder sound like another place than sunny home? |
+| 36-the-amen | the swell: Hum holds its note two bars, steps home back up a fifth on a downbeat, and lets go on the next one; the amen lands, a chord from Hum, and the garden answers | does letting go on the one feel like landing somewhere? |

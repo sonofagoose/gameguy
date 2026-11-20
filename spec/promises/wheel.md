@@ -113,12 +113,11 @@ actionable differentiation"._
   all three are at rest.
 - **A cheat would be:** a combo meter; nudges counted at any time, off the beat.
 - **Full size:**
-  - `owed` A test: A nudge walks home one wedge only on a downbeat. Off the beat it does nothing,
-    and
-    nobody says so.
-  - `owed` A test: Where home is when R2 is let go decides the cadence. The full close, the amen,
-    the turn
-    and the slide, each from where home stands against where the swell began.
+  - `test the swell: a nudge on a downbeat walks home one wedge, and the let-go on the one lands the
+    cadence`
+    A nudge off the beat does nothing; on the downbeat it walks home one wedge; let go on the one
+    with home a fifth down and the full close lands, a fifth up and the amen.
+  - `owed` The turn and the slide, tested as the full close and the amen are.
   - `owed` What home passes comes with it: each creature on the way is brought home in turn.
 - **Asks:** Did walking home on the downbeats feel like playing, or like pressing buttons in time?
 
@@ -175,12 +174,15 @@ actionable differentiation"._
   stopping to think; the other is playing. Your hands never mix them up.
 - **A cheat would be:** the same wheel drawn for both, in another colour.
 - **Full size:**
-  - `owed` A test: Holding R1 thickens time and holding R2 does not. The world's beat slows under R1
-    and
-    keeps its pace under R2.
-  - `owed` A test: R1 lets home jump to any wedge and R2 only to a neighbour.
+  - `test R1 held thickens time: the beat runs at a quarter, and lets go when the wheel closes` The
+    world's beat, Drip's ticks, the bee, rings and the water run at a quarter while the wheel is
+    open, and what is ringing stretches into a held chord; the swell keeps the full pace.
+  - `test R1 held opens the wheel; the right stick points at a wedge; letting go puts home there`
+    R1 lets home jump to any awake wedge; the swell's test shows R2 stepping only to a neighbour.
   - `frame evening-wheel` R1 held: the wheel large on the ground from above, threads to it.
   - `frame evening-swell` R2 held: Hum swelling with its marks, nothing on the ground.
+  - `owed` Measured with `ears`: the amen's chord (clip 36) lands consonant, and Morgan's answer to
+    it in the room.
   - `owed` Morgan's call on the proposal in `DECISIONS.md`: the swell's steps on L1 and L2, so the
     two share no stick.
 - **Asks:** Could you tell R1 from R2 without thinking, by what you saw and what your hands did?

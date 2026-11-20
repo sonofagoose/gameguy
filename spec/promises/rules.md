@@ -49,8 +49,9 @@ part of the game is held to, sized so that each has something that would show it
 - **Full size:**
   - `owed` Every one of the 31 clips in `design/listen/` has Morgan's answer in a room log, read and
     folded into the specification.
-  - `owed` Every sound added in the stage has a clip and an answer before it is called done: the
-    puddle's tone, the bee, the dew and the leaves are owed one each.
+  - `owed` Every sound added in the stage has a clip and an answer before it is called done. Clips
+    32 to 36 are cut from the game's own evening (`game/tools/clips.py`): the water singing back,
+    the bee, underfoot, wonder and the amen; the answers are owed.
 - **Asks:** Did any sound in the game surprise you badly?
 
 ### `rules.no-tables` Nothing matched by hand

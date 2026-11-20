@@ -54,7 +54,10 @@ pub const Cue = extern struct {
 
     /// `tone`: a held pure note that is not a voice, such as standing water. `voice` is which of
     /// them; `gain` is how loud it should now be, and nought ends it.
-    pub const Kind = enum(u8) { strike, hum_on, hum_off, tone };
+    /// `tempo`: the world's pace changed (time thickens while the wheel is open): what is ringing
+    /// rings longer by as much, a held chord, and lets go when the pace comes back. `gain` is the
+    /// pace.
+    pub const Kind = enum(u8) { strike, hum_on, hum_off, tone, tempo };
 };
 
 /// A held voice: Hum's closed "mm", Drip's "oh", and room for two more.
@@ -131,6 +134,8 @@ pub const Sound = struct {
     sample: u64 = 0,
     /// Cues that arrived after their sample had passed. They sound at once, and are counted.
     late: u32 = 0,
+    /// The world's pace, as the sound was last told it: one, or thick while the wheel is open.
+    pace: f32 = 1.0,
     /// Where the hands last started Hum's own call, hum and let-go before the world told them.
     own_call_at: u64 = std.math.maxInt(u64),
     own_on_at: u64 = std.math.maxInt(u64),
@@ -192,6 +197,7 @@ pub const Sound = struct {
                 tone.step = cue.hz / rate;
                 tone.target = cue.gain;
             },
+            .tempo => self.restretch(cue.gain),
             .strike => {
                 const slot = self.next_thing % max_things;
                 self.next_thing +%= 1;
@@ -207,8 +213,8 @@ pub const Sound = struct {
                         g[i] = 0.0;
                         continue;
                     }
-                    // higher overtones die sooner
-                    const ring = @max(0.05, cue.ring / @sqrt(@max(rec.mult[i], 0.5) * 2.0));
+                    // higher overtones die sooner; while time is thick everything rings longer
+                    const ring = @max(0.05, cue.ring / @sqrt(@max(rec.mult[i], 0.5) * 2.0)) / self.pace;
                     const r = @exp(-6.91 / (ring * rate));
                     a1[i] = 2.0 * r * @cos(2.0 * std.math.pi * hz / rate);
                     a2[i] = -(r * r);
@@ -268,10 +274,32 @@ pub const Sound = struct {
             .strike => self.own_call_at = at,
             .hum_on => self.own_on_at = at,
             .hum_off => self.own_off_at = at,
-            .tone => {},
+            .tone, .tempo => {},
         }
         self.apply(cue);
         return at;
+    }
+
+    /// The pace changed: every resonator still ringing decays by as much more slowly (or quickly
+    /// again), its note unchanged. A resonator's pull back is r per sample, so r to the power of the
+    /// ratio of the paces rings that much longer.
+    fn restretch(self: *Sound, pace: f32) void {
+        if (pace <= 0.0 or pace == self.pace) return;
+        const ratio: V = @splat(pace / self.pace);
+        self.pace = pace;
+        for (&self.things, 0..) |*thing, slot| {
+            if (thing.asleep) continue;
+            inline for (0..2) |half| {
+                const g = slot * 2 + half;
+                const r = @sqrt(@max(-self.a2[g], @as(V, @splat(0.0))));
+                const live = r > @as(V, @splat(1e-6));
+                const safe = @select(f32, live, r, @as(V, @splat(1.0)));
+                const r_new = @exp(@log(safe) * ratio);
+                const c = self.a1[g] / (safe * @as(V, @splat(2.0)));
+                self.a1[g] = @select(f32, live, @as(V, @splat(2.0)) * r_new * c, self.a1[g]);
+                self.a2[g] = @select(f32, live, -(r_new * r_new), self.a2[g]);
+            }
+        }
     }
 
     /// Whether the world's cue is one the hands have already started on its very sample.
@@ -281,7 +309,7 @@ pub const Sound = struct {
             .strike => &self.own_call_at,
             .hum_on => &self.own_on_at,
             .hum_off => &self.own_off_at,
-            .tone => return false,
+            .tone, .tempo => return false,
         };
         // the same press, if the hands started it within a step of where the world tells it (two
         // buttons changing in one step share a stamp); used once, so a later press is not missed

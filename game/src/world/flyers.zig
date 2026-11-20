@@ -105,7 +105,7 @@ pub const Bee = struct {
         }
         self.vel = .{ (me.x - was[0]) / world_mod.dt, (me.y - was[1]) / world_mod.dt, (me.z - was[2]) / world_mod.dt };
         // its buzz: the garden's note at the bee, heard bent by how fast it comes or goes
-        if (w.step % buzz_every == 0) {
+        if (w.clock % buzz_every == 0) {
             const hx = w.hum_x - me.x;
             const hy = 0.5 - me.y;
             const hz = w.hum_z - me.z;

@@ -20,6 +20,10 @@ pub const Walker = struct {
     in_open: bool = false,
     bee_marked: bool = false,
     bridge_marked: bool = false,
+    swell_marked: bool = false,
+    nudged: bool = false,
+    nudge_left: u8 = 0,
+    nudged_at: u64 = 0,
     cross_from: f32 = 0.0,
     breathing: bool = false,
     ticks_held: u32 = 0,
@@ -358,6 +362,38 @@ pub const Walker = struct {
                 h.buttons |= Hands.sing;
                 if (after == 60 * 12) self.mark = "wonder";
                 if (after > 60 * 13) self.next(step);
+            },
+            16 => {
+                // let go, and walk away from the water, so the swell is seen at Hum's own height
+                const fp = &w.pools[w.pool_count - 1];
+                if (after < 360) {
+                    _ = toward(w, &h, w.hum_x + (w.hum_x - fp.x), w.hum_z + (w.hum_z - fp.z));
+                    _ = face(w, &h, w.hum_x + (w.hum_x - fp.x), w.hum_z + (w.hum_z - fp.z));
+                }
+                if (after > 480) self.next(step);
+            },
+            17 => {
+                // the swell: hold R2 and let it grow two bars; on the next downbeat nudge home back up
+                // to sunny home; let go on the one after, and the amen lands
+                h.buttons |= Hands.sing;
+                if (after > 30 and w.swell_bars >= 2 and !self.swell_marked) {
+                    self.swell_marked = true;
+                    self.mark = "swell";
+                }
+                if (!self.nudged and after > 30 and w.swell_bars >= 2 and w.downbeat_at != world_mod.never and w.downbeat_at + 1 == w.step) self.nudge_left = 4;
+                if (self.nudge_left > 0) {
+                    h.rx = 110;
+                    self.nudge_left -= 1;
+                    if (self.nudge_left == 0) {
+                        self.nudged = true;
+                        self.nudged_at = step;
+                    }
+                }
+                if (self.nudged and w.downbeat_at != world_mod.never and w.downbeat_at + 1 == w.step and w.home_k == 0 and w.step > self.nudged_at + 60) {
+                    h.buttons &= ~Hands.sing;
+                    self.next(step);
+                }
+                if (after > 60 * 40) self.next(step);
             },
             else => self.done = true,
         }

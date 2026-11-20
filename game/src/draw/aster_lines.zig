@@ -906,7 +906,8 @@ pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
     var n: usize = 0;
     const water = [3]f32{ 0.55, 0.75, 0.92 };
     const pollen = [3]f32{ 1.0, 0.82, 0.38 };
-    const seconds: f64 = @as(f64, @floatFromInt(w.step)) * (1.0 / 60.0);
+    // the water heaves on the world's beat, slower while time is thick
+    const seconds: f64 = (@as(f64, @floatFromInt(w.clock)) + @as(f64, w.clock_part)) * (1.0 / 60.0);
     for (w.pools[0..w.pool_count]) |*p| {
         const body: f32 = @floatFromInt(thing_body + p.thing);
         const ex = eye[0] - p.x;
@@ -1114,6 +1115,56 @@ pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
         out[n] = .{ .a = .{ t.x, @min(t.y, 6.0), t.z }, .b = .{ cx + ex * (outer + 1.0), y, cz + ez * (outer + 1.0) }, .half_width = 0.9, .body = 0.0, .col = col8(colour.ofNote(world_mod.garden_hz, t.hz), 0.22) };
         n += 1;
         threads += 1;
+    }
+    return n;
+}
+
+/// The swell, while R2 is held after the lock (SPEC.md 9; spec/promises/wheel.md, hands.told-apart):
+/// nothing on the ground. Hum takes a band of home's colour for each bar it has grown, and the two
+/// wedges either side of home show as two small marks either side of Hum, lit on each downbeat, an
+/// asleep one grey.
+pub fn swellLines(w: *const world_mod.World, out: []Inst) usize {
+    if (!w.singing or w.locked_at == world_mod.never or w.step < w.hold_until or w.stand < 0.9) return 0;
+    var n: usize = 0;
+    const rx = @cos(w.look_yaw);
+    const rz = @sin(w.look_yaw);
+    const swell: f32 = 1.2 + 0.05 * @as(f32, @floatFromInt(w.swell_bars));
+    const home_col = colour.ofNote(world_mod.garden_hz, w.home_hz);
+    var b: u8 = 0;
+    while (b < w.swell_bars) : (b += 1) {
+        const grow = 0.13 * @as(f32, @floatFromInt(b + 1));
+        const wide = 0.36 * swell + grow;
+        const high = 0.5 * swell + grow;
+        const alpha = 0.75 - 0.07 * @as(f32, @floatFromInt(b));
+        for (0..18) |k| {
+            if (n >= out.len) return n;
+            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 18.0);
+            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 18.0);
+            out[n] = .{ .a = .{ w.hum_x + rx * wide * @cos(a0), 0.52 + high * @sin(a0), w.hum_z + rz * wide * @cos(a0) }, .b = .{ w.hum_x + rx * wide * @cos(a1), 0.52 + high * @sin(a1), w.hum_z + rz * wide * @cos(a1) }, .half_width = 1.3, .body = 0.0, .col = col8(home_col, alpha) };
+            n += 1;
+        }
+    }
+    // the two neighbours: where a nudge would walk home, lit on the downbeat
+    const since: f32 = if (w.downbeat_at == world_mod.never or w.step < w.downbeat_at) 99.0 else @floatFromInt(w.step - w.downbeat_at);
+    const pulse = std.math.clamp(1.0 - since / 24.0, 0.0, 1.0);
+    const sides = [2]i8{ -1, 1 };
+    for (sides) |side| {
+        const k = w.home_k + side;
+        const lit = k >= world_mod.lit_least and k <= world_mod.lit_most;
+        const awake = lit and (w.awake & (@as(u8, 1) << @intFromEnum(world_mod.moodOf(k)))) != 0;
+        const tint = if (awake) colour.ofNote(world_mod.garden_hz, world_mod.wedgeHz(w.day_hz, k)) else [3]f32{ 0.5, 0.5, 0.5 };
+        const bright: f32 = if (awake) 0.35 + 0.65 * pulse else 0.15;
+        const off = (0.36 * swell + 0.9) * @as(f32, @floatFromInt(side));
+        const cx = w.hum_x + rx * off;
+        const cz = w.hum_z + rz * off;
+        const cy: f32 = 0.6;
+        const s: f32 = 0.22;
+        const pts = [4][3]f32{ .{ cx, cy + s, cz }, .{ cx + rx * s, cy, cz + rz * s }, .{ cx, cy - s, cz }, .{ cx - rx * s, cy, cz - rz * s } };
+        for (0..4) |i| {
+            if (n >= out.len) return n;
+            out[n] = .{ .a = pts[i], .b = pts[(i + 1) % 4], .half_width = 1.6, .body = 0.0, .col = col8(tint, bright) };
+            n += 1;
+        }
     }
     return n;
 }

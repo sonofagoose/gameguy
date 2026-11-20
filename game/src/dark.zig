@@ -443,8 +443,7 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
     var n: usize = 0;
     for (w.rings) |ring| {
         if (!ring.live) continue;
-        const age: f32 = @floatFromInt(w.step - ring.born);
-        const reach = age * world_mod.dt * world_mod.sound_speed;
+        const reach = ring.age * world_mod.dt * world_mod.sound_speed;
         const fade = std.math.clamp(1.0 - reach / w.ring_reach, 0.0, 1.0);
         const tint = col8(if (ring.own) bone else teal, 0.85 * fade * fade);
         const parts = 64;
@@ -537,8 +536,9 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
         };
         n += 1;
     } else {
-        // stood beside: one metre of bone-white, hatched so it reads as the one solid thing
-        const swell: f32 = if (w.singing) 1.2 else 1.0;
+        // stood beside: one metre of bone-white, hatched so it reads as the one solid thing. Singing
+        // after the lock it swells a little more each bar (the swell, SPEC.md 9)
+        const swell: f32 = if (w.singing) 1.2 + 0.05 * @as(f32, @floatFromInt(w.swell_bars)) else 1.0;
         const rx = @cos(w.look_yaw);
         const rz = @sin(w.look_yaw);
         const wide = 0.36 * swell;
@@ -1026,6 +1026,8 @@ pub fn run(window: plat.Window, options: Options) bool {
         if (device == 0) {
             const hands = if (replay) |*r| r.hands(world.step) else if (options.scene != .dark) walker.hands(&world) else script.hands(world.step);
             if (replay == null) mark = walker.mark;
+            // the scripted player's marks, for the clips cut from the evening's sound (tools/clips.py)
+            if (mark) |what| log("mark {s} at step {d}", .{ what, world.step });
             if (replay) |*r| {
                 if (r.done(world.step + 1)) running = false;
             }
@@ -1072,7 +1074,8 @@ pub fn run(window: plat.Window, options: Options) bool {
         }
         if (scripted and options.scene != .dark and walker.done and done_at == null) done_at = frame;
         if (done_at) |at| {
-            if (options.frames == 0 and frame > at + 30) running = false;
+            // five seconds more, so what the last thing done sets ringing is heard and seen to its end
+            if (options.frames == 0 and frame > at + 300) running = false;
         }
 
         // the picture
@@ -1125,7 +1128,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                     if (!ring.live) continue;
                     const dx = cx - ring.x;
                     const dz = cz - ring.z;
-                    const behind = @as(f32, @floatFromInt(world.step - ring.born)) * world_mod.dt * world_mod.sound_speed - @sqrt(dx * dx + dz * dz);
+                    const behind = ring.age * world_mod.dt * world_mod.sound_speed - @sqrt(dx * dx + dz * dz);
                     if (behind < 0.0 or behind > 110.0) continue;
                     const fall = 1.0 - behind / 110.0;
                     band = @max(band, fall * fall);
@@ -1183,6 +1186,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             moving_n += aster_lines.beeLines(&world, moving[moving_n..]);
             moving_n += aster_lines.poolLines(&world, eye, moving[moving_n..]);
             moving_n += aster_lines.wheelLines(&world, moving[moving_n..]);
+            moving_n += aster_lines.swellLines(&world, moving[moving_n..]);
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);
