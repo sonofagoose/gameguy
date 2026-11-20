@@ -7,7 +7,7 @@ the build (`../stages.md`)._
 
 - **Said:** `SPEC.md` "Your own voice answers within one sound buffer."
 - **Stage:** 1
-- **Scene:** dark
+- **Scene:** evening
 - **The moment:** You press R2 and Hum is already humming. There is no gap to learn, nothing to
   lead. It is as immediate as humming yourself, so within a minute you stop thinking of the button
   and think of the note.
@@ -65,7 +65,7 @@ the build (`../stages.md`)._
 - **Full size:**
   - `test a note's colour goes round the wheel by fifths`
   - `test what lights a thing by ringing is what sounds it`
-  - `frame asters-answer` Kin of home lit in home's colour and its neighbours'; nothing lit that
+  - `frame evening-answer` Kin of home lit in home's colour and its neighbours'; nothing lit that
     isn't sounding.
   - `owed` Octave is height and timbre is the texture of a line, in the renderer, for every family.
 - **Asks:** Could you tell which bells were kin to your note by their colour?

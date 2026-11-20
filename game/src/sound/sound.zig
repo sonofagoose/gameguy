@@ -34,7 +34,9 @@ pub const Cue = extern struct {
     at: u64,
     kind: Kind,
     family: Family = .bell,
-    _pad: [2]u8 = .{ 0, 0 },
+    /// For a held voice: whose it is. 0 is Hum.
+    voice: u8 = 0,
+    _pad: u8 = 0,
     /// The lowest note of the thing, in hertz.
     hz: f32 = 0.0,
     /// How hard, 0 to 1.
@@ -44,6 +46,24 @@ pub const Cue = extern struct {
 
     pub const Kind = enum(u8) { strike, hum_on, hum_off };
 };
+
+/// A held voice: Hum's closed "mm", Drip's "oh", and room for two more.
+pub const max_voices = 4;
+const Voice = struct {
+    a1: V = @splat(0.0),
+    a2: V = @splat(0.0),
+    gain: V = @splat(0.0),
+    y1: V = @splat(0.0),
+    y2: V = @splat(0.0),
+    phase: f32 = 0.0,
+    step: f32 = 0.0,
+    level: f32 = 0.0,
+    target: f32 = 0.0,
+    noise: u32 = 0x1234_5678,
+};
+/// How much of the voices' sum squared is added back. Two voices together then make a third
+/// note between them, the difference of the two, which neither is singing (spec/laws.md).
+const third_voice: f32 = 0.30;
 
 const max_things = 192; // 8 overtones each: 1,536 overtones, two groups a thing
 const burst_len = 96; // 2 ms: what a strike is
@@ -73,18 +93,10 @@ pub const Sound = struct {
     things: [max_things]Thing = @splat(.{}),
     next_thing: u32 = 0,
 
-    // Hum's voice: pulses through three resonators that are a closed-mouth vowel
-    hum_a1: V = @splat(0.0),
-    hum_a2: V = @splat(0.0),
-    hum_gain: V = @splat(0.0),
-    hum_y1: V = @splat(0.0),
-    hum_y2: V = @splat(0.0),
-    hum_phase: f32 = 0.0,
-    hum_step: f32 = 0.0,
-    hum_level: f32 = 0.0,
-    hum_target: f32 = 0.0,
-
-    hum_noise: u32 = 0x1234_5678,
+    // held voices: each is pulses through three resonators that are its vowel
+    voices: [max_voices]Voice = @splat(.{}),
+    /// What the voices' sum has just been, to take the standing part out of its square.
+    bus_dc: f32 = 0.0,
     /// Samples rendered so far: the only clock there is.
     sample: u64 = 0,
     /// Cues that arrived after their sample had passed. They sound at once, and are counted.
@@ -97,22 +109,28 @@ pub const Sound = struct {
 
     pub fn init(self: *Sound) void {
         self.* = .{};
-        // "mm": one strong low resonance, two faint higher ones
-        const hz = [4]f32{ 280.0, 1050.0, 2300.0, 100.0 };
-        const width = [4]f32{ 70.0, 110.0, 160.0, 100.0 };
-        const level = [4]f32{ 1.0, 0.22, 0.08, 0.0 };
-        var a1: [4]f32 = undefined;
-        var a2: [4]f32 = undefined;
-        var g: [4]f32 = undefined;
-        for (0..4) |i| {
-            const r = @exp(-std.math.pi * width[i] / rate);
-            a1[i] = 2.0 * r * @cos(2.0 * std.math.pi * hz[i] / rate);
-            a2[i] = -(r * r);
-            g[i] = level[i] * (1.0 - r);
+        // each voice's vowel: three resonances (hertz, width, level)
+        const vowels = [max_voices][3][3]f32{
+            .{ .{ 280.0, 70.0, 1.0 }, .{ 1050.0, 110.0, 0.22 }, .{ 2300.0, 160.0, 0.08 } }, // mm: Hum
+            .{ .{ 520.0, 80.0, 1.0 }, .{ 860.0, 100.0, 0.45 }, .{ 2500.0, 170.0, 0.10 } }, // oh: Drip
+            .{ .{ 720.0, 90.0, 1.0 }, .{ 1120.0, 110.0, 0.50 }, .{ 2600.0, 180.0, 0.12 } }, // ah
+            .{ .{ 320.0, 70.0, 1.0 }, .{ 800.0, 100.0, 0.30 }, .{ 2300.0, 160.0, 0.06 } }, // oo
+        };
+        for (&self.voices, 0..) |*voice, which| {
+            var a1: [4]f32 = @splat(0.0);
+            var a2: [4]f32 = @splat(0.0);
+            var g: [4]f32 = @splat(0.0);
+            for (0..3) |i| {
+                const r = @exp(-std.math.pi * vowels[which][i][1] / rate);
+                a1[i] = 2.0 * r * @cos(2.0 * std.math.pi * vowels[which][i][0] / rate);
+                a2[i] = -(r * r);
+                g[i] = vowels[which][i][2] * (1.0 - r);
+            }
+            voice.a1 = a1;
+            voice.a2 = a2;
+            voice.gain = g;
+            voice.noise = 0x1234_5678 +% @as(u32, @intCast(which)) *% 0x9e37_79b9;
         }
-        self.hum_a1 = a1;
-        self.hum_a2 = a2;
-        self.hum_gain = g;
     }
 
     /// The world's side: ask for a sound. False if the queue is full.
@@ -128,10 +146,11 @@ pub const Sound = struct {
     fn apply(self: *Sound, cue: Cue) void {
         switch (cue.kind) {
             .hum_on => {
-                self.hum_step = cue.hz / rate;
-                self.hum_target = cue.gain;
+                const voice = &self.voices[@min(cue.voice, max_voices - 1)];
+                voice.step = cue.hz / rate;
+                voice.target = cue.gain;
             },
-            .hum_off => self.hum_target = 0.0,
+            .hum_off => self.voices[@min(cue.voice, max_voices - 1)].target = 0.0,
             .strike => {
                 const slot = self.next_thing % max_things;
                 self.next_thing +%= 1;
@@ -258,38 +277,50 @@ pub const Sound = struct {
                 }
             }
 
-            // Hum's voice
-            var p1 = self.hum_y1;
-            var p2 = self.hum_y2;
-            for (0..n) |i| {
-                self.hum_level += (self.hum_target - self.hum_level) * 0.0015;
-                var x: f32 = 0.0;
-                if (self.hum_step > 0.0) {
-                    self.hum_phase += self.hum_step;
-                    if (self.hum_phase >= 1.0) {
-                        self.hum_phase -= 1.0;
-                        x = 1.0;
+            // the held voices, summed on a line of their own
+            var bus: [128]f32 = @splat(0.0);
+            for (&self.voices) |*voice| {
+                if (voice.level == 0.0 and voice.target == 0.0) continue;
+                var p1 = voice.y1;
+                var p2 = voice.y2;
+                for (0..n) |i| {
+                    voice.level += (voice.target - voice.level) * 0.0015;
+                    var x: f32 = 0.0;
+                    if (voice.step > 0.0) {
+                        voice.phase += voice.step;
+                        if (voice.phase >= 1.0) {
+                            voice.phase -= 1.0;
+                            x = 1.0;
+                        }
+                    }
+                    const xin: V = @splat((x + rnd(&voice.noise) * 0.004) * voice.level);
+                    const y0 = voice.a1 * p1 + voice.a2 * p2 + voice.gain * xin;
+                    bus[i] += ((y0[0] + y0[1]) + (y0[2] + y0[3])) * 6.0;
+                    p2 = p1;
+                    p1 = y0;
+                }
+                if (voice.level < 1e-6 and voice.target == 0.0) {
+                    const size = @reduce(.Max, @abs(p1)) + @reduce(.Max, @abs(p2));
+                    if (size < 1e-7) {
+                        p1 = @splat(0.0);
+                        p2 = @splat(0.0);
+                        voice.level = 0.0;
                     }
                 }
-                const xin: V = @splat((x + rnd(&self.hum_noise) * 0.004) * self.hum_level);
-                const y0 = self.hum_a1 * p1 + self.hum_a2 * p2 + self.hum_gain * xin;
-                acc[i] += y0 * @as(V, @splat(6.0));
-                p2 = p1;
-                p1 = y0;
+                voice.y1 = p1;
+                voice.y2 = p2;
             }
-            if (self.hum_level < 1e-6 and self.hum_target == 0.0) {
-                const size = @reduce(.Max, @abs(p1)) + @reduce(.Max, @abs(p2));
-                if (size < 1e-7) {
-                    p1 = @splat(0.0);
-                    p2 = @splat(0.0);
-                    self.hum_level = 0.0;
-                }
+            // Where two voices sound together, the air between them adds a third: the square of
+            // their sum holds the difference of their notes. Its standing part is taken out.
+            for (0..n) |i| {
+                const squared = bus[i] * bus[i];
+                self.bus_dc += (squared - self.bus_dc) * 0.002;
+                if (@abs(self.bus_dc) < 1e-9) self.bus_dc = 0.0;
+                bus[i] += third_voice * (squared - self.bus_dc);
             }
-            self.hum_y1 = p1;
-            self.hum_y2 = p2;
 
             for (0..n) |i| {
-                const s = (acc[i][0] + acc[i][1]) + (acc[i][2] + acc[i][3]);
+                const s = ((acc[i][0] + acc[i][1]) + (acc[i][2] + acc[i][3])) + bus[i];
                 // a soft limit: straight up to 0.7, then bending toward 1
                 const a = @abs(s);
                 out[at + i] = if (a <= 0.7) s else std.math.copysign(0.7 + 0.3 * (1.0 - 1.0 / (1.0 + (a - 0.7) * 3.3333)), s);
@@ -329,4 +360,39 @@ test "the same cues make the same samples" {
     try std.testing.expect(loudest > 0.05);
     try std.testing.expect(loudest <= 1.0);
     try std.testing.expectEqual(@as(u32, 0), a.late);
+}
+
+test "two voices together make a third between them, and one alone makes none" {
+    // how much sound there is at one pitch in a stretch of samples
+    const at = struct {
+        fn f(samples: []const f32, hz: f32) f32 {
+            var re: f32 = 0.0;
+            var im: f32 = 0.0;
+            for (samples, 0..) |x, i| {
+                const a = 2.0 * std.math.pi * hz * @as(f32, @floatFromInt(i)) / rate;
+                re += x * @cos(a);
+                im += x * @sin(a);
+            }
+            return @sqrt(re * re + im * im) / @as(f32, @floatFromInt(samples.len));
+        }
+    }.f;
+    const allocator = std.testing.allocator;
+    const out = try allocator.alloc(f32, 48000 * 2);
+    defer allocator.free(out);
+    const snd = try allocator.create(Sound);
+    defer allocator.destroy(snd);
+    // 1,300 and 1,950 hertz: a pure fifth, and nothing either voice sings is at 650
+    const low: f32 = 1300.0;
+    const high: f32 = 1950.0;
+    snd.init();
+    _ = snd.push(.{ .at = 0, .kind = .hum_on, .voice = 0, .hz = low, .gain = 0.35 });
+    snd.render(out);
+    const alone = at(out[48000..], high - low);
+    snd.init();
+    _ = snd.push(.{ .at = 0, .kind = .hum_on, .voice = 0, .hz = low, .gain = 0.35 });
+    _ = snd.push(.{ .at = 0, .kind = .hum_on, .voice = 1, .hz = high, .gain = 0.35 });
+    snd.render(out);
+    const together = at(out[48000..], high - low);
+    try std.testing.expect(together > alone * 8.0);
+    try std.testing.expect(together > 1e-5);
 }

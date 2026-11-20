@@ -40,6 +40,50 @@ pub const quietest: f32 = 0.004;
 pub const answer_level: f32 = 0.22;
 pub const voice_level: f32 = 0.35;
 
+/// A step that never comes.
+pub const never: u64 = std.math.maxInt(u64);
+
+/// Drip (spec/people.md): a drop that never finished falling. Where it waits in the dark, its
+/// beat, and its note: a fifth above Hum, and a hair flat until they have breathed together.
+pub const drip_x: f32 = asters.clear_x;
+pub const drip_z: f32 = asters.clear_z;
+/// Steps between its ticks: 72 a minute. Every other tick is a little late: its time is alive.
+pub const tick_every: u32 = 50;
+pub const tick_swing: u32 = 4;
+/// How flat its fifth is at first, in hundredths of a semitone.
+pub const drip_flat: f32 = -4.0;
+/// Letting go within this many steps of a tick is breathing with it.
+pub const breath_window: u32 = 8;
+pub const breaths_to_lock: u32 = 4;
+/// How near Hum must be for the two to breathe together.
+pub const beside: f32 = 5.0;
+/// Once locked, both notes hold by themselves for this many steps.
+pub const lock_holds: u64 = 170;
+
+/// The step the tick numbered `k` falls on.
+pub fn tickStep(k: u64) u64 {
+    return k * tick_every + (if (k % 2 == 1) @as(u64, tick_swing) else 0);
+}
+
+/// How many steps from `step` to the nearest tick, before or after.
+pub fn fromTick(step: u64) u64 {
+    const k = step / tick_every;
+    var best: u64 = never;
+    var i: u64 = if (k > 0) k - 1 else 0;
+    while (i <= k + 1) : (i += 1) {
+        const at = tickStep(i);
+        best = @min(best, if (at > step) at - step else step - at);
+    }
+    return best;
+}
+
+/// How many steps until the next tick, counting this step.
+pub fn untilTick(step: u64) u64 {
+    var k = step / tick_every;
+    while (tickStep(k) < step) k += 1;
+    return tickStep(k) - step;
+}
+
 /// What a cue comes from.
 pub const Source = union(enum) { hum, thing: u32 };
 
@@ -64,14 +108,13 @@ pub const Camera = struct { eye: [3]f32, at: [3]f32, fov: f32, stand: f32 };
 pub const page_up: f32 = 105.0;
 pub const page_back: f32 = 26.0;
 pub const page_fov: f32 = 50.0;
-/// The step the page first stands up on, how fast it rises and how fast it lies down again.
-pub const stands_at: u64 = 150;
+/// How fast the page rises when it stands, and how fast it lies down again.
 pub const rise_rate: f32 = 0.0045;
 pub const fold_rate: f32 = 0.03;
 /// R1 held this many steps folds the place back to the page for as long as it is held.
 pub const fold_after: u32 = 15;
 /// Standing still within this of a tall thing's foot, the view leans back to take it in.
-pub const lean_within: f32 = 40.0;
+pub const lean_within: f32 = 18.0;
 /// How near a tower's foot counts as standing at it.
 pub const at_foot: f32 = 15.0;
 
@@ -143,6 +186,10 @@ pub const Ring = struct {
     z: f32 = 0.0,
     born: u64 = 0,
     live: bool = false,
+    /// The note that is travelling.
+    hz: f32 = garden_hz,
+    /// Hum's own call, which rings what it passes; or someone else's, which is an answer.
+    own: bool = true,
 };
 
 /// A sound on its way to Hum's ears.
@@ -156,7 +203,7 @@ const Arrival = struct {
     light: f32 = 0.0,
 };
 
-const no_thing: u32 = 0xffff_ffff;
+pub const no_thing: u32 = 0xffff_ffff;
 pub const max_things = 4096;
 pub const max_towers = asters.max_towers;
 pub const max_rings = 6;
@@ -212,6 +259,27 @@ pub const World = struct {
     stand: f32 = 1.0,
     /// How many steps R1 has been held.
     call_held: u32 = 0,
+    /// The step the page stands up from: when the drop lands on Hum's head.
+    stand_from: u64 = never,
+    /// The day coming up: 0 is the dark, where a thing is seen only when it sounds or a call
+    /// passes it, and 1 is morning.
+    dawn: f32 = 1.0,
+    /// Drip: which thing it is, whether it rides on Hum's head yet, whether it is humming with
+    /// Hum now, and how many breaths they have taken together.
+    drip: u32 = no_thing,
+    drip_met: bool = false,
+    drip_humming: bool = false,
+    breaths: u32 = 0,
+    /// Whether the second call has been answered, and when.
+    answered: bool = false,
+    answered_at: u64 = 0,
+    /// How far round the figure between the two voices has turned, in radians.
+    figure_turn: f32 = 0.0,
+    /// When the two locked, and until when both notes hold by themselves.
+    locked_at: u64 = never,
+    hold_until: u64 = 0,
+    /// How far the page has leaned in beside Drip, 0 to 1.
+    near_in: f32 = 0.0,
     /// A flower head that has fallen by the great aster's foot: a bell at Hum's own size.
     fallen: u32 = no_thing,
     /// The tower Hum is nearest, and how far its foot is.
@@ -273,9 +341,26 @@ pub const World = struct {
     /// The proof field of asters, stood in as a place (asters.zig). Each stalk is twelve parts
     /// that a climbing call lights one after another; each flower head is a bell.
     pub fn initAsters(self: *World) void {
+        self.initField();
+        self.stand = 1.0;
+        self.stand_from = 0;
+        self.dawn = 1.0;
+        self.drip_met = true;
+        self.breaths = breaths_to_lock;
+        self.answered = true;
+    }
+
+    /// The first evening, from its first second: the same field, in the dark, as a page. Drip
+    /// is out there ticking, and nothing stands up until the two have breathed together.
+    pub fn initEvening(self: *World) void {
+        self.initField();
+        self.stand = 0.0;
+        self.dawn = 0.0;
+    }
+
+    fn initField(self: *World) void {
         self.* = .{};
         self.view = .place;
-        self.stand = 0.0;
         self.ring_reach = 900.0;
         var plans: [asters.max_towers]asters.Plan = undefined;
         const n = asters.field(&plans, garden_hz);
@@ -309,6 +394,10 @@ pub const World = struct {
         self.fallen = at;
         self.things[at] = .{ .x = asters.great_x + 7.5, .y = 1.5, .z = asters.great_z + 6.0, .tall = 2.2, .hz = garden_hz * 0.5, .ring = 5.5 };
         at += 1;
+        // Drip: a drop 40 cm across
+        self.drip = at;
+        self.things[at] = .{ .x = drip_x, .y = 0.3, .z = drip_z, .tall = 0.4, .hz = garden_hz * 1.5, .family = .bar, .ring = 0.2 };
+        at += 1;
         self.thing_count = at;
     }
 
@@ -321,35 +410,61 @@ pub const World = struct {
         switch (from) {
             .hum => {
                 switch (what.light.shape) {
-                    .ring_on_the_ground => {
-                        var oldest: usize = 0;
-                        for (self.rings, 0..) |ring, i| {
-                            if (!ring.live) {
-                                oldest = i;
-                                break;
-                            }
-                            if (ring.born < self.rings[oldest].born) oldest = i;
-                        }
-                        self.rings[oldest] = .{ .x = self.hum_x, .z = self.hum_z, .born = self.step, .live = true };
-                    },
+                    .ring_on_the_ground => self.startRing(self.hum_x, self.hum_z, what.sound.hz, true),
                     .swell => self.singing = true,
                     .dims => self.singing = false,
                     .glow => {},
                 }
                 self.hum_light = @max(self.hum_light, what.light.brightness);
-                self.send(now_sample + lead, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .hz = what.sound.hz, .gain = what.sound.strength * voice_level, .ring = what.sound.ring }, no_thing, what.light);
+                self.send(now_sample + lead, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .voice = what.sound.voice, .hz = what.sound.hz, .gain = what.sound.strength * voice_level, .ring = what.sound.ring }, no_thing, what.light);
             },
             .thing => |index| {
                 const thing = &self.things[index];
                 thing.loud = @max(thing.loud, what.light.brightness);
+                if (what.light.shape == .ring_on_the_ground) self.startRing(thing.x, thing.z, what.sound.hz, false);
                 // heard when it has come back to where Hum is now
                 const hx = thing.x - self.hum_x;
                 const hz = thing.z - self.hum_z;
                 const back = @sqrt(hx * hx + hz * hz + thing.y * thing.y) / sound_speed;
                 const delay: u64 = @intFromFloat(back * sound.rate);
-                self.send(now_sample + lead + delay, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .hz = what.sound.hz, .gain = what.sound.strength * answer_level, .ring = what.sound.ring }, index, what.light);
+                const level: f32 = if (what.sound.kind == .strike) answer_level else voice_level;
+                self.send(now_sample + lead + delay, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .voice = what.sound.voice, .hz = what.sound.hz, .gain = what.sound.strength * level, .ring = what.sound.ring }, index, what.light);
             },
         }
+    }
+
+    /// A ring of light begins to run out from a place: a call's, or an answer's.
+    fn startRing(self: *World, x: f32, z: f32, hz: f32, own: bool) void {
+        var oldest: usize = 0;
+        for (self.rings, 0..) |r, i| {
+            if (!r.live) {
+                oldest = i;
+                break;
+            }
+            if (r.born < self.rings[oldest].born) oldest = i;
+        }
+        self.rings[oldest] = .{ .x = x, .z = z, .born = self.step, .live = true, .hz = hz, .own = own };
+    }
+
+    /// Drip's note now: a fifth above Hum's, flat by less with every breath they have taken
+    /// together, and true once they have locked.
+    pub fn dripHz(self: *const World) f32 {
+        const left = 1.0 - @as(f32, @floatFromInt(@min(self.breaths, breaths_to_lock))) / @as(f32, breaths_to_lock);
+        return garden_hz * 1.5 * std.math.pow(f32, 2.0, drip_flat * left / 1200.0);
+    }
+
+    /// How many times a second the two notes beat: the third overtone of Hum's against the
+    /// second of Drip's. The figure between them turns at this rate, and stops when it is nought.
+    pub fn beat(self: *const World) f32 {
+        return @abs(3.0 * garden_hz - 2.0 * self.dripHz());
+    }
+
+    fn besideDrip(self: *const World) bool {
+        if (self.drip == no_thing or self.drip_met) return false;
+        const d = self.things[self.drip];
+        const dx = d.x - self.hum_x;
+        const dz = d.z - self.hum_z;
+        return dx * dx + dz * dz <= beside * beside;
     }
 
     /// The sound half of a cue, on its way. Only `tell` calls this.
@@ -398,7 +513,8 @@ pub const World = struct {
         if (self.view == .place) {
             // the hinge: the world is a page until it stands, and holding R1 lays it down again
             self.call_held = if (hands.held(Hands.call)) self.call_held +| 1 else 0;
-            const standing = self.step >= stands_at and self.call_held < fold_after;
+            const standing = self.step >= self.stand_from and self.call_held < fold_after;
+            if (self.step >= self.stand_from) self.dawn = @min(1.0, self.dawn + 0.0035);
             self.stand = if (standing) @min(1.0, self.stand + rise_rate) else @max(0.0, self.stand - fold_rate);
             self.look(hands);
         }
@@ -409,13 +525,49 @@ pub const World = struct {
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = garden_hz, .strength = 0.857, .ring = 0.35 }, .ring_on_the_ground));
         }
 
-        // singing: Hum's one note for as long as R2 is held, and Hum swelling for as long
-        if (pressed & Hands.sing != 0) {
+        // singing: Hum's one note for as long as R2 is held, and Hum swelling for as long. Beside
+        // Drip, it hums with you. While a lock holds, both notes hold by themselves.
+        const holding = self.step < self.hold_until;
+        if (pressed & Hands.sing != 0 and !holding) {
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = garden_hz, .strength = 1.0, .ring = 0.0 }, .swell));
+            if (self.besideDrip()) {
+                self.drip_humming = true;
+                self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.7, .ring = 0.0 }, .swell));
+            }
         }
-        if (released & Hands.sing != 0) {
+        if (released & Hands.sing != 0 and !holding and self.singing) {
+            var locking = false;
+            if (self.drip_humming) {
+                // letting go on its tick is a breath together, and each one brings its note truer.
+                // Letting go off the tick is nothing: no penalty, and nobody says so.
+                if (fromTick(self.step) <= breath_window and self.breaths < breaths_to_lock) {
+                    self.breaths += 1;
+                    locking = self.breaths == breaths_to_lock;
+                }
+            }
+            if (locking) {
+                // the fourth: the figure stops, and both notes hold by themselves
+                self.locked_at = self.step;
+                self.hold_until = self.step + lock_holds;
+                self.seen.meet(.evening_breathe, self.step);
+                self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.7, .ring = 0.0 }, .swell));
+            } else {
+                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = garden_hz, .strength = 0.0, .ring = 0.0 }, .dims));
+                if (self.drip_humming) {
+                    self.drip_humming = false;
+                    self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_off, .voice = 1, .hz = self.dripHz(), .strength = 0.0, .ring = 0.0 }, .dims));
+                }
+            }
+        }
+        if (self.hold_until != 0 and self.step == self.hold_until) {
+            // the hold ends: both let go, the drop lands on Hum's head, and the page begins to stand
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = garden_hz, .strength = 0.0, .ring = 0.0 }, .dims));
+            self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_off, .voice = 1, .hz = self.dripHz(), .strength = 0.0, .ring = 0.0 }, .dims));
+            self.drip_humming = false;
+            self.drip_met = true;
+            self.stand_from = self.step + 40;
         }
+        if (self.drip != no_thing) self.dripStep();
         if (self.singing) self.hum_light = @max(self.hum_light, 0.8);
         self.hum_light *= 0.94;
         if (self.hum_light < 0.002) self.hum_light = 0.0;
@@ -431,6 +583,24 @@ pub const World = struct {
                 ring.live = false;
                 continue;
             }
+            if (!ring.own) {
+                // an answer on its way: it lights what it passes, and it reaches Hum
+                const hx = self.hum_x - ring.x;
+                const hz = self.hum_z - ring.z;
+                const to_hum = @sqrt(hx * hx + hz * hz);
+                if (to_hum > before and to_hum <= reach and !self.answered) {
+                    self.answered = true;
+                    self.answered_at = self.step;
+                    self.seen.meet(.evening_call, self.step);
+                }
+                for (self.things[0..self.thing_count]) |*thing| {
+                    const dx = thing.x - ring.x;
+                    const dz = thing.z - ring.z;
+                    const far = @sqrt(dx * dx + dz * dz + thing.y * thing.y);
+                    if (far > before and far <= reach) thing.lit = @max(thing.lit, 0.6);
+                }
+                continue;
+            }
             for (self.things[0..self.thing_count], 0..) |*thing, index| {
                 const dx = thing.x - ring.x;
                 const dz = thing.z - ring.z;
@@ -438,6 +608,14 @@ pub const World = struct {
                 if (far <= before or far > reach) continue;
                 thing.lit = 1.0;
                 if (!thing.sounds) continue;
+                if (index == self.drip) {
+                    // the second call is always answered: Drip's own ring comes back
+                    if (self.calls >= 2 and !self.drip_met) {
+                        const loud = 0.9 / (1.0 + (far / 60.0) * (far / 60.0));
+                        self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = self.dripHz(), .strength = loud, .ring = 0.9 }, .ring_on_the_ground));
+                    }
+                    continue;
+                }
                 const rec = sound.recipe(thing.family);
                 const kin = sympathy(garden_hz, thing.hz, rec.mult, rec.gain);
                 if (kin < 0.08) continue;
@@ -461,6 +639,7 @@ pub const World = struct {
             if (thing.loud > 0.1) ringing += 1;
         }
         if (ringing > 0 and self.still > 0) self.seen.hold(.evening_call);
+        if (self.drip_humming and self.besideDrip()) self.seen.hold(.evening_breathe);
         if (self.atTallFoot() and self.still > 0 and self.lean > 0.5) self.seen.hold(.garden_asters);
 
         // hand over what is due before the next step ends, soonest first
@@ -482,6 +661,33 @@ pub const World = struct {
 
         self.step += 1;
         return n;
+    }
+
+    /// Drip keeps its time, turns the figure, and once it has landed rides on Hum's head.
+    fn dripStep(self: *World) void {
+        const d = &self.things[self.drip];
+        if (self.drip_met) {
+            d.x = self.hum_x;
+            d.z = self.hum_z;
+            d.y = 1.25;
+        }
+        const dx = d.x - self.hum_x;
+        const dz = d.z - self.hum_z;
+        const far = @sqrt(dx * dx + dz * dz);
+        // its tick: a plink and a flash, softer and dimmer the farther off it is
+        if (fromTick(self.step) == 0 and untilTick(self.step) == 0) {
+            const loud = 0.55 / (1.0 + (far / 40.0) * (far / 40.0));
+            self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = self.dripHz() * 2.0, .strength = loud, .ring = 0.16 }, .glow));
+        }
+        // while it hums with Hum, or holds, it shines
+        if (self.drip_humming or self.step < self.hold_until) d.loud = @max(d.loud, 0.85);
+        // the figure between the two voices turns as fast as they beat
+        self.figure_turn += self.beat() * (2.0 * std.math.pi * dt);
+        if (self.figure_turn > 2.0 * std.math.pi) self.figure_turn -= 2.0 * std.math.pi;
+        // stand still beside it and the page leans in
+        const leaning_in = !self.drip_met and far <= beside * 1.6 and self.still >= 20;
+        const want: f32 = if (leaning_in or self.step < self.hold_until) 1.0 else 0.0;
+        self.near_in += (want - self.near_in) * 0.04;
     }
 
     /// The view of the place: the right stick turns and tilts it, and standing still at the foot
@@ -564,7 +770,10 @@ pub const World = struct {
         // the hinge, eased so that it starts and ends gently
         const s = self.stand * self.stand * (3.0 - 2.0 * self.stand);
         if (s < 1.0) {
-            const page_eye = [3]f32{ self.hum_x - fx * page_back, page_up, self.hum_z - fz * page_back };
+            // beside Drip, standing still, the page comes closer
+            const high = page_up + self.near_in * (12.0 - page_up);
+            const behind = page_back + self.near_in * (5.0 - page_back);
+            const page_eye = [3]f32{ self.hum_x - fx * behind, high, self.hum_z - fz * behind };
             const page_at = [3]f32{ self.hum_x + fx * 4.0, 0.0, self.hum_z + fz * 4.0 };
             // the gaze comes up to the horizon sooner than the eye comes down, so that what is
             // rising is in the frame while it rises, and its top leaves the frame before it stops
@@ -587,7 +796,8 @@ pub const World = struct {
 
     /// An answer has reached Hum's ears: the moments that are made of being answered.
     fn heard(self: *World, from: u32) void {
-        self.seen.meet(.evening_call, self.step);
+        // where there is no Drip to answer, any answer is being answered
+        if (self.drip == no_thing) self.seen.meet(.evening_call, self.step);
         self.seen.meet(.whole_law1, self.step);
         self.seen.meet(.whole_law6, self.step);
         const thing = self.things[from];
@@ -626,6 +836,10 @@ pub const World = struct {
         mixIn(&h, @as(u32, @bitCast(self.lean)));
         mixIn(&h, @as(u32, @bitCast(self.gaze)));
         mixIn(&h, @as(u32, @bitCast(self.stand)));
+        mixIn(&h, @as(u32, @bitCast(self.dawn)));
+        mixIn(&h, @as(u32, @bitCast(self.figure_turn)));
+        mixIn(&h, self.breaths);
+        mixIn(&h, @intFromBool(self.drip_met));
         mixIn(&h, @as(u32, @bitCast(self.hum_light)));
         mixIn(&h, self.told);
         mixIn(&h, self.calls);
@@ -830,7 +1044,8 @@ test "nothing sounds without its light: every sound in a scripted take was told 
 test "the page stands up slowly enough to be watched, and lies down while R1 is held" {
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
-    w.initAsters();
+    w.initEvening();
+    w.stand_from = 150;
     var cues: [max_cues]sound.Cue = undefined;
     // it begins as a page, flat
     try std.testing.expectEqual(@as(f32, 0.0), w.stand);
@@ -857,4 +1072,77 @@ test "the page stands up slowly enough to be watched, and lies down while R1 is 
     step = 0;
     while (step < 300) : (step += 1) _ = w.stepOnce(.{}, &cues);
     try std.testing.expectEqual(@as(f32, 1.0), w.stand);
+}
+
+test "four breaths on the tick bring the drip's fifth true, and the figure stops" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initEvening();
+    var cues: [max_cues]sound.Cue = undefined;
+    // stand beside it
+    w.hum_x = drip_x + 2.0;
+    w.hum_z = drip_z;
+    // its fifth starts four hundredths of a semitone flat, and the two beat almost twice a second
+    try std.testing.expect(@abs(1200.0 * @log2(w.dripHz() / (garden_hz * 1.5)) - drip_flat) < 0.01);
+    try std.testing.expect(w.beat() > 1.5 and w.beat() < 2.2);
+    var beats: [5]f32 = undefined;
+    beats[0] = w.beat();
+    // a breath off the tick is nothing: no penalty
+    var step: u64 = 0;
+    while (step < 400) : (step += 1) {
+        const off = untilTick(w.step) > 15 and untilTick(w.step) < 35;
+        _ = w.stepOnce(.{ .buttons = if (step > 200 and step < 320 and off) Hands.sing else 0 }, &cues);
+    }
+    try std.testing.expectEqual(@as(u32, 0), w.breaths);
+    // four breaths, each let go on its tick
+    var breath: u32 = 0;
+    var guard: u32 = 0;
+    while (w.breaths < breaths_to_lock and guard < 3000) : (guard += 1) {
+        const until = untilTick(w.step);
+        // hold from thirty steps before a tick, and let go on it
+        const hold = until > 0 and until <= 30;
+        _ = w.stepOnce(.{ .buttons = if (hold) Hands.sing else 0 }, &cues);
+        if (w.breaths > breath) {
+            breath = w.breaths;
+            beats[breath] = w.beat();
+        }
+    }
+    try std.testing.expectEqual(breaths_to_lock, w.breaths);
+    // each breath slowed the beating, and at the fourth there is none
+    for (1..5) |i| try std.testing.expect(beats[i] < beats[i - 1]);
+    try std.testing.expect(beats[4] < 0.001);
+    try std.testing.expect(w.seen.get(.evening_breathe).met);
+    // the figure turns no further
+    const still_at = w.figure_turn;
+    step = 0;
+    while (step < 60) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(@abs(w.figure_turn - still_at) < 0.001);
+    // both notes hold; then the drop lands and the page stands up
+    try std.testing.expect(!w.drip_met and w.stand == 0.0);
+    step = 0;
+    while (step < 700) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.drip_met);
+    try std.testing.expectEqual(@as(f32, 1.0), w.stand);
+    try std.testing.expect(w.dawn > 0.9);
+    try std.testing.expectEqual(w.told, w.sent);
+    try std.testing.expectEqual(@as(u32, 0), w.dark_sounds);
+}
+
+test "the second call is answered by the drip, late by the distance there and back" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initEvening();
+    var cues: [max_cues]sound.Cue = undefined;
+    const far = @sqrt(drip_x * drip_x + drip_z * drip_z);
+    var step: u64 = 0;
+    // the first call is not answered
+    while (step < 300) : (step += 1) _ = w.stepOnce(.{ .buttons = if (step == 10) Hands.call else 0 }, &cues);
+    try std.testing.expect(!w.answered);
+    // the second is: its ring reaches Drip, and Drip's own ring comes back
+    const called = w.step;
+    while (step < 700) : (step += 1) _ = w.stepOnce(.{ .buttons = if (step == 300) Hands.call else 0 }, &cues);
+    try std.testing.expect(w.answered);
+    const took = @as(f32, @floatFromInt(w.answered_at - called)) * dt;
+    try std.testing.expect(@abs(took - 2.0 * far / sound_speed) < 0.06);
+    try std.testing.expect(w.seen.get(.evening_call).met);
 }

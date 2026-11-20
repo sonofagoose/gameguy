@@ -412,7 +412,7 @@ def read_handhelds(facts):
     for path in logs:
         where = os.path.relpath(path, ROOT)
         for line in open(path, encoding='utf-8', errors='replace'):
-            for scene in ('dark', 'asters'):
+            for scene in ('dark', 'asters', 'evening'):
                 m = re.search(rf'the {scene}: (\d+) frames, (\d+) late.*?slowest sound buffer ([0-9.]+) ms', line)
                 if m and int(m.group(1)) >= 600:
                     facts[f'handheld.{scene}.frames'] = float(m.group(1))

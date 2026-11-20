@@ -87,10 +87,10 @@ stage 2 begins._
   - `test a call climbs a tower, and its bells are heard late by their height`
   - `take` The scripted player walks to the great aster, stops at its foot, calls, and is still
     standing there when the bells are heard.
-  - `frame asters-far` The skyline, from where the page stood up.
-  - `frame asters-foot` At the foot, walking: the stalk leaves the top of the frame.
-  - `frame asters-lean` Stopped: the view leaned back, the crown overhead.
-  - `frame asters-answer` The crown lit by your call, in its own colours.
+  - `frame evening-far` The skyline, from where the page stood up.
+  - `frame evening-foot` At the foot, walking: the stalk leaves the top of the frame.
+  - `frame evening-lean` Stopped: the view leaned back, the crown overhead.
+  - `frame evening-answer` The crown lit by your call, in its own colours.
   - `fact handheld.asters.late == 0` On the handheld, every frame of the walk and the call is on
     time.
   - `owed` Climbing by the leaves; each leaf's own note; the crown as a place to stand; the lake

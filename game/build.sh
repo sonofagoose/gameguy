@@ -47,9 +47,9 @@ echo "== no screen: the dark and the call, twenty seconds of the scripted hands,
 quiet_run dark build/gameguy-x86_64 --headless --frames 1200 --dump build/frames --dump-every 150 --wav build/dark.wav
 grep "^the dark:" build/dark.out | sed 's/^/   /'
 
-echo "== no screen: the asters, walked by the scripted player, a frame at each standpoint a promise names"
-quiet_run asters build/gameguy-x86_64 --scene asters --headless --dump build/frames --dump-every 100000 --wav build/asters.wav
-grep "^the asters:" build/asters.out | tail -1 | sed 's/^/   /'
+echo "== no screen: the first evening and the asters, played by the scripted player, a frame at each standpoint a promise names"
+quiet_run evening build/gameguy-x86_64 --scene evening --headless --dump build/frames --dump-every 100000 --wav build/evening.wav
+grep "^the evening:" build/evening.out | tail -1 | sed 's/^/   /'
 ls build/frames | grep '^promise-' | tr '\n' ' ' | sed 's/^/   /'; echo
 
 echo "== no screen: the room opens with its walk and its clips"
@@ -68,12 +68,12 @@ PY
 quiet_run room build/gameguy-x86_64 --room build/room --headless --frames 5 --dump build/frames
 grep "items" build/room.out | sed 's/^/   /'
 
-echo "== same take: ten minutes of the dark and the walk to the great aster, fingerprinted"
+echo "== same take: ten minutes of the dark, and the first evening with the walk to the great aster, fingerprinted"
 build/same-take-x86_64 10 build/walk.take 2> build/same-take-x86_64.txt
-grep -E "^(minute 10|asters end)" build/same-take-x86_64.txt | sed 's/^/   /'
+grep -E "^(minute 10|evening end)" build/same-take-x86_64.txt | sed 's/^/   /'
 identical=0
 if [ -f results/same-take-aarch64.txt ]; then
-  if diff -q <(grep -E "^(minute|asters)" build/same-take-x86_64.txt) <(grep -E "^(minute|asters)" results/same-take-aarch64.txt) > /dev/null; then
+  if diff -q <(grep -E "^(minute|evening)" build/same-take-x86_64.txt) <(grep -E "^(minute|evening)" results/same-take-aarch64.txt) > /dev/null; then
     echo "   the same as the handheld's last run, line for line"
     identical=1
   else
@@ -83,7 +83,7 @@ fi
 echo "fact same_take.identical $identical" > build/facts.txt
 
 echo "== a take, kept as a file: the walk played back through the game itself, from the file alone"
-quiet_run replay build/gameguy-x86_64 --scene asters --headless --replay build/walk.take
+quiet_run replay build/gameguy-x86_64 --scene evening --headless --replay build/walk.take
 met_live=$(grep -o "^witness garden.asters first=[0-9]*" build/same-take-x86_64.txt | tail -1)
 met_back=$(grep -o "^witness garden.asters first=[0-9]*" build/replay.out | tail -1)
 if [ -n "$met_live" ] && [ "$met_live" = "$met_back" ]; then

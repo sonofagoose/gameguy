@@ -93,29 +93,29 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     }
     witnesses();
 
-    // the walk to the great aster, by a player that plays by rules
-    world.initAsters();
+    // the first evening and the walk to the great aster, by a player that plays by rules
+    world.initEvening();
     snd.init();
     var bot = rules.walker.Walker{};
     var walk = Take{};
     var recorder = rules.take.Recorder{ .changes = &walk_changes };
     step = 0;
-    while (step < 5 * per_minute and !bot.done) : (step += 1) {
+    while (step < 8 * per_minute and !bot.done) : (step += 1) {
         const hands = bot.hands(&world);
         recorder.note(step, hands);
         walk.step(hands);
-        if ((step + 1) % per_minute == 0) walk.line("asters minute", (step + 1) / per_minute);
+        if ((step + 1) % per_minute == 0) walk.line("evening minute", (step + 1) / per_minute);
     }
-    walk.line("asters end, minute", step / per_minute + 1);
+    walk.line("evening end, minute", step / per_minute + 1);
     witnesses();
     const walk_end = world.fingerprint();
 
     // the same walk, written down as a take and played back from its bytes alone
-    const size = recorder.write(.asters, &walk_bytes);
+    const size = recorder.write(.evening, &walk_bytes);
     var same_again = false;
     if (rules.take.Player.open(walk_bytes[0..size])) |opened| {
         var player = opened;
-        world.initAsters();
+        world.initEvening();
         snd.init();
         var back = Take{};
         var at: u64 = 0;
@@ -146,6 +146,10 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     fact("scale.hum_tall_m", world_mod.hum_tall);
     fact("sound.speed_m_s", world_mod.sound_speed);
     fact("dark.first_backlight", world_mod.first_dark_backlight);
+    fact("evening.breaths_to_lock", @floatFromInt(world_mod.breaths_to_lock));
+    fact("evening.answered_s", @as(f64, @floatFromInt(world.answered_at)) / 60.0);
+    fact("evening.locked_s", if (world.locked_at == world_mod.never) -1.0 else @as(f64, @floatFromInt(world.locked_at)) / 60.0);
+    fact("evening.stood_s", if (world.stand_from == world_mod.never) -1.0 else @as(f64, @floatFromInt(world.stand_from)) / 60.0);
     fact("asters.count", @floatFromInt(world.tower_count));
     fact("asters.tallest_m", tallest);
     fact("asters.shortest_m", shortest);

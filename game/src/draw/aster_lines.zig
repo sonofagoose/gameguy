@@ -40,6 +40,14 @@ var plans: [asters.max_towers]asters.Plan = undefined;
 var models: [asters.max_towers]Model = undefined;
 var count: usize = 0;
 
+/// Which body lights what (the loudness table, lines.zig). Nought is always lit: Hum, a call's
+/// ring, the words. One is the day: the sky. Then the ground's cover, one body for each sixteen
+/// metres square round Hum, so a call's ring can be seen to cross it. Then every thing.
+pub const day_body: f32 = 1.0;
+pub const cover_body: u32 = 2;
+pub const cover_side: i32 = 15;
+pub const thing_body: u32 = 2 + 15 * 15 + 3;
+
 const stalk = [3]f32{ 0.62, 0.86, 0.66 };
 
 fn col8(rgb: [3]f32, alpha: f32) [4]u8 {
@@ -106,7 +114,7 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
 
     // the stalk: four edges for each of its twelve parts, round a black core
     for (0..asters.segments) |k| {
-        const body = first + @as(u32, @intCast(k)) + 1;
+        const body = thing_body + first + @as(u32, @intCast(k));
         const h0 = @as(f32, @floatFromInt(k)) * part;
         const h1 = h0 + part;
         const c0 = p.mast(h0);
@@ -138,7 +146,7 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
         const joint_col = col8(stalk, 0.34);
         var h: f32 = 1.25;
         while (h < p.tall) : (h += 1.25) {
-            const body = first + @min(@as(u32, @intFromFloat(h / part)), asters.segments - 1) + 1;
+            const body = thing_body + first + @min(@as(u32, @intFromFloat(h / part)), asters.segments - 1);
             const c = p.mast(h);
             const r = girth(p, h) * 1.12;
             for (0..4) |i| {
@@ -155,12 +163,12 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
         const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 8.0);
         const a = V{ foot[0] + 1.7 * @cos(a0), 0.06, foot[2] + 1.7 * @sin(a0) };
         const b = V{ foot[0] + 1.7 * @cos(a1), 0.06, foot[2] + 1.7 * @sin(a1) };
-        near.line(a, b, 1.2, first + 1, stalk_col);
+        near.line(a, b, 1.2, thing_body + first, stalk_col);
     }
 
     // the leaves: a spiral stair of blades, each lit with the part of the stalk it leaves
     for (p.leaves[0..p.leaf_n]) |leaf| {
-        const body = first + @min(@as(u32, @intFromFloat(leaf.h / part)), asters.segments - 1) + 1;
+        const body = thing_body + first + @min(@as(u32, @intFromFloat(leaf.h / part)), asters.segments - 1);
         const out = V{ @cos(leaf.angle), 0.0, @sin(leaf.angle) };
         const side = V{ -@sin(leaf.angle), 0.0, @cos(leaf.angle) };
         const p0 = add(p.mast(leaf.h), mul(out, girth(p, leaf.h)));
@@ -195,7 +203,7 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
     }
 
     // the crown: branches, and on them the bells
-    const top_body = first + asters.segments;
+    const top_body = thing_body + first + asters.segments - 1;
     for (p.branches[0..p.branch_n]) |b| {
         const base = p.mast(b.h);
         const cr = @cos(b.rise);
@@ -205,7 +213,7 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
         mid.line(base, tip, 1.1, top_body, stalk_col);
     }
     for (p.bells[0..p.bell_n], 0..) |bell, j| {
-        const body = first + asters.segments + @as(u32, @intCast(j)) + 1;
+        const body = thing_body + first + asters.segments + @as(u32, @intCast(j));
         const tint = colour.ofNote(world_mod.garden_hz, bell.hz);
         const bright = col8(tint, 1.0);
         const soft = col8(tint, 0.6);
@@ -340,7 +348,7 @@ fn unit01(s: u32) f32 {
 
 /// One blade of grass: a real one is 4 to 9 cm, so here it is a tree 4 to 9 m tall and as wide
 /// as a door, and it hides what is behind it.
-fn blade(ix: i32, iz: i32, k: u32, cell: f32, out: []Inst, n: *usize, occ: []V, occ_n: *usize) void {
+fn blade(ix: i32, iz: i32, k: u32, cell: f32, body: f32, out: []Inst, n: *usize, occ: []V, occ_n: *usize) void {
     if (n.* + 5 > out.len) return;
     const tint = col8(.{ 0.36, 0.66, 0.46 }, 0.17);
     const vein = col8(.{ 0.36, 0.66, 0.46 }, 0.08);
@@ -359,11 +367,11 @@ fn blade(ix: i32, iz: i32, k: u32, cell: f32, out: []Inst, n: *usize, occ: []V, 
     const b1 = add(base, mul(across, -1.0));
     const k0 = add(knee, across);
     const k1 = add(knee, mul(across, -1.0));
-    out[n.*] = .{ .a = b0, .b = k0, .half_width = 1.2, .body = 0.0, .col = tint };
-    out[n.* + 1] = .{ .a = k0, .b = tip, .half_width = 1.1, .body = 0.0, .col = tint };
-    out[n.* + 2] = .{ .a = b1, .b = k1, .half_width = 1.2, .body = 0.0, .col = tint };
-    out[n.* + 3] = .{ .a = k1, .b = tip, .half_width = 1.1, .body = 0.0, .col = tint };
-    out[n.* + 4] = .{ .a = base, .b = knee, .half_width = 0.9, .body = 0.0, .col = vein };
+    out[n.*] = .{ .a = b0, .b = k0, .half_width = 1.2, .body = body, .col = tint };
+    out[n.* + 1] = .{ .a = k0, .b = tip, .half_width = 1.1, .body = body, .col = tint };
+    out[n.* + 2] = .{ .a = b1, .b = k1, .half_width = 1.2, .body = body, .col = tint };
+    out[n.* + 3] = .{ .a = k1, .b = tip, .half_width = 1.1, .body = body, .col = tint };
+    out[n.* + 4] = .{ .a = base, .b = knee, .half_width = 0.9, .body = body, .col = vein };
     n.* += 5;
     if (occ_n.* + 9 > occ.len) return;
     const shapes = [9]V{ b0, b1, k1, b0, k1, k0, k0, k1, tip };
@@ -399,10 +407,12 @@ const Out = struct {
     n: *usize,
     occ: []V,
     occ_n: *usize,
+    /// The body of the cell of ground being drawn.
+    body: f32 = 0.0,
 
     fn line(self: Out, a: V, b: V, half_width: f32, col: [4]u8) void {
         if (self.n.* >= self.lines.len) return;
-        self.lines[self.n.*] = .{ .a = a, .b = b, .half_width = half_width, .body = 0.0, .col = col };
+        self.lines[self.n.*] = .{ .a = a, .b = b, .half_width = half_width, .body = self.body, .col = col };
         self.n.* += 1;
     }
 
@@ -519,7 +529,7 @@ fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
     const many: u32 = if (near) 3 else 2;
     switch (coverAt(mid_x, mid_z)) {
         .lawn => {
-            for (0..many) |k| blade(ix, iz, @intCast(k + salt), size, out.lines, out.n, out.occ, out.occ_n);
+            for (0..many) |k| blade(ix, iz, @intCast(k + salt), size, out.body, out.lines, out.n, out.occ, out.occ_n);
         },
         .clover => {
             for (0..many - 1) |k| {
@@ -547,28 +557,26 @@ fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
 
 /// The ground round Hum, one to a hundred, wearing its covers: lawn, clover, moss and bare soil
 /// in wide patches, thick close by and thinner farther off. The return is how many lines;
-/// `occ_n` grows by the black shapes.
-pub fn ground(hum_x: f32, hum_z: f32, lines_out: []Inst, occ: []V, occ_n: *usize) usize {
+/// `occ_n` grows by the black shapes. `grid` is given the corner cell of the fifteen by fifteen
+/// square of sixteen-metre cells that was drawn, so the caller can light each cell by its body.
+pub fn ground(hum_x: f32, hum_z: f32, lines_out: []Inst, occ: []V, occ_n: *usize, grid: *[2]i32) usize {
     var n: usize = 0;
-    const out = Out{ .lines = lines_out, .n = &n, .occ = occ, .occ_n = occ_n };
-    {
-        const size: f32 = 8.0;
-        const cx: i32 = @intFromFloat(@floor(hum_x / size));
-        const cz: i32 = @intFromFloat(@floor(hum_z / size));
-        var iz: i32 = cz - 6;
-        while (iz <= cz + 6) : (iz += 1) {
-            var ix: i32 = cx - 6;
-            while (ix <= cx + 6) : (ix += 1) patch(ix, iz, size, true, 20, out);
-        }
-    }
+    var out = Out{ .lines = lines_out, .n = &n, .occ = occ, .occ_n = occ_n };
     const size: f32 = 16.0;
+    const half: i32 = @divTrunc(cover_side, 2);
     const cx: i32 = @intFromFloat(@floor(hum_x / size));
     const cz: i32 = @intFromFloat(@floor(hum_z / size));
-    var iz: i32 = cz - 7;
-    while (iz <= cz + 7) : (iz += 1) {
-        var ix: i32 = cx - 7;
-        while (ix <= cx + 7) : (ix += 1) {
+    grid.* = .{ cx - half, cz - half };
+    var iz: i32 = cz - half;
+    while (iz <= cz + half) : (iz += 1) {
+        var ix: i32 = cx - half;
+        while (ix <= cx + half) : (ix += 1) {
+            out.body = @floatFromInt(@as(i32, @intCast(cover_body)) + (ix - grid[0]) + (iz - grid[1]) * cover_side);
             patch(ix, iz, size, false, 0, out);
+            // close by, four smaller squares in each, thick with whatever grows there
+            if (@abs(ix - cx) <= 3 and @abs(iz - cz) <= 3) {
+                for (0..4) |q| patch(ix * 2 + @as(i32, @intCast(q % 2)), iz * 2 + @as(i32, @intCast(q / 2)), size * 0.5, true, 20, out);
+            }
         }
     }
     return n;
@@ -579,7 +587,7 @@ pub fn ground(hum_x: f32, hum_z: f32, lines_out: []Inst, occ: []V, occ_n: *usize
 pub fn fallen(w: *const world_mod.World, out: []Inst) usize {
     if (w.fallen >= w.thing_count) return 0;
     const thing = w.things[w.fallen];
-    const body: f32 = @floatFromInt(w.fallen + 1);
+    const body: f32 = @floatFromInt(thing_body + w.fallen);
     const tint = colour.ofNote(world_mod.garden_hz, thing.hz);
     const bright = col8(tint, 1.0);
     const soft = col8(tint, 0.6);
@@ -638,7 +646,7 @@ pub fn sky(eye: V, out: []Inst) usize {
                 .a = add(add(centre, mul(right, wide * @cos(a0))), V{ 0.0, wide * @sin(a0), 0.0 }),
                 .b = add(add(centre, mul(right, wide * @cos(a1))), V{ 0.0, wide * @sin(a1), 0.0 }),
                 .half_width = 3.0,
-                .body = 0.0,
+                .body = day_body,
                 .col = tint,
             };
             n += 1;
@@ -656,7 +664,7 @@ pub fn sky(eye: V, out: []Inst) usize {
             .a = .{ eye[0] + radius * @cos(a0), eye[1] - 1.5, eye[2] + radius * @sin(a0) },
             .b = .{ eye[0] + radius * @cos(a1), eye[1] - 1.5, eye[2] + radius * @sin(a1) },
             .half_width = 2.0,
-            .body = 0.0,
+            .body = day_body,
             .col = rim,
         };
         n += 1;

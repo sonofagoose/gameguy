@@ -196,6 +196,98 @@ fn col8(rgb: [3]f32, alpha: f32) [4]u8 {
 
 const per_thing = 12;
 const bone = [3]f32{ 0.886, 0.839, 0.784 };
+/// Drip's colour (design/look.md).
+const teal = [3]f32{ 0.25, 0.86, 0.80 };
+
+/// What the first evening adds to the picture: Drip, the ripple that shows which way its answer
+/// came from, and the figure between its voice and Hum's.
+fn eveningLines(w: *const World, out: []lines.Inst) usize {
+    if (w.drip == world_mod.no_thing) return 0;
+    var n: usize = 0;
+    const drip = w.things[w.drip];
+    const drip_body: f32 = @floatFromInt(aster_lines.thing_body + w.drip);
+    if (w.drip_met) {
+        // riding on Hum's head: a drop 40 cm across, which never finished falling
+        const rx = @cos(w.look_yaw);
+        const rz = @sin(w.look_yaw);
+        const tint = col8(teal, 0.95);
+        for (0..8) |k| {
+            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 8.0);
+            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 8.0);
+            // round below, drawn up to a point above
+            const s0 = @sin(a0);
+            const s1 = @sin(a1);
+            const narrow0: f32 = if (s0 > 0.0) 1.0 - 0.75 * s0 * s0 else 1.0;
+            const narrow1: f32 = if (s1 > 0.0) 1.0 - 0.75 * s1 * s1 else 1.0;
+            const tall0: f32 = if (s0 > 0.0) 1.7 else 1.0;
+            const tall1: f32 = if (s1 > 0.0) 1.7 else 1.0;
+            const r0 = 0.2 * narrow0;
+            const r1 = 0.2 * narrow1;
+            const y0 = 1.25 + 0.2 * s0 * tall0;
+            const y1 = 1.25 + 0.2 * s1 * tall1;
+            if (n >= out.len) return n;
+            out[n] = .{ .a = .{ w.hum_x + rx * r0 * @cos(a0), y0, w.hum_z + rz * r0 * @cos(a0) }, .b = .{ w.hum_x + rx * r1 * @cos(a1), y1, w.hum_z + rz * r1 * @cos(a1) }, .half_width = 1.4, .body = 0.0, .col = tint };
+            n += 1;
+        }
+        return n;
+    }
+    // out in the dark: a small ring on the ground that is only seen when it ticks or hums
+    for (0..8) |k| {
+        if (n >= out.len) return n;
+        const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 8.0);
+        const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 8.0);
+        out[n] = .{ .a = .{ drip.x + 0.55 * @cos(a0), 0.05, drip.z + 0.55 * @sin(a0) }, .b = .{ drip.x + 0.55 * @cos(a1), 0.05, drip.z + 0.55 * @sin(a1) }, .half_width = 2.2, .body = drip_body, .col = col8(teal, 1.0) };
+        n += 1;
+    }
+    const dx = drip.x - w.hum_x;
+    const dz = drip.z - w.hum_z;
+    const far = @sqrt(dx * dx + dz * dz);
+    // the ripple: for two seconds after its answer arrives, arcs on the ground toward it
+    if (w.answered and w.step - w.answered_at < 130 and far > 1.0) {
+        const age = @as(f32, @floatFromInt(w.step - w.answered_at)) / 130.0;
+        const way = std.math.atan2(dz, dx);
+        for (0..3) |arc| {
+            const r = 3.0 + 2.2 * @as(f32, @floatFromInt(arc)) + age * 2.0;
+            const tint = col8(teal, (1.0 - age) * (0.9 - 0.2 * @as(f32, @floatFromInt(arc))));
+            for (0..6) |k| {
+                if (n >= out.len) return n;
+                const a0 = way - 0.5 + @as(f32, @floatFromInt(k)) * (1.0 / 6.0);
+                const a1 = a0 + 1.0 / 6.0;
+                out[n] = .{ .a = .{ w.hum_x + r * @cos(a0), 0.05, w.hum_z + r * @sin(a0) }, .b = .{ w.hum_x + r * @cos(a1), 0.05, w.hum_z + r * @sin(a1) }, .half_width = 1.6, .body = 0.0, .col = tint };
+                n += 1;
+            }
+        }
+    }
+    // the figure between the two voices: three lobes by two, because their notes are as three
+    // to two, turning as fast as they beat. It lies on the ground between them.
+    if (far < world_mod.beside * 2.0) {
+        const held = w.drip_humming or w.step < w.hold_until;
+        const locked = w.locked_at != world_mod.never;
+        const k_true = @as(f32, @floatFromInt(w.breaths)) / @as(f32, world_mod.breaths_to_lock);
+        const tint3 = [3]f32{ teal[0] + (bone[0] - teal[0]) * k_true, teal[1] + (bone[1] - teal[1]) * k_true, teal[2] + (bone[2] - teal[2]) * k_true };
+        const shown: f32 = if (locked) 1.0 else if (held) 0.85 else 0.30;
+        const tint = col8(tint3, shown);
+        const cx = (drip.x + w.hum_x) * 0.5;
+        const cz = (drip.z + w.hum_z) * 0.5;
+        const r = @min(1.5, far * 0.40);
+        const parts = 72;
+        const heavy: f32 = if (locked) 2.0 else 1.5;
+        for (0..parts) |k| {
+            if (n >= out.len) return n;
+            const t0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, parts));
+            const t1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, parts));
+            out[n] = .{
+                .a = .{ cx + r * @sin(3.0 * t0 + w.figure_turn), 0.06, cz + r * @sin(2.0 * t0) },
+                .b = .{ cx + r * @sin(3.0 * t1 + w.figure_turn), 0.06, cz + r * @sin(2.0 * t1) },
+                .half_width = heavy,
+                .body = 0.0,
+                .col = tint,
+            };
+            n += 1;
+        }
+    }
+    return n;
+}
 
 /// The dark's things: each a stalk, a ring for a head and three spokes. Its body number is its
 /// place in the world's list plus one; body nought is always fully lit.
@@ -238,7 +330,7 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
         const age: f32 = @floatFromInt(w.step - ring.born);
         const reach = age * world_mod.dt * world_mod.sound_speed;
         const fade = std.math.clamp(1.0 - reach / w.ring_reach, 0.0, 1.0);
-        const tint = col8(bone, 0.85 * fade * fade);
+        const tint = col8(if (ring.own) bone else teal, 0.85 * fade * fade);
         const parts = 64;
         for (0..parts) |k| {
             const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, parts));
@@ -469,7 +561,7 @@ fn saveGround() void {
 fn groundStep(w: *const World, called: bool) void {
     const home = colour.ofNote(world_mod.garden_hz, world_mod.garden_hz);
     if (called) leaveLight(w.hum_x, w.hum_z, 4.5, home, 0.55);
-    if (w.singing) leaveLight(w.hum_x, w.hum_z, 2.4, home, 0.012);
+    if (w.singing) leaveLight(w.hum_x, w.hum_z, 3.0, home, 0.0015);
     if (w.still == 0) leaveLight(w.hum_x, w.hum_z, 1.2, .{ 0.886, 0.839, 0.784 }, 0.016);
     // each ringing bell, one step in sixty-four, taken in turn: a crown of them ringing at once
     // must not cost a frame
@@ -479,7 +571,9 @@ fn groundStep(w: *const World, called: bool) void {
     }
 }
 
-pub const Scene = enum { dark, asters };
+/// The dark: the first toy of a scene, kept for its long scripted take. The evening: the first
+/// evening from its first second. The asters: the same place at dawn, already standing.
+pub const Scene = enum { dark, evening, asters };
 
 pub const Options = struct {
     scene: Scene = .dark,
@@ -531,7 +625,11 @@ fn keepTake(recorder: *const take.Recorder, scene: Scene) void {
         if (c.access(p.ptr, 0) != 0) break;
     }
     const p = std.mem.printSentinel(&path, "keep/takes/{s}-{d:0>5}.take", .{ @tagName(scene), number }, 0) catch return;
-    const size = recorder.write(if (scene == .dark) .dark else .asters, &take_bytes);
+    const size = recorder.write(switch (scene) {
+        .dark => .dark,
+        .evening => .evening,
+        .asters => .asters,
+    }, &take_bytes);
     const file = c.fopen(p.ptr, "wb") orelse return;
     const wrote = c.fwrite(&take_bytes, 1, size, file);
     _ = c.fclose(file);
@@ -583,8 +681,8 @@ pub fn run(window: plat.Window, options: Options) bool {
             renderer.setGround(0, .{ 0.0, 0.0 }, .{ 0.0, 0.0 }, null);
             log("the dark: R1 calls, R2 hums, the left stick walks; Select and Start together leave", .{});
         },
-        .asters => {
-            world.initAsters();
+        .evening, .asters => {
+            if (options.scene == .evening) world.initEvening() else world.initAsters();
             aster_lines.build(&world);
             renderer.keep = 0.55;
             renderer.fade = 70.0;
@@ -602,7 +700,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             ground_dirty[((0 - @as(i32, @intFromFloat(ground_from[1]))) * ground_size / @as(i32, @intFromFloat(ground_span)) / ground_block) * ground_blocks + ((0 - @as(i32, @intFromFloat(ground_from[0]))) * ground_size / @as(i32, @intFromFloat(ground_span)) / ground_block)] = true;
             renderer.setGround(ground_size, ground_from, .{ ground_from[0] + ground_span, ground_from[1] + ground_span }, &ground);
             log("the ground: {s}", .{if (remembered) "as it was left" else "black: nothing has been sung on it yet"});
-            log("the asters: {d} of them, {d} things; R1 calls, the left stick walks, the right stick looks; stand still at a foot and the view leans back; Select and Start together leave", .{ world.tower_count, world.thing_count });
+            log("the {s}: {d} asters, {d} things; R1 calls (held, the place lies down), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave", .{ name, world.tower_count, world.thing_count });
         },
     }
     snd.init();
@@ -644,6 +742,7 @@ pub fn run(window: plat.Window, options: Options) bool {
     var picked_x: f32 = 1e9;
     var picked_z: f32 = 1e9;
     var picked = aster_lines.Picked{ .lines = 0, .occ = 0, .near = 0, .mid = 0, .far = 0 };
+    var cover_grid = [2]i32{ 0, 0 };
     var most_lines: usize = 0;
     var worst_at: u32 = 0;
     var worst_step: u64 = 0;
@@ -664,14 +763,14 @@ pub fn run(window: plat.Window, options: Options) bool {
         // the steps that are due
         var mark: ?[]const u8 = null;
         if (device == 0) {
-            const hands = if (replay) |*r| r.hands(world.step) else if (options.scene == .asters) walker.hands(&world) else script.hands(world.step);
+            const hands = if (replay) |*r| r.hands(world.step) else if (options.scene != .dark) walker.hands(&world) else script.hands(world.step);
             if (replay == null) mark = walker.mark;
             if (replay) |*r| {
                 if (r.done(world.step + 1)) running = false;
             }
             const calls_before = world.calls;
             const n = world.stepOnce(hands, &cues);
-            if (options.scene == .asters) groundStep(&world, world.calls != calls_before);
+            if (options.scene != .dark) groundStep(&world, world.calls != calls_before);
             for (cues[0..n]) |cue| {
                 if (!snd.push(cue)) refused += 1;
             }
@@ -685,14 +784,14 @@ pub fn run(window: plat.Window, options: Options) bool {
             const due = snd.played() / world_mod.samples_per_step;
             var ran: u32 = 0;
             while (world.step < due and ran < 3) : (ran += 1) {
-                const hands = if (replay) |*r| r.hands(world.step) else if (!scripted) held else if (options.scene == .asters) walker.hands(&world) else script.hands(world.step);
+                const hands = if (replay) |*r| r.hands(world.step) else if (!scripted) held else if (options.scene != .dark) walker.hands(&world) else script.hands(world.step);
                 if (!scripted) recorder.note(world.step, hands);
                 if (replay) |*r| {
                     if (r.done(world.step + 1)) running = false;
                 }
                 const calls_before = world.calls;
                 const n = world.stepOnce(hands, &cues);
-                if (options.scene == .asters) groundStep(&world, world.calls != calls_before);
+                if (options.scene != .dark) groundStep(&world, world.calls != calls_before);
                 for (cues[0..n]) |cue| {
                     if (!snd.push(cue)) refused += 1;
                 }
@@ -700,7 +799,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             }
             if (ran > 1) double_steps += 1;
         }
-        if (scripted and options.scene == .asters and walker.done and done_at == null) done_at = frame;
+        if (scripted and options.scene != .dark and walker.done and done_at == null) done_at = frame;
         if (done_at) |at| {
             if (options.frames == 0 and frame > at + 30) running = false;
         }
@@ -723,12 +822,32 @@ pub fn run(window: plat.Window, options: Options) bool {
             eye = .{ world.hum_x, 40.0, world.hum_z + 36.0 };
             view = m.lookAt(eye, .{ world.hum_x, 0.0, world.hum_z - 3.0 }, .{ 0.0, 1.0, 0.0 });
         } else {
-            // dawn: everything can just be seen, and what a call lights or rings stands out of it
+            // In the dark a thing is seen only when it sounds or a call passes it. As the day
+            // comes up everything can just be seen, and what a call lights or rings stands out.
+            const day = world.dawn;
+            loud[1] = @intFromFloat(day * 255.0);
             for (world.things[0..world.thing_count], 0..) |thing, i| {
                 const light = World.light(thing);
-                const floor: f32 = if (thing.sounds) 0.30 else 0.26;
+                const dim: f32 = if (thing.sounds) 0.30 else 0.26;
+                const floor = dim * day;
                 if (thing.sounds) brightest = @max(brightest, light);
-                loud[i + 1] = @intFromFloat(@max(floor, light) * 255.0);
+                loud[aster_lines.thing_body + i] = @intFromFloat(@max(floor, light) * 255.0);
+            }
+            // the ground's cover, a square at a time: the day, and the edge of any ring crossing it
+            for (0..@as(usize, @intCast(aster_lines.cover_side * aster_lines.cover_side))) |cell| {
+                const gx: f32 = @floatFromInt(@as(i32, @intCast(cell % @as(usize, @intCast(aster_lines.cover_side)))) + cover_grid[0]);
+                const gz: f32 = @floatFromInt(@as(i32, @intCast(cell / @as(usize, @intCast(aster_lines.cover_side)))) + cover_grid[1]);
+                var band: f32 = 0.0;
+                for (world.rings) |ring| {
+                    if (!ring.live) continue;
+                    const dx = (gx + 0.5) * 16.0 - ring.x;
+                    const dz = (gz + 0.5) * 16.0 - ring.z;
+                    const behind = @as(f32, @floatFromInt(world.step - ring.born)) * world_mod.dt * world_mod.sound_speed - @sqrt(dx * dx + dz * dz);
+                    if (behind < 0.0 or behind > 110.0) continue;
+                    const fall = 1.0 - behind / 110.0;
+                    band = @max(band, fall * fall);
+                }
+                loud[aster_lines.cover_body + cell] = @intFromFloat(std.math.clamp(day + band * 1.6, 0.0, 1.0) * 255.0);
             }
             const cam = world.camera();
             renderer.stand = cam.stand;
@@ -754,7 +873,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             if (moved_x * moved_x + moved_z * moved_z > 20.0 * 20.0) {
                 picked = aster_lines.pick(world.hum_x, world.hum_z, static_lines[0..26_000], static_occ[0..24_000]);
                 picked.lines += aster_lines.fallen(&world, static_lines[picked.lines..]);
-                picked.lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[picked.lines..], &static_occ, &picked.occ);
+                picked.lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[picked.lines..], &static_occ, &picked.occ, &cover_grid);
                 renderer.setLand(static_lines[0..picked.lines], static_lines[0..0], static_occ[0..picked.occ]);
                 picked_x = eye[0];
                 picked_z = eye[2];
@@ -763,21 +882,22 @@ pub fn run(window: plat.Window, options: Options) bool {
         }
         parts[1] = (plat.now() - began) * 1000.0;
         var moving_n: usize = 0;
-        if (options.scene == .asters) {
+        if (options.scene != .dark) {
             moving_n = aster_lines.sky(eye, &moving);
             if (world.stand > 0.6) moving_n += aster_lines.halos(&world, eye, moving[moving_n..]);
+            moving_n += eveningLines(&world, moving[moving_n..]);
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);
         parts[2] = (plat.now() - began) * 1000.0;
         renderer.setDynamic(moving[0..moving_n]);
-        if (options.scene == .asters) sendGround();
+        if (options.scene != .dark) sendGround();
         const vp = m.mul(proj, view);
         parts[3] = (plat.now() - began) * 1000.0;
         renderer.frame(&vp, &loud);
-        if (options.scene == .asters and world.step >= world_mod.stands_at and world.step < world_mod.stands_at + 330) {
+        if (options.scene == .evening and world.step >= world.stand_from and world.step < world.stand_from + 330) {
             // the first words anyone says in it, as the page stands up: the one line of text
-            const since: f32 = @floatFromInt(world.step - world_mod.stands_at);
+            const since: f32 = @floatFromInt(world.step - world.stand_from);
             const shown = std.math.clamp(@min(since / 40.0, (330.0 - since) / 70.0), 0.0, 1.0);
             const line = "Oh. You're in.";
             const scale: f32 = 2.6;
@@ -786,7 +906,8 @@ pub fn run(window: plat.Window, options: Options) bool {
             words.flush();
         }
         parts[4] = (plat.now() - began) * 1000.0;
-        if (!options.headless) backlight.follow(if (options.scene == .dark) brightest else 0.38 + 0.62 * brightest);
+        // the backlight is the sun: down in the dark, where only what sounds is lit, and up with the day
+        if (!options.headless) backlight.follow(if (options.scene == .dark) brightest else world.dawn * 0.38 + (0.25 + 0.37 * world.dawn) * brightest);
         const work = (plat.now() - began) * 1000.0;
         work_sum += work;
         if (frame > 30 and work > work_worst) {
@@ -820,7 +941,7 @@ pub fn run(window: plat.Window, options: Options) bool {
     }
 
     if (wav) |*w| w.close();
-    if (options.scene == .asters and !options.headless and !scripted) saveGround();
+    if (options.scene != .dark and !options.headless and !scripted) saveGround();
     if (!scripted) keepTake(&recorder, options.scene);
     last_visit = .{ .calls = world.calls, .seconds = @as(f32, @floatFromInt(world.step)) / 60.0 };
     if (options.promise) |promise| {

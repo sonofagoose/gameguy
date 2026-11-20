@@ -2,6 +2,7 @@
 //! spec/promises/: do not edit. A promise is here because its full size has a `take` line.
 pub const Id = enum(u16) {
     evening_call,
+    evening_breathe,
     garden_asters,
     whole_law1,
     whole_law6,
@@ -9,6 +10,7 @@ pub const Id = enum(u16) {
 
 pub const names = [_][]const u8{
     "evening.call",
+    "evening.breathe",
     "garden.asters",
     "whole.law1",
     "whole.law6",

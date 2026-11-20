@@ -38,7 +38,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 |---|---|
 | sized: its moment, its cheat, its full size and its question written | 44 of 44 |
 | proven: every measure passes today and nothing is owed | 0 |
-| reached: the scripted player met it by playing | 4 |
+| reached: the scripted player met it by playing | 5 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
 | graded full by a fresh reader | 0 |
 | **kept** | **0** |
@@ -52,6 +52,7 @@ asks its question.
 |---|---|---|
 | `evening.black` Black, and a drip | Did the screen look switched off until you called? | none |
 | `evening.call` You call, and you are answered | When you called in the dark and something answered, did it feel like being answered? | none |
+| `evening.breathe` You breathe with it, and it locks | When the figure stopped, did it feel like the two of you locking? | none |
 | `evening.in` "Oh. You're in." | When the world stood up, did you say something out loud? | none |
 | `evening.instrument` Everything is an instrument | Did you start ringing things just to hear what they were? | none |
 | `garden.land` The Garden, home | Is the Garden somewhere you are glad to wake up? | none |
@@ -65,10 +66,10 @@ asks its question.
 
 | promise | stage | speaks for | proven | reached | felt | graded | kept | what stands in the way |
 |---|---|---|---|---|---|---|---|---|
-| `evening.black` Black, and a drip | 2 | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `evening.call` You call, and you are answered | 2 | 2 | no | yes | no | no | no | 2 owed; no yes from Morgan yet |
-| `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
-| `evening.in` "Oh. You're in." | 2 | 5 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `evening.black` Black, and a drip | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `evening.call` You call, and you are answered | 2 | 2 | no | yes | no | no | no | 3 owed; handheld.evening.late == 0  (is not reported); no yes from Morgan yet |
+| `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
+| `evening.in` "Oh. You're in." | 2 | 5 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.instrument` Everything is an instrument | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.knot` The knot, and the first fight | 2 | 10 | no | - | no | no | no | 5 owed; no yes from Morgan yet |
 | `evening.dusk` The river sings your day back | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
@@ -106,6 +107,6 @@ asks its question.
 | `whole.hands` Nothing asks the hands for the impossible | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.ear` The ear, before and after | 2 | 1 | no | - | - | no | no | 3 owed |
 | `hands.voice-in-a-buffer` Your voice, at once | 1 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `card.takes` The card is the world's memory | 1 | 2 | no | - | - | no | no | 4 owed |
+| `card.takes` The card is the world's memory | 1 | 2 | no | - | - | no | no | 4 owed; take.bytes <= 4096  (is 4846) |
 | `light.hue` One set of numbers for sound and light | 1 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `light.beam` The beam | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |

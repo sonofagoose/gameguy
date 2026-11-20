@@ -161,6 +161,9 @@ pub const great_tall: f32 = 172.0;
 pub const great_x: f32 = 0.0;
 pub const great_z: f32 = -150.0;
 pub const field_across: f32 = 1200.0;
+/// A place in the field that is kept clear of asters: where Drip waits in the dark.
+pub const clear_x: f32 = -34.0;
+pub const clear_z: f32 = -52.0;
 
 /// The proof field: the great aster a hundred and fifty metres ahead of where Hum stands, and
 /// the rest on a loose grid over a field more than a kilometre across. The return is how many.
@@ -183,7 +186,10 @@ pub fn field(out: *[max_towers]Plan, home_hz: f32) usize {
             const gx = x - great_x;
             const gz = z - great_z;
             const near_great = gx * gx + gz * gz < 60.0 * 60.0;
-            if (skip or near_start or near_great or n >= max_towers) continue;
+            const dx = x - clear_x;
+            const dz = z - clear_z;
+            const near_clear = dx * dx + dz * dz < 32.0 * 32.0;
+            if (skip or near_start or near_great or near_clear or n >= max_towers) continue;
             out[n] = plan(@intCast(n), x, z, tall, home_hz);
             n += 1;
         }

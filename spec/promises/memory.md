@@ -27,7 +27,7 @@ _Part of the promise book (`../promises.md`). What `../size.md` says the card is
 - **A cheat would be:** footprints that fade in a few seconds; a glowing mark under a few special
   things; a map screen.
 - **Full size:**
-  - `frame asters-ground` Hum's path as a band of light, and the light left where it called at the
+  - `frame evening-ground` Hum's path as a band of light, and the light left where it called at the
     aster's foot.
   - `fact handheld.asters.late == 0` With the ground's picture drawn under the lines, every frame of
     the walk is on time.

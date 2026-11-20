@@ -8,7 +8,7 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 - **Said:** `SPEC.md` "Black, and a drip." "The backlight itself is down, so the black is black."
   "Low on the screen, a small bone-white shape in reeds, breathing."
 - **Stage:** 2
-- **Scene:** dark
+- **Scene:** evening
 - **The moment:** You start the game and think the handheld has switched itself off. It hasn't. The
   screen's own light is down to almost nothing, so black is the black of a dark room. Somewhere a
   drop falls, and falls again, not quite evenly. Low on the screen something small and bone-white is
@@ -17,9 +17,14 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 - **Full size:**
   - `fact dark.first_backlight <= 20` The backlight's first level, out of 255. Measured: at 20 the
     handheld draws 195 mA, against 388 at full (`docs/hardware-target.md`).
-  - `owed` The drip: one drop, uneven, from one place you can turn toward.
+  - `frame evening-black` Nothing on the screen but Hum, small and bone-white. No text, no mark that
+    isn't in the world.
+  - `test the second call is answered by the drip, late by the distance there and back` The drip is
+    out there from the first second: it ticks 72 times a minute, every other tick a little late, and
+    each tick is one cue, a flash where it is and a plink that arrives late by how far off it is.
   - `owed` Hum breathing, low in the frame, with reeds beside it that you can only just see.
-  - `owed` No text and no mark on the screen that isn't in the world.
+  - `owed` On the handheld, in a dark room: the screen looks switched off, and the drip can be heard
+    and turned toward (Morgan's yes).
 - **Asks:** Did the screen look switched off until you called?
 
 ### `evening.call` You call, and you are answered
@@ -27,7 +32,7 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 - **Said:** `SPEC.md` "You call (tap R1)." "A ring of light runs out over the ground and shows reeds
   and a coiled hose." "The second call is always answered"
 - **Stage:** 2
-- **Scene:** dark
+- **Scene:** evening
 - **The moment:** You press R1 and a ring of light runs away from you over the ground. Where it
   passes, things stand up out of the dark for a moment: reeds, a coil of hose. The ring fades at its
   edge. You are alone. You call again, and this time, far off, something calls back: a ring in
@@ -41,12 +46,18 @@ twenty minutes anyone has with the game, so each one is held to its largest read
   moment you press; a marker that points at the goal.
 - **Full size:**
   - `test an answer is heard when it has travelled there and back`
-  - `take` The scripted player calls, and an answer reaches it after its travel time.
-  - `frame dark-ring` A ring on the ground with what it has passed still lit and what it hasn't
-    reached still dark.
-  - `fact handheld.dark.late == 0` On the handheld every frame of it is on time.
-  - `owed` The second call's answer: Drip's own ring coming back in teal, and the ripple that shows
-    which way.
+  - `test the second call is answered by the drip, late by the distance there and back` The first
+    call is not answered. The second is, two seconds later: one second for the call to reach it and
+    one for its own ring to come back.
+  - `take` The scripted player calls twice, and the drip's ring reaches it.
+  - `frame evening-page` The first call: a ring crossing the dark page, with what it has passed
+    still lit behind it and nothing lit ahead of it.
+  - `frame evening-drip` The second call's answer: a teal ring coming back from far off.
+  - `fact handheld.evening.late == 0` On the handheld every frame of it is on time.
+  - `owed` What the ring shows: reeds and a coiled hose, where now there are pebbles, crumbs and the
+    plans of asters.
+  - `owed` The ripple on the ground that shows which way is drawn for two seconds; whether it is
+    enough to find the drip by is for a person to say.
   - `owed` Hum's own voice starts within one sound buffer of the button.
 - **Asks:** When you called in the dark and something answered, did it feel like being answered?
 
@@ -57,22 +68,32 @@ twenty minutes anyone has with the game, so each one is held to its largest read
   two." "Four breaths together and the figure stops dead." "A third note sounds under you both that
   neither of you is singing."
 - **Stage:** 2
+- **Scene:** evening
 - **The moment:** You stand beside the small thing that answered. The view leans in. It ticks, and
-  you hold R2 and hum and let go on its tick, clumsily, then less clumsily. Between the two of you a
-  figure of light is turning: three lobes one way, two the other. Each breath it turns slower. On
-  the fourth it stops dead, and under both your notes a third one sounds, lower, that neither of you
-  is singing. It is the first time in the game anything has held still.
+  you hold R2 and hum and let go on its tick, clumsily, then less clumsily. Its note is a fifth
+  above yours and a hair flat, so the two of you beat, and between you a figure of light is turning:
+  three lobes one way, two the other. Each breath together it comes a little truer, and the beating
+  and the turning slow by the same amount, because they are the same thing. On the fourth it stops
+  dead. Both your notes hold by themselves, and under them is a third one, lower, that neither of
+  you is singing. It is the first time in the game anything has held still.
 - **A cheat would be:** a timing bar; a figure that plays a "success" animation; a third note that
   is just a sample played on cue.
 - **Full size:**
-  - `owed` The figure is drawn from the two voices themselves: its lobes are their ratio, its
-    turning is how far apart they are.
-  - `owed` The third note is the difference between them, there in the sound because of what the two
-    are doing, and gone the moment one of them drifts.
-  - `owed` The scripted player locks in four breaths; a scripted player with poor timing takes
-    longer and still gets there.
-  - `owed` The view leans in when you stand still beside it, as it leans back at an aster's foot
-    now.
+  - `test four breaths on the tick bring the drip's fifth true, and the figure stops` Its note
+    starts four hundredths of a semitone flat and comes a quarter of the way home with each breath;
+    the figure turns at the rate the two notes beat, which is nought when they are true.
+  - `test two voices together make a third between them, and one alone makes none` The third note is
+    in the sound's own chain: the difference of the two notes, there only while both sound.
+  - `take` The scripted player finds the drip, breathes with it on its tick four times, and they
+    lock.
+  - `frame evening-figure` Hum and the drip on the page with the figure between them, turning.
+  - `frame evening-locked` The same, still.
+  - `fact evening.breaths_to_lock == 4`
+  - `owed` A player with poor timing takes longer and still gets there, and nothing ever tells them
+    they missed.
+  - `owed` The third note measured from the sound by `game/tools/ears`: for C and the true G above
+    it, C an octave down, and heard on the handheld's own speaker (Morgan's yes).
+  - `owed` The view leaning in as it does for anyone you stand beside, not only here.
 - **Asks:** When the figure stopped, did it feel like the two of you locking?
 
 ### `evening.in` "Oh. You're in."
@@ -81,7 +102,7 @@ twenty minutes anyone has with the game, so each one is held to its largest read
   seen from above." "Now it tilts back and stands up around you" "The page and the place are one
   world on one hinge." "Hold the wheel and it lies down to be read."
 - **Stage:** 2
-- **Scene:** asters
+- **Scene:** evening
 - **The moment:** The drop falls on your head and stays. Until this second the world has been a page
   you looked down on: you were a small ring on it, an aster was a burst of coloured dots, a boulder
   was a pencilled outline. Now the page tilts back, and everything drawn on it stands up from
@@ -99,14 +120,17 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 - **Full size:**
   - `test the page stands up slowly enough to be watched, and lies down while R1 is held` More than
     three seconds to rise; under a second to lie down; back up when R1 is let go.
-  - `frame asters-page` The page: Hum a mark on it, an aster in plan as a ring of its own bells, the
+  - `frame evening-page` The page: Hum a mark on it, an aster in plan as a ring of its own bells,
+    the
     call's ring crossing.
-  - `frame asters-rising` The hinge half open: the nearest aster has already risen out of the top of
+  - `frame evening-rising` The hinge half open: the nearest aster has already risen out of the top
+    of
     the frame while the rest are still coming up, with the one line of text, large, and no other
     text anywhere.
-  - `frame asters-far` The place, standing: towers beyond open ground and Hum small before them.
-  - `owed` What sets it off: the drop landing on Hum's head. In the proof the page stands by itself
-    after two and a half seconds.
+  - `frame evening-far` The place, standing: towers beyond open ground and Hum small before them.
+  - `test four breaths on the tick bring the drip's fifth true, and the figure stops` What sets it
+    off: when the two have locked and their notes have held, the drop lands on Hum's head and the
+    page begins to stand.
   - `owed` The line in the style book's own face and size, checked against `design/look.md`.
   - `owed` On the handheld: every frame of the rise on time.
 - **Asks:** When the world stood up, did you say something out loud?
@@ -117,7 +141,7 @@ twenty minutes anyone has with the game, so each one is held to its largest read
   garden in its own light" "A still pool shows lines on its surface when you hum its note, and you
   can walk on them."
 - **Stage:** 2
-- **Scene:** asters
+- **Scene:** evening
 - **The moment:** You call again, to see what the standing world does with it. The ring runs out
   over the ground and up every stalk it meets. Whatever is kin to your note lights in its own colour
   and rings in its own voice, near things at once and far things late, so that one call becomes half
@@ -129,7 +153,7 @@ twenty minutes anyone has with the game, so each one is held to its largest read
   - `test what lights a thing by ringing is what sounds it`
   - `fact asters.bells >= 800` How many separate bells the proof field holds, each with its own note
     and place.
-  - `frame asters-answer` Crowns lit in their own colours, the kin bright and the rest dark.
+  - `frame evening-answer` Crowns lit in their own colours, the kin bright and the rest dark.
   - `owed` Strings, pipes, bars, skins and bottles beside the bells, each answering by its own
     shape.
   - `owed` The pool that shows its lines when you hum its note.

@@ -14,6 +14,8 @@ const sound = @import("../sound/sound.zig");
 pub const Sound = struct {
     kind: sound.Cue.Kind,
     family: sound.Family = .bell,
+    /// For a held voice: whose it is. 0 is Hum, 1 is Drip.
+    voice: u8 = 0,
     hz: f32,
     /// How hard, at the thing itself, 0 to 1.
     strength: f32,

@@ -16,7 +16,7 @@ pub const header_size = 16;
 pub const change_size = 10;
 
 /// Which world the hands were playing in.
-pub const Scene = enum(u8) { dark = 0, asters = 1 };
+pub const Scene = enum(u8) { dark = 0, asters = 1, evening = 2 };
 
 pub const Change = struct {
     step: u32,
@@ -89,7 +89,7 @@ pub const Player = struct {
     pub fn open(bytes: []const u8) ?Player {
         if (bytes.len < header_size or !std.mem.eql(u8, bytes[0..4], &magic)) return null;
         if (std.mem.readInt(u16, bytes[4..6], .little) != version) return null;
-        if (bytes[6] > 1) return null;
+        if (bytes[6] > 2) return null;
         const count = std.mem.readInt(u32, bytes[12..16], .little);
         if (bytes.len < header_size + @as(usize, count) * change_size) return null;
         return .{
