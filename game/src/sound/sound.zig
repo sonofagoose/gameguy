@@ -16,7 +16,13 @@ const V = @Vector(4, f32);
 /// The shapes things come in, each with the overtones of that shape (spec/laws.md).
 pub const Family = enum(u8) { bell, string, stopped_pipe, bar, skin, tone, fork, fork_octave };
 
-pub const Recipe = struct { mult: [8]f32, gain: [8]f32 };
+pub const Recipe = struct {
+    mult: [8]f32,
+    gain: [8]f32,
+    /// For a partial that carries a lower one's sound to the speaker: the lower one's place, so it
+    /// rings as long. Nought: its own.
+    rings_as: [8]f32 = @splat(0.0),
+};
 
 pub fn recipe(family: Family) Recipe {
     return switch (family) {
@@ -115,6 +121,75 @@ fn sineOfTurn(p: f32) f32 {
     return -(0.225 * (y * @abs(y) - y) + y);
 }
 
+/// The speaker is the floor (SPEC.md, "The speaker is the floor"; spec/engine.md, "The end of the
+/// chain"). The handheld's one small speaker speaks from about 400 Hz (spec/laws.md, "For the
+/// ears"). Below it a partial is played softer the lower it is, twelve decibels an octave, and
+/// what it loses is given to its own octave and twelfth, so a low voice is rebuilt from its upper
+/// overtones and the ear supplies the root. With headphones in (plat/jack.zig) the sound has its
+/// full range; tests, takes and the same-take test are always shaped for the speaker.
+pub const speaker_floor: f32 = 400.0;
+/// Of what a partial below the floor loses, how much goes to its octave, and how much to its twelfth.
+const to_octave: f32 = 0.6;
+const to_twelfth: f32 = 0.4;
+/// The last of the chain: below this the speaker moves air it cannot sound, and spends the soft
+/// limit's room on it. Taken out, two poles.
+const speaker_cut_hz: f32 = 180.0;
+
+/// How much of a partial at this pitch the speaker is given: all of it from the floor up.
+pub fn underFloor(hz: f32) f32 {
+    if (hz >= speaker_floor) return 1.0;
+    const r = hz / speaker_floor;
+    return r * r;
+}
+
+// the speaker's cut: a Butterworth high pass at speaker_cut_hz, worked out once
+const cut_k: f32 = @tan(std.math.pi * speaker_cut_hz / 48000.0);
+const cut_norm: f32 = 1.0 / (1.0 + std.math.sqrt2 * cut_k + cut_k * cut_k);
+const cut_b0: f32 = cut_norm;
+const cut_b1: f32 = -2.0 * cut_norm;
+const cut_b2: f32 = cut_norm;
+const cut_a1: f32 = 2.0 * (cut_k * cut_k - 1.0) * cut_norm;
+const cut_a2: f32 = (1.0 - std.math.sqrt2 * cut_k + cut_k * cut_k) * cut_norm;
+
+/// A family's partials for a note, as the speaker is given them: each under the floor softer, and
+/// what it loses added to the partial an octave above it and the one a twelfth above it, or to new
+/// partials there in the slots the family leaves empty. The energy is kept.
+pub fn forSpeaker(rec: Recipe, hz: f32) Recipe {
+    var out = rec;
+    for (0..8) |i| {
+        if (rec.mult[i] <= 0.0) continue;
+        const f = hz * rec.mult[i];
+        const w = underFloor(f);
+        if (w >= 1.0) continue;
+        const lost = rec.gain[i] * rec.gain[i] * (1.0 - w * w);
+        out.gain[i] = rec.gain[i] * w;
+        const ups = [2]f32{ 2.0, 3.0 };
+        const shares = [2]f32{ to_octave, to_twelfth };
+        for (ups, shares) |up, share| {
+            const want = rec.mult[i] * up;
+            var at: ?usize = null;
+            for (0..8) |j| {
+                if (out.mult[j] > 0.0 and @abs(out.mult[j] - want) < 0.01 * want) at = j;
+            }
+            if (at == null) {
+                for (0..8) |j| {
+                    if (out.mult[j] <= 0.0 and at == null) {
+                        out.mult[j] = want;
+                        out.gain[j] = 0.0;
+                        at = j;
+                    }
+                }
+            }
+            if (at) |j| {
+                // a partial given more than it had rings as long as the one it stands for
+                if (share * lost > out.gain[j] * out.gain[j]) out.rings_as[j] = rec.mult[i];
+                out.gain[j] = @sqrt(out.gain[j] * out.gain[j] + share * lost);
+            }
+        }
+    }
+    return out;
+}
+
 /// How much of the voices' sum squared is added back. Two voices together then make a third
 /// note between them, the difference of the two, which neither is singing (spec/laws.md).
 const third_voice: f32 = 0.70;
@@ -156,6 +231,15 @@ pub const Sound = struct {
     sample: u64 = 0,
     /// Cues that arrived after their sample had passed. They sound at once, and are counted.
     late: u32 = 0,
+    /// Shaped for the speaker (the floor), or the full range for headphones; and what the main
+    /// thread last asked for, taken up at the start of a buffer.
+    speaker: bool = true,
+    speaker_wanted: u8 = 1,
+    /// The speaker's cut at the end of the chain: what went in and came out the last two samples.
+    cut_x1: f32 = 0.0,
+    cut_x2: f32 = 0.0,
+    cut_y1: f32 = 0.0,
+    cut_y2: f32 = 0.0,
     /// The world's pace, as the sound was last told it: one, or thick while the wheel is open.
     pace: f32 = 1.0,
     /// Where the hands last started Hum's own call, hum and let-go before the world told them.
@@ -181,18 +265,41 @@ pub const Sound = struct {
 
     pub fn init(self: *Sound) void {
         self.* = .{};
-        // each voice's vowel: three resonances (hertz, width, level)
-        const vowels = [max_voices][3][3]f32{
-            .{ .{ 280.0, 70.0, 1.0 }, .{ 1050.0, 110.0, 0.22 }, .{ 2300.0, 160.0, 0.08 } }, // mm: Hum
-            .{ .{ 520.0, 80.0, 1.0 }, .{ 860.0, 100.0, 0.45 }, .{ 2500.0, 170.0, 0.10 } }, // oh: Drip
-            .{ .{ 720.0, 90.0, 1.0 }, .{ 1120.0, 110.0, 0.50 }, .{ 2600.0, 180.0, 0.12 } }, // ah
-            .{ .{ 320.0, 70.0, 1.0 }, .{ 800.0, 100.0, 0.30 }, .{ 2300.0, 160.0, 0.06 } }, // oo
+        for (&self.voices, 0..) |*voice, which| voice.noise = 0x1234_5678 +% @as(u32, @intCast(which)) *% 0x9e37_79b9;
+        self.voicing();
+    }
+
+    /// Shape the sound for the speaker, or give headphones the full range: from the main thread,
+    /// taken up at the start of the next buffer.
+    pub fn setSpeaker(self: *Sound, on: bool) void {
+        @atomicStore(u8, &self.speaker_wanted, @intFromBool(on), .monotonic);
+    }
+
+    /// The voices' vowels, for the speaker or for headphones; the voices keep ringing through it.
+    fn voicing(self: *Sound) void {
+        // each voice's vowel: three resonances (hertz, width, level), and a fourth for the speaker.
+        // Hum's mm and the oo are mostly their first resonance, under the speaker's floor: there
+        // the first is softened by as much as the floor takes, and the fourth, a wide one round
+        // the second and third harmonics of the notes they sing, carries what it lost
+        const for_speaker = [max_voices][4][3]f32{
+            .{ .{ 280.0, 70.0, 1.0 * underFloor(280.0) }, .{ 1050.0, 110.0, 0.22 }, .{ 2300.0, 160.0, 0.08 }, .{ 640.0, 300.0, 0.85 } }, // mm: Hum
+            .{ .{ 520.0, 80.0, 1.0 }, .{ 860.0, 100.0, 0.45 }, .{ 2500.0, 170.0, 0.10 }, .{ 0.0, 0.0, 0.0 } }, // oh: Drip
+            .{ .{ 720.0, 90.0, 1.0 }, .{ 1120.0, 110.0, 0.50 }, .{ 2600.0, 180.0, 0.12 }, .{ 0.0, 0.0, 0.0 } }, // ah
+            .{ .{ 320.0, 70.0, 1.0 * underFloor(320.0) }, .{ 800.0, 100.0, 0.30 }, .{ 2300.0, 160.0, 0.06 }, .{ 660.0, 300.0, 0.75 } }, // oo
         };
+        const for_headphones = [max_voices][4][3]f32{
+            .{ .{ 280.0, 70.0, 1.0 }, .{ 1050.0, 110.0, 0.22 }, .{ 2300.0, 160.0, 0.08 }, .{ 0.0, 0.0, 0.0 } }, // mm: Hum
+            .{ .{ 520.0, 80.0, 1.0 }, .{ 860.0, 100.0, 0.45 }, .{ 2500.0, 170.0, 0.10 }, .{ 0.0, 0.0, 0.0 } }, // oh: Drip
+            .{ .{ 720.0, 90.0, 1.0 }, .{ 1120.0, 110.0, 0.50 }, .{ 2600.0, 180.0, 0.12 }, .{ 0.0, 0.0, 0.0 } }, // ah
+            .{ .{ 320.0, 70.0, 1.0 }, .{ 800.0, 100.0, 0.30 }, .{ 2300.0, 160.0, 0.06 }, .{ 0.0, 0.0, 0.0 } }, // oo
+        };
+        const vowels = if (self.speaker) for_speaker else for_headphones;
         for (&self.voices, 0..) |*voice, which| {
             var a1: [4]f32 = @splat(0.0);
             var a2: [4]f32 = @splat(0.0);
             var g: [4]f32 = @splat(0.0);
-            for (0..3) |i| {
+            for (0..4) |i| {
+                if (vowels[which][i][2] == 0.0) continue;
                 const r = @exp(-std.math.pi * vowels[which][i][1] / rate);
                 a1[i] = 2.0 * r * @cos(2.0 * std.math.pi * vowels[which][i][0] / rate);
                 a2[i] = -(r * r);
@@ -201,7 +308,6 @@ pub const Sound = struct {
             voice.a1 = a1;
             voice.a2 = a2;
             voice.gain = g;
-            voice.noise = 0x1234_5678 +% @as(u32, @intCast(which)) *% 0x9e37_79b9;
         }
     }
 
@@ -232,7 +338,7 @@ pub const Sound = struct {
             .strike => {
                 const slot = self.next_thing % max_things;
                 self.next_thing +%= 1;
-                const rec = recipe(cue.family);
+                const rec = if (self.speaker) forSpeaker(recipe(cue.family), cue.hz) else recipe(cue.family);
                 var a1: [8]f32 = undefined;
                 var a2: [8]f32 = undefined;
                 var g: [8]f32 = undefined;
@@ -245,7 +351,8 @@ pub const Sound = struct {
                         continue;
                     }
                     // higher overtones die sooner; while time is thick everything rings longer
-                    const ring = @max(0.05, cue.ring / @sqrt(@max(rec.mult[i], 0.5) * 2.0)) / self.pace;
+                    const as = if (rec.rings_as[i] > 0.0) rec.rings_as[i] else rec.mult[i];
+                    const ring = @max(0.05, cue.ring / @sqrt(@max(as, 0.5) * 2.0)) / self.pace;
                     const r = @exp(-6.91 / (ring * rate));
                     a1[i] = 2.0 * r * @cos(2.0 * std.math.pi * hz / rate);
                     a2[i] = -(r * r);
@@ -281,6 +388,11 @@ pub const Sound = struct {
 
     /// Render the next `out.len` samples (one channel). Cues due inside them start on their sample.
     pub fn render(self: *Sound, out: []f32) void {
+        const want = @atomicLoad(u8, &self.speaker_wanted, .monotonic) != 0;
+        if (want != self.speaker) {
+            self.speaker = want;
+            self.voicing();
+        }
         var done: usize = 0;
         while (done < out.len) {
             // take every cue that is due, and find how far we can go before the next one
@@ -496,11 +608,21 @@ pub const Sound = struct {
             var tones: [128]f32 = @splat(0.0);
             for (&self.tones) |*tone| {
                 if (tone.level == 0.0 and tone.target == 0.0) continue;
+                // under the speaker's floor a pure note is rebuilt from its second and third
+                // harmonics, the energy kept, so the ear supplies the root
+                const w = if (self.speaker) underFloor(tone.step * rate) else 1.0;
+                const lost = 1.0 - w * w;
+                const a2 = @sqrt(to_octave * lost);
+                const a3 = @sqrt(to_twelfth * lost);
                 for (0..n) |i| {
                     tone.level += (tone.target - tone.level) * 0.0004;
                     tone.phase += tone.step;
                     if (tone.phase >= 1.0) tone.phase -= 1.0;
-                    tones[i] += sineOfTurn(tone.phase) * tone.level;
+                    var p2 = tone.phase * 2.0;
+                    if (p2 >= 1.0) p2 -= 1.0;
+                    var p3 = tone.phase * 3.0;
+                    while (p3 >= 1.0) p3 -= 1.0;
+                    tones[i] += (sineOfTurn(tone.phase) * w + sineOfTurn(p2) * a2 + sineOfTurn(p3) * a3) * tone.level;
                 }
                 if (tone.target == 0.0 and tone.level < 1e-6) {
                     tone.level = 0.0;
@@ -509,7 +631,14 @@ pub const Sound = struct {
             }
 
             for (0..n) |i| {
-                const s = ((acc[i][0] + acc[i][1]) + (acc[i][2] + acc[i][3])) + bus[i] + tones[i];
+                const dry = ((acc[i][0] + acc[i][1]) + (acc[i][2] + acc[i][3])) + bus[i] + tones[i];
+                // what the speaker cannot sound, taken out (a two-pole high pass, Butterworth)
+                const cut = cut_b0 * dry + cut_b1 * self.cut_x1 + cut_b2 * self.cut_x2 - cut_a1 * self.cut_y1 - cut_a2 * self.cut_y2;
+                self.cut_x2 = self.cut_x1;
+                self.cut_x1 = dry;
+                self.cut_y2 = self.cut_y1;
+                self.cut_y1 = if (@abs(cut) < 1e-20) 0.0 else cut;
+                const s = if (self.speaker) self.cut_y1 else dry;
                 // a soft limit: straight up to 0.7, then bending toward 1
                 const a = @abs(s);
                 out[at + i] = if (a <= 0.7) s else std.math.copysign(0.7 + 0.3 * (1.0 - 1.0 / (1.0 + (a - 0.7) * 3.3333)), s);
@@ -573,22 +702,33 @@ test "two voices together make a third between them, and one alone makes none" {
     // 1,300 and 1,950 hertz: a pure fifth, and nothing either voice sings is at 650
     const low: f32 = 1300.0;
     const high: f32 = 1950.0;
-    snd.init();
-    _ = snd.push(.{ .at = 0, .kind = .hum_on, .voice = 0, .hz = low, .gain = 0.35 });
-    snd.render(out);
-    const alone = at(out[48000..], high - low);
-    snd.init();
-    _ = snd.push(.{ .at = 0, .kind = .hum_on, .voice = 0, .hz = low, .gain = 0.35 });
-    _ = snd.push(.{ .at = 0, .kind = .hum_on, .voice = 1, .hz = high, .gain = 0.35 });
-    snd.render(out);
-    const together = at(out[48000..], high - low);
-    try std.testing.expect(together > alone * 8.0);
-    try std.testing.expect(together > 1e-5);
+    var ratio: [2]f32 = undefined;
+    // with headphones in, the chain's own physics in its full range; then on the speaker, where
+    // Hum's breath is lifted toward the speaker's resonance and the third voice must still stand out
+    for ([2]bool{ false, true }, 0..) |speaker, k| {
+        snd.init();
+        snd.setSpeaker(speaker);
+        _ = snd.push(.{ .at = 0, .kind = .hum_on, .voice = 0, .hz = low, .gain = 0.35 });
+        snd.render(out);
+        const alone = at(out[48000..], high - low);
+        snd.init();
+        snd.setSpeaker(speaker);
+        _ = snd.push(.{ .at = 0, .kind = .hum_on, .voice = 0, .hz = low, .gain = 0.35 });
+        _ = snd.push(.{ .at = 0, .kind = .hum_on, .voice = 1, .hz = high, .gain = 0.35 });
+        snd.render(out);
+        const together = at(out[48000..], high - low);
+        try std.testing.expect(together > 1e-5);
+        ratio[k] = together / alone;
+    }
+    try std.testing.expect(ratio[0] > 8.0);
+    try std.testing.expect(ratio[1] > 3.0);
 }
 
 test "a held tone is a clean sine at its note, and eases in and out" {
     var s: Sound = undefined;
     s.init();
+    // with headphones in: the speaker would rebuild a note this low from its overtones
+    s.setSpeaker(false);
     _ = s.push(.{ .at = 0, .kind = .tone, .voice = 3, .hz = 261.63, .gain = 0.2 });
     var out: [48000]f32 = undefined;
     s.render(&out);
@@ -671,4 +811,84 @@ test "a strike the hands timed sounds once, with its octave" {
     try std.testing.expectEqual(@as(u32, 1), s.next_thing);
     // its octave rings as well as its note
     try std.testing.expect(recipe(.fork_octave).mult[1] == 2.0);
+}
+
+test "for the speaker a low note gives what it loses to its octave and twelfth, and keeps its energy" {
+    // Hum's call at the garden's note: a string's first partial is under the floor
+    const low = forSpeaker(recipe(.string), 261.63);
+    const plain = recipe(.string);
+    var before: f32 = 0.0;
+    var after: f32 = 0.0;
+    for (0..8) |i| {
+        before += plain.gain[i] * plain.gain[i];
+        after += low.gain[i] * low.gain[i];
+    }
+    try std.testing.expect(@abs(after - before) < 1e-4);
+    try std.testing.expect(low.gain[0] < 0.5 * plain.gain[0]);
+    try std.testing.expect(low.gain[1] > plain.gain[1]);
+    // a pure fork under the floor grows an octave and a twelfth of its own
+    const fork = forSpeaker(recipe(.fork), 261.63);
+    var octave = false;
+    var twelfth = false;
+    for (0..8) |i| {
+        if (@abs(fork.mult[i] - 2.0) < 0.01 and fork.gain[i] > 0.3) octave = true;
+        if (@abs(fork.mult[i] - 3.0) < 0.01 and fork.gain[i] > 0.2) twelfth = true;
+    }
+    try std.testing.expect(octave and twelfth);
+    // and from the floor up nothing changes
+    const high = forSpeaker(recipe(.string), 523.25);
+    for (0..8) |i| try std.testing.expectEqual(plain.gain[i], high.gain[i]);
+}
+
+test "with headphones in the sound has its full range, and back on the speaker it is shaped again" {
+    const s = try std.testing.allocator.create(Sound);
+    defer std.testing.allocator.destroy(s);
+    s.* = .{};
+    s.init();
+    try std.testing.expect(s.speaker);
+    const shaped = s.voices[0].gain;
+    s.setSpeaker(false);
+    var out: [128]f32 = undefined;
+    s.render(&out);
+    try std.testing.expect(!s.speaker);
+    // Hum's mm has no fourth resonance for headphones, and its first at full strength
+    try std.testing.expectEqual(@as(f32, 0.0), s.voices[0].gain[3]);
+    try std.testing.expect(s.voices[0].gain[0] > shaped[0]);
+    s.setSpeaker(true);
+    s.render(&out);
+    try std.testing.expect(s.speaker);
+    try std.testing.expectEqual(shaped[3], s.voices[0].gain[3]);
+}
+
+test "on the speaker a low held tone is rebuilt from its octave and twelfth, its energy kept" {
+    const at = struct {
+        fn f(samples: []const f32, hz: f32) f32 {
+            var re: f32 = 0.0;
+            var im: f32 = 0.0;
+            for (samples, 0..) |x, i| {
+                const a = 2.0 * std.math.pi * hz * @as(f32, @floatFromInt(i)) / rate;
+                re += x * @cos(a);
+                im += x * @sin(a);
+            }
+            // a sine's size, from its share of the sum
+            return 2.0 * @sqrt(re * re + im * im) / @as(f32, @floatFromInt(samples.len));
+        }
+    }.f;
+    const s = try std.testing.allocator.create(Sound);
+    defer std.testing.allocator.destroy(s);
+    s.init();
+    const c: f32 = 261.63;
+    _ = s.push(.{ .at = 0, .kind = .tone, .voice = 3, .hz = c, .gain = 0.2 });
+    const out = try std.testing.allocator.alloc(f32, 48000);
+    defer std.testing.allocator.free(out);
+    s.render(out);
+    // 130 of its periods, so its overtones fall on whole cycles too
+    const span = out[24000 .. 24000 + 23850];
+    const note = at(span, c);
+    const octave = at(span, 2.0 * c);
+    const twelfth = at(span, 3.0 * c);
+    try std.testing.expect(octave > note);
+    try std.testing.expect(twelfth > 0.5 * note);
+    const energy = note * note + octave * octave + twelfth * twelfth;
+    try std.testing.expect(@abs(energy - 0.04) < 0.004);
 }

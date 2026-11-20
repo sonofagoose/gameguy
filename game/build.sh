@@ -17,6 +17,8 @@ build_for() {  # name, then extra zig flags for the target
   "$ZIG" build-exe "$@" -O ReleaseSafe --dep c -Mroot=src/main.zig -Mc="build/c-$name.zig" \
       -lc -ldl -lm -femit-bin="build/gameguy-$name" --cache-dir build/cache
   "$ZIG" build-exe "$@" -O ReleaseFast bench/modes.zig -lc -femit-bin="build/modes-$name" --cache-dir build/cache
+  "$ZIG" build-exe "$@" -O ReleaseSafe --dep rules -Mroot=bench/speaker.zig -Mrules=src/rules.zig \
+      -lc -femit-bin="build/speaker-$name" --cache-dir build/cache
   "$ZIG" build-exe "$@" -O ReleaseSafe --dep rules -Mroot=tools/same_take.zig -Mrules=src/rules.zig \
       -lc -femit-bin="build/same-take-$name" --cache-dir build/cache
   if [ "$name" = x86_64 ]; then
@@ -144,10 +146,10 @@ echo "== pack"
 rm -rf dist
 P=dist/ports
 mkdir -p "$P/gameguy"
-cp build/gameguy-aarch64 build/modes-aarch64 build/same-take-aarch64 "$P/gameguy/"
+cp build/gameguy-aarch64 build/modes-aarch64 build/speaker-aarch64 build/same-take-aarch64 "$P/gameguy/"
 cp port/Gameguy.sh port/GameguyRoom.sh "$P/"
 mkdir -p "$P/gameguy/room/clips"
 cp build/room/clips.txt build/room/promises.txt "$P/gameguy/room/"
 cp ../design/listen/*.wav "$P/gameguy/room/clips/"
-chmod +x "$P/Gameguy.sh" "$P/GameguyRoom.sh" "$P/gameguy/gameguy-aarch64" "$P/gameguy/modes-aarch64" "$P/gameguy/same-take-aarch64"
+chmod +x "$P/Gameguy.sh" "$P/GameguyRoom.sh" "$P/gameguy/gameguy-aarch64" "$P/gameguy/modes-aarch64" "$P/gameguy/speaker-aarch64" "$P/gameguy/same-take-aarch64"
 find dist -type f -not -name '*.wav' | sort | sed 's/^/   /'; echo "   and $(ls dist/ports/gameguy/room/clips | wc -l) clips"

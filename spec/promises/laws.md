@@ -437,9 +437,8 @@ law to its own words._
   - `fact ears.rough_longest_s <= 2` `game/tools/ears` over the whole first evening: no stretch of
     roughness lasts two seconds. None of the moments `laws.md` excuses happens in it.
   - `fact ears.speaker_share >= 0.5` Most of the evening's sound sits between 400 Hz and 8 kHz.
-    Measured 2026-11-20 at 0.06, with 0.91 in the octave round 250 Hz: the garden's notes are low,
-    and the speaker's shaping at the end of the chain (`spec/engine.md`), which builds low voices
-    from upper overtones, is not built yet.
+    It was 0.06 before the speaker's shaping (2026-11-20), 0.91 of it in the octave round 250 Hz;
+    with low voices rebuilt from their own octaves and twelfths it is 0.69.
   - `owed` A check that every sound a player must hear has its own weight between 400 Hz and 8 kHz.
   - `owed` A test: a missed beat lands plainer, never out of tune.
 - **Asks:** Did anything ever sound wrong?

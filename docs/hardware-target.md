@@ -263,6 +263,33 @@ the sound, and the loudest sample so far.
   128-frame buffer held: 1 late callback in 104,129 (worst gap 5.7 ms) over 68 s.
 - One mono speaker (works on the "Type 1 Panel 1" profile) and a stereo 3.5 mm headphone jack with
   plug detection.
+- **The jack's switch reads backwards; the playback path tells the truth** (measured on the purple,
+  2026-11-20, Morgan plugging headphones in and out three times while a watcher logged every
+  change). The kernel's input device "rockchip,rk817-codec Headphones" (`event1`) reports
+  `SW_HEADPHONE_INSERT` set with the jack empty and clear with headphones in. The system follows the
+  truth: the codec's `Playback Path` control goes to `HP` within 0.5 to 0.9 s of a plug going in and
+  back to `SPK` when it comes out; it starts as `SPK_HP` until the first plug. The game reads that
+  control straight from `/dev/snd/controlC0` (`SNDRV_CTL_IOCTL_ELEM_READ`,
+  `game/src/plat/jack.zig`),
+  once a second on the main thread, and gives the sound its full range only on `HP`.
+
+  | plug | the kernel's switch | `Playback Path` |
+  |---|---|---|
+  | empty (at the start) | in | SPK_HP |
+  | in, 81 s | out | HP |
+  | out, 94 s | in | SPK |
+  | in, 106 s | out | HP |
+  | out, 119 s | in | SPK |
+  | in, 136 s | out | HP |
+  | out, 147 s | in | SPK |
+
+- **What the sound costs at its fullest** (`game/bench/speaker.zig`, purple, one core pinned at
+  1,008 MHz, 2026-11-20): all 192 things struck and ringing, all 4 voices and all 8 held tones,
+  every note under the speaker's floor, take 926 microseconds a 128-frame buffer at the median, a
+  third of its 2,667. The speaker's shaping adds 0.9 microseconds of that (0.03% of a buffer): the
+  octaves and twelfths it adds fill vector lanes that were computed as zeros anyway. The slowest
+  buffer of 1,500 was 1,500 microseconds shaped and 1,433 unshaped, a difference the system's own
+  interruptions make in either direction from run to run.
 
 ## Controls
 

@@ -26,6 +26,7 @@ const save = @import("keep/save.zig");
 const card_mod = @import("plat/card.zig");
 const presses_mod = @import("plat/presses.zig");
 const keys_mod = @import("plat/keys.zig");
+const jack_mod = @import("plat/jack.zig");
 const Type = @import("room.zig").Type;
 const c = plat.c;
 const sdl = plat.sdl;
@@ -60,6 +61,20 @@ var hands_most_us: u32 = 0;
 var clap_rule = keys_mod.Clap{};
 var hands_claps: u32 = 0;
 var hands_strikes: u32 = 0;
+/// The jack, looked at once a second: the sound is shaped for the speaker unless headphones are in.
+var jack = jack_mod.Jack{};
+var jack_path: jack_mod.Path = .unknown;
+var jack_looked: u64 = 0;
+
+fn followJack(step: u64) void {
+    if (jack.fd < 0 or step < jack_looked + world_mod.steps_per_second) return;
+    jack_looked = step;
+    const now = jack.path();
+    if (now == jack_path) return;
+    jack_path = now;
+    snd.setSpeaker(now != .headphones);
+    log("the jack: the playback path is {s}, so the sound is {s}", .{ @tagName(now), if (now == .headphones) "its full range" else "shaped for the speaker" });
+}
 
 /// The world's beat as the main thread last left it, for the sound's thread to tell a timed strike
 /// from one the game will place: two copies, the one not being written is the one to read.
@@ -1223,6 +1238,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                 steps_run += 1;
             }
             publishBeat(&world);
+            if (!scripted and replay == null) followJack(world.step);
             if (ran > 1) double_steps += 1;
         }
         if (scripted and options.scene != .dark and walker.done and done_at == null) done_at = frame;
