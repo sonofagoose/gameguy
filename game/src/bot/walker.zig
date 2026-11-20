@@ -33,7 +33,7 @@ pub const Walker = struct {
                 // has risen, and at what answers
                 if (step == 40) h.buttons |= Hands.call;
                 if (step == 120) self.mark = "page";
-                if (step == 265) self.mark = "rising";
+                if (step == 280) self.mark = "rising";
                 if (step == 500) self.mark = "far";
                 if (step >= 520) self.next(step);
             },

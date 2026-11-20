@@ -101,13 +101,12 @@ twenty minutes anyone has with the game, so each one is held to its largest read
     three seconds to rise; under a second to lie down; back up when R1 is let go.
   - `frame asters-page` The page: Hum a mark on it, an aster in plan as a ring of its own bells, the
     call's ring crossing.
-  - `frame asters-rising` The hinge half open, with the one line of text, large, and no other text
-    anywhere.
+  - `frame asters-rising` The hinge half open: the nearest aster has already risen out of the top of
+    the frame while the rest are still coming up, with the one line of text, large, and no other
+    text anywhere.
   - `frame asters-far` The place, standing: towers beyond open ground and Hum small before them.
   - `owed` What sets it off: the drop landing on Hum's head. In the proof the page stands by itself
     after two and a half seconds.
-  - `owed` Something tall in the frame while it rises, so the rising is seen: the tops go out of the
-    frame before they stop.
   - `owed` The line in the style book's own face and size, checked against `design/look.md`.
   - `owed` On the handheld: every frame of the rise on time.
 - **Asks:** When the world stood up, did you say something out loud?

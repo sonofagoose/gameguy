@@ -68,7 +68,7 @@ asks its question.
 | `evening.black` Black, and a drip | 2 | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `evening.call` You call, and you are answered | 2 | 2 | no | yes | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
-| `evening.in` "Oh. You're in." | 2 | 5 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
+| `evening.in` "Oh. You're in." | 2 | 5 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `evening.instrument` Everything is an instrument | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.knot` The knot, and the first fight | 2 | 10 | no | - | no | no | no | 5 owed; no yes from Morgan yet |
 | `evening.dusk` The river sings your day back | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |

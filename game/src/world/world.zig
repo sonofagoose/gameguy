@@ -566,9 +566,14 @@ pub const World = struct {
         if (s < 1.0) {
             const page_eye = [3]f32{ self.hum_x - fx * page_back, page_up, self.hum_z - fz * page_back };
             const page_at = [3]f32{ self.hum_x + fx * 4.0, 0.0, self.hum_z + fz * 4.0 };
+            // the gaze comes up to the horizon sooner than the eye comes down, so that what is
+            // rising is in the frame while it rises, and its top leaves the frame before it stops
+            const sooner = @min(1.0, self.stand * 2.0);
+            const g = sooner * sooner * (3.0 - 2.0 * sooner);
             for (0..3) |i| {
+                const ahead = eye[i] + (at[i] - eye[i]) * 12.0;
+                at[i] = page_at[i] + (ahead - page_at[i]) * g;
                 eye[i] = page_eye[i] + (eye[i] - page_eye[i]) * s;
-                at[i] = page_at[i] + (at[i] - page_at[i]) * s;
             }
             fov = page_fov + (fov - page_fov) * s;
         }
