@@ -1252,50 +1252,50 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/size.md` / How big / One to a hundred
 
-- open: The world is a real garden at one scale.
-- open: Hum stands one metre tall, which is one centimetre of the real garden.
-- open: Every thing is its real size, times a hundred.
-- open: Nothing is sized by eye.
-- open: an aster (New England aster) | 0.9 to 1.85 m | 90 to 185 m: Cologne Cathedral is 157 m and the spire of Ulm Minster, the tallest church spire ever built, 161.5 m
-- open: one of its flower heads | 2.5 to 4.5 cm across | a bell 2.5 to 4.5 m across
-- open: its stalk; one of its leaves | under 1 cm through; 5 to 10 cm | a mast a metre through; a blade 5 to 10 m long
-- open: a reed (cattail) | 1.5 to 3 m | 150 to 300 m
-- open: alfalfa | 60 cm to 1 m | a forest 60 to 100 m high
-- open: a blade of grass | 4 to 9 cm | a tree 4 to 9 m tall, as wide as a door
-- open: a crumb of soil; a marble | 1 to 3 cm; 1.6 cm | a boulder 1 to 3 m; a ball taller than Hum
-- open: a drop of water | 4 mm | 40 cm: Drip sits on Hum's head
-- open: a pill bug; a fly | 10 mm; 7 mm | as big as Hum; a little smaller
-- open: a garden hose | 15 to 30 m long, 13 to 19 mm in the bore | a tunnel 1.5 to 3 km long that Hum walks through upright
-- open: a brass spigot | 10 to 15 cm | a monument 10 to 15 m tall
-- open: a puddle from the storm | 1 to 3 m | a lake 100 to 300 m across
-- open: a flowerpot | 15 to 30 cm | a hall 15 to 30 m high
-- open: a guitar; its sound hole | 1 m; 10 cm | 100 m long; a door 10 m across
-- open: a piano key | 2.3 cm wide, 15 cm long | a floor 2.3 m wide and 15 m long
-- open: the inside of a parked car | 2 to 2.8 m long, 1.2 m floor to roof | a nave 200 to 280 m long and 120 m high
-- open: a porch step | 18 cm | a cliff 18 m high
-- open: The aster's height and the two churches were checked against sources on 2026-11-19 (below).
-- open: The other real sizes are from general knowledge and are checked when their land's score is written.
-- open: A call takes almost three seconds to climb the tallest aster, and its bells are heard as late again.
-- open: Every big thing has parts Hum's own size: the joints of a stalk, a drop of dew, a thread on the spigot.
-- open: Small things are places: the bore of the hose, the cup of a flower, the hollow of a pot.
-- open: A score gives real sizes and the score tool multiplies.
-- open: A thing in a score with no real size is refused.
+- spoken for by `scale.one-to-a-hundred`: The world is a real garden at one scale.
+- spoken for by `scale.one-to-a-hundred`: Hum stands one metre tall, which is one centimetre of the real garden.
+- spoken for by `scale.one-to-a-hundred`: Every thing is its real size, times a hundred.
+- spoken for by `scale.one-to-a-hundred`: Nothing is sized by eye.
+- spoken for by `scale.one-to-a-hundred`: an aster (New England aster) | 0.9 to 1.85 m | 90 to 185 m: Cologne Cathedral is 157 m and the spire of Ulm Minster, the tallest church spire ever built, 161.5 m
+- spoken for by `scale.one-to-a-hundred`: one of its flower heads | 2.5 to 4.5 cm across | a bell 2.5 to 4.5 m across
+- spoken for by `scale.one-to-a-hundred`: its stalk; one of its leaves | under 1 cm through; 5 to 10 cm | a mast a metre through; a blade 5 to 10 m long
+- spoken for by `scale.one-to-a-hundred`: a reed (cattail) | 1.5 to 3 m | 150 to 300 m
+- spoken for by `scale.one-to-a-hundred`: alfalfa | 60 cm to 1 m | a forest 60 to 100 m high
+- spoken for by `scale.one-to-a-hundred`: a blade of grass | 4 to 9 cm | a tree 4 to 9 m tall, as wide as a door
+- spoken for by `scale.one-to-a-hundred`: a crumb of soil; a marble | 1 to 3 cm; 1.6 cm | a boulder 1 to 3 m; a ball taller than Hum
+- spoken for by `scale.one-to-a-hundred`: a drop of water | 4 mm | 40 cm: Drip sits on Hum's head
+- spoken for by `scale.one-to-a-hundred`: a pill bug; a fly | 10 mm; 7 mm | as big as Hum; a little smaller
+- spoken for by `scale.one-to-a-hundred`: a garden hose | 15 to 30 m long, 13 to 19 mm in the bore | a tunnel 1.5 to 3 km long that Hum walks through upright
+- spoken for by `scale.one-to-a-hundred`: a brass spigot | 10 to 15 cm | a monument 10 to 15 m tall
+- spoken for by `scale.one-to-a-hundred`: a puddle from the storm | 1 to 3 m | a lake 100 to 300 m across
+- spoken for by `scale.one-to-a-hundred`: a flowerpot | 15 to 30 cm | a hall 15 to 30 m high
+- spoken for by `scale.one-to-a-hundred`: a guitar; its sound hole | 1 m; 10 cm | 100 m long; a door 10 m across
+- spoken for by `scale.one-to-a-hundred`: a piano key | 2.3 cm wide, 15 cm long | a floor 2.3 m wide and 15 m long
+- spoken for by `scale.one-to-a-hundred`: the inside of a parked car | 2 to 2.8 m long, 1.2 m floor to roof | a nave 200 to 280 m long and 120 m high
+- spoken for by `scale.one-to-a-hundred`: a porch step | 18 cm | a cliff 18 m high
+- spoken for by `scale.one-to-a-hundred`: The aster's height and the two churches were checked against sources on 2026-11-19 (below).
+- spoken for by `scale.one-to-a-hundred`: The other real sizes are from general knowledge and are checked when their land's score is written.
+- spoken for by `scale.one-to-a-hundred`: A call takes almost three seconds to climb the tallest aster, and its bells are heard as late again.
+- spoken for by `scale.one-to-a-hundred`: Every big thing has parts Hum's own size: the joints of a stalk, a drop of dew, a thread on the spigot.
+- spoken for by `scale.one-to-a-hundred`: Small things are places: the bore of the hose, the cup of a flower, the hollow of a pot.
+- spoken for by `scale.one-to-a-hundred`: A score gives real sizes and the score tool multiplies.
+- spoken for by `scale.one-to-a-hundred`: A thing in a score with no real size is refused.
 
 ## `spec/size.md` / How big / The ring
 
-- open: the lake | 3.7 km across: 11 square kilometres of water
-- open: each land | about 3 square kilometres: a kilometre of shore, two kilometres deep, two kilometres along its outer edge
-- open: all twelve | about 36 square kilometres of ground
-- open: the whole world | 7.7 km across: 47 square kilometres
-- open: A land is as big as a country to Hum. A run straight across one takes five and a half minutes at 6 m a second.
-- open: Nobody sees a whole land in one twenty-minute day.
-- open: The lake is the hub. Its shore is 11.6 km round: more than half an hour's run, more than a day.
-- open: Straight across by boat is a few minutes.
-- open: Sound crosses it in 62 seconds, so what rings on the far shore is seen at once and heard a minute later; a note that is ridden (law 6) carries Hum over in the same minute.
+- spoken for by `scale.ring`: the lake | 3.7 km across: 11 square kilometres of water
+- spoken for by `scale.ring`: each land | about 3 square kilometres: a kilometre of shore, two kilometres deep, two kilometres along its outer edge
+- spoken for by `scale.ring`: all twelve | about 36 square kilometres of ground
+- spoken for by `scale.ring`: the whole world | 7.7 km across: 47 square kilometres
+- spoken for by `scale.ring`: A land is as big as a country to Hum. A run straight across one takes five and a half minutes at 6 m a second.
+- spoken for by `scale.ring`: Nobody sees a whole land in one twenty-minute day.
+- spoken for by `scale.ring`: The lake is the hub. Its shore is 11.6 km round: more than half an hour's run, more than a day.
+- spoken for by `scale.ring`: Straight across by boat is a few minutes.
+- spoken for by `scale.ring`: Sound crosses it in 62 seconds, so what rings on the far shore is seen at once and heard a minute later; a note that is ridden (law 6) carries Hum over in the same minute.
 - open: Why this size and no smaller. A place this rich, at a find every minute, holds five to eight hours of play in three square kilometres, which is what sixty to a hundred hours over twelve lands asks for (an estimate, from how the lands are written: eight lives, twelve wonders, a great instrument, a river, pools and packs in each).
-- open: And things as tall as cathedrals need room to stand apart and be seen from far off.
-- open: Past the lake each land that is made after the thirteenth morning is another three square kilometres, with no end to them.
-- open: These replace the estimate the atlas had before (a ring of about 3 square kilometres), which let a "country" be crossed in a minute and a half.
+- spoken for by `scale.ring`: And things as tall as cathedrals need room to stand apart and be seen from far off.
+- spoken for by `scale.ring`: Past the lake each land that is made after the thirteenth morning is another three square kilometres, with no end to them.
+- spoken for by `scale.ring`: These replace the estimate the atlas had before (a ring of about 3 square kilometres), which let a "country" be crossed in a minute and a half.
 
 ## `spec/size.md` / How big / What the card is for
 

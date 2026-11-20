@@ -10,13 +10,13 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | | sentences |
 |---|---|
 | in the specification | 2146 |
-| a promise speaks for it | 435 |
+| a promise speaks for it | 475 |
 | **kept** | **0** |
-| no promise speaks for it yet | 1711 |
+| no promise speaks for it yet | 1671 |
 
 | stage | claims | spoken for | kept | open |
 |---|---|---|---|---|
-| 2 | 644 | 419 | 0 | 225 |
+| 2 | 644 | 459 | 0 | 185 |
 | 3 | 955 | 13 | 0 | 942 |
 | 4 | 274 | 2 | 0 | 272 |
 | 5 | 194 | 1 | 0 | 193 |
@@ -28,7 +28,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | `spec/laws.md` | 152 | 151 | 0 |
 | `spec/world.md` | 459 | 36 | 0 |
 | `spec/people.md` | 161 | 0 | 0 |
-| `spec/size.md` | 82 | 7 | 0 |
+| `spec/size.md` | 82 | 47 | 0 |
 | `spec/years.md` | 96 | 0 | 0 |
 | `spec/together.md` | 66 | 0 | 0 |
 | `spec/sky.md` | 473 | 10 | 0 |
@@ -39,7 +39,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 
 | rung | promises |
 |---|---|
-| sized: its moment, its cheat, its full size and its question written | 115 of 115 |
+| sized: its moment, its cheat, its full size and its question written | 117 of 117 |
 | proven: every measure passes today and nothing is owed | 2 |
 | reached: the scripted player met it by playing | 8 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
@@ -156,6 +156,8 @@ asks its question.
 | `rules.alone` Whole alone | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `rules.original` Original | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `rules.morgans-layer` Morgan's layer stays his | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `scale.one-to-a-hundred` One to a hundred | 2 | 28 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `scale.ring` The ring round the lake | 2 | 12 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `sky.dawn` The first dawn | 2 | 7 | no | yes | no | no | no | 5 owed; no yes from Morgan yet |
 | `sky.bee` The bee | 2 | 3 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
 | `texture.frame` What makes a frame beautiful | 2 | 4 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
