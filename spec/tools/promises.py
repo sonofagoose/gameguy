@@ -392,6 +392,19 @@ def read_facts():
     return facts, witness
 
 
+def read_source(facts):
+    """Facts about how the game is written, which no run can show."""
+    try:
+        text = read('game/src/world/world.zig')
+    except OSError:
+        return
+    # every sound is sent on its way by `send`, and only `tell` may call it
+    tell = re.search(r'\n    fn tell\(.*?\n    }\n', text, re.S)
+    inside = tell.group(0).count('self.send(') if tell else 0
+    facts['cue.sounds_outside_tell'] = float(text.count('self.send(') - inside)
+    facts['cue.tells'] = float(text.count('self.tell('))
+
+
 def read_handhelds(facts):
     """The newest line of each kind in the logs the handhelds left, and every answer in the room."""
     hands = {}  # id -> {who: (verdict, where)}
@@ -639,6 +652,7 @@ def main():
             refusals.append(f'`{p.id}` is in {p.source} without {", ".join(missing)}')
 
     facts, witness = read_facts()
+    read_source(facts)
     hands = read_handhelds(facts)
     tests = read_tests()
     seen_rows = read_table('spec/promises/seen.md', 3)

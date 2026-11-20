@@ -470,20 +470,45 @@ fn moss(x: f32, z: f32, s: u32, near: bool, out: Out) void {
     }
 }
 
-/// A crumb of soil: a boulder one to three metres across.
+/// A crumb of soil: a boulder from half a metre to three metres across, and no two alike. A real
+/// crumb is half a centimetre to three.
 fn crumb(x: f32, z: f32, s: u32, out: Out) void {
-    const stone = col8(.{ 0.62, 0.56, 0.50 }, 0.22);
-    const r = 0.6 + 1.0 * unit01(s *% 40503);
+    const stone = col8(.{ 0.62, 0.56, 0.50 }, 0.20);
+    const big = unit01(s *% 40503);
+    const r = 0.4 + 2.4 * big * big;
+    const high = r * (0.35 + 0.5 * unit01(s *% 69069));
+    const sides: usize = 5 + @as(usize, s >> 7) % 3;
+    const turn = unit01(s *% 22695477) * 6.2831853;
+    const lean = V{ (unit01(s *% 1103515245) - 0.5) * r * 0.5, 0.0, (unit01(s *% 134775813) - 0.5) * r * 0.5 };
+    var base: [7]V = undefined;
+    var top: [7]V = undefined;
+    for (0..sides) |k| {
+        const a = turn + @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, @floatFromInt(sides)));
+        const out_by = r * (0.65 + 0.55 * unit01(hash(@intCast(k), @bitCast(s), 7)));
+        const in_by = out_by * (0.30 + 0.25 * unit01(hash(@intCast(k), @bitCast(s), 11)));
+        base[k] = .{ x + out_by * @cos(a), 0.03, z + out_by * @sin(a) };
+        top[k] = .{ x + lean[0] + in_by * @cos(a + 0.3), high * (0.8 + 0.3 * unit01(hash(@intCast(k), @bitCast(s), 13))), z + lean[2] + in_by * @sin(a + 0.3) };
+    }
+    for (0..sides) |k| {
+        const n = (k + 1) % sides;
+        out.line(base[k], base[n], 1.1, stone);
+        out.line(top[k], top[n], 1.0, stone);
+        if (k % 2 == 0) out.line(base[k], top[k], 1.0, stone);
+        out.tri(base[k], base[n], top[n]);
+        out.tri(base[k], top[n], top[k]);
+        out.tri(top[0], top[k], top[n]);
+    }
+}
+
+/// A pebble: a mark on the ground no bigger than Hum, to show where the ground is.
+fn pebble(x: f32, z: f32, s: u32, out: Out) void {
+    const stone = col8(.{ 0.62, 0.56, 0.50 }, 0.16);
+    const r = 0.15 + 0.35 * unit01(s *% 40503);
     const turn = unit01(s *% 69069) * 6.2831853;
-    const peak = V{ x + r * 0.15, r * 0.8, z - r * 0.1 };
-    for (0..4) |k| {
-        const a0 = turn + @as(f32, @floatFromInt(k)) * 1.5707963;
-        const a1 = a0 + 1.5707963;
-        const q0 = V{ x + r * @cos(a0), 0.03, z + r * @sin(a0) };
-        const q1 = V{ x + r * @cos(a1), 0.03, z + r * @sin(a1) };
-        out.line(q0, q1, 1.1, stone);
-        out.line(q0, peak, 1.0, stone);
-        out.tri(q0, q1, peak);
+    for (0..3) |k| {
+        const a0 = turn + @as(f32, @floatFromInt(k)) * 2.0943951;
+        const a1 = a0 + 2.0943951;
+        out.line(.{ x + r * @cos(a0), 0.03, z + r * @sin(a0) }, .{ x + r * @cos(a1), 0.03, z + r * @sin(a1) }, 1.0, stone);
     }
 }
 
@@ -509,9 +534,12 @@ fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
             }
         },
         .soil => {
+            // bare ground after the storm: mostly nothing, a few pebbles, and now and then a crumb
             for (0..many) |k| {
                 const s = hash(ix, iz, @intCast(k + salt + 80));
-                crumb((@as(f32, @floatFromInt(ix)) + unit01(s)) * size, (@as(f32, @floatFromInt(iz)) + unit01(s *% 22695477)) * size, s, out);
+                const px = (@as(f32, @floatFromInt(ix)) + unit01(s)) * size;
+                const pz = (@as(f32, @floatFromInt(iz)) + unit01(s *% 22695477)) * size;
+                if (k == 0 and s % 5 == 0) crumb(px, pz, s, out) else pebble(px, pz, s, out);
             }
         },
     }
@@ -541,9 +569,6 @@ pub fn ground(hum_x: f32, hum_z: f32, lines_out: []Inst, occ: []V, occ_n: *usize
         var ix: i32 = cx - 7;
         while (ix <= cx + 7) : (ix += 1) {
             patch(ix, iz, size, false, 0, out);
-            // a crumb of soil lies on every kind of ground
-            const s = hash(ix *% 31, iz *% 17, 99);
-            crumb((@as(f32, @floatFromInt(ix)) + unit01(s)) * size, (@as(f32, @floatFromInt(iz)) + unit01(s *% 2654435761)) * size, s, out);
         }
     }
     return n;

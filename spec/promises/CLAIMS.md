@@ -299,8 +299,8 @@ _Every sentence of the specification that promises a player something, read by
 - open: Each place's echoes are worked out from its shape and kept on the card.
 - open: The speaker is the floor. Low voices are built from upper overtones and the ear supplies the root.
 - open: Nothing essential is in stereo or deep bass. Headphones add space.
-- open: Every cue twice, in code. A thing the player must notice is declared once, with its sound and its light together.
-- open: A cue with only one of them does not compile.
+- spoken for by `whole.twice`: Every cue twice, in code. A thing the player must notice is declared once, with its sound and its light together.
+- spoken for by `whole.twice`: A cue with only one of them does not compile.
 - open: Out of tune is never blur. It is two crisp copies sliding against each other on the beat, or flat where it should be deep.
 - open: A seeing option: heavier lines and a lifted floor for blacks.
 

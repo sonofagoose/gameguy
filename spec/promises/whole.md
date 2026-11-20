@@ -168,18 +168,37 @@ every land._
 
 ### `whole.twice` Every cue twice
 
-- **Said:** `SPEC.md` "the game can be played by ear alone or by eye alone"
+- **Said:** `SPEC.md` "the game can be played by ear alone or by eye alone" "A cue with only one of
+  them does not compile." "A thing the player must notice is declared once, with its sound and its
+  light together."
 - **Stage:** 1
 - **The moment:** You shut your eyes and can still play: you know where the answer came from, when
   the beat is, that something leans. You turn the sound off on a bus and can still play: everything
-  you needed to hear is also light.
+  you needed to hear is also light. And nothing ever makes a sound you can't see, or shows a light
+  with no sound behind it: a far bell lights the moment your call reaches it and is heard exactly as
+  late as it is far, every time, because the game has only one way of saying anything.
 - **A cheat would be:** a caption for the sound and a beep for the picture, added afterwards for a
-  few big moments.
+  few big moments; a sound effect played from one place in the code and its animation from another,
+  kept in step by hand.
 - **Full size:**
-  - `owed` The cue type: a thing the player must notice is declared once with a sound and a light,
-    and one without the other does not compile.
+  - `test a cue can't be made with a sound and no light, or a light and no sound` The cue's type has
+    two parts, a sound and a light, and neither has a default (`game/src/world/cue.zig`).
+  - `test nothing sounds without its light: every sound in a scripted take was told as a cue`
+    Thousands of steps of two scripted takes: every sound that reached the ears had been told with
+    its light.
+  - `test what lights a thing by ringing is what sounds it` One number rings a thing: it is heard as
+    that number and seen as its square root.
+  - `test an answer is heard when it has travelled there and back` The light is at the thing at
+    once; the sound is late by the distance.
+  - `fact cue.sounds_outside_tell == 0` One way out: nothing in the world's rules sends a sound on
+    its way except `tell`, which takes a cue. The promise tool reads the source to count.
   - `owed` Two more scripted players: one given only what the sound says, one given only what the
     picture says. Each finishes the stage.
+  - `owed` Every kind of sound the game grows goes the same way: strings, pipes, the lives' voices,
+    strikes in a fight, the river's song. Each kind of light is drawn: now the glow and its halo,
+    the ring on the ground, and the singer's swell.
+  - `owed` Measured on the handheld from outside, with a phone filming: the light and the sound of
+    one cue at no distance are within a twentieth of a second of each other.
 - **Asks:** Play ten minutes with the sound off, then ten with your eyes shut. Could you?
 
 ### `whole.same` A take is its inputs

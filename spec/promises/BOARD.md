@@ -10,13 +10,13 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | | sentences |
 |---|---|
 | in the specification | 1261 |
-| a promise speaks for it | 89 |
+| a promise speaks for it | 91 |
 | **kept** | **0** |
-| no promise speaks for it yet | 1172 |
+| no promise speaks for it yet | 1170 |
 
 | stage | claims | spoken for | kept | open |
 |---|---|---|---|---|
-| 2 | 514 | 84 | 0 | 430 |
+| 2 | 514 | 86 | 0 | 428 |
 | 3 | 387 | 2 | 0 | 385 |
 | 4 | 186 | 2 | 0 | 184 |
 | 5 | 95 | 1 | 0 | 94 |
@@ -24,7 +24,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 
 | document | claims | spoken for | kept |
 |---|---|---|---|
-| `SPEC.md` | 252 | 46 | 0 |
+| `SPEC.md` | 252 | 48 | 0 |
 | `spec/laws.md` | 151 | 0 | 0 |
 | `spec/world.md` | 455 | 36 | 0 |
 | `spec/people.md` | 161 | 0 | 0 |
@@ -68,12 +68,12 @@ asks its question.
 | `evening.black` Black, and a drip | 2 | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `evening.call` You call, and you are answered | 2 | 2 | no | yes | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
-| `evening.in` "Oh. You're in." | 2 | 3 | no | - | no | no | no | 3 owed; frame asters-far: it has changed since it was looked at (by 6.1 of 255 a channel); no yes from Morgan yet |
+| `evening.in` "Oh. You're in." | 2 | 3 | no | - | no | no | no | 3 owed; frame asters-far: it has changed since it was looked at (by 4.7 of 255 a channel); no yes from Morgan yet |
 | `evening.instrument` Everything is an instrument | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.knot` The knot, and the first fight | 2 | 10 | no | - | no | no | no | 5 owed; no yes from Morgan yet |
 | `evening.dusk` The river sings your day back | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `garden.land` The Garden, home | 2 | 14 | no | - | no | no | no | 7 owed; no yes from Morgan yet |
-| `garden.asters` Asters as tall as cathedrals | 2 | 1 | no | yes | no | no | no | 3 owed; frame asters-far: it has changed since it was looked at (by 6.1 of 255 a channel); frame asters-foot: it has changed since it was looked at (by 6.5 of 255 a channel); no yes from Morgan yet |
+| `garden.asters` Asters as tall as cathedrals | 2 | 1 | no | yes | no | no | no | 3 owed; frame asters-far: it has changed since it was looked at (by 4.7 of 255 a channel); frame asters-foot: it has changed since it was looked at (by 6.0 of 255 a channel); no yes from Morgan yet |
 | `garden.great` The Hose | 2 | 6 | no | - | no | no | no | 6 owed; no yes from Morgan yet |
 | `garden.w01` The answering field | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w02` The seed that follows | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
@@ -87,7 +87,7 @@ asks its question.
 | `garden.w10` The third man | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w11` Three against two | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w12` The pot | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `card.ground` The ground remembers | 2 | 7 | no | - | no | no | no | 6 owed; frame asters-ground: it has changed since it was looked at (by 8.4 of 255 a channel); handheld.asters.late == 0  (is 2); no yes from Morgan yet |
+| `card.ground` The ground remembers | 2 | 7 | no | - | no | no | no | 6 owed; frame asters-ground: it has changed since it was looked at (by 5.6 of 255 a channel); handheld.asters.late == 0  (is 2); no yes from Morgan yet |
 | `whole.scale` One to a hundred | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.true` Literally true | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.law1` Sympathy | 1 | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |
@@ -97,8 +97,8 @@ asks its question.
 | `whole.law5` Cancelling and beating | 2 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.law6` Travel | 1 | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |
 | `whole.law7` Building up | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `whole.twice` Every cue twice | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `whole.same` A take is its inputs | 1 | 1 | no | - | - | no | no | 1 owed |
+| `whole.twice` Every cue twice | 1 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `whole.same` A take is its inputs | 1 | 1 | no | - | - | no | no | 1 owed; same_take.identical == 1  (is 0) |
 | `whole.alone` Whole alone, more together | 6 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.endless` The mornings never repeat | 5 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.lights` Every land's lights across the water | 3 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
