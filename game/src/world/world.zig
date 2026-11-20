@@ -263,6 +263,8 @@ pub const Thing = struct {
     /// How far it reaches from its middle over the ground, as a pool does: its sound comes from
     /// its nearest part.
     spread: f32 = 0.0,
+    /// The step it last rang, so its kin can't ring it straight back.
+    rung_at: u32 = 0,
 };
 
 /// A tall thing with a foot: the view leans back at it, and a call climbs it.
@@ -334,6 +336,46 @@ pub fn sympathy(voice_hz: f32, thing_hz: f32, mult: [8]f32, gain: [8]f32) f32 {
     }
     return @min(best, 1.0);
 }
+
+/// How much two things share: the strongest pair of their overtones that agree, each as loud as it
+/// is in its own thing (law 1).
+pub fn kinOf(a: Thing, b: Thing) f32 {
+    const ra = sound.recipe(a.family);
+    const rb = sound.recipe(b.family);
+    var best: f32 = 0.0;
+    for (ra.mult, ra.gain) |ma, ga| {
+        if (ma <= 0.0 or ga <= 0.0) continue;
+        for (rb.mult, rb.gain) |mb, gb| {
+            if (mb <= 0.0 or gb <= 0.0) continue;
+            best = @max(best, ga * gb * share(cents(a.hz * ma, b.hz * mb)));
+        }
+    }
+    return @min(best, 1.0);
+}
+
+/// Law 1 flows between things, not only from Hum: a thing that rings rings its kin, and they ring
+/// theirs, more faintly each time. Each sounding thing keeps its nearest strong kin, found when the
+/// world is made.
+pub const kin_most = 4;
+pub const Kin = struct {
+    index: u16 = 0,
+    /// How much they share, out of 65535; nought for none.
+    share: u16 = 0,
+};
+/// How near kin must be to be rung by a thing's sound, and how much they must share.
+pub const kin_within: f32 = 60.0;
+pub const kin_least: f32 = 0.3;
+/// How much of a thing's ringing each passing-on keeps, and how hard a thing must ring to pass it
+/// on at all.
+pub const cascade_keeps: f32 = 0.45;
+pub const cascade_floor: f32 = 0.08;
+/// A thing that has rung rests this long before its kin can ring it again, so two kin never ring
+/// each other back and forth.
+pub const rests_for: u32 = 45;
+/// A thing due to ring because its kin rang: when, how hard, and whether it is part of an answer to
+/// Hum's call.
+pub const Echo = struct { thing: u16 = 0, due: u64 = 0, strength: f32 = 0.0, answer: bool = false, live: bool = false };
+pub const max_echoes = 512;
 
 const bell_mult = [8]f32{ 0.5, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0 };
 const bell_gain = [8]f32{ 0.30, 1.0, 0.45, 0.35, 0.55, 0.20, 0.22, 0.10 };
@@ -418,6 +460,10 @@ pub const World = struct {
     pool_seen: u8 = 0,
     /// How far the view has lifted behind Hum while it walks standing water, 0 to 1.
     water_view: f32 = 0.0,
+    /// Each thing's kin, and the things due to ring because their kin rang (law 1).
+    kin: [max_things][kin_most]Kin = @splat(@splat(.{})),
+    echoes: [max_echoes]Echo = @splat(.{}),
+    echoed: u32 = 0,
     /// A flower head that has fallen by the great aster's foot: a bell at Hum's own size.
     fallen: u32 = no_thing,
     /// The tower Hum is nearest, and how far its foot is.
@@ -582,6 +628,7 @@ pub const World = struct {
         self.thing_count = at;
         self.bee.place(self, bee_thing, .{ (drip_x + asters.great_x) * 0.5, (drip_z + asters.great_z) * 0.5 }, 0);
         self.thing_count = at;
+        self.findKin();
     }
 
     /// Tell the player something. This is the only way anything in the world makes a sound, and
@@ -866,6 +913,8 @@ pub const World = struct {
                 self.answering = true;
                 self.tell(.{ .thing = @intCast(index) }, cues_mod.Cue.of(.{ .kind = .strike, .family = thing.family, .hz = thing.hz, .strength = strength, .ring = thing.ring }, .glow));
                 self.answering = false;
+                thing.rung_at = @truncate(self.step);
+                self.passOn(@intCast(index), strength, true);
             }
             // a puddle the call reaches stands for a moment in the shape the call's note stands in,
             // from the edge it reaches first, and sings it as it dies away
@@ -879,6 +928,9 @@ pub const World = struct {
                 p.struck(garden_hz, &call_overtones, strength * 0.8, ring.x, ring.z);
             }
         }
+
+        // things whose kin rang ring in their turn (law 1)
+        self.echoStep();
 
         // light and ringing fade
         var ringing: u32 = 0;
@@ -932,6 +984,130 @@ pub const World = struct {
         }
         // standing water sings again at its next turn
         for (self.pools[0..self.pool_count]) |*p| p.sent = .{ 0.0, 0.0 };
+    }
+
+    /// Whether a thing rings its kin and is rung by them. The sky's rungs, the bee, Drip and the
+    /// puddles keep rules of their own.
+    fn cascades(self: *const World, i: usize) bool {
+        const t = self.things[i];
+        if (!t.sounds or t.family == .tone) return false;
+        if (self.rung_first != no_thing and i >= self.rung_first and i < self.rung_first + rungs) return false;
+        if (self.pool_first != no_thing and i >= self.pool_first and i < self.pool_first + self.pool_count) return false;
+        if (i == self.bee.thing or i == self.drip) return false;
+        return true;
+    }
+
+    /// Each sounding thing's nearest kin that share enough, strongest and nearest first. A land
+    /// has few notes, so how much two notes share is worked out once for each pair of them.
+    pub fn findKin(self: *World) void {
+        const most_notes = 96;
+        var notes: [most_notes]struct { family: sound.Family, hz: f32 } = undefined;
+        var note_n: usize = 0;
+        var note_of: [max_things]u8 = undefined;
+        var shared: [most_notes][most_notes]f32 = @splat(@splat(-1.0));
+        for (0..self.thing_count) |i| {
+            const th = self.things[i];
+            var found: ?usize = null;
+            for (notes[0..note_n], 0..) |n, k| {
+                if (n.family == th.family and n.hz == th.hz) {
+                    found = k;
+                    break;
+                }
+            }
+            if (found == null and note_n < most_notes) {
+                notes[note_n] = .{ .family = th.family, .hz = th.hz };
+                found = note_n;
+                note_n += 1;
+            }
+            note_of[i] = if (found) |k| @intCast(k) else 255;
+        }
+        for (0..self.thing_count) |i| {
+            self.kin[i] = @splat(.{});
+            if (!self.cascades(i)) continue;
+            const a = self.things[i];
+            var best: [kin_most]f32 = @splat(0.0);
+            for (0..self.thing_count) |j| {
+                if (j == i) continue;
+                const b = self.things[j];
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const dz = b.z - a.z;
+                const d2 = dx * dx + dy * dy + dz * dz;
+                if (d2 > kin_within * kin_within) continue;
+                if (!self.cascades(j)) continue;
+                const na = note_of[i];
+                const nb = note_of[j];
+                var k: f32 = undefined;
+                if (na != 255 and nb != 255) {
+                    if (shared[na][nb] < 0.0) shared[na][nb] = kinOf(a, b);
+                    k = shared[na][nb];
+                } else k = kinOf(a, b);
+                if (k < kin_least) continue;
+                // stronger and nearer first
+                const worth = k / (1.0 + d2 / (20.0 * 20.0));
+                var slot: ?usize = null;
+                for (best, 0..) |v, s| {
+                    if (worth > v and (slot == null or v < best[slot.?])) slot = s;
+                }
+                if (slot) |s| {
+                    best[s] = worth;
+                    self.kin[i][s] = .{ .index = @intCast(j), .share = @intFromFloat(k * 65535.0) };
+                }
+            }
+        }
+    }
+
+    /// A thing has rung this hard: its kin ring in their turn when its sound reaches them, more
+    /// faintly by how much they share and how far it has come.
+    pub fn passOn(self: *World, from: u16, strength: f32, answer: bool) void {
+        if (strength < cascade_floor) return;
+        const a = self.things[from];
+        for (self.kin[from]) |k| {
+            if (k.share == 0) continue;
+            const b = self.things[k.index];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const dz = b.z - a.z;
+            const far = @sqrt(dx * dx + dy * dy + dz * dz);
+            const kin_share = @as(f32, @floatFromInt(k.share)) / 65535.0;
+            const s = strength * kin_share * cascade_keeps / (1.0 + (far / a.carry) * (far / a.carry));
+            if (s * answer_level < quietest) continue;
+            const due = self.step + 1 + @as(u64, @intFromFloat(far / sound_speed * @as(f32, steps_per_second)));
+            // one waiting at a time for each thing: the stronger
+            var free: ?usize = null;
+            var already = false;
+            for (&self.echoes, 0..) |*e, i| {
+                if (e.live and e.thing == k.index) {
+                    already = true;
+                    if (s > e.strength) {
+                        e.strength = s;
+                        e.due = @min(e.due, due);
+                        e.answer = e.answer or answer;
+                    }
+                    break;
+                }
+                if (!e.live and free == null) free = i;
+            }
+            if (already) continue;
+            if (free) |i| self.echoes[i] = .{ .thing = k.index, .due = due, .strength = s, .answer = answer, .live = true };
+        }
+    }
+
+    /// Ring whatever is due, unless it rang a moment ago; each passes it on in turn.
+    fn echoStep(self: *World) void {
+        for (&self.echoes) |*e| {
+            if (!e.live or e.due > self.step) continue;
+            e.live = false;
+            const thing = &self.things[e.thing];
+            const now: u32 = @truncate(self.step);
+            if (now -% thing.rung_at < rests_for and thing.rung_at != 0) continue;
+            thing.rung_at = now;
+            self.echoed += 1;
+            self.answering = e.answer;
+            self.tell(.{ .thing = e.thing }, cues_mod.Cue.of(.{ .kind = .strike, .family = thing.family, .hz = thing.hz, .strength = e.strength, .ring = thing.ring }, .glow));
+            self.answering = false;
+            self.passOn(e.thing, e.strength, e.answer);
+        }
     }
 
     /// How many samples from `sample` to the nearest of Drip's ticks as Hum hears it: told on its
@@ -1387,6 +1563,7 @@ pub const World = struct {
             }
         }
         mixIn(&h, self.crossed);
+        mixIn(&h, self.echoed);
         if (self.bee.thing != no_thing) {
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].x)));
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].z)));
@@ -2006,4 +2183,49 @@ test "Hum's own call starts on the sample the hands were stamped with, and is no
     snd.render(&out);
     try std.testing.expectEqual(@as(u32, 1), snd.own_met);
     try std.testing.expectEqual(@as(u32, 0), snd.late);
+}
+
+test "a rung bell rings its kin, and they ring theirs, more faintly each time (law 1)" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.* = .{};
+    w.view = .place;
+    w.stand = 1.0;
+    // three bells in a row, twenty metres apart: C, the G above it, and the D above that. C and G
+    // share a fifth; G and D share one; C and D share little
+    w.things[0] = .{ .x = 0.0, .z = -200.0, .y = 10.0, .tall = 2.0, .hz = garden_hz, .ring = 3.0, .carry = 110.0 };
+    w.things[1] = .{ .x = 20.0, .z = -200.0, .y = 10.0, .tall = 2.0, .hz = garden_hz * 1.5, .ring = 3.0, .carry = 110.0 };
+    w.things[2] = .{ .x = 40.0, .z = -200.0, .y = 10.0, .tall = 2.0, .hz = garden_hz * 2.25, .ring = 3.0, .carry = 110.0 };
+    w.thing_count = 3;
+    w.findKin();
+    try std.testing.expect(kinOf(w.things[0], w.things[1]) > kin_least);
+    try std.testing.expect(kinOf(w.things[1], w.things[2]) > kin_least);
+    // ring C hard, as a call's answer would
+    w.step = 100;
+    w.things[0].rung_at = 100;
+    w.passOn(0, 0.9, true);
+    var cues: [max_cues]sound.Cue = undefined;
+    var rang: [3]u32 = .{ 100, 0, 0 };
+    var hard: [3]f32 = .{ 0.9, 0.0, 0.0 };
+    var step: u32 = 0;
+    while (step < 120) : (step += 1) {
+        const before = [3]u32{ w.things[0].rung_at, w.things[1].rung_at, w.things[2].rung_at };
+        var waiting: [3]f32 = .{ 0.0, 0.0, 0.0 };
+        for (w.echoes) |e| {
+            if (e.live and e.due <= w.step) waiting[e.thing] = e.strength;
+        }
+        _ = w.stepOnce(.{}, &cues);
+        for (1..3) |i| {
+            if (w.things[i].rung_at != before[i] and rang[i] == 0) {
+                rang[i] = w.things[i].rung_at;
+                hard[i] = waiting[i];
+            }
+        }
+    }
+    // G rang after C, late by the way between them; D after G; each more faintly
+    try std.testing.expect(rang[1] > rang[0] and rang[2] > rang[1]);
+    try std.testing.expect(rang[1] - rang[0] >= 20);
+    try std.testing.expect(hard[1] < hard[0] and hard[2] < hard[1] and hard[2] > 0.0);
+    // and C, which rang first, was not rung straight back by G
+    try std.testing.expectEqual(@as(u32, 100), w.things[0].rung_at);
 }

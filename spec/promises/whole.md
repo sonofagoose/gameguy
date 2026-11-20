@@ -63,8 +63,15 @@ every land._
   - `test kin answer a call and strangers don't`
   - `test a thing answers by its own overtones, whatever its family`
   - `take` The scripted player calls and is answered.
-  - `owed` It flows between things, not only from Hum: a rung thing rings its kin, and they ring
-    theirs, more faintly each time.
+  - `test a rung bell rings its kin, and they ring theirs, more faintly each time (law 1)` It flows
+    between things, not only from Hum: each thing keeps its nearest strong kin, and a thing that
+    rings rings them when its sound reaches them, more faintly by how much they share and how far it
+    came; a thing just rung rests, so two kin never ring each other back and forth. A call's
+    answers pass it on, and so does the bee's chime at a crown. In the Garden's proof field it adds
+    little (twenty rings in the evening), since its bells are tuned to the home chord and nearly
+    all answer the call themselves.
+  - `owed` A puddle a ringing bell shares an overtone with stands for a moment in that shape, as it
+    does for a call.
 - **Asks:** When you rang one thing and others answered, could you tell why those?
 
 ### `whole.law2` Gravity

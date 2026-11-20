@@ -10,13 +10,13 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | | sentences |
 |---|---|
 | in the specification | 2146 |
-| a promise speaks for it | 116 |
+| a promise speaks for it | 435 |
 | **kept** | **0** |
-| no promise speaks for it yet | 2030 |
+| no promise speaks for it yet | 1711 |
 
 | stage | claims | spoken for | kept | open |
 |---|---|---|---|---|
-| 2 | 644 | 100 | 0 | 544 |
+| 2 | 644 | 419 | 0 | 225 |
 | 3 | 955 | 13 | 0 | 942 |
 | 4 | 274 | 2 | 0 | 272 |
 | 5 | 194 | 1 | 0 | 193 |
@@ -24,8 +24,8 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 
 | document | claims | spoken for | kept |
 |---|---|---|---|
-| `SPEC.md` | 267 | 50 | 0 |
-| `spec/laws.md` | 152 | 0 | 0 |
+| `SPEC.md` | 267 | 201 | 0 |
+| `spec/laws.md` | 152 | 151 | 0 |
 | `spec/world.md` | 459 | 36 | 0 |
 | `spec/people.md` | 161 | 0 | 0 |
 | `spec/size.md` | 82 | 7 | 0 |
@@ -33,14 +33,14 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | `spec/together.md` | 66 | 0 | 0 |
 | `spec/sky.md` | 473 | 10 | 0 |
 | `spec/shape.md` | 286 | 6 | 0 |
-| `spec/texture.md` | 104 | 7 | 0 |
+| `spec/texture.md` | 104 | 24 | 0 |
 
 ## Promises: what speaks for the claims
 
 | rung | promises |
 |---|---|
-| sized: its moment, its cheat, its full size and its question written | 49 of 49 |
-| proven: every measure passes today and nothing is owed | 0 |
+| sized: its moment, its cheat, its full size and its question written | 115 of 115 |
+| proven: every measure passes today and nothing is owed | 2 |
 | reached: the scripted player met it by playing | 8 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
 | graded full by a fresh reader | 0 |
@@ -62,6 +62,7 @@ asks its question.
 | `garden.ground` What the Garden's ground wears | Did the ground under you feel different from one patch to the next? | none |
 | `garden.asters` Asters as tall as cathedrals | Is it as tall as a cathedral? | none |
 | `garden.w01` The answering field | Did the answers coming in from far away make the garden feel big? | none |
+| `garden.w04` The puddle bridge | When the lines came up on the water, did you trust them enough to step out? | none |
 | `card.ground` The ground remembers | Coming back to it, could you see where you had been? | none |
 | `sky.dawn` The first dawn | Did you stop to watch the sky come up? | none |
 | `sky.bee` The bee | When the bee went past, did its note drop? | none |
@@ -74,6 +75,15 @@ asks its question.
 
 | promise | stage | speaks for | proven | reached | felt | graded | kept | what stands in the way |
 |---|---|---|---|---|---|---|---|---|
+| `arc.one-breath` The game in one breath | 2 | 6 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `arc.day` A day is a song | 2 | 9 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `arc.instruments` Every thing is an instrument | 2 | 5 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `fight.beat` On the beat | 2 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `fight.looper` The looper in a fight | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `fight.transform` Nothing dies in a fight | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `fight.kinds` Wolves, knots and greys | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `fight.bosses` Bosses are pieces of music | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `fight.gentle` Gentle or Fierce | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `evening.black` Black, and a drip | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.call` You call, and you are answered | 2 | 2 | no | yes | no | no | no | 3 owed; handheld.evening.late == 0  (is not reported); no yes from Morgan yet |
 | `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
@@ -97,11 +107,68 @@ asks its question.
 | `garden.w10` The third man | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w11` Three against two | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w12` The pot | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `hands.by-position` Face buttons by where they are | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `hands.map` Every input does what the table says | 2 | 16 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `hands.thumbs` The thumb audit | 2 | 6 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `hands.no-fn` FN is never needed | 2 | 1 | yes | - | - | no | no | not graded |
+| `laws.things` What a thing is | 2 | 7 | no | - | - | no | no | 2 owed |
+| `laws.sympathy` Law 1: sympathy | 2 | 10 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
+| `laws.standing-waves` Law 4: standing waves | 2 | 10 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `laws.building-up` Law 7: building up | 2 | 9 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `texture.materials` What a thing is made of | 2 | 17 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `laws.families` The families | 2 | 12 | no | - | - | no | no | 4 owed |
+| `laws.gravity` Law 2: gravity | 2 | 17 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
+| `laws.in-step` Law 3: falling into step | 2 | 10 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `laws.cancelling` Law 5: cancelling and beating | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `laws.travel` Law 6: travel | 2 | 14 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `laws.sound-and-light` The table of sound and light | 2 | 11 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `laws.home` Home over the laws | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `laws.tuning` Tuning | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `laws.ears` Limits for the ears | 2 | 6 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `loop.river` The river sings your day back | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `loop.echoes` Echoes | 2 | 4 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `loop.release` What you let go becomes the place | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `loop.dreams` Dreams join paths | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `loop.pools-remember` Pools hold what happened beside them | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `loop.book` A page a day | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `loop.card` A card is a number of years | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `loop.mornings` Days are mornings played | 2 | 1 | yes | - | - | no | no | not graded |
 | `card.ground` The ground remembers | 2 | 7 | no | - | no | no | no | 6 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
+| `people.rounds` Each life keeps its own time | 2 | 5 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `people.helping` Helping is the day's five steps | 2 | 7 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `people.sung` Nobody is explained | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `people.ties` Ties, duets and other lives | 2 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `picture.looks-as-it-sounds` How a thing looks is how it sounds | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `picture.interval` An interval is a figure | 2 | 4 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `picture.afterglow` Afterglow is memory | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `picture.backlight` The backlight is the sun | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `picture.physics` Made from the same physics | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `picture.speaker` The speaker is the floor | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `picture.seeing` A seeing option | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `rules.human-first` Human first | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `rules.consonant` Dissonance going somewhere | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `rules.ears` Morgan's ears judge every sound | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `rules.no-tables` Nothing matched by hand | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `rules.no-notes` You never choose a note | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `rules.transform` Nothing dies | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `rules.no-hud` Nothing on the screen that isn't in the world | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `rules.lines` Lines of light | 2 | 3 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `rules.alone` Whole alone | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `rules.original` Original | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `rules.morgans-layer` Morgan's layer stays his | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `sky.dawn` The first dawn | 2 | 7 | no | yes | no | no | no | 5 owed; no yes from Morgan yet |
 | `sky.bee` The bee | 2 | 3 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
 | `texture.frame` What makes a frame beautiful | 2 | 4 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `texture.light` Light is loudness | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
+| `wheel.home` The wheel decides where home is | 2 | 3 | no | - | no | no | no | 3 owed; frame evening-wheel: nobody has looked at it yet; no yes from Morgan yet |
+| `wheel.groove` Each mood is a groove | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `wheel.borrow` The dark wedges | 3 | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `voices.five` Five voices | 2 | 4 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
+| `swell.walk` The swell walks home | 2 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `swell.touch` Push hard for bright | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `swell.lean` The lean | 3 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `hands.told-apart` R1 and R2 told apart | 2 | 7 | no | - | no | no | no | 3 owed; frame evening-wheel: nobody has looked at it yet; frame evening-swell: nobody has looked at it yet; no yes from Morgan yet |
+| `breath.one` One breath | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `whole.scale` One to a hundred | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.true` Literally true | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.law1` Sympathy | 1 | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |

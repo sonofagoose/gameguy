@@ -421,6 +421,23 @@ def read_source(facts):
     inside = tell.group(0).count('self.send(') if tell else 0
     facts['cue.sounds_outside_tell'] = float(text.count('self.send(') - inside)
     facts['cue.tells'] = float(text.count('self.tell('))
+    # FN is never needed: nothing in the game reads it (SPEC.md 8)
+    fn_reads = 0
+    for path in glob.glob(os.path.join(ROOT, 'game', 'src', '**', '*.zig'), recursive=True):
+        fn_reads += open(path, encoding='utf-8').read().count('SDL_CONTROLLER_BUTTON_GUIDE')
+    facts['hands.fn_reads'] = float(fn_reads)
+    # the world never reads a clock: days are mornings played (SPEC.md 13)
+    clock_reads = 0
+    for sub in ('world', 'keep'):
+        for path in glob.glob(os.path.join(ROOT, 'game', 'src', sub, '*.zig')):
+            text_w = open(path, encoding='utf-8').read()
+            clock_reads += len(re.findall(r'clock_gettime|std\.time\.|\btime\(|GetTicks', text_w))
+    facts['world.clock_reads'] = float(clock_reads)
+    # at most one line of text, large: how many places in play draw a line of words
+    try:
+        facts['hud.text_lines'] = float(read('game/src/dark.zig').count('words.line('))
+    except OSError:
+        pass
 
 
 def read_handhelds(facts):
@@ -661,6 +678,11 @@ def main():
             refusals.append(f'`{p.id}` in {p.source} quotes nothing from the specification')
         for path, quote in p.said:
             q = plain(quote)
+            if len(q) < 12:
+                # an empty or tiny quote is in every sentence: it would speak for all of them
+                p.said_ok = False
+                refusals.append(f'`{p.id}` quotes too little to say which sentence it means: "{q}"')
+                continue
             hits = [c for c in by_file.get(path, []) if q in c.text]
             if not hits:
                 p.said_ok = False

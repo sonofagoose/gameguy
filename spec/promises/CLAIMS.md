@@ -6,38 +6,38 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `SPEC.md` / gameguy: the specification / 4. The game in one breath
 
-- open: You are Hum, a small plaster creature who can sing one note, in a world drawn in lines of light where everything that sounds shines and silence is dark.
-- open: The world is a garden after a storm, seen from a seed's height: twelve lands round a lake, one for each key, and every thing in them is an instrument that obeys the real laws of sound.
-- open: Each morning comes a pure fifth higher.
-- open: Each night a river carries you home, sings your day back, and lets you keep four of your past selves as a band.
-- open: About a hundred lives keep their own cycles round the lake, each with a tune it can't finish.
-- open: Twelve mornings on, home comes back a hair too warm, and what you do with that small difference, alone or with someone holding the other console, is the ending.
+- spoken for by `arc.one-breath`: You are Hum, a small plaster creature who can sing one note, in a world drawn in lines of light where everything that sounds shines and silence is dark.
+- spoken for by `arc.one-breath`: The world is a garden after a storm, seen from a seed's height: twelve lands round a lake, one for each key, and every thing in them is an instrument that obeys the real laws of sound.
+- spoken for by `arc.one-breath`: Each morning comes a pure fifth higher.
+- spoken for by `arc.one-breath`: Each night a river carries you home, sings your day back, and lets you keep four of your past selves as a band.
+- spoken for by `arc.one-breath`: About a hundred lives keep their own cycles round the lake, each with a tune it can't finish.
+- spoken for by `arc.one-breath`: Twelve mornings on, home comes back a hair too warm, and what you do with that small difference, alone or with someone holding the other console, is the ending.
 - spoken for by `whole.endless`: After it you have a voice of your own, and the mornings never repeat.
 
 ## `SPEC.md` / gameguy: the specification / 5. The rules of the design
 
-- open: Human first. Every part starts from something a person feels: calling and being answered, being seen, losing a voice and finding it, keeping and letting go.
-- open: The mechanic and the code come after.
+- spoken for by `rules.human-first`: Human first. Every part starts from something a person feels: calling and being answered, being seen, losing a voice and finding it, keeping and letting go.
+- spoken for by `rules.human-first`: The mechanic and the code come after.
 - spoken for by `whole.good`: It sounds good. Consonant and beautiful by default.
-- open: Dissonance is brief and always going somewhere.
-- open: The comma is felt in the story and the world, and heard only in a few earned seconds.
-- open: Fable can't hear, so Morgan's ears judge every sound idea from a short sketch on the handheld's own speaker.
+- spoken for by `rules.consonant`: Dissonance is brief and always going somewhere.
+- spoken for by `rules.consonant`: The comma is felt in the story and the world, and heard only in a few earned seconds.
+- spoken for by `rules.ears`: Fable can't hear, so Morgan's ears judge every sound idea from a short sketch on the handheld's own speaker.
 - spoken for by `whole.true`: Literally true. One model of frequencies, phases and ratios drives the sound, the picture and the physics.
-- open: Nothing is matched by hand, and no effect is looked up in a table that the laws in spec/laws.md could produce.
-- open: In the first turn you never choose a note. You choose a moment, a home, a voice and a mood, and everything lands in key and in time.
-- open: Choosing notes is the ending's gift.
-- open: Nothing dies. Things transform. You can't die either: the sun sets on you.
-- open: Nothing on the screen that isn't in the world. No meters, no map screen, no menus in play.
-- open: At most one line of text, large.
-- open: Lines of light on black, drawn the way an oscilloscope's beam draws.
-- open: Hum and the voices riding on it are the only solid things.
+- spoken for by `rules.no-tables`: Nothing is matched by hand, and no effect is looked up in a table that the laws in spec/laws.md could produce.
+- spoken for by `rules.no-notes`: In the first turn you never choose a note. You choose a moment, a home, a voice and a mood, and everything lands in key and in time.
+- spoken for by `rules.no-notes`: Choosing notes is the ending's gift.
+- spoken for by `rules.transform`: Nothing dies. Things transform. You can't die either: the sun sets on you.
+- spoken for by `rules.no-hud`: Nothing on the screen that isn't in the world. No meters, no map screen, no menus in play.
+- spoken for by `rules.no-hud`: At most one line of text, large.
+- spoken for by `rules.lines`: Lines of light on black, drawn the way an oscilloscope's beam draws.
+- spoken for by `rules.lines`: Hum and the voices riding on it are the only solid things.
 - spoken for by `whole.twice`: Every cue twice. Whatever the player needs to know is in the sound and in the light, so the game can be played by ear alone or by eye alone.
-- open: The code enforces it (section 15).
-- open: Whole alone. No door, fight or land needs a second console.
+- spoken for by `rules.lines`: The code enforces it (section 15).
+- spoken for by `rules.alone`: Whole alone. No door, fight or land needs a second console.
 - spoken for by `whole.alone`: Together adds; it never takes.
 - spoken for by `whole.same`, `card.takes`: A take is its inputs. The same hands make the same world and the same sound on every machine.
-- open: Original. No existing game's world, characters, music or look.
-- open: Morgan's own layer stays his. Who the vine is, who sat on the pool's edge and in the chair, and the odd and even passage are never filled in for him.
+- spoken for by `rules.original`: Original. No existing game's world, characters, music or look.
+- spoken for by `rules.morgans-layer`: Morgan's own layer stays his. Who the vine is, who sat on the pool's edge and in the chair, and the odd and even passage are never filled in for him.
 
 ## `SPEC.md` / gameguy: the specification / 6. What playing it is / 6.1 The first evening
 
@@ -71,15 +71,15 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `SPEC.md` / gameguy: the specification / 6. What playing it is / 6.2 A day
 
-- open: A day is about twenty minutes, shaped like a song, and it follows the five steps of Morgan's worksheet.
-- open: The music and the sun are the clock.
-- open: You can stop anywhere.
-- open: dawn | intro | wake at the garden; Drip hums you back in; the river post
-- open: morning | verse | walk the day's land; listen to who is there today | notice
-- open: noon | chorus | the land's great instrument, its packs, everything sounding | capture
-- open: afternoon | bridge | what your kept phrases are made of; wonders; who wants what | extract
-- open: dusk | chorus | the land's people gather for the reason they sing; the pack comes | sing
-- open: night | outro | the river sings your day back; keep four; Repeat or Onward | select
+- spoken for by `arc.day`: A day is about twenty minutes, shaped like a song, and it follows the five steps of Morgan's worksheet.
+- spoken for by `arc.day`: The music and the sun are the clock.
+- spoken for by `arc.day`: You can stop anywhere.
+- spoken for by `arc.day`: dawn | intro | wake at the garden; Drip hums you back in; the river post
+- spoken for by `arc.day`: morning | verse | walk the day's land; listen to who is there today | notice
+- spoken for by `arc.day`: noon | chorus | the land's great instrument, its packs, everything sounding | capture
+- spoken for by `arc.day`: afternoon | bridge | what your kept phrases are made of; wonders; who wants what | extract
+- spoken for by `arc.day`: dusk | chorus | the land's people gather for the reason they sing; the pack comes | sing
+- spoken for by `arc.day`: night | outro | the river sings your day back; keep four; Repeat or Onward | select
 
 ## `SPEC.md` / gameguy: the specification / 6. What playing it is / 6.3 The turn
 
@@ -125,7 +125,7 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `SPEC.md` / gameguy: the specification / 7. The laws
 
-- open: Every thing in the world is a resonator with the overtones of its shape, or a pendulum, or both.
+- spoken for by `arc.instruments`: Every thing in the world is a resonator with the overtones of its shape, or a pendulum, or both.
 - spoken for by `whole.law1`: 1. Sympathy | sound flows between things that share overtones | ring one thing and everything kin to it answers; you can only move what your voice shares something with
 - spoken for by `whole.law2`: 2. Gravity | an overtone falls toward the note that contains it | put home under a thing and it comes to you; put home over it and you go to it
 - spoken for by `whole.law3`: 3. Falling into step | things at nearly the same rate pull each other together | lead a parade; bind parts into one machine; tune a crowd to your drone
@@ -133,105 +133,105 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `whole.law5`: 5. Cancelling and beating | opposite sounds make silence, which is dark; near-misses beat, and the beating turns things | hide; clamp with a pure pair; drive a wheel with a tempered pair
 - spoken for by `whole.law6`: 6. Travel | sound moves at a speed you can see | send a phrase to a wall and get it back; hear the far shore late; ride a note
 - spoken for by `whole.law7`: 7. Building up | push a thing at its own rate and it grows | swing a giant; ring a tower; break glass; or take the swing out
-- open: Home is laid over the laws. The wheel decides where home is, and law 2 then says what every thing is to you.
-- open: The canon's table of relations (kin, a fifth above falls to you, a third warms, across pushes away) is what the laws do in the simplest cases, and it stays the short version: "beside it, it comes home; on it, it's with you; across, it flies; a third round, it warms."
-- open: Building is instrument-making. Join resonators and pendulums and they become machines that play themselves: a string stretched between two stalks, a bottle on a pipe, a pinned wheel that plucks a comb.
-- open: Every thing has a tune, and what you do to the tune you do to the thing: move it up or down and the thing moves; sing it backwards and the thing runs back; sing it slower and the thing slows.
+- spoken for by `arc.instruments`: Home is laid over the laws. The wheel decides where home is, and law 2 then says what every thing is to you.
+- spoken for by `arc.instruments`: The canon's table of relations (kin, a fifth above falls to you, a third warms, across pushes away) is what the laws do in the simplest cases, and it stays the short version: "beside it, it comes home; on it, it's with you; across, it flies; a third round, it warms."
+- spoken for by `arc.instruments`: Building is instrument-making. Join resonators and pendulums and they become machines that play themselves: a string stretched between two stalks, a bottle on a pipe, a pinned wheel that plucks a comb.
+- spoken for by `arc.instruments`: Every thing has a tune, and what you do to the tune you do to the thing: move it up or down and the thing moves; sing it backwards and the thing runs back; sing it slower and the thing slows.
 
 ## `SPEC.md` / gameguy: the specification / 8. Hum's hands
 
-- open: Face buttons are named by position.
-- open: left stick, L3 | move; click to hush (stop humming, go dark)
-- open: right stick, R3 | look; steers a wheel while one is open; click to lean in
-- open: bottom face | jump; in the air, open or close the glide
-- open: right face | dodge (on the beat: the pocket); talks when nothing threatens | sprint
-- open: left face | strike with the fork | charge; let go on the beat
-- open: top face | grab, talk, plant | carry; leaning in, keep a phrase
-- open: L1 | last voice | the voice wheel, on the left stick
-- open: R1 | call: a ring of light | the mood wheel, on the right stick; the place folds to the page
-- open: L1 and R1 | the clap | both wheels at once
-- open: L2 | lock on, next target (it latches) | guard
-- open: R2 | a short phrase | sing: the swell. A nudge of the right stick on a downbeat walks home one wedge; a half push leans the note
-- open: D-pad down | sit and listen; seated, the pad is an instrument
-- open: D-pad up | gather your echoes
-- open: D-pad left | again: your last bar keeps playing beside you
-- open: D-pad right | play a kept song
-- open: Select, Start | the songbook; pause
-- open: Thumb audit. Moving and singing: left thumb, right index on R2, right thumb on the wheel.
-- open: Moving and fighting: left thumb, right thumb on the face buttons, lock-on latched so the camera needs no thumb, left index free to guard.
-- open: Wheels: an index finger holds, a thumb steers.
-- open: The clap: both index fingers.
-- open: Gliding: a tap opens it and a tap closes it.
+- spoken for by `hands.by-position`: Face buttons are named by position.
+- spoken for by `hands.map`: left stick, L3 | move; click to hush (stop humming, go dark)
+- spoken for by `hands.map`: right stick, R3 | look; steers a wheel while one is open; click to lean in
+- spoken for by `hands.map`: bottom face | jump; in the air, open or close the glide
+- spoken for by `hands.map`: right face | dodge (on the beat: the pocket); talks when nothing threatens | sprint
+- spoken for by `hands.map`: left face | strike with the fork | charge; let go on the beat
+- spoken for by `hands.map`: top face | grab, talk, plant | carry; leaning in, keep a phrase
+- spoken for by `hands.map`: L1 | last voice | the voice wheel, on the left stick
+- spoken for by `hands.map`: R1 | call: a ring of light | the mood wheel, on the right stick; the place folds to the page
+- spoken for by `hands.map`: L1 and R1 | the clap | both wheels at once
+- spoken for by `hands.map`: L2 | lock on, next target (it latches) | guard
+- spoken for by `hands.map`: R2 | a short phrase | sing: the swell. A nudge of the right stick on a downbeat walks home one wedge; a half push leans the note
+- spoken for by `hands.map`: D-pad down | sit and listen; seated, the pad is an instrument
+- spoken for by `hands.map`: D-pad up | gather your echoes
+- spoken for by `hands.map`: D-pad left | again: your last bar keeps playing beside you
+- spoken for by `hands.map`: D-pad right | play a kept song
+- spoken for by `hands.map`: Select, Start | the songbook; pause
+- spoken for by `hands.thumbs`: Thumb audit. Moving and singing: left thumb, right index on R2, right thumb on the wheel.
+- spoken for by `hands.thumbs`: Moving and fighting: left thumb, right thumb on the face buttons, lock-on latched so the camera needs no thumb, left index free to guard.
+- spoken for by `hands.thumbs`: Wheels: an index finger holds, a thumb steers.
+- spoken for by `hands.thumbs`: The clap: both index fingers.
+- spoken for by `hands.thumbs`: Gliding: a tap opens it and a tap closes it.
 - spoken for by `whole.hands`: Nothing ever needs the right stick and a face button at once.
-- open: Leaning in also happens by stopping: stand still facing a voice for one bar.
+- spoken for by `hands.thumbs`: Leaning in also happens by stopping: stand still facing a voice for one bar.
 - spoken for by `hands.voice-in-a-buffer`: Your own voice answers within one sound buffer. Hands are stamped with the time of the sound card's clock, and Hum's breath starts on the next buffer (section 19).
-- open: FN is never needed. Not every firmware delivers it.
+- spoken for by `hands.no-fn`: FN is never needed. Not every firmware delivers it.
 
 ## `SPEC.md` / gameguy: the specification / 9. The wheel, the voices, the breath
 
-- open: You can sing one note. The wheel decides where home is. Seven lit wedges are seven moods and seven powers: wonder (Lift), sunny home (Bind), drive (Drive), cool soul (Flow), tenderness (Remember), fierceness (Strike), the darkest (Break).
-- open: They never move under the thumb.
-- open: The ring of twelve notes turns behind them one notch each morning, so the wheel is also a compass, a calendar and a sky.
-- open: Each mood is also a groove. Seven lit of twelve is the pattern of the scale and of a bell rhythm played across West and Central Africa.
-- open: Where home sits decides where the pattern starts, so each mood has its own feel and each land's creatures move in it.
-- open: Five dark wedges are borrowing. Reach under the horizon and home visits a note that has set, for one phrase, and the land comes with it.
-- open: The first borrow, home on the third morning, is free.
-- open: Five voices are who sings, bass to treble: Doorstop (oo), Drip (oh), Box Elder (ah), Puffball (eh), Patio (ee).
-- open: Low voices move heavy things and the ground; high ones move light things, the air and you.
-- open: Each voice's overtones decide what it can reach (law 1).
-- open: Small voices. Each life you help lends a colour of one of the five.
-- open: The swell (hold R2) grows a colour each bar.
-- open: A nudge on the downbeat walks home one wedge and brings what you pass with it.
-- open: Where home is when you let go decides which of four cadences lands: the full close, the amen, the turn, the slide.
-- open: Push hard for bright, gently for tender. How far the stick is pushed is how loud and bright the note is.
-- open: The lean. From the fifth morning, a half push toward a neighbouring wedge bends the held note toward it.
-- open: It always resolves when you let go.
-- open: R1 and R2 are told apart at a glance and in the hands. Morgan, 2026-11-20, after the wheel toy: "the two need more visual and actionable differentiation".
-- open: R1 is the world's; R2 is Hum's own.
-- open: R1 held, the mood wheel, jumps home to any wedge while time thickens. The place lies back toward the page, and the wheel is drawn large on the ground round Hum in the ground's cool light, with a thread from every thing to the wedge that would bring it home.
-- open: What you hear stretches into a held chord.
-- open: R2 held, the swell, steps home only to a neighbour, on a downbeat, in time. Nothing is drawn on the ground.
-- open: Hum itself swells and takes a band of colour each bar, and the two neighbouring wedges show as two small marks either side of Hum, lit on each downbeat.
-- open: The view stays at Hum's height.
-- open: One breath pays for singing, the wheels, sprint and glide, and silence refills it.
-- open: Dodging and guarding are free.
-- open: A breath holds three homes at first and grows by one each time you land a longer walk, up to seven; the ferry makes eight.
+- spoken for by `wheel.home`: You can sing one note. The wheel decides where home is. Seven lit wedges are seven moods and seven powers: wonder (Lift), sunny home (Bind), drive (Drive), cool soul (Flow), tenderness (Remember), fierceness (Strike), the darkest (Break).
+- spoken for by `wheel.home`: They never move under the thumb.
+- spoken for by `wheel.home`: The ring of twelve notes turns behind them one notch each morning, so the wheel is also a compass, a calendar and a sky.
+- spoken for by `wheel.groove`: Each mood is also a groove. Seven lit of twelve is the pattern of the scale and of a bell rhythm played across West and Central Africa.
+- spoken for by `wheel.groove`: Where home sits decides where the pattern starts, so each mood has its own feel and each land's creatures move in it.
+- spoken for by `wheel.borrow`: Five dark wedges are borrowing. Reach under the horizon and home visits a note that has set, for one phrase, and the land comes with it.
+- spoken for by `wheel.borrow`: The first borrow, home on the third morning, is free.
+- spoken for by `voices.five`: Five voices are who sings, bass to treble: Doorstop (oo), Drip (oh), Box Elder (ah), Puffball (eh), Patio (ee).
+- spoken for by `voices.five`: Low voices move heavy things and the ground; high ones move light things, the air and you.
+- spoken for by `voices.five`: Each voice's overtones decide what it can reach (law 1).
+- spoken for by `voices.five`: Small voices. Each life you help lends a colour of one of the five.
+- spoken for by `swell.walk`: The swell (hold R2) grows a colour each bar.
+- spoken for by `swell.walk`: A nudge on the downbeat walks home one wedge and brings what you pass with it.
+- spoken for by `swell.walk`: Where home is when you let go decides which of four cadences lands: the full close, the amen, the turn, the slide.
+- spoken for by `swell.touch`: Push hard for bright, gently for tender. How far the stick is pushed is how loud and bright the note is.
+- spoken for by `swell.lean`: The lean. From the fifth morning, a half push toward a neighbouring wedge bends the held note toward it.
+- spoken for by `swell.lean`: It always resolves when you let go.
+- spoken for by `hands.told-apart`: R1 and R2 are told apart at a glance and in the hands. Morgan, 2026-11-20, after the wheel toy: "the two need more visual and actionable differentiation".
+- spoken for by `hands.told-apart`: R1 is the world's; R2 is Hum's own.
+- spoken for by `hands.told-apart`: R1 held, the mood wheel, jumps home to any wedge while time thickens. The place lies back toward the page, and the wheel is drawn large on the ground round Hum in the ground's cool light, with a thread from every thing to the wedge that would bring it home.
+- spoken for by `hands.told-apart`: What you hear stretches into a held chord.
+- spoken for by `hands.told-apart`: R2 held, the swell, steps home only to a neighbour, on a downbeat, in time. Nothing is drawn on the ground.
+- spoken for by `hands.told-apart`: Hum itself swells and takes a band of colour each bar, and the two neighbouring wedges show as two small marks either side of Hum, lit on each downbeat.
+- spoken for by `hands.told-apart`: The view stays at Hum's height.
+- spoken for by `breath.one`: One breath pays for singing, the wheels, sprint and glide, and silence refills it.
+- spoken for by `breath.one`: Dodging and guarding are free.
+- spoken for by `breath.one`: A breath holds three homes at first and grows by one each time you land a longer walk, up to seven; the ferry makes eight.
 
 ## `SPEC.md` / gameguy: the specification / 10. Fights
 
-- open: On the beat. Every hit rings the enemy at its own note.
-- open: Dodge on the beat and the pocket opens.
-- open: A strike you time yourself rings fuller than one the game placed.
-- open: The looper in a fight. Each bar you stay in the pocket, your last bar's strikes keep landing beside you as an afterimage, up to four layers.
-- open: The clap cashes them in: everything near resets to the same point in its cycle.
-- open: Nothing dies. Hits drain colour, a grey creature leans, and a cadence on the downbeat brings it home.
-- open: The mood you bring it home in is the gift it leaves.
-- open: Wolves are made of the comma.
-- open: Knots are fear, tangled rhythms.
-- open: Greys are the Grid's soldiers, on the grid exactly; swing breaks them and standing a third away brings their colour back.
-- open: Bosses are pieces of music: the Great Knot (five against seven), the Metronome (it learns you; swing breaks it), the Wolf at the Seam (every echo you turned away from).
-- open: Each great instrument has its own trial on Fierce.
-- open: Gentle or Fierce, chosen any night. Gentle widens the timing and the ledges, leans home for you, and lets most fights end by comfort.
+- spoken for by `fight.beat`: On the beat. Every hit rings the enemy at its own note.
+- spoken for by `fight.beat`: Dodge on the beat and the pocket opens.
+- spoken for by `fight.beat`: A strike you time yourself rings fuller than one the game placed.
+- spoken for by `fight.looper`: The looper in a fight. Each bar you stay in the pocket, your last bar's strikes keep landing beside you as an afterimage, up to four layers.
+- spoken for by `fight.looper`: The clap cashes them in: everything near resets to the same point in its cycle.
+- spoken for by `fight.transform`: Nothing dies. Hits drain colour, a grey creature leans, and a cadence on the downbeat brings it home.
+- spoken for by `fight.transform`: The mood you bring it home in is the gift it leaves.
+- spoken for by `fight.kinds`: Wolves are made of the comma.
+- spoken for by `fight.kinds`: Knots are fear, tangled rhythms.
+- spoken for by `fight.kinds`: Greys are the Grid's soldiers, on the grid exactly; swing breaks them and standing a third away brings their colour back.
+- spoken for by `fight.bosses`: Bosses are pieces of music: the Great Knot (five against seven), the Metronome (it learns you; swing breaks it), the Wolf at the Seam (every echo you turned away from).
+- spoken for by `fight.bosses`: Each great instrument has its own trial on Fierce.
+- spoken for by `fight.gentle`: Gentle or Fierce, chosen any night. Gentle widens the timing and the ledges, leans home for you, and lets most fights end by comfort.
 
 ## `SPEC.md` / gameguy: the specification / 11. People
 
-- open: Each has a tune, a round and a want. The round is where it is on which morning: a cycle of 3, 4, 5 or 7 mornings, and two that take 13 and 17.
-- open: The want is an ending its tune can't reach.
-- open: Each land has eight, and a reason they sing together: the table in 6.3.
-- open: Helping is the day's five steps. Notice who is there today.
-- open: Lean in while they sing, and keep the phrase.
-- open: Find what it is missing: the other half is somewhere else or some other morning, in another life, a place, a wonder or one of your own echoes.
-- open: At dusk, when the land gathers, sing with them and land the cadence their tune needed.
-- open: What it changes. Their part joins the land's dusk song for good, they lend you a small voice, and the river sings them in your night.
-- open: A land with all eight sings its whole song.
-- open: On the thirteenth morning every round lines up and all twelve songs are one.
-- open: Lives are sums. Where a life is, and what it is singing, is worked out from the morning's number.
-- open: An almanac page in the songbook shows any morning to come.
-- open: Nobody is explained. Every line is sung, in the speaker's vowel, with one line of caption at most.
-- open: The seven moods are your seven answers.
-- open: Each is tied to others across the lake, and when two lives meet they sing a duet made from their two tunes.
-- open: Once you have helped a life you can live a morning as it: its body, its ears, its own speed of time.
-- open: Over years the lives change into things that keep their tunes, and new lives are born singing what was handed down.
+- spoken for by `people.rounds`: Each has a tune, a round and a want. The round is where it is on which morning: a cycle of 3, 4, 5 or 7 mornings, and two that take 13 and 17.
+- spoken for by `people.rounds`: The want is an ending its tune can't reach.
+- spoken for by `people.rounds`: Each land has eight, and a reason they sing together: the table in 6.3.
+- spoken for by `people.helping`: Helping is the day's five steps. Notice who is there today.
+- spoken for by `people.helping`: Lean in while they sing, and keep the phrase.
+- spoken for by `people.helping`: Find what it is missing: the other half is somewhere else or some other morning, in another life, a place, a wonder or one of your own echoes.
+- spoken for by `people.helping`: At dusk, when the land gathers, sing with them and land the cadence their tune needed.
+- spoken for by `people.helping`: What it changes. Their part joins the land's dusk song for good, they lend you a small voice, and the river sings them in your night.
+- spoken for by `people.helping`: A land with all eight sings its whole song.
+- spoken for by `people.helping`: On the thirteenth morning every round lines up and all twelve songs are one.
+- spoken for by `people.rounds`: Lives are sums. Where a life is, and what it is singing, is worked out from the morning's number.
+- spoken for by `people.rounds`: An almanac page in the songbook shows any morning to come.
+- spoken for by `people.sung`: Nobody is explained. Every line is sung, in the speaker's vowel, with one line of caption at most.
+- spoken for by `people.sung`: The seven moods are your seven answers.
+- spoken for by `people.ties`: Each is tied to others across the lake, and when two lives meet they sing a duet made from their two tunes.
+- spoken for by `people.ties`: Once you have helped a life you can live a morning as it: its body, its ears, its own speed of time.
+- spoken for by `people.ties`: Over years the lives change into things that keep their tunes, and new lives are born singing what was handed down.
 
 ## `SPEC.md` / gameguy: the specification / 12. The world
 
@@ -259,23 +259,23 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `SPEC.md` / gameguy: the specification / 13. The loop, memory and the card
 
-- open: At dusk the river sings your day back, backwards from a big win.
-- open: You keep up to four takes as echoes.
-- open: The rest walk into the water, and the water keeps them.
-- open: Echoes are flat blue selves that walk, fight and sing beside you, always retuned into today.
-- open: They age by mornings travelled, set and rise on the wheel, and on their eleventh dusk step in front of you: let it go, sing it again, or turn away.
-- open: What you let go becomes the place. A released take plays through the lake again and again until only the lake's own ringing is left.
-- open: Pools play it back for a phrase, the vine hums it, and on the tenth morning it rains.
-- open: The Grid is a day that changed nothing. Only that sets grey.
-- open: Dreams join paths. Sleep eases what you practised.
-- open: Pools hold what happened beside them: each of a pool's overtones is one memory, and the deeper ones need notes you don't have yet.
+- spoken for by `loop.river`: At dusk the river sings your day back, backwards from a big win.
+- spoken for by `loop.echoes`: You keep up to four takes as echoes.
+- spoken for by `loop.echoes`: The rest walk into the water, and the water keeps them.
+- spoken for by `loop.echoes`: Echoes are flat blue selves that walk, fight and sing beside you, always retuned into today.
+- spoken for by `loop.echoes`: They age by mornings travelled, set and rise on the wheel, and on their eleventh dusk step in front of you: let it go, sing it again, or turn away.
+- spoken for by `loop.release`: What you let go becomes the place. A released take plays through the lake again and again until only the lake's own ringing is left.
+- spoken for by `loop.release`: Pools play it back for a phrase, the vine hums it, and on the tenth morning it rains.
+- spoken for by `loop.release`: The Grid is a day that changed nothing. Only that sets grey.
+- spoken for by `loop.dreams`: Dreams join paths. Sleep eases what you practised.
+- spoken for by `loop.pools-remember`: Pools hold what happened beside them: each of a pool's overtones is one memory, and the deeper ones need notes you don't have yet.
 - spoken for by `card.takes`: The card is the world's memory. Every take is kept, a save is made every dawn, and the handheld keeps its own copy.
-- open: The book has a page a day.
-- open: Songs leave as sound, as notes and as separate tracks.
-- open: The card's room is spent on two things (spec/size.md). Nothing is a copy: every aster, leaf and blade of grass is its own shape and stays as it is left.
-- open: And nothing is forgotten: the ground keeps the light of what was sung on it, every dawn's save is kept so any morning of your life in the game can be walked again, and each day's song is kept as sound.
-- open: A card is a number of years.
-- open: The handheld doesn't know how long it was off (measured). Days are counted in mornings played, never by the calendar.
+- spoken for by `loop.book`: The book has a page a day.
+- spoken for by `loop.book`: Songs leave as sound, as notes and as separate tracks.
+- spoken for by `loop.card`: The card's room is spent on two things (spec/size.md). Nothing is a copy: every aster, leaf and blade of grass is its own shape and stays as it is left.
+- spoken for by `loop.card`: And nothing is forgotten: the ground keeps the light of what was sung on it, every dawn's save is kept so any morning of your life in the game can be walked again, and each day's song is kept as sound.
+- spoken for by `loop.card`: A card is a number of years.
+- spoken for by `loop.mornings`: The handheld doesn't know how long it was off (measured). Days are counted in mornings played, never by the calendar.
 
 ## `SPEC.md` / gameguy: the specification / 14. Two consoles
 
@@ -295,220 +295,220 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `SPEC.md` / gameguy: the specification / 15. Sound and picture
 
-- open: How a thing looks is how it sounds (spec/texture.md). A thing's light is its loudness spread over its lines; the depth of its colour is how much of its sound is note; a sounding line stands in the shapes of its own overtones; what it is made of is the grain of its line.
+- spoken for by `picture.looks-as-it-sounds`: How a thing looks is how it sounds (spec/texture.md). A thing's light is its loudness spread over its lines; the depth of its colour is how much of its sound is note; a sounding line stands in the shapes of its own overtones; what it is made of is the grain of its line.
 - spoken for by `light.hue`: One set of numbers. Pitch class is hue, by fifths.
-- open: Octave is height. Loudness is brightness, and silence is dark.
-- open: An interval is the figure between two voices: still when pure, turning at the beat rate when tempered.
-- open: Timbre is the texture of a line.
-- open: Phase is things moving together.
-- open: Depth is the third note.
-- open: The beam. Things that sound leave a short afterglow.
+- spoken for by `picture.looks-as-it-sounds`: Octave is height. Loudness is brightness, and silence is dark.
+- spoken for by `picture.interval`: An interval is the figure between two voices: still when pure, turning at the beat rate when tempered.
+- spoken for by `picture.looks-as-it-sounds`: Timbre is the texture of a line.
+- spoken for by `picture.interval`: Phase is things moving together.
+- spoken for by `picture.interval`: Depth is the third note.
+- spoken for by `picture.afterglow`: The beam. Things that sound leave a short afterglow.
 - spoken for by `light.beam`: A figure is brightest where its beam slows to turn.
-- open: Afterglow is memory: a low lake forgets and trails die fast.
+- spoken for by `picture.afterglow`: Afterglow is memory: a low lake forgets and trails die fast.
 - spoken for by `evening.in`: The page and the place are one world on one hinge.
 - spoken for by `evening.in`: Hold the wheel and it lies down to be read.
-- open: The backlight is the sun. The game sets the screen's backlight itself: nearly off in the first dark, low at 2am, up at noon, and breathing a little with the music.
-- open: It is more than half of what the idle handheld draws, so dark hours are also long hours on the battery.
-- open: Morgan's eyes decide whether the breathing stays.
-- open: Made from the same physics. Every sound is resonators being struck, bowed, blown or sung: no recordings are needed.
-- open: Each place's echoes are worked out from its shape and kept on the card.
-- open: The speaker is the floor. Low voices are built from upper overtones and the ear supplies the root.
-- open: Nothing essential is in stereo or deep bass. Headphones add space.
+- spoken for by `picture.backlight`: The backlight is the sun. The game sets the screen's backlight itself: nearly off in the first dark, low at 2am, up at noon, and breathing a little with the music.
+- spoken for by `picture.backlight`: It is more than half of what the idle handheld draws, so dark hours are also long hours on the battery.
+- spoken for by `picture.backlight`: Morgan's eyes decide whether the breathing stays.
+- spoken for by `picture.physics`: Made from the same physics. Every sound is resonators being struck, bowed, blown or sung: no recordings are needed.
+- spoken for by `picture.physics`: Each place's echoes are worked out from its shape and kept on the card.
+- spoken for by `picture.speaker`: The speaker is the floor. Low voices are built from upper overtones and the ear supplies the root.
+- spoken for by `picture.speaker`: Nothing essential is in stereo or deep bass. Headphones add space.
 - spoken for by `whole.twice`: Every cue twice, in code. A thing the player must notice is declared once, with its sound and its light together.
 - spoken for by `whole.twice`: A cue with only one of them does not compile.
-- open: Out of tune is never blur. It is two crisp copies sliding against each other on the beat, or flat where it should be deep.
-- open: A seeing option: heavier lines and a lifted floor for blacks.
+- spoken for by `picture.interval`: Out of tune is never blur. It is two crisp copies sliding against each other on the beat, or flat where it should be deep.
+- spoken for by `picture.seeing`: A seeing option: heavier lines and a lifted floor for blacks.
 
 ## `spec/laws.md` / The laws / What a thing is
 
-- open: Every thing in the world is a body with a place, and any number of two kinds of part:
-- open: Resonators. A resonator has a family (the shape it is), a lowest note, and how long it rings.
-- open: Its family gives its overtones.
-- open: The sound thread renders each overtone as one small filter; the world keeps each overtone's loudness, 60 times a second, for the rules and the picture.
-- open: Pendulums. A pendulum has a rate, counted in beats, and a place in its cycle.
-- open: A creature's gait, a blinker, a rocking chair, a swinging bell-flower and a life's round of mornings are all pendulums at different sizes of time.
-- open: Hum is a body too: one resonator (its voice) and one pendulum (its pulse).
+- spoken for by `laws.things`: Every thing in the world is a body with a place, and any number of two kinds of part:
+- spoken for by `laws.things`: Resonators. A resonator has a family (the shape it is), a lowest note, and how long it rings.
+- spoken for by `laws.things`: Its family gives its overtones.
+- spoken for by `laws.things`: The sound thread renders each overtone as one small filter; the world keeps each overtone's loudness, 60 times a second, for the rules and the picture.
+- spoken for by `laws.things`: Pendulums. A pendulum has a rate, counted in beats, and a place in its cycle.
+- spoken for by `laws.things`: A creature's gait, a blinker, a rocking chair, a swinging bell-flower and a life's round of mornings are all pendulums at different sizes of time.
+- spoken for by `laws.things`: Hum is a body too: one resonator (its voice) and one pendulum (its pulse).
 
 ## `spec/laws.md` / The laws / The families
 
-- open: The overtones of real shapes, as multiples of the lowest note.
-- open: string | stems, wires, vines, the patio's strand, a guitar's strings | 1, 2, 3, 4, 5, 6, 7, 8 | plucked or struck one nth of the way along, every nth overtone is missing
-- open: open pipe | reeds, a hose with both ends free, downspouts | 1, 2, 3, 4, 5, 6
-- open: stopped pipe | the knotted hose, a bottle's neck, a capped reed | 1, 3, 5, 7 | odd overtones only; an octave below an open pipe of the same length
-- open: bar | glass rods, boards, doorstops, keys | 1, 2.76, 5.40, 8.93 | rings longest held 22.4% of the way from each end, where it doesn't move
-- open: fork | Hum's tuning fork | 1, 6.27 | nearly a pure tone
-- open: round skin | pools, puddles, leaves, drumheads, speaker cones | 1, 1.59, 2.14, 2.30, 2.65, 2.92 | not in tune with itself, which is why a pool has many notes
-- open: bell | bell-flowers, asters, caps, bowls | 0.5, 1, 1.2, 1.5, 2, 2.5, 3 | a made bell can be given other overtones; each land's bells carry its own third in place of the 1.2
-- open: bottle | bottles, jars, the car's cabin, a guitar's body | one note | bigger inside is lower; a longer or narrower neck is lower
-- open: plates and odd shapes | panes, the guitar's top, a doorstop's wedge, anything else | worked out from the shape by game/tools/modes | kept in the thing's sound file
-- open: A sung voice is a string-like source through three to five bottles: the bottles are the vowel.
-- open: That is how real voices work, and it is why the five voices are five vowels.
+- spoken for by `laws.families`: The overtones of real shapes, as multiples of the lowest note.
+- spoken for by `laws.families`: string | stems, wires, vines, the patio's strand, a guitar's strings | 1, 2, 3, 4, 5, 6, 7, 8 | plucked or struck one nth of the way along, every nth overtone is missing
+- spoken for by `laws.families`: open pipe | reeds, a hose with both ends free, downspouts | 1, 2, 3, 4, 5, 6
+- spoken for by `laws.families`: stopped pipe | the knotted hose, a bottle's neck, a capped reed | 1, 3, 5, 7 | odd overtones only; an octave below an open pipe of the same length
+- spoken for by `laws.families`: bar | glass rods, boards, doorstops, keys | 1, 2.76, 5.40, 8.93 | rings longest held 22.4% of the way from each end, where it doesn't move
+- spoken for by `laws.families`: fork | Hum's tuning fork | 1, 6.27 | nearly a pure tone
+- spoken for by `laws.families`: round skin | pools, puddles, leaves, drumheads, speaker cones | 1, 1.59, 2.14, 2.30, 2.65, 2.92 | not in tune with itself, which is why a pool has many notes
+- spoken for by `laws.families`: bell | bell-flowers, asters, caps, bowls | 0.5, 1, 1.2, 1.5, 2, 2.5, 3 | a made bell can be given other overtones; each land's bells carry its own third in place of the 1.2
+- spoken for by `laws.families`: bottle | bottles, jars, the car's cabin, a guitar's body | one note | bigger inside is lower; a longer or narrower neck is lower
+- spoken for by `laws.families`: plates and odd shapes | panes, the guitar's top, a doorstop's wedge, anything else | worked out from the shape by game/tools/modes | kept in the thing's sound file
+- spoken for by `laws.families`: A sung voice is a string-like source through three to five bottles: the bottles are the vowel.
+- spoken for by `laws.families`: That is how real voices work, and it is why the five voices are five vowels.
 
 ## `spec/laws.md` / The laws / Law 1: sympathy
 
-- open: Sound flows between things that share overtones.
-- open: How much two overtones share. If they are d cents apart, they share exp(-(d/15)^2): everything at a pure match, 98% at 2 cents (an equal-tempered fifth), 43% at 14 cents (an equal-tempered third), under a tenth at 23 cents (a comma), nothing at a semitone.
-- open: The width, 15 cents, is to tune.
-- open: How sound flows. Each step, a sounding overtone feeds every overtone it shares with, in proportion to its own loudness, how much they share, the receiving material, and how near they are (halving at 8 paces, to tune).
-- open: Felt, petals and moss take almost nothing; glass, chrome and taut strings take a lot.
-- open: Ring one thing and its kin answer across the place, each in its own light: a different constellation for every note.
-- open: Pure lands ring. Tempered lands are duller, and at the Seam "everything is a little off, everything connected".
-- open: You can only move what your voice shares something with.
-- open: Doorstop's oo has few overtones and reaches octaves and fifths.
-- open: Patio's ee has many and reaches far more, faintly.
+- spoken for by `laws.sympathy`: Sound flows between things that share overtones.
+- spoken for by `laws.sympathy`: How much two overtones share. If they are d cents apart, they share exp(-(d/15)^2): everything at a pure match, 98% at 2 cents (an equal-tempered fifth), 43% at 14 cents (an equal-tempered third), under a tenth at 23 cents (a comma), nothing at a semitone.
+- spoken for by `laws.sympathy`: The width, 15 cents, is to tune.
+- spoken for by `laws.sympathy`: How sound flows. Each step, a sounding overtone feeds every overtone it shares with, in proportion to its own loudness, how much they share, the receiving material, and how near they are (halving at 8 paces, to tune).
+- spoken for by `laws.sympathy`: Felt, petals and moss take almost nothing; glass, chrome and taut strings take a lot.
+- spoken for by `laws.sympathy`: Ring one thing and its kin answer across the place, each in its own light: a different constellation for every note.
+- spoken for by `laws.sympathy`: Pure lands ring. Tempered lands are duller, and at the Seam "everything is a little off, everything connected".
+- spoken for by `laws.sympathy`: You can only move what your voice shares something with.
+- spoken for by `laws.sympathy`: Doorstop's oo has few overtones and reaches octaves and fifths.
+- spoken for by `laws.sympathy`: Patio's ee has many and reaches far more, faintly.
 
 ## `spec/laws.md` / The laws / Law 2: gravity
 
-- open: An overtone falls toward the note that contains it.
-- open: The rule. Take a thing's lowest note and your home.
-- open: If the thing's note is home's 3rd, 5th or 7th overtone (in any octave), the thing belongs to home, and home pulls it.
-- open: If home is the thing's 3rd, 5th or 7th overtone, you belong to it, and it pulls you.
-- open: The pull is one third, one fifth or one seventh of full strength.
-- open: On the wheel this is the canon's table:
-- open: on your wedge | kin | the same note, or its octave | weightless to you; it keeps your time
-- open: one wedge right (a fifth above) | it leans to you | it is home's third overtone | it falls toward you; a full close brings it home
-- open: one wedge left (a fifth below) | you lean to it | home is its third overtone | you fall toward it; an amen sings it to sleep
-- open: two wedges | passing | a ninth overtone: too far to hold | you pass through each other
-- open: three or four wedges | warm | at four, a fifth overtone; at three, an overtone shared with neither containing the other | it doesn't move: it takes colour and grows
-- open: five wedges | grinding | a half step: rough | it shakes, and pushes away a little
-- open: straight across | far | nothing shared, and rough | your blows throw it, and its blows throw you
-- open: Moving home changes everything at once. That is the wheel's whole power, and it is why the same boulder is weightless one morning and falls toward you the next.
-- open: The seventh. A thing that sits on home's seventh overtone is off the wheel, 31 cents flat of the piano's seventh.
-- open: It is pulled faintly and from far away.
-- open: The caravan trades in these.
+- spoken for by `laws.gravity`: An overtone falls toward the note that contains it.
+- spoken for by `laws.gravity`: The rule. Take a thing's lowest note and your home.
+- spoken for by `laws.gravity`: If the thing's note is home's 3rd, 5th or 7th overtone (in any octave), the thing belongs to home, and home pulls it.
+- spoken for by `laws.gravity`: If home is the thing's 3rd, 5th or 7th overtone, you belong to it, and it pulls you.
+- spoken for by `laws.gravity`: The pull is one third, one fifth or one seventh of full strength.
+- spoken for by `laws.gravity`: On the wheel this is the canon's table:
+- spoken for by `laws.gravity`: on your wedge | kin | the same note, or its octave | weightless to you; it keeps your time
+- spoken for by `laws.gravity`: one wedge right (a fifth above) | it leans to you | it is home's third overtone | it falls toward you; a full close brings it home
+- spoken for by `laws.gravity`: one wedge left (a fifth below) | you lean to it | home is its third overtone | you fall toward it; an amen sings it to sleep
+- spoken for by `laws.gravity`: two wedges | passing | a ninth overtone: too far to hold | you pass through each other
+- spoken for by `laws.gravity`: three or four wedges | warm | at four, a fifth overtone; at three, an overtone shared with neither containing the other | it doesn't move: it takes colour and grows
+- spoken for by `laws.gravity`: five wedges | grinding | a half step: rough | it shakes, and pushes away a little
+- spoken for by `laws.gravity`: straight across | far | nothing shared, and rough | your blows throw it, and its blows throw you
+- spoken for by `laws.gravity`: Moving home changes everything at once. That is the wheel's whole power, and it is why the same boulder is weightless one morning and falls toward you the next.
+- spoken for by `laws.gravity`: The seventh. A thing that sits on home's seventh overtone is off the wheel, 31 cents flat of the piano's seventh.
+- spoken for by `laws.gravity`: It is pulled faintly and from far away.
+- spoken for by `laws.gravity`: The caravan trades in these.
 
 ## `spec/laws.md` / The laws / Law 3: falling into step
 
-- open: Things at nearly the same rate pull each other together.
-- open: Pendulums. Each step, a pendulum's place in its cycle moves by its own rate, plus a pull toward each neighbour it can feel: pull × sin(the gap between them).
-- open: Two lock when the difference in their rates is smaller than the pull.
-- open: Pulls, to tune: Hum's pulse on a creature in reach, once Hum has kept steady for a bar: 0.5.
-- open: Between creatures of one kind: 0.05.
-- open: Between parts Hum has bound: 1.
-- open: The clap sets everything in reach to the start of its cycle.
-- open: Voices. A voice marked as one of a crowd (reeds, a choir, a pack that has lain down) that is within a quarter tone of a louder, steady note slides onto it over a few beats.
-- open: Nothing else in the game ever slides in pitch by itself, so the music stays in tune.
-- open: What follows: a parade behind steady steps; parts that move as one machine while they share a beat; a bank of reeds finding your drone; hearts in step.
+- spoken for by `laws.in-step`: Things at nearly the same rate pull each other together.
+- spoken for by `laws.in-step`: Pendulums. Each step, a pendulum's place in its cycle moves by its own rate, plus a pull toward each neighbour it can feel: pull × sin(the gap between them).
+- spoken for by `laws.in-step`: Two lock when the difference in their rates is smaller than the pull.
+- spoken for by `laws.in-step`: Pulls, to tune: Hum's pulse on a creature in reach, once Hum has kept steady for a bar: 0.5.
+- spoken for by `laws.in-step`: Between creatures of one kind: 0.05.
+- spoken for by `laws.in-step`: Between parts Hum has bound: 1.
+- spoken for by `laws.in-step`: The clap sets everything in reach to the start of its cycle.
+- spoken for by `laws.in-step`: Voices. A voice marked as one of a crowd (reeds, a choir, a pack that has lain down) that is within a quarter tone of a louder, steady note slides onto it over a few beats.
+- spoken for by `laws.in-step`: Nothing else in the game ever slides in pitch by itself, so the music stays in tune.
+- spoken for by `laws.in-step`: What follows: a parade behind steady steps; parts that move as one machine while they share a beat; a bank of reeds finding your drone; hearts in step.
 
 ## `spec/laws.md` / The laws / Law 4: standing waves
 
-- open: A driven thing shows still lines and bellies.
-- open: Along a line (a string, a wire, a pipe): the nth overtone has n bellies with still points between them.
-- open: Hum can stand on a still point.
-- open: A belly throws, harder the louder that overtone is.
-- open: Across a surface (a pool, a pane, a drumhead): each overtone has its own figure of still lines.
-- open: They are drawn as lines of light, as bright as that overtone is loud, and they can be walked on while it sounds.
-- open: When the note dies the path goes with it, so a path lasts as long as someone or something keeps singing: you, an echo, a loop, a machine.
-- open: Between two voices facing each other on one note: still places stand in the air between them, closer together the higher the note.
-- open: Things rest in them.
-- open: That is the bridge two Hums can hold, and that one Hum and an echo can.
+- spoken for by `laws.standing-waves`: A driven thing shows still lines and bellies.
+- spoken for by `laws.standing-waves`: Along a line (a string, a wire, a pipe): the nth overtone has n bellies with still points between them.
+- spoken for by `laws.standing-waves`: Hum can stand on a still point.
+- spoken for by `laws.standing-waves`: A belly throws, harder the louder that overtone is.
+- spoken for by `laws.standing-waves`: Across a surface (a pool, a pane, a drumhead): each overtone has its own figure of still lines.
+- spoken for by `laws.standing-waves`: They are drawn as lines of light, as bright as that overtone is loud, and they can be walked on while it sounds.
+- spoken for by `laws.standing-waves`: When the note dies the path goes with it, so a path lasts as long as someone or something keeps singing: you, an echo, a loop, a machine.
+- spoken for by `laws.standing-waves`: Between two voices facing each other on one note: still places stand in the air between them, closer together the higher the note.
+- spoken for by `laws.standing-waves`: Things rest in them.
+- spoken for by `laws.standing-waves`: That is the bridge two Hums can hold, and that one Hum and an echo can.
 
 ## `spec/laws.md` / The laws / Law 5: cancelling and beating
 
-- open: Opposite sounds make silence, which is dark.
-- open: Near-misses beat, and the beating turns things.
-- open: Cancelling. The same overtone from two sources half a cycle apart sums to nothing.
-- open: Hum can sing the mirror of a sound it has leaned in to, and for as long as its breath lasts there is a small ball of silence round it: dark, unheard, safe.
-- open: Beating. Two overtones a little apart beat at the difference between them.
-- open: The figure between the two turns once per beat.
-- open: Sharp turns it one way and flat the other.
-- open: Turning does work. A turning figure bound to a thing turns the thing.
-- open: none: a pure pair | locks. A clamp, a held door, a bridge that stays | the Garden, and pure pairs anywhere
-- open: under 8 a second | turns: wheels, winches, walkways, a slow fan | fifths in tempered lands (0.9 a second in equal temperament at middle C, 2.4 in sweet thirds) and the comma (3.6)
-- open: 8 to 30 a second | shakes: a sieve, a shimmer, sand that creeps | thirds in tempered lands (10 in equal temperament, 16 in pure fifths)
-- open: over 30 a second | roughness: it pushes the two apart | half steps, and straight across
-- open: So tuning is machinery. In the Garden nothing turns by itself.
-- open: In the Glass Hills fifths clamp and thirds shake.
-- open: At the Seam everything turns, and the city runs on it: the error it agreed to share is its engine.
+- spoken for by `laws.cancelling`: Opposite sounds make silence, which is dark.
+- spoken for by `laws.cancelling`: Near-misses beat, and the beating turns things.
+- spoken for by `laws.cancelling`: Cancelling. The same overtone from two sources half a cycle apart sums to nothing.
+- spoken for by `laws.cancelling`: Hum can sing the mirror of a sound it has leaned in to, and for as long as its breath lasts there is a small ball of silence round it: dark, unheard, safe.
+- spoken for by `laws.cancelling`: Beating. Two overtones a little apart beat at the difference between them.
+- spoken for by `laws.cancelling`: The figure between the two turns once per beat.
+- spoken for by `laws.cancelling`: Sharp turns it one way and flat the other.
+- spoken for by `laws.cancelling`: Turning does work. A turning figure bound to a thing turns the thing.
+- spoken for by `laws.cancelling`: none: a pure pair | locks. A clamp, a held door, a bridge that stays | the Garden, and pure pairs anywhere
+- spoken for by `laws.cancelling`: under 8 a second | turns: wheels, winches, walkways, a slow fan | fifths in tempered lands (0.9 a second in equal temperament at middle C, 2.4 in sweet thirds) and the comma (3.6)
+- spoken for by `laws.cancelling`: 8 to 30 a second | shakes: a sieve, a shimmer, sand that creeps | thirds in tempered lands (10 in equal temperament, 16 in pure fifths)
+- spoken for by `laws.cancelling`: over 30 a second | roughness: it pushes the two apart | half steps, and straight across
+- spoken for by `laws.cancelling`: So tuning is machinery. In the Garden nothing turns by itself.
+- spoken for by `laws.cancelling`: In the Glass Hills fifths clamp and thirds shake.
+- spoken for by `laws.cancelling`: At the Seam everything turns, and the city runs on it: the error it agreed to share is its engine.
 
 ## `spec/laws.md` / The laws / Law 6: travel
 
-- open: Sound moves at a speed you can see.
-- open: Speed. About ten times Hum's run (to tune).
-- open: A call's ring crosses a clearing in a breath and the lake in about a minute (62 seconds, size.md).
-- open: Late arrivals. What happens far away is heard late, and seen when the sound arrives.
-- open: Echoes. A wall sends a sound back after twice its distance.
-- open: The return lands on the beat: the engine moves it to the nearest bar line, so an echo wall is a looper whose length is how far away you stand.
-- open: Fast roads. Sound in metal, glass and taut wire moves fifteen times faster.
-- open: Sing into a pipe and its far end sings at once.
-- open: Speed bends pitch. Something coming at you sounds higher and something leaving sounds lower.
-- open: At a ninth of the speed of sound the bend is a whole step, at a fifth it is a pure third, at a quarter a fourth, at a third a fifth, at a half an octave.
-- open: Things that pass (a truck, the black train) bend as they pass.
-- open: Hum's own note bends only on rides built for it, where the ride's speed is one of those fractions.
-- open: Night over water. Sound carries further across the lake at night, when the air over the water is cool.
-- open: The lake's own slow wave is separate: a song sung on the shore travels round the lake and comes back across the water about a quarter of a day later, softer and lower (design/memory-in-rhythm.md, idea 5).
+- spoken for by `laws.travel`: Sound moves at a speed you can see.
+- spoken for by `laws.travel`: Speed. About ten times Hum's run (to tune).
+- spoken for by `laws.travel`: A call's ring crosses a clearing in a breath and the lake in about a minute (62 seconds, size.md).
+- spoken for by `laws.travel`: Late arrivals. What happens far away is heard late, and seen when the sound arrives.
+- spoken for by `laws.travel`: Echoes. A wall sends a sound back after twice its distance.
+- spoken for by `laws.travel`: The return lands on the beat: the engine moves it to the nearest bar line, so an echo wall is a looper whose length is how far away you stand.
+- spoken for by `laws.travel`: Fast roads. Sound in metal, glass and taut wire moves fifteen times faster.
+- spoken for by `laws.travel`: Sing into a pipe and its far end sings at once.
+- spoken for by `laws.travel`: Speed bends pitch. Something coming at you sounds higher and something leaving sounds lower.
+- spoken for by `laws.travel`: At a ninth of the speed of sound the bend is a whole step, at a fifth it is a pure third, at a quarter a fourth, at a third a fifth, at a half an octave.
+- spoken for by `laws.travel`: Things that pass (a truck, the black train) bend as they pass.
+- spoken for by `laws.travel`: Hum's own note bends only on rides built for it, where the ride's speed is one of those fractions.
+- spoken for by `laws.travel`: Night over water. Sound carries further across the lake at night, when the air over the water is cool.
+- spoken for by `laws.travel`: The lake's own slow wave is separate: a song sung on the shore travels round the lake and comes back across the water about a quarter of a day later, softer and lower (design/memory-in-rhythm.md, idea 5).
 
 ## `spec/laws.md` / The laws / Law 7: building up
 
-- open: Push a thing at its own rate and it grows.
-- open: The rule. A push within an eighth of a cycle of the right moment adds its whole size.
-- open: The gain falls to nothing at a quarter of a cycle off, and beyond that the push takes energy out.
-- open: Between pushes the thing loses a share that depends on how long it rings.
-- open: Three thresholds for each thing: it rings (it lights and sounds), it swings (it moves what is on it), it gives (glass breaks, a knot opens, a seed-head scatters).
-- open: The same law at both sizes of time. A bell-flower's sway is pushed on the beat.
-- open: A wine glass is pushed 500 times a second by holding its note.
-- open: Taking it out. Pushes against the swing calm it.
-- open: Gentle fights end this way.
+- spoken for by `laws.building-up`: Push a thing at its own rate and it grows.
+- spoken for by `laws.building-up`: The rule. A push within an eighth of a cycle of the right moment adds its whole size.
+- spoken for by `laws.building-up`: The gain falls to nothing at a quarter of a cycle off, and beyond that the push takes energy out.
+- spoken for by `laws.building-up`: Between pushes the thing loses a share that depends on how long it rings.
+- spoken for by `laws.building-up`: Three thresholds for each thing: it rings (it lights and sounds), it swings (it moves what is on it), it gives (glass breaks, a knot opens, a seed-head scatters).
+- spoken for by `laws.building-up`: The same law at both sizes of time. A bell-flower's sway is pushed on the beat.
+- spoken for by `laws.building-up`: A wine glass is pushed 500 times a second by holding its note.
+- spoken for by `laws.building-up`: Taking it out. Pushes against the swing calm it.
+- spoken for by `laws.building-up`: Gentle fights end this way.
 
 ## `spec/laws.md` / The laws / Home over the laws
 
-- open: The wheel, the moods, the swell and the four cadences are in design/the-wheel.md and stand as written.
-- open: They sit on the laws like this:
-- open: Home is the note law 2 measures everything against.
-- open: A mood is where home sits among today's seven notes, and each mood is the feel of one law:
-- open: wonder | Lift | standing waves: things rest in the still places
-- open: sunny home | Bind | falling into step: parts on one beat are one machine
-- open: drive | Drive | beating: a near-miss turns a wheel
-- open: cool soul | Flow | cancelling and travel: slip through, ride water
-- open: tenderness | Remember | travel: what comes back is what was sent
-- open: fierceness | Strike | building up, fast
-- open: the darkest | Break | building up, to the point of giving
-- open: A cadence is letting go of a swell with home beside the leaning thing.
-- open: Which side, and how far, decides which of the four doors opens.
-- open: The groove. Today's seven notes among twelve make a pattern of long and short gaps.
-- open: The same pattern, as beats, is the day's bell rhythm, started from wherever home is.
+- spoken for by `laws.home`: The wheel, the moods, the swell and the four cadences are in design/the-wheel.md and stand as written.
+- spoken for by `laws.home`: They sit on the laws like this:
+- spoken for by `laws.home`: Home is the note law 2 measures everything against.
+- spoken for by `laws.home`: A mood is where home sits among today's seven notes, and each mood is the feel of one law:
+- spoken for by `laws.home`: wonder | Lift | standing waves: things rest in the still places
+- spoken for by `laws.home`: sunny home | Bind | falling into step: parts on one beat are one machine
+- spoken for by `laws.home`: drive | Drive | beating: a near-miss turns a wheel
+- spoken for by `laws.home`: cool soul | Flow | cancelling and travel: slip through, ride water
+- spoken for by `laws.home`: tenderness | Remember | travel: what comes back is what was sent
+- spoken for by `laws.home`: fierceness | Strike | building up, fast
+- spoken for by `laws.home`: the darkest | Break | building up, to the point of giving
+- spoken for by `laws.home`: A cadence is letting go of a swell with home beside the leaning thing.
+- spoken for by `laws.home`: Which side, and how far, decides which of the four doors opens.
+- spoken for by `laws.home`: The groove. Today's seven notes among twelve make a pattern of long and short gaps.
+- spoken for by `laws.home`: The same pattern, as beats, is the day's bell rhythm, started from wherever home is.
 
 ## `spec/laws.md` / The laws / Tuning
 
-- open: The garden's note is middle C, 261.63 Hz.
-- open: Morning n is n − 1 pure fifths higher, folded back into the octaves round it.
-- open: The thirteenth morning is 265.20 Hz: C, a comma sharp.
-- open: Each land tunes its own things in its own way.
-- open: Steps of the scale in cents above the land's note:
-- open: pure | the Garden, the Alfalfa, the Porch | 204 | 386 | 498 | 702 | 884 | 1088
-- open: pure fifths | the Glass Hills, the Reed Mouths | 204 | 408 | 498 | 702 | 906 | 1110
-- open: sweet thirds | the Bell Meadow, the Highway, Verbena Hollow, the Rain Steps | 193 | 386 | 503 | 697 | 890 | 1083
-- open: well-tempered | the Chrome Nave, the Aster Steps | by key, after Werckmeister
-- open: equal | the Seam | 200 | 400 | 500 | 700 | 900 | 1100
-- open: Who gives way. The day's key sets which notes are in play.
-- open: A land's own things keep the land's tuning.
-- open: Hum, the voices and the echoes take the tuning of the land they are in, so the band always sounds good.
-- open: At a border, one bell plays a phrase in both tunings.
-- open: Each land plays only the music that sounds best in its tuning: no held thirds in the Glass Hills, no far keys in the lands of sweet thirds except the wolf's valley on purpose.
+- spoken for by `laws.tuning`: The garden's note is middle C, 261.63 Hz.
+- spoken for by `laws.tuning`: Morning n is n − 1 pure fifths higher, folded back into the octaves round it.
+- spoken for by `laws.tuning`: The thirteenth morning is 265.20 Hz: C, a comma sharp.
+- spoken for by `laws.tuning`: Each land tunes its own things in its own way.
+- spoken for by `laws.tuning`: Steps of the scale in cents above the land's note:
+- spoken for by `laws.tuning`: pure | the Garden, the Alfalfa, the Porch | 204 | 386 | 498 | 702 | 884 | 1088
+- spoken for by `laws.tuning`: pure fifths | the Glass Hills, the Reed Mouths | 204 | 408 | 498 | 702 | 906 | 1110
+- spoken for by `laws.tuning`: sweet thirds | the Bell Meadow, the Highway, Verbena Hollow, the Rain Steps | 193 | 386 | 503 | 697 | 890 | 1083
+- spoken for by `laws.tuning`: well-tempered | the Chrome Nave, the Aster Steps | by key, after Werckmeister
+- spoken for by `laws.tuning`: equal | the Seam | 200 | 400 | 500 | 700 | 900 | 1100
+- spoken for by `laws.tuning`: Who gives way. The day's key sets which notes are in play.
+- spoken for by `laws.tuning`: A land's own things keep the land's tuning.
+- spoken for by `laws.tuning`: Hum, the voices and the echoes take the tuning of the land they are in, so the band always sounds good.
+- spoken for by `laws.tuning`: At a border, one bell plays a phrase in both tunings.
+- spoken for by `laws.tuning`: Each land plays only the music that sounds best in its tuning: no held thirds in the Glass Hills, no far keys in the lands of sweet thirds except the wolf's valley on purpose.
 
 ## `spec/laws.md` / The laws / Sound and light
 
-- open: texture.md carries this table all the way through: what every line looks like at rest and sounding, what each material's line is, and the rules that keep a frame beautiful.
-- open: pitch class | note | hue, by fifths: C green, sharps warming, flats cooling, purple at the seam
-- open: octave | register | height
-- open: loudness | volume | brightness; silence is dark; the backlight follows the whole
-- open: ratio between two voices | interval | the figure between them
-- open: a near-miss | beating | the figure turning, at the beat rate
-- open: a note, eight octaves down | too slow to hear | a pulse: the halo round a ringing thing beats at its own note halved eight times, so middle C beats about once a second and a fifth above it three times for its two
-- open: overtone recipe | timbre | the texture of the line
-- open: place in a cycle | together or loose | moving together
-- open: the note between two notes | the third voice | depth
-- open: sameness | nothing left over | flatness; pixel stairs
+- spoken for by `laws.sound-and-light`: texture.md carries this table all the way through: what every line looks like at rest and sounding, what each material's line is, and the rules that keep a frame beautiful.
+- spoken for by `laws.sound-and-light`: pitch class | note | hue, by fifths: C green, sharps warming, flats cooling, purple at the seam
+- spoken for by `laws.sound-and-light`: octave | register | height
+- spoken for by `laws.sound-and-light`: loudness | volume | brightness; silence is dark; the backlight follows the whole
+- spoken for by `laws.sound-and-light`: ratio between two voices | interval | the figure between them
+- spoken for by `laws.sound-and-light`: a near-miss | beating | the figure turning, at the beat rate
+- spoken for by `laws.sound-and-light`: a note, eight octaves down | too slow to hear | a pulse: the halo round a ringing thing beats at its own note halved eight times, so middle C beats about once a second and a fifth above it three times for its two
+- spoken for by `laws.sound-and-light`: overtone recipe | timbre | the texture of the line
+- spoken for by `laws.sound-and-light`: place in a cycle | together or loose | moving together
+- spoken for by `laws.sound-and-light`: the note between two notes | the third voice | depth
+- spoken for by `laws.sound-and-light`: sameness | nothing left over | flatness; pixel stairs
 
 ## `spec/laws.md` / The laws / For the ears
 
-- open: Limits the engine keeps, so that "it sounds good" is checked and not hoped for:
+- spoken for by `laws.ears`: Limits the engine keeps, so that "it sounds good" is checked and not hoped for:
 - open: Roughness. game/tools/ears measures it. More than two seconds of sustained roughness is an error, except in the moments on this list, each of which is brief and resolves: a wolf's howl, the two suns at dawn, the dome's shiver, the close that misses, and the comma held on the thirteenth morning.
-- open: Slow beating is allowed as shimmer where a land's tuning makes it (the Seam, the Shimmer), and Morgan's ears decide how much.
-- open: Everything a player must hear sits between 400 Hz and 8 kHz, where the small speaker speaks.
-- open: Low voices are built from upper overtones.
-- open: Out of phase is never out of tune: hollow, then loose in time, then silent.
-- open: A missed beat sounds plainer, never wrong.
+- spoken for by `laws.ears`: Slow beating is allowed as shimmer where a land's tuning makes it (the Seam, the Shimmer), and Morgan's ears decide how much.
+- spoken for by `laws.ears`: Everything a player must hear sits between 400 Hz and 8 kHz, where the small speaker speaks.
+- spoken for by `laws.ears`: Low voices are built from upper overtones.
+- spoken for by `laws.ears`: Out of phase is never out of tune: hollow, then loose in time, then silent.
+- spoken for by `laws.ears`: A missed beat sounds plainer, never wrong.
 
 ## `spec/world.md` / The world / The shape
 
@@ -2470,23 +2470,23 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/texture.md` / The texture of the world / What a thing is made of
 
-- open: The material is the part of a sound that is not its note: how it starts, how fast it dies, how much is noise.
-- open: So it is the part of a line that is not its shape.
-- open: water | soft start, wavering, bubbles | a line that is never quite still, with no corners
-- open: stem and leaf | a soft knock, quickly gone | a soft-edged line, pale, in its note's colour, with a short glow
-- open: glass | a hard start and a very long ring | a line with a hard edge and a spark at each corner, whose glow lasts half a minute
-- open: bronze and brass | a warm start; two notes a hair apart in every bell | a warm line that shimmers slowly: it beats against itself
-- open: silk | high and thin, ringing long | a fine line beaded with dew
-- open: wood | a knock, short and warm | a line of short strokes along the grain, with almost no glow
-- open: reed | a breath with a buzz in it, odd overtones | two walls with a blur of breath at the mouth
-- open: chrome | bright, hard, everything back at once | a line and its copy
-- open: concrete | dull, dead on the beat | a line drawn in stairs: the Grid's line
-- open: tarmac and salt | a click or a hiss, no note | dots, in no colour
-- open: moss and petal | nothing: they take sound in | short soft strokes that give no glow and dim what is near them
-- open: A click has no colour. The shorter a sound, the less it has a note (world.md, the Alfalfa's twelfth wonder), so the less it has a hue.
-- open: Salt, chaff and gravel are bone-white dots.
-- open: A long pure tone is a full colour.
-- open: Two things of one shape and different stuff are told apart at a glance and by ear, by the same difference.
+- spoken for by `texture.materials`: The material is the part of a sound that is not its note: how it starts, how fast it dies, how much is noise.
+- spoken for by `texture.materials`: So it is the part of a line that is not its shape.
+- spoken for by `texture.materials`: water | soft start, wavering, bubbles | a line that is never quite still, with no corners
+- spoken for by `texture.materials`: stem and leaf | a soft knock, quickly gone | a soft-edged line, pale, in its note's colour, with a short glow
+- spoken for by `texture.materials`: glass | a hard start and a very long ring | a line with a hard edge and a spark at each corner, whose glow lasts half a minute
+- spoken for by `texture.materials`: bronze and brass | a warm start; two notes a hair apart in every bell | a warm line that shimmers slowly: it beats against itself
+- spoken for by `texture.materials`: silk | high and thin, ringing long | a fine line beaded with dew
+- spoken for by `texture.materials`: wood | a knock, short and warm | a line of short strokes along the grain, with almost no glow
+- spoken for by `texture.materials`: reed | a breath with a buzz in it, odd overtones | two walls with a blur of breath at the mouth
+- spoken for by `texture.materials`: chrome | bright, hard, everything back at once | a line and its copy
+- spoken for by `texture.materials`: concrete | dull, dead on the beat | a line drawn in stairs: the Grid's line
+- spoken for by `texture.materials`: tarmac and salt | a click or a hiss, no note | dots, in no colour
+- spoken for by `texture.materials`: moss and petal | nothing: they take sound in | short soft strokes that give no glow and dim what is near them
+- spoken for by `texture.materials`: A click has no colour. The shorter a sound, the less it has a note (world.md, the Alfalfa's twelfth wonder), so the less it has a hue.
+- spoken for by `texture.materials`: Salt, chaff and gravel are bone-white dots.
+- spoken for by `texture.materials`: A long pure tone is a full colour.
+- spoken for by `texture.materials`: Two things of one shape and different stuff are told apart at a glance and by ear, by the same difference.
 
 ## `spec/texture.md` / The texture of the world / Tuning, seen
 

@@ -132,6 +132,9 @@ pub const Bee = struct {
             const kin = world_mod.sympathy(w.things[self.thing].hz, bell.hz, rec.mult, rec.gain);
             if (kin < 0.3) continue;
             w.tell(.{ .thing = i }, cues.Cue.of(.{ .kind = .strike, .family = bell.family, .hz = bell.hz, .strength = 0.3 * kin, .ring = bell.ring }, .glow));
+            // and they pass it on to their kin, as anything rung does (law 1)
+            w.things[i].rung_at = @truncate(w.step);
+            w.passOn(@intCast(i), 0.3 * kin, false);
         }
     }
 };
