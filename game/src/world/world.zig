@@ -15,6 +15,7 @@ const std = @import("std");
 const sound = @import("../sound/sound.zig");
 pub const asters = @import("asters.zig");
 pub const cues_mod = @import("cue.zig");
+pub const ground = @import("ground.zig");
 pub const witness = @import("witness.zig");
 
 pub const steps_per_second = 60;
@@ -48,8 +49,8 @@ pub const octave_m: f32 = 100.0;
 pub const lake_x: f32 = 1100.0;
 pub const lake_z: f32 = -2700.0;
 pub const lake_r: f32 = 1850.0;
-/// The sun holds the day's note, an octave under middle C.
-pub const sun_hz: f32 = garden_hz * 0.5;
+/// The sun holds the day's note itself: middle C on the garden's morning (spec/sky.md).
+pub const sun_hz: f32 = garden_hz;
 /// The rungs of the horn that are things of the world: one for each of the sun's first sixteen
 /// overtones, standing in the air over the lake.
 pub const rungs: u32 = 16;
@@ -123,8 +124,32 @@ pub fn untilTick(step: u64) u64 {
     return tickStep(k) - step;
 }
 
-/// What a cue comes from.
-pub const Source = union(enum) { hum, thing: u32 };
+/// A place in the world.
+pub const Place = struct { x: f32, y: f32, z: f32 };
+
+/// What a cue comes from: Hum, a thing, or a place where something small happens, a drop of dew
+/// or a leaf, that is not a thing of its own.
+pub const Source = union(enum) { hum, thing: u32, at: Place };
+
+/// The light of something small that sounded at a place: seen where it is at once, fading as it
+/// rings.
+pub const Spark = struct {
+    x: f32 = 0.0,
+    y: f32 = 0.0,
+    z: f32 = 0.0,
+    hz: f32 = 0.0,
+    bright: f32 = 0.0,
+    fades: f32 = 0.2,
+    born: u64 = 0,
+    live: bool = false,
+};
+pub const max_sparks = 48;
+
+/// Moss swallows sound: a call made on it carries half as far (spec/shape.md, the Garden).
+pub const moss_carries: f32 = 0.5;
+/// Steps of walking between one drop of dew landing in your wake, and between leaves underfoot.
+pub const dew_every: u32 = 9;
+pub const leaf_every: u32 = 14;
 
 /// The view of the place. Walking: the eye sits far behind Hum and low, looking up a little, so
 /// the horizon is low in the frame and Hum is small in it. Stopped at a tall thing's foot, the
@@ -232,6 +257,8 @@ pub const Ring = struct {
     hz: f32 = garden_hz,
     /// Hum's own call, which rings what it passes; or someone else's, which is an answer.
     own: bool = true,
+    /// How strong it set out: less from moss.
+    strength: f32 = 1.0,
 };
 
 /// A sound on its way to Hum's ears.
@@ -334,6 +361,11 @@ pub const World = struct {
     rung_lit: u32 = 0,
     /// The highest rung whose note has reached Hum's ears.
     rung_heard: u32 = 0,
+    /// What the ground under Hum wears, and how many steps it has walked.
+    cover: ground.Cover = .soil,
+    walked: u32 = 0,
+    sparks: [max_sparks]Spark = @splat(.{}),
+    next_spark: u32 = 0,
     /// A flower head that has fallen by the great aster's foot: a bell at Hum's own size.
     fallen: u32 = no_thing,
     /// The tower Hum is nearest, and how far its foot is.
@@ -493,7 +525,7 @@ pub const World = struct {
         switch (from) {
             .hum => {
                 switch (what.light.shape) {
-                    .ring_on_the_ground => self.startRing(self.hum_x, self.hum_z, what.sound.hz, true),
+                    .ring_on_the_ground => self.startRing(self.hum_x, self.hum_z, what.sound.hz, true, if (self.cover == .moss) moss_carries else 1.0),
                     .swell => self.singing = true,
                     .dims => self.singing = false,
                     .glow => {},
@@ -504,7 +536,7 @@ pub const World = struct {
             .thing => |index| {
                 const thing = &self.things[index];
                 thing.loud = @max(thing.loud, what.light.brightness);
-                if (what.light.shape == .ring_on_the_ground) self.startRing(thing.x, thing.z, what.sound.hz, false);
+                if (what.light.shape == .ring_on_the_ground) self.startRing(thing.x, thing.z, what.sound.hz, false, 1.0);
                 // heard when it has come back to where Hum is now
                 const hx = thing.x - self.hum_x;
                 const hz = thing.z - self.hum_z;
@@ -513,11 +545,30 @@ pub const World = struct {
                 const level: f32 = if (what.sound.kind == .strike) answer_level else voice_level;
                 self.send(now_sample + lead + delay, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .voice = what.sound.voice, .hz = what.sound.hz, .gain = what.sound.strength * level, .ring = what.sound.ring }, index, what.light);
             },
+            .at => |place| {
+                // its light where it is, at once; its sound when it has come to Hum
+                self.sparks[self.next_spark % max_sparks] = .{
+                    .x = place.x,
+                    .y = place.y,
+                    .z = place.z,
+                    .hz = what.light.hz,
+                    .bright = what.light.brightness,
+                    .fades = @max(what.light.fades, 0.15),
+                    .born = self.step,
+                    .live = true,
+                };
+                self.next_spark +%= 1;
+                const hx = place.x - self.hum_x;
+                const hz = place.z - self.hum_z;
+                const back = @sqrt(hx * hx + hz * hz + place.y * place.y) / sound_speed;
+                const delay: u64 = @intFromFloat(back * sound.rate);
+                self.send(now_sample + lead + delay, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .hz = what.sound.hz, .gain = what.sound.strength * answer_level, .ring = what.sound.ring }, no_thing, what.light);
+            },
         }
     }
 
     /// A ring of light begins to run out from a place: a call's, or an answer's.
-    fn startRing(self: *World, x: f32, z: f32, hz: f32, own: bool) void {
+    fn startRing(self: *World, x: f32, z: f32, hz: f32, own: bool, strength: f32) void {
         var oldest: usize = 0;
         for (self.rings, 0..) |r, i| {
             if (!r.live) {
@@ -526,7 +577,7 @@ pub const World = struct {
             }
             if (r.born < self.rings[oldest].born) oldest = i;
         }
-        self.rings[oldest] = .{ .x = x, .z = z, .born = self.step, .live = true, .hz = hz, .own = own };
+        self.rings[oldest] = .{ .x = x, .z = z, .born = self.step, .live = true, .hz = hz, .own = own, .strength = strength };
     }
 
     /// Drip's note now: a fifth above Hum's, flat by less with every breath they have taken
@@ -590,9 +641,11 @@ pub const World = struct {
             self.hum_z += wz * scale;
             self.hum_face = std.math.atan2(wx, -wz);
             self.still = 0;
+            if (self.view == .place and self.stand >= 1.0) self.underfoot();
         } else {
             self.still +|= 1;
         }
+        if (self.view == .place) self.cover = ground.coverAt(self.hum_x, self.hum_z);
         if (self.view == .place) {
             // the hinge: the world is a page until it stands, and holding R1 lays it down again
             self.call_held = if (hands.held(Hands.call)) self.call_held +| 1 else 0;
@@ -605,7 +658,8 @@ pub const World = struct {
         // the call: a ring of light and Hum's own short note, as one cue
         if (pressed & Hands.call != 0) {
             self.calls += 1;
-            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = garden_hz, .strength = 0.857, .ring = 0.35 }, .ring_on_the_ground));
+            const carries: f32 = if (self.cover == .moss) moss_carries else 1.0;
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = garden_hz, .strength = 0.857 * carries, .ring = 0.35 }, .ring_on_the_ground));
         }
 
         // singing: Hum's one note for as long as R2 is held, and Hum swelling for as long. Beside
@@ -672,7 +726,7 @@ pub const World = struct {
             const age: f32 = @floatFromInt(self.step - ring.born);
             const reach = age * dt * sound_speed;
             const before = @max(0.0, reach - dt * sound_speed);
-            if (reach > self.ring_reach) {
+            if (reach > self.ring_reach * ring.strength) {
                 ring.live = false;
                 continue;
             }
@@ -714,7 +768,7 @@ pub const World = struct {
                 if (kin < 0.08) continue;
                 // how hard the call rings it: less with distance, as sound is. One number, and it
                 // is both how loud the thing is and how bright
-                const strength = kin / (1.0 + (far / thing.carry) * (far / thing.carry));
+                const strength = kin * ring.strength / (1.0 + (far / thing.carry) * (far / thing.carry));
                 if (strength * answer_level < quietest) continue;
                 self.answers += 1;
                 self.tell(.{ .thing = @intCast(index) }, cues_mod.Cue.of(.{ .kind = .strike, .family = thing.family, .hz = thing.hz, .strength = strength, .ring = thing.ring }, .glow));
@@ -731,6 +785,9 @@ pub const World = struct {
             if (thing.loud < 0.002) thing.loud = 0.0;
             thing.loud = @max(thing.loud, thing.held);
             if (thing.loud > 0.1 and thing.held == 0.0) ringing += 1;
+        }
+        for (&self.sparks) |*spark| {
+            if (spark.live and @as(f32, @floatFromInt(self.step - spark.born)) * dt > spark.fades * 3.0) spark.live = false;
         }
         if (ringing > 0 and self.still > 0) self.seen.hold(.evening_call);
         if (self.drip_humming and self.besideDrip()) self.seen.hold(.evening_breathe);
@@ -822,6 +879,28 @@ pub const World = struct {
                 self.rung_lit &= ~bit;
                 self.things[index].held = 0.0;
             }
+        }
+    }
+
+    /// What the ground does under Hum's feet as it walks (spec/shape.md, the Garden). Lawn bends
+    /// away and springs back in its wake, shedding dew that lands behind it: your path is heard
+    /// just after you. A fallen leaf is a bar with its own note, and rings when it is stepped on.
+    fn underfoot(self: *World) void {
+        self.walked +%= 1;
+        switch (self.cover) {
+            .lawn => if (self.walked % dew_every == 0) {
+                const fx = @sin(self.hum_face);
+                const fz = -@cos(self.hum_face);
+                const at = Place{ .x = self.hum_x - fx * 4.0, .y = 0.1, .z = self.hum_z - fz * 4.0 };
+                const which = ground.hash32(@intFromFloat(@floor(at.x)), @intFromFloat(@floor(at.z)), 11) % 5;
+                self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = garden_hz * 4.0 * ground.five[which], .strength = 0.05, .ring = 0.25 }, .glow));
+            },
+            .leaves => if (self.walked % leaf_every == 0) {
+                const at = Place{ .x = self.hum_x, .y = 0.2, .z = self.hum_z };
+                const note = ground.leafNote(self.hum_x, self.hum_z);
+                self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = garden_hz * ground.five[note], .strength = 0.3, .ring = 0.7 }, .glow));
+            },
+            else => {},
         }
     }
 
@@ -1016,6 +1095,8 @@ pub const World = struct {
         mixIn(&h, @as(u32, @bitCast(self.figure_turn)));
         mixIn(&h, self.breaths);
         mixIn(&h, self.rung_lit);
+        mixIn(&h, self.walked);
+        mixIn(&h, @intFromEnum(self.cover));
         mixIn(&h, self.rung_heard);
         mixIn(&h, @intFromBool(self.drip_met));
         mixIn(&h, @as(u32, @bitCast(self.hum_light)));
@@ -1387,4 +1468,85 @@ test "the sun climbs the horn: each rung lights where it stands at once, and is 
     try std.testing.expect(@abs(late - far / sound_speed) < 0.1);
     // and the day reached Hum when the dawn had crossed the ground from the shore
     try std.testing.expectEqual(@as(f32, 1.0), w.dayAt(0.0, 0.0));
+}
+
+/// The first place on a grid where the ground wears `want`, with at least `clear` metres of it
+/// to the east: for tests.
+fn findCover(want: ground.Cover, clear: f32) ?[2]f32 {
+    var z: f32 = -1000.0;
+    while (z < 200.0) : (z += 7.0) {
+        var x: f32 = -600.0;
+        while (x < 600.0) : (x += 7.0) {
+            var ok = true;
+            var d: f32 = 0.0;
+            while (d <= clear) : (d += 2.0) {
+                if (ground.coverAt(x + d, z) != want) ok = false;
+            }
+            if (ok) return .{ x, z };
+        }
+    }
+    return null;
+}
+
+test "on moss a call carries half as far" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    var answered: [2][2]bool = undefined;
+    const places = [2]ground.Cover{ .lawn, .moss };
+    for (places, 0..) |want, p| {
+        const at = findCover(want, 2.0) orelse return error.NoSuchGround;
+        w.* = .{};
+        w.view = .place;
+        w.stand = 1.0;
+        w.stand_from = 0;
+        w.ring_reach = 900.0;
+        w.hum_x = at[0];
+        w.hum_z = at[1];
+        // one bell near, and one far, both on the garden's own note
+        w.things[0] = .{ .x = at[0] + 40.0, .z = at[1], .y = 0.0, .hz = garden_hz, .carry = 110.0 };
+        w.things[1] = .{ .x = at[0] + 700.0, .z = at[1], .y = 0.0, .hz = garden_hz, .carry = 110.0 };
+        w.thing_count = 2;
+        var step: u32 = 0;
+        while (step < 60 * 14) : (step += 1) _ = w.stepOnce(.{ .buttons = if (step == 1) Hands.call else 0 }, &cues);
+        try std.testing.expectEqual(want, w.cover);
+        answered[p] = .{ w.things[0].lit > 0.0 or w.answers > 0, w.answers >= 2 };
+    }
+    // from lawn both answer; from moss the near one does and the far one is never reached
+    try std.testing.expect(answered[0][0] and answered[0][1]);
+    try std.testing.expect(answered[1][0] and !answered[1][1]);
+}
+
+test "fallen leaves ring underfoot and lawn sheds dew behind you, each seen at once and heard as late as it is far" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    const kinds = [2]ground.Cover{ .leaves, .lawn };
+    for (kinds) |want| {
+        const at = findCover(want, 24.0) orelse return error.NoSuchGround;
+        w.* = .{};
+        w.view = .place;
+        w.stand = 1.0;
+        w.stand_from = 0;
+        w.hum_x = at[0];
+        w.hum_z = at[1];
+        var strikes: u32 = 0;
+        var step: u32 = 0;
+        // walk east for three seconds
+        while (step < 180) : (step += 1) {
+            const n = w.stepOnce(.{ .lx = 110 }, &cues);
+            for (cues[0..n]) |cue| {
+                if (cue.kind == .strike) strikes += 1;
+            }
+        }
+        var sparks: u32 = 0;
+        for (w.sparks) |spark| {
+            if (spark.born > 0) sparks += 1;
+        }
+        try std.testing.expect(strikes >= 4);
+        try std.testing.expect(sparks >= 4);
+        // every one was told as a cue, with its light
+        try std.testing.expectEqual(w.told, w.sent);
+        try std.testing.expectEqual(@as(u32, 0), w.dark_sounds);
+    }
 }

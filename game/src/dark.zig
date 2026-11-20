@@ -373,7 +373,8 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
         }
     }
 
-    const hum_tint = col8(bone, 1.0);
+    // on moss Hum is dim: moss swallows light as it swallows sound (spec/shape.md)
+    const hum_tint = col8(bone, if (w.cover == .moss) 0.55 else 1.0);
     if (w.view == .place and w.stand < 0.5) {
         // on the page Hum is a mark like any other: a small ring, and a tick for where it faces
         for (0..10) |k| {
@@ -955,6 +956,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             moving_n += aster_lines.dawnEdge(&world, moving[moving_n..]);
             if (world.stand > 0.6) moving_n += aster_lines.halos(&world, eye, moving[moving_n..]);
             moving_n += eveningLines(&world, moving[moving_n..]);
+            moving_n += aster_lines.sparks(&world, moving[moving_n..]);
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);

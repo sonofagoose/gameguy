@@ -43,6 +43,47 @@ stage 2 begins._
   - `owed` The songbook's credit, checked against sources before it is written.
 - **Asks:** Is the Garden somewhere you are glad to wake up?
 
+### `garden.ground` What the Garden's ground wears
+
+- **Said:** `spec/shape.md` "bends away as you pass and springs back in your wake, shedding dew that
+  lands a moment later: your path is heard just after you" "On moss your call goes half as far and
+  you are dim" "Each leaf is a drum skin: rain plays it, and when you hum under one its figure shows
+  on its underside" "puddles are mirrors, and each can be crossed on its still lines when you hum
+  its note" "A dry leaf rattles when you step on it and tips like a seesaw" "No cover is the main
+  cover of two lands."
+- **Stage:** 2
+- **Scene:** evening
+- **The moment:** You never walk the same ground for long. Through the lawn the blades are trees
+  around you, and behind you, a moment after you pass, their dew lands with small high notes, so
+  your path is heard trailing you. Then a field of last year's leaves, each a curled raft longer
+  than a bus, and every step plays one: each leaf its own note, so crossing the field is a tune you
+  didn't choose. Then you walk in under clover, a green roof on threads, and the sky goes. On moss
+  everything hushes: your call goes half as far, you dim, and it is the place to rest. Crossing the
+  Garden is learning what its ground does.
+- **Far:** the leaf field glows amber in the middle distance, the clover is a low dark roof, the
+  lawn a forest of blades.
+- **At its foot:** each cover at Hum's height: a blade as wide as a door, a leaf longer than a bus,
+  a clover stalk you could climb.
+- **Inside:** under clover, a roof you hum up into; on moss, a quiet you can hide in.
+- **After:** you choose your way across a land by what its ground will do.
+- **A cheat would be:** five textures that look different and do nothing; sounds of footsteps
+  changed by surface.
+- **Full size:**
+  - `test on moss a call carries half as far`
+  - `test fallen leaves ring underfoot and lawn sheds dew behind you, each seen at once and heard as
+    late as it is far`
+  - `frame evening-far` Lawn, leaf fall and clover in one view, each drawn as itself.
+  - `frame evening-foot` The great aster's foot under the clover's roof.
+  - `owed` Clover: each leaf a drum skin; rain plays it; humming under one shows its figure on its
+    underside.
+  - `owed` Puddles in the bare soil: mirrors, crossed on their still lines (`garden.w04`).
+  - `owed` A leaf tips like a seesaw when stepped on, and the lawn's blades bend away and spring
+    back.
+  - `owed` Moss as a place to hide: whatever hunts by pitch loses you there.
+  - `owed` The Garden's own shape: a bowl a kilometre and a half across, with the Mirror Pool at its
+    lowest point (`shape.md`). The proof field is flat.
+- **Asks:** Did the ground under you feel different from one patch to the next?
+
 ### `garden.asters` Asters as tall as cathedrals
 
 - **Said:** `spec/world.md` "Asters are as tall as cathedrals."

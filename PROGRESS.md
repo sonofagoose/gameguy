@@ -50,7 +50,9 @@ past the deepest game he knows.
 | the sky, first piece: the dawn at your feet, spreading at the speed of sound; the horn over the lake, each ring lit when the sun reaches it and heard when its note has crossed the water; the seventh dark; stars; the sun as a figure | done in the evening scene, every frame on time on the laptop (`spec/promises/sky.md`) |
 | light as loudness (`spec/texture.md`): each body's own light spread over its lines; outside light given back by what it is made of | done in the renderer's table |
 | four covers on the proof field's ground, each its own shapes; bare soil mostly bare | done for the Garden's proof; the twelve lands' covers are written in `spec/shape.md` |
-| `spec/sky.md`, `spec/shape.md`, `spec/texture.md`; `docs/two-games-as-felt.md` | written. A review of the three by four independent readers, each finding checked by a skeptic, is running |
+| `spec/sky.md`, `spec/shape.md`, `spec/texture.md`; `docs/two-games-as-felt.md` | written, and corrected by an independent review: four readers, a skeptic for each; 100 of 127 findings confirmed and applied |
+| the Garden's covers as rules (`game/src/world/ground.zig`): lawn sheds dew behind you, fallen leaves ring underfoot each in its own note, moss halves your call and dims you, clover is a roof | done, with tests and the promise `garden.ground`; sparks show where each small sound happened |
+| every kept frame measured as it is kept (`spec/tools/beauty.py`) | done: at least 54% black in the place, at least 90% on the page, at most 3.3% of any frame brighter than half |
 | the purple | **stale**: not seen on USB since 2026-11-20 03:59. It has a build from before the evening scene. Its same-take file no longer matches |
 
 ## Next

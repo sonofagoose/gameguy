@@ -2146,7 +2146,7 @@ _Every sentence of the specification that promises a player something, read by
 ## `spec/shape.md` / The shape of the lands / What the ground wears
 
 - open: Every land has three to five covers: what grows or lies on its ground.
-- open: No cover is the main cover of two lands.
+- spoken for by `garden.ground`: No cover is the main cover of two lands.
 - open: And no cover is scenery: each one does something to Hum, or for Hum, by a law.
 - open: Crossing a land is learning what its ground does.
 - open: A cover changes as you walk. No more than about two hundred metres go by under one cover.
@@ -2170,11 +2170,11 @@ _Every sentence of the specification that promises a player something, read by
 - open: Seen. The asters' skyline; the spigot, a monument of brass; the hose, a green river you can hear.
 - open: Silhouette. A low bowl of towers, with a glint of brass among them.
 - open: Hands. Easy. Gentle slopes, short distances, everything rings.
-- open: lawn | blades of grass, 4 to 9 m | bends away as you pass and springs back in your wake, shedding dew that lands a moment later: your path is heard just after you (travel)
-- open: moss | cushions a metre high | swallows sound. On moss your call goes half as far and you are dim: the place to rest and the place to hide (cancelling)
-- open: clover | three leaves on a thread of a stalk, 3 to 7 m up | a roof. Each leaf is a drum skin: rain plays it, and when you hum under one its figure shows on its underside (standing waves)
-- open: bare soil | crumbs as boulders, and puddles | puddles are mirrors, and each can be crossed on its still lines when you hum its note
-- open: leaf fall | last year's leaves, 5 to 10 m, curled | each is a bar with its own note. A dry leaf rattles when you step on it and tips like a seesaw
+- spoken for by `garden.ground`: lawn | blades of grass, 4 to 9 m | bends away as you pass and springs back in your wake, shedding dew that lands a moment later: your path is heard just after you (travel)
+- spoken for by `garden.ground`: moss | cushions a metre high | swallows sound. On moss your call goes half as far and you are dim: the place to rest and the place to hide (cancelling)
+- spoken for by `garden.ground`: clover | three leaves on a thread of a stalk, 3 to 7 m up | a roof. Each leaf is a drum skin: rain plays it, and when you hum under one its figure shows on its underside (standing waves)
+- spoken for by `garden.ground`: bare soil | crumbs as boulders, and puddles | puddles are mirrors, and each can be crossed on its still lines when you hum its note
+- spoken for by `garden.ground`: leaf fall | last year's leaves, 5 to 10 m, curled | each is a bar with its own note. A dry leaf rattles when you step on it and tips like a seesaw
 
 ## `spec/shape.md` / The shape of the lands / The twelve lands / The Alfalfa: a field in furrows
 

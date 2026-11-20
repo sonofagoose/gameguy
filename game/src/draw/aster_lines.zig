@@ -383,26 +383,9 @@ fn blade(ix: i32, iz: i32, k: u32, cell: f32, body: f32, out: []Inst, n: *usize,
 
 /// What the ground wears (spec/world.md, "What the ground wears"). These are four of the
 /// Garden's own covers. Each land has its own, and no cover is only scenery.
-pub const Cover = enum { soil, lawn, clover, moss };
-
-/// Which cover is at a place: wide patches, a hundred metres or so across, by a sum from where
-/// it is.
-pub fn coverAt(x: f32, z: f32) Cover {
-    const fx = x * (1.0 / 105.0);
-    const fz = z * (1.0 / 105.0);
-    const ix: i32 = @intFromFloat(@floor(fx));
-    const iz: i32 = @intFromFloat(@floor(fz));
-    const tx = fx - @floor(fx);
-    const tz = fz - @floor(fz);
-    const sx = tx * tx * (3.0 - 2.0 * tx);
-    const sz = tz * tz * (3.0 - 2.0 * tz);
-    const a = unit01(hash(ix, iz, 501));
-    const b = unit01(hash(ix + 1, iz, 501));
-    const c = unit01(hash(ix, iz + 1, 501));
-    const d = unit01(hash(ix + 1, iz + 1, 501));
-    const v = (a + (b - a) * sx) + ((c + (d - c) * sx) - (a + (b - a) * sx)) * sz;
-    return if (v < 0.40) .soil else if (v < 0.50) .lawn else if (v < 0.60) .clover else .moss;
-}
+/// What the ground wears is the world's to know (world/ground.zig): the picture reads the same sum.
+pub const Cover = world_mod.ground.Cover;
+pub const coverAt = world_mod.ground.coverAt;
 
 /// How much of the light that falls on it a cover gives back: moss swallows light as it swallows
 /// sound (spec/shape.md; spec/texture.md).
@@ -410,6 +393,7 @@ pub fn coverGives(cover: Cover) f32 {
     return switch (cover) {
         .soil => 1.0,
         .lawn => 0.85,
+        .leaves => 0.8,
         .clover => 0.9,
         .moss => 0.45,
     };
@@ -535,6 +519,44 @@ fn pebble(x: f32, z: f32, s: u32, out: Out) void {
     }
 }
 
+/// A fallen leaf: last year's, 5 to 10 m long at one to a hundred, lying curled with its tips up.
+/// One lies in each six metres square of leaf fall, where the world rings it underfoot.
+fn fallenLeaf(cx: i32, cz: i32, out: Out) void {
+    const s = world_mod.ground.hash32(cx, cz, 41);
+    const x = (@as(f32, @floatFromInt(cx)) + 0.2 + 0.6 * unit01(s)) * 6.0;
+    const z = (@as(f32, @floatFromInt(cz)) + 0.2 + 0.6 * unit01(s *% 2654435761)) * 6.0;
+    const len = 2.5 + 2.5 * unit01(s *% 40503);
+    const wide = len * (0.25 + 0.12 * unit01(s *% 69069));
+    const turn = unit01(s *% 22695477) * 6.2831853;
+    const along = V{ @cos(turn), 0.0, @sin(turn) };
+    const across = V{ -@sin(turn), 0.0, @cos(turn) };
+    const curl = 0.3 + 0.8 * unit01(s *% 1103515245);
+    const dry = col8(.{ 0.78, 0.66, 0.48 }, 0.17);
+    const rib = col8(.{ 0.78, 0.66, 0.48 }, 0.09);
+    const c = V{ x, 0.05, z };
+    const tip0 = add(add(c, mul(along, -len)), V{ 0.0, curl, 0.0 });
+    const tip1 = add(add(c, mul(along, len)), V{ 0.0, curl * 0.7, 0.0 });
+    const side0 = add(c, mul(across, wide));
+    const side1 = add(c, mul(across, -wide));
+    const q0 = add(add(c, mul(along, -len * 0.5)), mul(across, wide * 0.8));
+    const q1 = add(add(c, mul(along, len * 0.5)), mul(across, wide * 0.8));
+    const q2 = add(add(c, mul(along, len * 0.5)), mul(across, -wide * 0.8));
+    const q3 = add(add(c, mul(along, -len * 0.5)), mul(across, -wide * 0.8));
+    out.line(tip0, q0, 1.1, dry);
+    out.line(q0, side0, 1.1, dry);
+    out.line(side0, q1, 1.1, dry);
+    out.line(q1, tip1, 1.1, dry);
+    out.line(tip1, q2, 1.1, dry);
+    out.line(q2, side1, 1.1, dry);
+    out.line(side1, q3, 1.1, dry);
+    out.line(q3, tip0, 1.1, dry);
+    out.line(tip0, tip1, 0.9, rib);
+    out.tri(tip0, q0, q3);
+    out.tri(q0, q1, q2);
+    out.tri(q0, q2, q3);
+    out.tri(q1, tip1, q2);
+}
+
 /// One cell of ground, wearing whatever cover is at its middle.
 fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
     const mid_x = (@as(f32, @floatFromInt(ix)) + 0.5) * size;
@@ -554,6 +576,21 @@ fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
             for (0..many - 1) |k| {
                 const s = hash(ix, iz, @intCast(k + salt + 60));
                 moss((@as(f32, @floatFromInt(ix)) + unit01(s)) * size, (@as(f32, @floatFromInt(iz)) + unit01(s *% 22695477)) * size, s, near, out);
+            }
+        },
+        .leaves => {
+            // last year's leaves: one to every six metres square, so close by and coarser far off
+            const cells_per: i32 = if (near) 1 else 2;
+            const span: f32 = size / 6.0;
+            const n_side: i32 = @max(1, @as(i32, @intFromFloat(@ceil(span))));
+            var a: i32 = 0;
+            while (a < n_side) : (a += cells_per) {
+                var b: i32 = 0;
+                while (b < n_side) : (b += cells_per) {
+                    const lx = @as(i32, @intFromFloat(@floor(@as(f32, @floatFromInt(ix)) * size / 6.0))) + a;
+                    const lz = @as(i32, @intFromFloat(@floor(@as(f32, @floatFromInt(iz)) * size / 6.0))) + b;
+                    fallenLeaf(lx, lz, out);
+                }
             }
         },
         .soil => {
@@ -698,33 +735,8 @@ pub fn horn(w: *const world_mod.World, out: []Inst) usize {
             n += 1;
         }
     }
-    // above rung sixteen, a ring an octave, narrowing to a thread
-    const faint = col8(chrome, 0.45);
-    var o: u32 = 5;
-    while (o <= 12) : (o += 1) {
-        const r = world_mod.lake_r / @as(f32, @floatFromInt(@as(u32, 1) << @intCast(o)));
-        const h = world_mod.octave_m * @as(f32, @floatFromInt(o));
-        for (0..24) |j| {
-            if (n >= out.len) return n;
-            const a0 = @as(f32, @floatFromInt(j)) * (6.2831853 / 24.0);
-            const a1 = @as(f32, @floatFromInt(j + 1)) * (6.2831853 / 24.0);
-            out[n] = .{
-                .a = .{ world_mod.lake_x + r * @cos(a0), h, world_mod.lake_z + r * @sin(a0) },
-                .b = .{ world_mod.lake_x + r * @cos(a1), h, world_mod.lake_z + r * @sin(a1) },
-                .half_width = -1.1,
-                .body = day_body,
-                .col = faint,
-            };
-            n += 1;
-        }
-    }
-    // the thread: from 1.2 km to forty-one octaves, light
-    var y: f32 = 1200.0;
-    while (y < 4100.0) : (y += 100.0) {
-        if (n >= out.len) return n;
-        out[n] = .{ .a = .{ world_mod.lake_x, y, world_mod.lake_z }, .b = .{ world_mod.lake_x, y + 100.0, world_mod.lake_z }, .half_width = -1.0, .body = day_body, .col = col8(chrome, 0.35) };
-        n += 1;
-    }
+    // Above rung sixteen the thread is dark until someone sings up it (spec/sky.md): nothing is
+    // drawn there, since silence is dark.
     return n;
 }
 
@@ -782,6 +794,29 @@ pub fn dawnEdge(w: *const world_mod.World, out: []Inst) usize {
             .col = tint,
         };
         n += 1;
+    }
+    return n;
+}
+
+/// Sparks: the light of a small thing that sounded where it is, a drop of dew landing or a leaf
+/// stepped on, in its note's colour, fading as it rings (world.Spark).
+pub fn sparks(w: *const world_mod.World, out: []Inst) usize {
+    var n: usize = 0;
+    for (w.sparks) |spark| {
+        if (!spark.live) continue;
+        const age = @as(f32, @floatFromInt(w.step - spark.born)) * world_mod.dt;
+        const level = spark.bright * @exp(-age * 2.3 / spark.fades);
+        if (level < 0.02) continue;
+        const tint = col8(colour.ofNote(world_mod.garden_hz, spark.hz), level);
+        const r = 0.25 + 0.5 * level;
+        const c = V{ spark.x, spark.y + 0.1, spark.z };
+        for (0..6) |k| {
+            if (n >= out.len) return n;
+            const ang = @as(f32, @floatFromInt(k)) * (6.2831853 / 6.0);
+            const ray = V{ @cos(ang) * r, @sin(ang) * r * 0.6, @sin(ang) * r * 0.4 };
+            out[n] = .{ .a = add(c, mul(ray, 0.3)), .b = add(c, ray), .half_width = 1.3, .body = 0.0, .col = tint };
+            n += 1;
+        }
     }
     return n;
 }

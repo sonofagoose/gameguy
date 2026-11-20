@@ -17,6 +17,7 @@ pub const Walker = struct {
     figure_marked: bool = false,
     horn_marked: bool = false,
     six_at: ?u64 = null,
+    in_open: bool = false,
     breathing: bool = false,
     ticks_held: u32 = 0,
     rising_marked: bool = false,
@@ -157,8 +158,18 @@ pub const Walker = struct {
                 }
             },
             8 => {
-                // turn to the lake and watch the sky come up: the rungs light as the sun climbs,
-                // and each is heard when its note has crossed the water
+                // first out from under any roof of clover or moss, onto open ground, away from
+                // the aster
+                if (!self.in_open and (w.cover == .clover or w.cover == .moss) and after < 600) {
+                    const tower = w.towers[0];
+                    const dx = w.hum_x - tower.x;
+                    const dz = w.hum_z - tower.z;
+                    _ = toward(w, &h, w.hum_x + dx, w.hum_z + dz);
+                    return h;
+                }
+                self.in_open = true;
+                // then turn to the lake and watch the sky come up: the rungs light as the sun
+                // climbs, and each is heard when its note has crossed the water
                 const want = std.math.atan2(world_mod.lake_x - w.hum_x, -(world_mod.lake_z - w.hum_z));
                 var turn = want - w.look_yaw;
                 while (turn > std.math.pi) turn -= 2.0 * std.math.pi;

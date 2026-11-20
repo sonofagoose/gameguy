@@ -10,14 +10,14 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | | sentences |
 |---|---|
 | in the specification | 2139 |
-| a promise speaks for it | 107 |
+| a promise speaks for it | 113 |
 | **kept** | **0** |
-| no promise speaks for it yet | 2032 |
+| no promise speaks for it yet | 2026 |
 
 | stage | claims | spoken for | kept | open |
 |---|---|---|---|---|
-| 2 | 637 | 95 | 0 | 542 |
-| 3 | 955 | 9 | 0 | 946 |
+| 2 | 637 | 100 | 0 | 537 |
+| 3 | 955 | 10 | 0 | 945 |
 | 4 | 274 | 2 | 0 | 272 |
 | 5 | 194 | 1 | 0 | 193 |
 | 6 | 79 | 0 | 0 | 79 |
@@ -32,14 +32,14 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | `spec/years.md` | 96 | 0 | 0 |
 | `spec/together.md` | 66 | 0 | 0 |
 | `spec/sky.md` | 473 | 7 | 0 |
-| `spec/shape.md` | 286 | 0 | 0 |
+| `spec/shape.md` | 286 | 6 | 0 |
 | `spec/texture.md` | 104 | 7 | 0 |
 
 ## Promises: what speaks for the claims
 
 | rung | promises |
 |---|---|
-| sized: its moment, its cheat, its full size and its question written | 47 of 47 |
+| sized: its moment, its cheat, its full size and its question written | 48 of 48 |
 | proven: every measure passes today and nothing is owed | 0 |
 | reached: the scripted player met it by playing | 6 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
@@ -59,6 +59,7 @@ asks its question.
 | `evening.in` "Oh. You're in." | When the world stood up, did you say something out loud? | none |
 | `evening.instrument` Everything is an instrument | Did you start ringing things just to hear what they were? | none |
 | `garden.land` The Garden, home | Is the Garden somewhere you are glad to wake up? | none |
+| `garden.ground` What the Garden's ground wears | Did the ground under you feel different from one patch to the next? | none |
 | `garden.asters` Asters as tall as cathedrals | Is it as tall as a cathedral? | none |
 | `garden.w01` The answering field | Did the answers coming in from far away make the garden feel big? | none |
 | `card.ground` The ground remembers | Coming back to it, could you see where you had been? | none |
@@ -80,6 +81,7 @@ asks its question.
 | `evening.knot` The knot, and the first fight | 2 | 10 | no | - | no | no | no | 5 owed; no yes from Morgan yet |
 | `evening.dusk` The river sings your day back | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `garden.land` The Garden, home | 2 | 14 | no | - | no | no | no | 7 owed; no yes from Morgan yet |
+| `garden.ground` What the Garden's ground wears | 2 | 6 | no | - | no | no | no | 5 owed; no yes from Morgan yet |
 | `garden.asters` Asters as tall as cathedrals | 2 | 1 | no | yes | no | no | no | 3 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
 | `garden.great` The Hose | 2 | 6 | no | - | no | no | no | 6 owed; no yes from Morgan yet |
 | `garden.w01` The answering field | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
@@ -116,6 +118,6 @@ asks its question.
 | `whole.hands` Nothing asks the hands for the impossible | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.ear` The ear, before and after | 2 | 1 | no | - | - | no | no | 3 owed |
 | `hands.voice-in-a-buffer` Your voice, at once | 1 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `card.takes` The card is the world's memory | 1 | 2 | no | - | - | no | no | 4 owed; take.bytes <= 4096  (is 4916) |
+| `card.takes` The card is the world's memory | 1 | 2 | no | - | - | no | no | 4 owed; take.bytes <= 4096  (is 5246) |
 | `light.hue` One set of numbers for sound and light | 1 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `light.beam` The beam | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
