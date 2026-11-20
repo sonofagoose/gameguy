@@ -21,8 +21,9 @@ _Part of the promise book (`../promises.md`). What `../texture.md` says, sized a
   - `fact beauty.bright_most <= 0.1` No kept frame has more than a tenth of its dots brighter than
     half.
   - `fact asters.hum_px_walking <= 24` Walking, Hum is under a twentieth of 480 rows.
-  - `owed` Three colours: what is lit is in the day's three hues and bone, and a fourth colour is an
-    event. Measured from the kept frames' hues.
+  - `owed` Few colours near: near Hum, most of what is lit in the day's three hues, because that is
+    mostly what sounds there. Measured from the kept frames' hues, counting only the ground and near
+    things.
   - `owed` The brightest tenth of the light belongs to things that are sounding: measured by drawing
     a kept frame twice, once with only what sounds.
   - `owed` Near, middle and far in every view of the place: the score tool, for every piece.

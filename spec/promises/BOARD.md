@@ -9,31 +9,31 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 
 | | sentences |
 |---|---|
-| in the specification | 2120 |
+| in the specification | 2139 |
 | a promise speaks for it | 107 |
 | **kept** | **0** |
-| no promise speaks for it yet | 2013 |
+| no promise speaks for it yet | 2032 |
 
 | stage | claims | spoken for | kept | open |
 |---|---|---|---|---|
-| 2 | 631 | 95 | 0 | 536 |
-| 3 | 949 | 9 | 0 | 940 |
+| 2 | 637 | 95 | 0 | 542 |
+| 3 | 955 | 9 | 0 | 946 |
 | 4 | 274 | 2 | 0 | 272 |
-| 5 | 187 | 1 | 0 | 186 |
+| 5 | 194 | 1 | 0 | 193 |
 | 6 | 79 | 0 | 0 | 79 |
 
 | document | claims | spoken for | kept |
 |---|---|---|---|
 | `SPEC.md` | 260 | 50 | 0 |
 | `spec/laws.md` | 152 | 0 | 0 |
-| `spec/world.md` | 458 | 36 | 0 |
+| `spec/world.md` | 459 | 36 | 0 |
 | `spec/people.md` | 161 | 0 | 0 |
 | `spec/size.md` | 82 | 7 | 0 |
 | `spec/years.md` | 96 | 0 | 0 |
 | `spec/together.md` | 66 | 0 | 0 |
-| `spec/sky.md` | 466 | 7 | 0 |
-| `spec/shape.md` | 281 | 0 | 0 |
-| `spec/texture.md` | 98 | 7 | 0 |
+| `spec/sky.md` | 473 | 7 | 0 |
+| `spec/shape.md` | 286 | 0 | 0 |
+| `spec/texture.md` | 104 | 7 | 0 |
 
 ## Promises: what speaks for the claims
 

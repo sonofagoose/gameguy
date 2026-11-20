@@ -15,13 +15,18 @@ player, and how the shapes make sure something always calls. `world.md` has each
 The world is not a ring. It is the shape that pure intervals make, and a person can walk every part
 of it.
 
-- **Fifths go round.** Twelve lands stand on the shore of a round lake, each a pure fifth above the
-  one before it, clockwise from the Garden. Twelve pure fifths do not come back to where they
-  started: they overshoot by a comma. So the shore is not a circle. It is one turn of a spiral that
-  climbs 1.96 m on its way round, and its two ends meet at the Seam with a step between them.
-- **The climb is too gentle to see.** It is 16 cm for each land: a hair, over a kilometre of shore.
-  Nobody notices it until the Seam, where one side of the crack stands 1.96 m above the other. A
-  person can stand there with one foot on each side and hear the two sides beat.
+- **Fifths go round.** Twelve lands stand on the shore of a round lake, each a pure fifth from its
+  neighbours: the sharp keys climb clockwise from the Garden to the Seam, and the flat keys fall
+  counter-clockwise from the Garden to the Seam. Read clockwise from the Seam's flat side (D♭),
+  through the Garden, to its sharp side (F♯), every land is a pure fifth above the one before.
+  Twelve pure fifths do not come back to where they started: they overshoot by a comma. So the shore
+  is not a circle. It is one turn of a spiral that climbs 1.96 m going clockwise from the Seam's D♭
+  side, through the Garden, to its F♯ side, and its two ends meet at the Seam with a step between
+  them.
+- **The climb is too gentle to see.** It is 16 cm for each land: a hair, over just under a kilometre
+  of shore. Nobody notices it until the Seam, where one side of the crack stands 1.96 m above the
+  other. A person standing at the foot of the step looks up at the high side's edge, about twice
+  their own height above them, and hears the two sides beat.
 - **The city closes it by agreement.** The Seam's bridge crosses the step in twelve equal treads of
   16.3 cm, one for each street. That is equal temperament, built: the error shared out so evenly
   that nobody on the bridge feels a step at all. Everywhere else in the world the ground is true and
@@ -52,24 +57,29 @@ lake" as a list of bonus levels.
 
 - **Height is the octave, and an octave is 100 m.** A land's ground lies between its lowest note and
   its highest. So a land with a wide range has tall relief, and a land that holds one note is flat.
-- **Low ground sounds low.** A thing's register follows where it stands: the same bell-flower rings
-  an octave higher on a ridge 100 m up. Low voices move the ground and high ones the air
-  (`../SPEC.md`, 9), so valleys are where heavy things are moved and ridges are where you fly.
+- **Low ground holds low things.** A land is laid out so that what stands low is low in register:
+  the long ridges and big bells low, the small bells high. A thing keeps its own note wherever it is
+  moved (`laws.md`, the families). Low voices move the ground and high ones the air (`../SPEC.md`,
+  9), so valleys are where heavy things are moved and ridges are where you fly.
 - **A semitone is 8.3 m and a whole tone 16.7 m.** Where a land is built in steps, the steps are
   these.
-- **The lake is the lowest place in the first turn,** and the mouth of the horn.
+- **The lake is the lowest open ground in the first turn,** and the mouth of the horn. Only the
+  Seam's crack, where it drains, and the deep under the Mirror Pool go lower.
 
 ## How a land is found
 
 The best open worlds learned this the hard way. One of them first laid its discoveries along roads
 between tall towers, and found that four players in five walked the roads as if on "an invisible,
-but obvious guide rope", while the rest wandered and found nothing. Its makers threw that plan away.
-What they built in its place is the craft this section uses (the sources are at the end). None of
-that game's content is used.
+but obvious guide rope", while the rest wandered at random. Its makers threw that plan away. What
+they built in its place is the craft this section uses (the sources are at the end). None of that
+game's content is used.
 
 - **Something calls from everywhere, in light and in sound.** From the middle of every piece of
   every land, at Hum's height, something not yet found is in sight or in earshot (`promises.md`). In
-  this world a landmark can call round a corner and in the dark, because it sounds.
+  this world a landmark can call round a corner and in the dark, because it sounds: its phrase
+  arrives as a ripple of light crossing the ground from its side (law 6), as an answered call does
+  (`../SPEC.md`, 6), so the way to it is seen even when it is hidden. Nothing depends on telling
+  direction by ear: the speaker is mono.
 - **Each kind of thing calls in its own way,** so a person learns what they are walking toward:
 
 | what | how it is seen from far | how it is heard from far |
@@ -77,7 +87,7 @@ that game's content is used.
 | a great instrument | the largest shape in its land | its own low note, under everything in that land |
 | a life | a small light that moves on its round | its tune, a phrase at a time, stopping where it always stops |
 | a wonder | the thing itself happening, when wind or rain or a passer-by sets it off | the same |
-| a pool | a mirror: the only thing that shows the sky from the ground | silence: a pool is the quietest place near it |
+| a pool | a still mirror: the only water that shows the stars and the sky's rings whole; wet stone and puddles mirror only the lights near them | silence: a pool is the quietest place near it |
 | a pack | doubled outlines at dusk | a howl that beats |
 | a river | a line of sparks | water, growing as you come nearer |
 | something that flies | its figure against your home (`sky.md`) | the interval its note falls by as it passes |
@@ -109,7 +119,7 @@ Crossing a land is learning what its ground does.
 - **A cover is the real thing, at one to a hundred,** and is drawn as itself.
 - **A cover is heard.** Each has its own sound underfoot, and that sound obeys the land's tuning and
   metre.
-- **The ground remembers through its cover** (`size.md`): moss keeps a footprint for a day, dust for
+- **The ground remembers through its cover** (below): moss keeps a footprint for a day, dust for
   years, glass not at all.
 
 ## The twelve lands
@@ -130,7 +140,7 @@ the lake; what its ground wears; and how it treats the hands.
   C, which the right call at the pool's edge wakes.
 - **Seen.** The asters' skyline; the spigot, a monument of brass; the hose, a green river you can
   hear.
-- **Silhouette.** A low bowl of towers with one brass spike.
+- **Silhouette.** A low bowl of towers, with a glint of brass among them.
 - **Hands.** Easy. Gentle slopes, short distances, everything rings.
 
 | its ground wears | the real thing, times a hundred | what it does |
@@ -173,7 +183,7 @@ the lake; what its ground wears; and how it treats the hands.
 - **Sound.** Every step on a crest rings the whole ridge. A curved face gathers sound to a line:
   stand on that line and you hear the far side of the valley as if it were beside you.
 - **Seen.** Hard hair-thin lines and glints, under the sharpest stars in the world.
-- **Silhouette.** A row of sails.
+- **Silhouette.** A row of glints along the water's edge.
 - **Hands.** Loud and committed. You cannot walk a crest in silence, and a curved face is a slide:
   once on it you are going down.
 
@@ -206,19 +216,20 @@ the lake; what its ground wears; and how it treats the hands.
 
 ### The Highway: a line
 
-- **Shape.** Dead flat to the horizon: salt and tarmac, one straight road, and one pole. A real
-  roadside pole is nine to twelve metres. Here it is a kilometre tall, thirty metres through, and
-  its wires go off into the sky. It is the tallest thing in the world and it is seen from every
-  land.
+- **Shape.** Dead flat to the horizon: salt and tarmac, one straight road with a railway and a
+  picket fence beside it, and one pole. A real roadside pole is nine to twelve metres. Here it is a
+  kilometre tall, thirty metres through, and its wires go off into the sky. It is the tallest thing
+  in the world and it is seen from every land.
 - **Why.** This land is distance. It holds one note, so it has no height. It shows travel, and
   travel needs room.
 - **Sound.** Almost nothing answers: tarmac and salt take in very little. A call goes out and is not
   heard again, unless it meets the one wall that sends it back, seconds later. The wires on the pole
   hum the wind's note across the whole land. Whatever passes falls in pitch as it goes by.
-- **Seen.** The widest sky; a vanishing point; red only in tail lights; the Stage, one bulb.
+- **Seen.** The widest sky; a vanishing point; red only in found light: tail lights, the Stage's one
+  red bulb, and the sun's own figure on the fifth morning; the Stage, one bulb.
 - **Silhouette.** One line straight up into the stars.
-- **Hands.** Fast, straight and exposed. Sprinting is free. There is nowhere to hide and nothing to
-  climb but the pole.
+- **Hands.** Fast, straight and exposed. Nothing slows a sprint: tarmac is the fastest ground in the
+  world. There is nowhere to hide and nothing to climb but the pole and the fence.
 
 | its ground wears | the real thing, times a hundred | what it does |
 |---|---|---|
@@ -233,12 +244,13 @@ the lake; what its ground wears; and how it treats the hands.
 - **Shape.** The inside of a parked car: a hall 250 m long and 120 m high. At one end the
   windscreen, a wall of glass. Under it the dashboard, a cliff with the radio's dial across its
   face. Two seats, each a mesa full of springs. A floor of carpet, and under the seats, the dark.
-- **Why.** It is the only land with a roof, so it is the land where sound stays. A room has its own
-  low notes, and places where each one vanishes. It shows falling into step, because everything in a
-  room hears everything else.
-- **Sound.** Clap between the two side windows and the clap comes back as a buzz, whose pitch is how
-  far apart they are. Walk the length of the hall on one low note and it swells and dies and swells:
-  the room's standing wave, under your feet.
+- **Why.** It is the only land that is wholly a room, walled and roofed end to end, so it is the
+  land where sound stays. A room has its own low notes, and places where each one vanishes. It shows
+  falling into step, because everything in a room hears everything else.
+- **Sound.** Clap between the two side windows and the clap comes back again and again, about every
+  five seconds, softer each time: a looper as wide as the car (law 6; the width, about 150 m, is an
+  estimate). Walk the length of the hall on one low note and it swells and dies and swells: the
+  room's standing wave, under your feet.
 - **Seen.** Every light twice, in chrome. The sky only through glass.
 - **Silhouette.** A long low dome with one shining edge.
 - **Hands.** Bouncing and timing. The machines hit as evenly as they can, and you move with them.
@@ -255,8 +267,9 @@ the lake; what its ground wears; and how it treats the hands.
 
 - **Shape.** A crack in concrete, 150 m wide and deep past seeing, where the lake drains away. A
   bridge across it carries the one city. The ground on one side of the crack is 1.96 m higher than
-  on the other. The city's twelve streets cross the bridge side by side, each 16.3 cm higher than
-  the last.
+  on the other. The city's twelve streets run along the crack, side by side across the bridge, each
+  16.3 cm higher than the last, so whoever crosses the bridge climbs the whole step in twelve treads
+  nobody feels.
 - **Why.** Here the spiral's two ends meet and do not join. The city is the agreement that joins
   them: every step made a little wrong so that all twelve are the same.
 - **Sound.** Everything beats a little, and every wheel in the city turns on that beating. It is the
@@ -269,7 +282,7 @@ the lake; what its ground wears; and how it treats the hands.
 
 | its ground wears | the real thing, times a hundred | what it does |
 |---|---|---|
-| paving | slabs, a seam every 8 m | step on the seams and you are on the grid, where the Greys walk. Between them you swing |
+| paving | slabs in runs of twelve, each about an eighteenth shorter than the last, so the seams fall closer and closer like frets and each run ends at half the length it began (`world.md`, the Seam's fourth wonder) | step on the seams and you are walking the city's own lines; between them you swing. Greys walk only on ground that has set grey (`people.md`), not on the seams |
 | lichen | slow maps of colour on old concrete | the oldest living things here. They change only across years (`years.md`) |
 | felt | offcuts from the Piano's hammers | soft and silent, in strips: the city's quiet streets |
 | gratings | bars over the drop | each bar is a note, and wind comes up through them from the deep |
@@ -298,7 +311,8 @@ the lake; what its ground wears; and how it treats the hands.
 ### Verbena Hollow: a bottle
 
 - **Shape.** A bowl sunk below the shore, with one narrow mouth toward the lake. Violet thickets
-  fill it, 60 to 120 m high, with thorns. Along its border runs the wolf's valley, a ravine.
+  fill it, 60 to 120 m high, tangled with hawthorn. Along its border runs the wolf's valley, a
+  ravine.
 - **Why.** A hollow with a narrow mouth is a bottle, and a bottle has one note. Wind across the
   mouth sounds the whole land. It shows sympathy between three: inside one great resonator, two
   voices that can't close a chord are closed by the land itself.
@@ -312,7 +326,7 @@ the lake; what its ground wears; and how it treats the hands.
 | its ground wears | the real thing, times a hundred | what it does |
 |---|---|---|
 | petal fall | violet drifts, deep and soft | swallows every sound but yours. You move unheard |
-| thorns | tines a metre to five long | pluck as you pass, each a note of the Music Box's comb. One that catches you lets go when you sing its note (sympathy) |
+| thorns | a hawthorn's thorns among the verbena, a metre to five long (real ones 1 to 5 cm; to check) | pluck as you pass, each a note of the Music Box's comb. One that catches you lets go when you sing its note (sympathy) |
 | stems | verbena, square in section | four flat faces and four corners to climb by. The flower heads at the top are balconies |
 | the mouth | bare rock at the pass, in wind | pushes back at you like a hand when the Hollow is sounding |
 
@@ -321,8 +335,8 @@ the lake; what its ground wears; and how it treats the hands.
 - **Shape.** Terraces going down, wet, with a gutter along each that spills to the next. Mushrooms
   stand on them, caps 3 to 10 m across. A cloud rests on the upper steps. Under the lowest is the
   Cistern.
-- **Why.** Water running along a gutter carries sound slowly and gives it back at the far end. This
-  land shows travel: what was sent comes back.
+- **Why.** What is sung into a gutter rides the running water as a ripple, slowly, and is given back
+  where the gutter spills. This land shows travel: what was sent comes back.
 - **Sound.** Sing into a gutter and the phrase comes out where it spills, seconds later. Each
   terrace returns you later than the one above, so a walk down the steps is a round with yourself.
   Rain plays the caps.
@@ -342,7 +356,8 @@ the lake; what its ground wears; and how it treats the hands.
 
 - **Shape.** A delta at low water. The river splits in two, and each branch in two again, each half
   as long as the one before, down to the lake. Reeds stand along the channels in ranks, 150 to 300 m
-  tall, the tallest by the widest water. It is the lowest land.
+  tall, the tallest by the widest water. Its ground is the lowest of any shore, level with the
+  water.
 - **Why.** A reed is a pipe, and pipes in ranks that halve in length are an organ. Channels that
   halve are octaves. The land shows a crowd finding one note.
 - **Sound.** Wind across thousands of open reed tops is one drone. Frogs sing in rounds that all
@@ -369,7 +384,7 @@ the lake; what its ground wears; and how it treats the hands.
   an instrument. It shows all seven laws again, quietly, because it is the evening before home.
 - **Sound.** Warm and short. Every board is a bar with its own note, the longer the lower, so
   crossing the boards is playing them. The space under the floor answers everything a moment late.
-- **Seen.** The lamp, and what circles it. The chair's shadow swinging, slow, in two. Leaves coming
+- **Seen.** The lamp, humming its one note. The chair's shadow swinging, slow, in two. Leaves coming
   down, each turning at its own rate. The Garden's lights across the water.
 - **Silhouette.** A level line, a post, a lamp, and a shape that rocks.
 - **Hands.** Unhurried. Everything you have learned, once more, with nothing chasing you.
@@ -399,8 +414,9 @@ The sky, the deep and the lands past the lake are not the ring again in other co
 - **What you build stays where you built it.** A string stretched between two stalks is still there
   next year, a little slacker.
 - **What you wear into the ground stays** as long as the lake is full (`size.md`).
-- **Each cover keeps a mark its own length of time:** glass not at all, lawn a breath, moss a day,
-  mud till the next rain, dust for years.
+- **Each cover keeps a footprint its own length of time:** glass not at all, lawn a breath, moss a
+  day, mud till the next rain, dust for years. What is bent, broken or worn by many passings stays
+  (`size.md`), and the light the ground keeps follows the lake, not the cover.
 
 ## Decided here
 
@@ -421,6 +437,7 @@ The sky, the deep and the lands past the lake are not the ring again in other co
 | paths: no more than half of anyone's steps | from Morgan's and JJ's takes, once a land exists |
 | a cover's effect on the hands: is moss restful or only slow; is glass thrilling or only loud | the room, cover by cover |
 | the pole, a kilometre tall, drawn from every land | frames from each shore |
+| each land's silhouette, read from the far shore, at least 12 dots tall (to tune) | frames from each shore |
 
 ## Sources
 

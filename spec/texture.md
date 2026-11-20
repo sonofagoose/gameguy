@@ -25,6 +25,12 @@ the same number.
 | how long it rings | how long its light lasts |
 | how it is set sounding: struck, plucked, bowed, blown | how its light begins: at once, or swelling |
 | its register | how heavy its line is |
+Colour's depth has four causes, and any one of them greys a thing: noise (a click has no colour),
+harm (hits drain it and a cadence restores it, `../SPEC.md`, 10), dissonance with home (a tritone
+mixes toward grey, `../design/look.md`), and the Grid (a day that changed nothing). They are told
+apart by the line: a harmed thing leans, a dissonant one turns, and the Grid's grey is drawn in
+pixel stairs.
+
 
 ## A line at rest
 
@@ -35,20 +41,23 @@ the same number.
   deal of light: piercing. A lawn rustling faintly is a great many long lines carrying almost none:
   a mist. A big thing has to be very loud to be bright.
 - **So the brightest thing on the screen is always something that is sounding,** or Hum.
-- **Lower is heavier.** A line's weight follows its thing's register: bass things are drawn with a
-  heavy line and high things with a hair.
+- **Lower is heavier.** A line's weight has one source, its thing's register, in three steps: heavy,
+  plain and hair. Distance thins a line only by perspective, and a material changes a line's edge,
+  grain and glow, never its weight.
 
 ## A line that sounds
 
 - **A sounding line is a standing wave.** It moves sideways in the shapes of its own overtones: the
   first as one loop, the second as two, and on. How far it moves is how loud it is. So you can see
   what kind of thing is ringing, and which of its overtones, by looking.
-- **It moves at its own note, eight octaves down.** The same rule gives a ringing bell's halo its
-  beat (`laws.md`). Middle C swings once a second. A fifth above swings three times for its two. A
-  chord is seen as lines swinging in step.
+- **It moves at its own note, eight octaves down,** and a note above 2,048 hertz is folded down by
+  further octaves until it moves fewer than eight times a second, so nothing swings faster than the
+  screen can show. The same rule gives a ringing bell's halo its beat (`laws.md`). Middle C swings
+  once a second. A fifth above swings three times for its two. A chord is seen as lines swinging in
+  step.
 - **The light is brightest where the line turns.** The beam that draws a thing is slowest at the two
   ends of a swing, so those are the bright places, and the middle of the swing is faint. A still
-  line is bright at its corners for the same reason, and only there.
+  line is brightest at its corners for the same reason, and evenly lit along its length.
 - **Each family moves in its own way:**
 
 | family | at rest | sounding |
@@ -56,7 +65,7 @@ the same number.
 | string | one thin line | whole loops: one, two, three bellies, with still points between that you can touch |
 | open pipe | two walls | beads of light inside it, evenly spaced: one for each belly of air |
 | stopped pipe | two walls and a cap | beads at odd spacing only: half as many, and hollow-looking, as it sounds |
-| bar | a slab's edge | a bend that is not even: its still points sit a fifth of the way in from each end |
+| bar | a slab's edge | a bend that is not even: its still points sit 22.4% of the way in from each end, a little over a fifth |
 | fork | two tines | the tines swing apart and together, and nothing else moves |
 | skin | a rim | the figure on its surface: rings and spokes of still line, with the rest shimmering |
 | bell | a profile and a rim | the rim becomes a flower of four lobes, then six: its wall bulging in and out |
@@ -72,10 +81,10 @@ is noise. So it is the part of a line that is not its shape.
 | material | its sound | its line |
 |---|---|---|
 | water | soft start, wavering, bubbles | a line that is never quite still, with no corners |
-| stem and leaf | a soft knock, quickly gone | a soft-edged line, pale green, with a short glow |
-| glass | a hard start and a very long ring | a hair with a hard edge and a spark at each corner, whose glow lasts half a minute |
-| bronze and brass | a warm start; two notes a hair apart in every bell | a warm heavy line that shimmers slowly: it beats against itself |
-| silk | high and thin, ringing long | the thinnest line there is, beaded with dew |
+| stem and leaf | a soft knock, quickly gone | a soft-edged line, pale, in its note's colour, with a short glow |
+| glass | a hard start and a very long ring | a line with a hard edge and a spark at each corner, whose glow lasts half a minute |
+| bronze and brass | a warm start; two notes a hair apart in every bell | a warm line that shimmers slowly: it beats against itself |
+| silk | high and thin, ringing long | a fine line beaded with dew |
 | wood | a knock, short and warm | a line of short strokes along the grain, with almost no glow |
 | reed | a breath with a buzz in it, odd overtones | two walls with a blur of breath at the mouth |
 | chrome | bright, hard, everything back at once | a line and its copy |
@@ -97,7 +106,8 @@ is noise. So it is the part of a line that is not its shape.
 - **Out of tune is never blur.** It is two crisp copies sliding against each other on the beat
   (`../SPEC.md`, 15).
 - **The comma is 1.96 m of height and 7.04 degrees of sky** (`sky.md`). Wherever two things a comma
-  apart stand together, that gap is between them and can be seen.
+  apart stand together, that gap is between them: seen as two copies when near, and as a beat when
+  far.
 
 ## Silence, seen
 
@@ -114,9 +124,9 @@ is noise. So it is the part of a line that is not its shape.
   the air inside them move.
 - **Near things show what is Hum's own size on them:** the joints of a stalk, a drop of dew, the
   grain of a board, the thread of a screw. Far things are a mast and a point of light. The same
-  thing is drawn four ways by how far off it is (`promises.md`, the four distances).
-- **Wet ground is a mirror.** Every light over it has a fainter copy under it, and a call's ring
-  runs twice as far across it.
+  thing is drawn four ways by how far off it is (`engine.md`, three distances and a fourth).
+- **Wet ground is a mirror.** Every light near it has a fainter copy under it; only a pool shows the
+  sky, and a call's ring runs twice as far across it.
 - **The ground has two textures and no third:** what it wears (`shape.md`), and the light it has
   kept (`size.md`).
 
@@ -127,9 +137,10 @@ is noise. So it is the part of a line that is not its shape.
   beating; the Highway dry, with one wire humming; the Chrome Nave hard and doubled; the Seam busy
   and exact; the Aster Steps still; Verbena Hollow close and muffled; the Rain Steps late; the Reed
   Mouths nasal and low; the Porch warm and short.
-- **It begins as one voice.** On the first evening there is your note, and then one other. Each
-  morning adds a voice. The sound of the world thickens across the thirteen mornings from a single
-  line to twelve songs at once, and is only ever full on the thirteenth.
+- **It begins nearly bare.** On the first evening there is your note, then Drip's, and over them the
+  morning's sky. Each morning going out adds a voice (`../SPEC.md`, 6.3). The sound of the world
+  thickens across the thirteen mornings from a single line to twelve songs at once, and is only ever
+  full on the thirteenth.
 - **Thin is the rule and thick is an event.** At most four things carry the tune at once. Everything
   else is a soft bed, the land's own grain, quieter than any one voice.
 - **A land's song thickens with its lives.** With none helped a land has a ground and a pulse. With
@@ -143,7 +154,7 @@ is noise. So it is the part of a line that is not its shape.
 | when | what the world's texture is |
 |---|---|
 | noon | everything sounds at once, quietly: the whole land is a fine web of faint line, and what you set ringing stands out of it |
-| 2am | nothing sounds. Black. You see by calling, and by what flies |
+| 2am | almost nothing sounds: the moon's drone, the stars' soft bed, the lives that keep the night, and what flies. Mostly black. You see by calling, and by what flies |
 | the lake low | glow is short and the ground forgets: crisp, clean and lonely |
 | the lake full | glow is long and the ground holds what was sung on it: warm, and written on |
 | the page | no depth, a heavier line, every thing its own plan (`../SPEC.md`, 15) |
@@ -158,18 +169,21 @@ These are rules, and the build can check each one from its own frames.
   at 2am, at least four fifths.
 - **Light is spent.** No more than a tenth of the screen is brighter than half. The brightest tenth
   of the light belongs to things that are sounding.
-- **Three colours.** At any moment what is lit is in the day's three hues, its note, its fifth and
-  its third (`sky.md`), with bone-white for what has no note. A fourth colour is an event: something
-  that is not of today.
-- **Three weights of line:** heavy for what is near and low, a plain line, and a hair for what is
-  far and high.
-- **Near, middle and far.** Every view in the place has something within twenty metres, something
-  between, and something a kilometre off. The score tool checks it for every piece.
+- **Few colours near.** Every thing is the hue of its own note, by fifths, whatever the day. Near
+  Hum, most of what is lit is in the day's three hues, its note, its fifth and its third (`sky.md`),
+  because most of what sounds there is in the day's chord. Bone-white is for what has no note, and
+  chrome for a note off the wheel. The sky's upper rings, the far lands, the moon, the stars and
+  echoes in sun-print blue keep their own colours.
+- **Three weights of line:** heavy for what is low, a plain line, and a hair for what is high.
+- **Near, middle and far.** Every view in the open air has something within twenty metres, something
+  between, and something a kilometre off. Inside a room, a pot or the hose, the far thing is the
+  room's far end or its way out. The score tool checks it for every piece.
 - **Hum is small.** Walking, Hum is under a twentieth of the screen's height.
 - **Nothing is drawn that isn't in the world.** No frame, no gradient, no texture, no glow that
   nothing is giving.
-- **Rest.** Things hold still unless they are sounding. A still frame of a quiet land should be
-  mostly still.
+- **Rest.** Nothing swings unless it is sounding. A living line's small boil goes on even in a quiet
+  land, and only the Grid's lines are dead still. A still frame of a quiet land should be mostly
+  still.
 
 **A cheat would be:** a colour scheme for each land chosen by eye; a glow filter over the whole
 screen; vibration added to things as an effect, at a rate somebody liked.
@@ -180,11 +194,11 @@ screen; vibration added to things as an effect, at a rate somebody liked.
 |---|---|---|
 | light spread over a thing's lines | when a thing's lines are made, each is given its share of the thing's light by its length | nothing each frame |
 | depth of colour | from how much of the thing's recipe is note: a number each family and material carries | nothing each frame |
-| a sounding line as a standing wave | near, a sounding thing's lines are redrawn each frame as short pieces bent into its overtones' shapes, from the same loudness the sound uses; far, its light swings instead | within the 3,000 marks that are built each frame; to be measured |
+| a sounding line as a standing wave | near, a sounding thing's lines are redrawn each frame as short pieces bent into its overtones' shapes, from the same loudness the sound uses; far, its light swings instead | near, only the loudest sounding things, taken from the same loudness list that chooses which overtones are rendered (`engine.md`), are redrawn as bent pieces, held to 600 of the 3,000 marks (estimate, to tune); every other sounding thing swings its light instead. To be measured on the purple |
 | bright where the beam turns | each line carries how sharply the drawing turns at its two ends | one more number a line; to be measured |
 | a material's line | a kind carried by each line: soft or hard edge, dots, strokes, a copy | a few sums a dot in the line's shader; to be measured |
 | how long light lasts | each thing's glow fades at its own ring time, in the world, not on the screen | already so for things; the screen's own afterglow is kept short, so it never smears when the view turns |
-| mirrors on wet ground | a fainter copy of each lit thing, drawn upside down below a wet piece | doubles the lines over wet ground only; to be measured |
+| mirrors on wet ground | a fainter copy of each lit thing, drawn upside down below a wet piece | a copy of only the brightest lit things near the wet ground, chosen by loudness, at most 4,000 lines (to tune); the score tool keeps every wet view under 30,000 lines with the copy counted |
 | the checks of beauty | counted from the frames the build already dumps | on the laptop only |
 
 ## Decided here
@@ -195,11 +209,12 @@ screen; vibration added to things as an effect, at a rate somebody liked.
 | What is the depth of a colour? | How much of the sound is note | noise has no pitch, so it has no hue. It gives the world its greys by law |
 | What does a sounding thing do? | Its lines stand in the shapes of its overtones, at its note eight octaves down | the picture is then the sound, slowed until the eye can follow it |
 | Whose is the afterglow? | The thing's, for as long as it rings | a glow that belongs to the screen smears when the view turns, which the fresh reader saw |
-| How many colours at once? | The day's three, and bone | a chord is a colour scheme (`sky.md`); more is noise to the eye |
+| How many colours at once? | Each thing its own note's hue; near Hum, mostly the day's three, because that is mostly what sounds there | a chord is a colour scheme (`sky.md`); more is noise to the eye |
 
 ## What stays Morgan's
 
 - **Every look.** These rules say what the picture must mean. Whether a frame is beautiful is for
   his eyes, in the room.
 - **How much anything moves.** A world where every sounding line swings could be alive or could be
-  restless. It is capped: a line moves no more than its own width at Hum's distance. He decides.
+  restless. It is capped: a line's swing is no more than a tenth of its own length, and never more
+  than Hum's own height on the screen (to tune). He decides.

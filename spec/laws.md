@@ -138,7 +138,7 @@ Opposite sounds make silence, which is dark. Near-misses beat, and the beating t
 Sound moves at a speed you can see.
 
 - **Speed.** About ten times Hum's run (to tune). A call's ring crosses a clearing in a breath and
-  the lake in half a minute.
+  the lake in about a minute (62 seconds, `size.md`).
 - **Late arrivals.** What happens far away is heard late, and seen when the sound arrives.
 - **Echoes.** A wall sends a sound back after twice its distance. The return lands on the beat: the
   engine moves it to the nearest bar line, so an echo wall is a looper whose length is how far away

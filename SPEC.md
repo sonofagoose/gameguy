@@ -283,7 +283,8 @@ Face buttons are named by position.
   toward it. It always resolves when you let go.
 - **One breath** pays for singing, the wheels, sprint and glide, and silence refills it. Dodging and
   guarding are free. A breath holds three homes at first and grows by one each time you land a
-  longer walk, up to seven; the ferry makes eight.
+  longer walk, up to seven; the ferry makes eight. In the sky, what carries Hum costs breath only to
+  begin (`spec/sky.md`).
 
 ## 10. Fights
 
@@ -321,11 +322,11 @@ About a hundred lives (`spec/people.md`).
   number. An almanac page in the songbook shows any morning to come.
 - **Nobody is explained.** Every line is sung, in the speaker's vowel, with one line of caption at
   most. The seven moods are your seven answers.
-- **A life is deep enough for years** (`spec/years.md`). Each has three wants, one inside the
-  other. Each is tied to others across the lake, and when two lives meet they sing a duet made
-  from their two tunes. Once you have helped a life you can live a morning as it: its body, its
-  ears, its own speed of time. Over years the lives change into things that keep their tunes, and
-  new lives are born singing what was handed down.
+- **A life is deep enough for years** (`spec/years.md`). Each has three wants, one inside the other.
+  Each is tied to others across the lake, and when two lives meet they sing a duet made from their
+  two tunes. Once you have helped a life you can live a morning as it: its body, its ears, its own
+  speed of time. Over years the lives change into things that keep their tunes, and new lives are
+  born singing what was handed down.
 
 ## 12. The world
 
@@ -393,8 +394,8 @@ About a hundred lives (`spec/people.md`).
 `spec/together.md` has it in full, and `design/together.md` holds the first design and its reasons.
 In brief:
 
-- **A friend in the room is a live echo, and an echo is a friend from another day.** Anything two can
-  do, one can do with an echo, so the game stays whole alone.
+- **A friend in the room is a live echo, and an echo is a friend from another day.** Anything two
+  can do, one can do with an echo, so the game stays whole alone.
 - **The whole weight is on the cable:** two consoles running one world, step for step, with one
   clock. Each screen is one player's eyes and each speaker one player's ears, so you hear a friend
   late by how far apart you are.
@@ -440,8 +441,8 @@ In brief:
 ## 16. Scope
 
 - **In:** everything in sections 4 to 15 and in `spec/`.
-- **Later, and nothing depends on them:** an instrument over USB (the kernel has the drivers; nothing
-  has been plugged in); more than two consoles through a hub; builds for other platforms
+- **Later, and nothing depends on them:** an instrument over USB (the kernel has the drivers;
+  nothing has been plugged in); more than two consoles through a hub; builds for other platforms
   (`docs/other-platforms.md` has the rules that keep them possible, and the game keeps those rules
   from the start).
 - **Out:** a network; anything that needs a second console; recorded music; any human face; any

@@ -418,7 +418,7 @@ _Every sentence of the specification that promises a player something, read by
 
 - open: Sound moves at a speed you can see.
 - open: Speed. About ten times Hum's run (to tune).
-- open: A call's ring crosses a clearing in a breath and the lake in half a minute.
+- open: A call's ring crosses a clearing in a breath and the lake in about a minute (62 seconds, size.md).
 - open: Late arrivals. What happens far away is heard late, and seen when the sound arrives.
 - open: Echoes. A wall sends a sound back after twice its distance.
 - open: The return lands on the beat: the engine moves it to the nearest bar line, so an echo wall is a looper whose length is how far away you stand.
@@ -659,8 +659,9 @@ _Every sentence of the specification that promises a player something, read by
 ## `spec/world.md` / The world / 5. The Highway (E, the fifth morning)
 
 - open: Salt flats at 2am.
-- open: Red only in tail lights.
-- open: Wires on poles. The Stage, under one red bulb.
+- open: Red only in found light.
+- open: Wires on the one pole.
+- open: The Stage, under one red bulb.
 - open: tuning | sweet thirds, and the notes between
 - open: made of | wire, tarmac and salt; distance
 - open: shows best | travel
@@ -1582,8 +1583,8 @@ _Every sentence of the specification that promises a player something, read by
 - open: A ring of light comes up out of it, perfectly round, and the screen's own light rises with it.
 - open: Above it a second green hoop lights, far out over the lake.
 - open: Then a yellow-green one, higher and smaller.
-- open: Then green, then one thin pink one, then yellow-green.
-- open: Each arrives with a note: the same six notes a bugle has, rising, in C.
+- open: Then green, then one thin red one, then yellow-green.
+- open: Each arrives with a note: the drone, then the five notes a bugle has, rising, in C.
 - open: You have not touched anything.
 - open: The thrush that sings only those notes starts up in the asters.
 - open: You feel that the day is something being sung, and that you are in it.
@@ -1593,20 +1594,21 @@ _Every sentence of the specification that promises a player something, read by
 - open: A cloud you helped fill sits low over the Rain Steps, with a few pale blue figures drifting in it that you recognise.
 - open: You run for the east shore because the dragonfly's patrol passes the big reed two minutes after dawn.
 - open: You catch it, and from its back your one note rings things ahead of you a fifth higher than you can sing.
-- open: At noon you are on the sixth ring, 258 m over the water, looking at the dark ring above you, the one nothing ever lights.
+- open: At noon you are on the sixth ring, 258 m over the water, looking at the dark ring above you, the one only the caravan's note lights.
 - open: The third year. You do not look at the sky.
 - open: You read it. The sun's colour says the hour.
 - open: The arms of the stars say how far you are along the spiral, and tonight the star you have been walking toward for a year stands a hand's width from the garden's meridian.
 - open: The sun comes up 35 m along the shore from the first morning's mark, where a row of your own old dawns is printed on the ground.
 - open: It will rain tomorrow, because you let three days go this week.
-- open: You hold a note at the foot of the thread and ride it up for sixty-eight seconds, because you like the part where the radio goes by.
+- open: You hold a note at the foot of the thread and ride it up for forty-eight seconds, because you like the part where the radio goes by.
 
 ## `spec/sky.md` / The sky / 2. What the sky is: the horn
 
 - open: Sees, hears, does, feels. From every shore, over the middle of the lake, hoops of light hang in a stack.
 - open: The lowest is the shore itself.
 - open: The next is a hoop nearly two kilometres across, a hundred metres up.
-- open: They get smaller and closer together as they rise, until they are a spire, and then a single thread going up out of sight.
+- open: They get smaller and closer together as they rise, until at noon they are a spire 400 m high.
+- open: Above it the thread is dark until someone sings up it.
 - open: Each hoop is a ragged reef: seeds, down, a feather, drops, spores, all hanging still in the air.
 - open: Each sounds one note of the day's chord, softly.
 - open: You can stand on them while they sound.
@@ -1614,16 +1616,17 @@ _Every sentence of the specification that promises a player something, read by
 - open: The sun's drone drives the air over the lake, and its overtones stand in it.
 - open: Things rest in the still places.
 - open: This is real: small things hang in the quiet nodes of a standing sound wave (acoustic levitation; general knowledge, to check).
-- open: The reefs are what a garden's air holds after a storm, at one to a hundred: a dandelion parachute is 0.7 m across, a box elder key 3 to 4 m, a sparrow's feather 5 m.
+- open: The reefs are what a garden's air holds after a storm, at one to a hundred: a dandelion parachute is 1.4 m across (Cummins and others, Nature 2018: 13.8 mm), a box elder key 3 to 4 m, a sparrow's feather 5 m.
 - spoken for by `sky.dawn`: Rung n hangs at 100 × log2(n) metres. The gaps are an octave, a fifth, a fourth, a third, a smaller third, and on, for ever, as the atlas says.
 - spoken for by `sky.dawn`: Ring n is 1,850 ÷ n metres in radius. Ring 1 is the lake's own shore.
 - open: That makes the stack an exponential horn, which is the shape of a real horn's bell.
 - open: Ring n carries n waves round it, so it has 2n still places and 2n bellies.
-- open: You stand on the still places. A belly throws.
+- open: The reef is thickest at a still place and thins toward each belly, so you stand at a still place and walk out along the thinning reef to be thrown.
+- open: The sun drives the rings from where it rose, so ring 1's belly on the day's shore is always at the sunrise.
 - open: A belly throws you as high as its overtone is loud. The sun's nth overtone is one nth as loud, so the throw is 144 m ÷ n (100 ÷ ln 2; to tune).
 - open: The gap to the next rung is 100 × log2(1 + 1/n), which is always a little less.
 - open: So every belly throws you exactly one rung and never two.
-- open: Nobody chose that: the loudness of the harmonic series falls at the same rate as its gaps close.
+- open: It works because the loudness of the harmonic series falls at the same rate as its gaps close, so one throw fits every rung: any throw from 144 m ÷ n to just under 158.5 m ÷ n does it, and tuning must stay inside that.
 - spoken for by `sky.dawn`: Every seventh rung is dark. The sun rises on the border between yesterday's land and today's, which is one seventh of the way along the day's seven lit lands.
 - open: So rungs 7, 14, 21, 28 and on never sound, never shine and hold nothing.
 - open: From rung 6 the throw is 24 m.
@@ -1663,30 +1666,29 @@ _Every sentence of the specification that promises a player something, read by
 - open: It sounds a low held note, and over that a soft whistle that steps upward all morning.
 - open: The backlight is its loudness.
 - open: The law. The sun is a sung voice like the five who travel with you: a source through bottles (laws.md).
-- open: It always sings every overtone.
-- open: What reaches you is what the air lets through, and distance takes the high notes first (law 6).
-- open: At dawn the sun is on the far rim, so only its lowest overtones arrive.
-- open: As it climbs toward the axis the path shortens and the higher ones come through.
-- open: That is real overtone singing, heard backwards: a whistle rising out of a drone (the Reed Mouths' sixth wonder), with the air as the mouth.
+- open: It sings every overtone but the sevenths, because it rises one seventh of the way along the day's lit lands (section 2).
+- open: Which overtones stand is set by height alone: every rung at or below the sun sounds.
+- open: Distance only makes a far sun softer and duller, as it does any voice (law 6).
+- open: That is real overtone singing, heard backwards: a whistle rising out of a drone (the Reed Mouths' sixth wonder), with the sun's height as the mouth.
 - open: Where it rises. On ring 1, at the border of yesterday's land and today's.
 - open: "Every dawn in this world is yesterday settling into today."
 - open: How it climbs. Up the horn's wall on the day's meridian, like a thrown ball: height 400 m × sin(π × t ÷ 18 min).
 - open: It reaches rung 16 at noon, 400 m up and 116 m from the axis, and comes down the same way.
 - open: Eighteen minutes of daylight in the twenty is an estimate, to tune.
 - spoken for by `sky.dawn`: Every rung at or below the sun sounds. Every rung above it is silent, dark, and not there.
-- open: 0 | rung 1, the shore | the drone alone | the horizon ring
+- open: 0 | rung 1, the shore | the drone, with its octave faint over it: the speaker carries nothing below 400 Hz alone (texture.md) | the horizon ring
 - open: 1.5 | 2 | the octave | one hoop
 - open: 2.3, 3.0, 3.6, 4.0 | 3, 4, 5, 6 | fifth, octave, third, fifth: the arpeggio | the triad's three hues
 - open: 4.5 | 7 | nothing | a dark gap
-- open: 4.9 to 7.8 | 8 to 15 | a scale, a step every 25 to 35 seconds | five hues and two chrome rings
-- open: 9 | 16: noon | the top octave, held for over a minute | every ring lit; the backlight at its highest
+- open: 4.9 to 7.8 | 8 to 15 | a scale, a step every 22 to 33 seconds | five hues and two chrome rings
+- open: 9 | 16: noon | the top octave, for one instant; round it rung 15 is the top lit rung for two and a half minutes | every ring lit but the seventh and fourteenth, for that instant; the backlight at its highest
 - open: 9 to 18 | 16 back down to 1 | the same, falling | the sky closing from the top
-- spoken for by `sky.dawn`: Dawn is an arpeggio by physics. Rungs 1 to 6 are the only notes a bugle has.
+- spoken for by `sky.dawn`: Dawn is an arpeggio by physics. Rungs 2 to 6 are the five notes a bugle has, over the drone.
 - open: Nobody wrote the morning call.
 - open: The backlight follows the sun's loudness as heard where Hum stands: 14 of 255 in the first dark (as built), low at 2am, highest at noon.
 - open: Noon shimmer. The sun warms pipes sharp, which the atlas already says of the Nozzle and of cold glass.
 - open: Strings do not follow.
-- open: So at noon pipes stand up to 3 cents above strings (to tune), and figures between them turn slower than once in two seconds.
+- open: So at noon pipes stand up to 3 cents above strings (to tune), and figures between them turn once a beat: once in 2.2 seconds at middle C, 1.7 times a second at 1,000 a second, and faster higher up.
 - open: At dawn and dusk they stand still, which is when the lands gather to sing.
 - open: Morgan's ears decide if it stays.
 - open: Cost. One of the sixteen sung voices.
@@ -1699,11 +1701,11 @@ _Every sentence of the specification that promises a player something, read by
 - open: Nothing here is chosen.
 - open: A day's colours are the hues of the overtones the sun has opened so far.
 - open: 2am | black. Stars, wanderers, the moon in yesterday's hue, flyers by their own voices, your call's ring climbing | the sun is silent, and silence is dark
-- open: dawn | the horizon ring, then rungs 2 to 6: three hues | only low overtones cross that much air
-- open: morning | the scale rungs add the ninth, the major seventh and two chrome rings | the path shortens
-- open: noon | sixteen rings; every thing in the land lit faintly; overhead a pale shimmer of the day's hue washed toward chrome | every overtone arrives, and the high ones the air scattered fill the sky. The same law makes a real sky blue
+- open: dawn | the horizon ring, then rungs 2 to 6: three hues | the sun stands on the low rungs
+- open: morning | the scale rungs add the ninth, the major seventh and two chrome rings | the sun climbs past them
+- open: noon | fourteen of the first sixteen rings, the sixteenth only at the instant of noon; every thing in the land lit faintly; overhead, the high overtones as a sparse field of fine points in the day's hue (chrome when the day's hue is red), never a wash | the sun stands at the top, and every rung below it but the sevenths sounds
 - open: afternoon | the sky closes from the top, back to the triad | the sun falls away
-- open: dusk | rungs 6 to 1, then the horizon ring alone, in the day's pure hue | only the lowest note crosses
+- open: dusk | rungs 6 to 1, then the horizon ring alone, in the day's pure hue | the sun has come down to the lowest
 - open: Through the turn. The day's hue walks the wheel.
 - open: Each dawn is a triad, and a triad is a colour scheme: the day's hue, the hue one step warmer (the fifth) and one far accent (the third, four steps round).
 - open: 1 | C | green | yellow-green | red | the sun stands still; no moon; almost no wind
@@ -1713,7 +1715,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: 5 | E | red | rose | blue | the sun is a red lamp over a land that hardly answers it
 - open: 6 | B | rose | purple | azure | seen through a windscreen
 - open: 7 | F♯ | purple | violet | cyan | the sun turns once in 1.1 s
-- open: 8 | D♭ | violet | blue | teal | the first doubled sun: half a second; no wind
+- open: 8 | D♭ | violet | blue | teal | the first doubled sun: half a second; almost no wind, and none under the dome
 - open: 9 | A♭ | blue | azure | green: the garden's | the third's ring is home's colour; half moon
 - open: 10 | E♭ | azure | cyan | yellow-green | the cloud; rain
 - open: 11 | B♭ | cyan | teal | yellow | the hardest wind of the way home
@@ -1727,11 +1729,12 @@ _Every sentence of the specification that promises a player something, read by
 - open: On the fifth morning that is the whole sun.
 - open: Tarmac and salt take almost nothing (law 1's material term), so the Highway under its own noon is as dim as other lands' dusk, and the sun is one red lamp over black flats, kin to the tail lights.
 - open: If Morgan reads the rule more strictly, E's rings go chrome and only the sun's figure keeps red.
-- open: The way home. From the eighth dawn the sun rises as two figures a comma apart: 1.96 m apart in height.
+- open: The way home. From the eighth dawn the sun rises as two figures a comma apart: 1.96 m apart in height, less than a dot from any shore, so there the pair is seen by its beat: the sun's figure turns and every ring breathes at the beat rate.
+- open: Only within about 250 m, on a ring, do the two copies stand visibly apart (worked out from a 55-degree view on 480 dots).
 - open: Every ring of the horn is doubled by the same 1.96 m, and each pair beats.
 - open: The land gives way and they close, in half a second on the eighth and three seconds on the twelfth, as the-way-home.md has it.
-- open: The backlight shows the beat, safely. The sun's drone sits an octave below middle C, where a comma beats 1.78 times a second.
-- open: The backlight never moves more than a tenth of its range in one beat and never faster than three times a second.
+- open: The backlight shows the beat, safely. The sun's drone is the day's note itself, middle C on the garden's morning (261.63 Hz, laws.md), where a comma beats 3.57 times a second.
+- open: That is too fast for the eyes, so the backlight swells once for every two beats, 1.78 times a second, and never moves more than a tenth of its range in one swell.
 - open: That keeps it under the web's standard limit of three flashes a second (WCAG 2.3.1). Morgan's eyes decide.
 - open: The thirteenth morning. The sun comes up 7.04 degrees further round than it did on the first morning.
 - open: That is a comma as an angle, and on the shore it is 227 m.
@@ -1761,10 +1764,10 @@ _Every sentence of the specification that promises a player something, read by
 
 - open: Sees, hears, does, feels. From any shore, seven lands in a row are in daylight and five are dark, with only their own voices showing across the water.
 - open: The terminator moves one land a morning.
-- open: All the hours exist at once round the lake.
-- open: The land the sun left yesterday is in its last and brightest light.
-- open: The land five ahead is at first light.
-- open: Past that it is 2am.
+- open: The sun's minute is the same everywhere.
+- open: How much of its light reaches a land is not.
+- open: Yesterday's land, today's and the five ahead are lit as the sun climbs, each fainter the further along the fifths it stands, so all day the land five ahead looks like first light.
+- open: The other five stay as dark as 2am all day and show only their own voices.
 - open: To be in the night, you sail to it.
 - open: The law. Law 1, with the canon's wheel on top.
 - open: The sun's own threes reach forward: its 3rd, 9th, 27th, 81st and 243rd overtones are the notes of the next five lands, each about a third as bright as the last (to tune).
@@ -1772,7 +1775,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: Two lands a third round each way glow faintly warm through the fifth overtone, which is why the vine's three lands are never fully dark to each other.
 - open: Each land's brightness is twelve sums at dawn from its own tuning, so pure lands ring and the Seam is never bright and never black.
 - spoken for by `sky.dawn`: Dawn travels at the speed of sound. The sun's first light runs out from its rising point as a ring, like a call.
-- open: It crosses the lake in 62 seconds and the whole world in 128.
+- open: It crosses the lake in 62 seconds and the whole world in 95.
 - open: On the first morning dawn is at your feet.
 - open: On the seventh you see the sun on the far shore, and a minute later the line of answering dew reaches you, with a wave of small high ticks.
 - open: Every place's two faces (the atlas) are now somewhere you can go on any morning.
@@ -1797,7 +1800,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: Under it the return is 8 seconds, which is four bars at 120.
 - open: From the next land it is about 34 seconds.
 - open: From across the lake it is two minutes.
-- open: So you walk to set the length of the loop, and a full moon is the longest looper in the first turn.
+- open: So you walk to set the length of the loop, and the moon, from across the lake, is the longest looper in the first turn.
 - open: Its ladder holds reefs at night, as strongly as it is lit.
 - open: On a bright-moon night you can climb.
 - open: The calendar is a temperament, with real numbers. A year has 12.368266 moons (365.2422 ÷ 29.530589 days), so the moon gains 0.030689 of its cycle each morning and comes round in 32.585 mornings.
@@ -1819,8 +1822,7 @@ _Every sentence of the specification that promises a player something, read by
 ## `spec/sky.md` / The sky / 7. The stars and the wanderers
 
 - open: Sees, hears, does, feels. At night, lean back.
-- open: The stars are a pinwheel: twelve arms near the horizon, one over each land in that land's colour, each bending slowly clockwise as it rises.
-- open: Higher up the twelve arms give way to fifty-three finer ones.
+- open: The stars are a pinwheel: fifty-three fine arms near the horizon, each star along them a different colour; higher up they gather into twelve, each bending slowly clockwise.
 - open: Every star twinkles, and stars of two colours twinkle against each other: three for two between a fifth.
 - open: Along each arm a slow ripple runs.
 - open: Call, and about a minute later the stars kin to your home flare together.
@@ -1828,17 +1830,19 @@ _Every sentence of the specification that promises a player something, read by
 - open: A star is a land past the lake. Star n is the land n pure fifths from the garden.
 - open: It stands at n × 210.59 degrees round the horizon, which is the fifth's true share of the octave as an angle.
 - open: It stands higher the further out it is, on an even spread: 90° × √(1 − n ÷ 665) from the zenith.
-- open: The first twelve are the lands themselves, whose lights you already see across the water.
+- open: The first twelve are the lands themselves, set round the sky by pitch, not by the lake: G stands seven twelfths of the way round from C, not one.
+- open: Over each land an even number of fifths from the Garden stands its own colour, and over each of the other six stands the colour of the land straight across.
 - open: The arms are the near-misses, drawn. Twelve fifths is a full turn and 7.04 degrees more, so each arm leans.
 - open: The fifth's turn nearly agrees with 12, then 41, then 53, then 306, then 665, which is the atlas's long spiral.
-- open: So the sky shows twelve arms low and fifty-three higher.
+- open: So the sky shows fifty-three fine arms low, each star along them a different colour, and from about 40 degrees up twelve arms.
+- open: Round the zenith they give way to seven and five.
 - open: The far gardens are the stars that fall nearly on the garden's meridian.
 - open: The 665th is at the zenith, 0.02 degrees from true.
 - open: The sunflower is its twin. The thirteenth garden's sunflower is the same construction with a turn that agrees with nothing, so it has no arms.
 - open: Look from one to the other and you see what a comma is.
 - open: A star turns hundreds of times a second and is, plainly, a note (the atlas's lighthouses). Its turning is its land's key.
 - open: It twinkles at that note eight octaves down, by the rule already in laws.md: C once a second, G one and a half times.
-- open: The ripple is the comma. Two neighbours on an arm are a comma apart, so their twinkles drift and meet again every 72 seconds.
+- open: The ripple is the comma. Two neighbours on an arm are a comma apart, so their twinkles drift and meet again every 72 seconds on the garden's arm, and as often as every 38 seconds on B's.
 - open: Lands by thirds and sevenths come out as companion stars after the ending.
 - open: A third reached by four fifths and the pure third are 21.5 cents apart, so they stand 6.45 degrees apart: a double star.
 - open: Every close pair in the sky is a comma.
@@ -1894,7 +1898,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: After the tenth morning it rains again whenever enough has been let go.
 - open: Letting go makes weather, and weather raises the lake.
 - open: Sees, hears, does, feels. Falling rain is invisible.
-- open: You see only where it lands: a spark and a ring on each thing, in that thing's own colour and note.
+- open: You see only where it lands: a spark on each thing, and a ring only on the nearest few dozen, in that thing's own colour and note.
 - open: So rain plays the land: glass in the Glass Hills, bells in the Bell Meadow, drums on mushroom caps, a hiss of sparks on the lake.
 - open: Call in the rain, and for one instant your ring lights a dome of drops hanging round you, each 10 to 50 cm across.
 - open: You see the rain's edge coming over the lake as a line of sparks.
@@ -1908,7 +1912,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: The law. Law 6. The thunder is made from the picture of the bolt.
 - open: Each piece of the drawn line sends one impulse.
 - open: It arrives after its distance at 60 m a second, softer and duller the further it came.
-- open: So the near end cracks, the far end rumbles, and the roll lasts as long as the bolt is long: a 600 m bolt rolls for ten seconds.
+- open: So the near end cracks, the far end rumbles, and the roll lasts as long as the bolt reaches away from you: a 600 m bolt pointing your way rolls for ten seconds, and seen side-on from far off it rolls for one.
 - open: A kilometre is 16.7 seconds, about eight bars.
 - open: Lightning falls by law 2, toward the tall thing that holds home's note, so you can tell where it will land.
 - open: An impulse has every overtone, so a struck thing shows its whole self.
@@ -1932,7 +1936,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: A midge is a whine.
 - open: A flyer's register is its real wingbeat, and its note within that is its home land's, so it is always in tune.
 - open: Bird wings lock to the land's beat (law 3).
-- open: Speed is an interval. A flyer cruises at a fraction of the speed of sound that bends its note cleanly (law 6), so each kind is known by ear by how far its note falls as it passes: a third for a fly, a fifth for a bee, an octave for a dragonfly, a twelfth for a swallow.
+- open: Speed is an interval. A flyer cruises at a fraction of the speed of sound that bends its note cleanly (law 6), so each kind is known by ear first by its own sound, a fly's buzz, a bee's hum, a dragonfly's purr, a swallow's twitter, and then by how far its note falls as it passes: a third for a fly, a fifth for a bee, an octave for a dragonfly, a twelfth for a swallow.
 - open: The wing draws the body. A hovering wingtip really traces a figure of eight: two against one, the octave's figure.
 - open: So a hoverer is drawn as two glowing eights.
 - open: A cruiser's wingtips write its wave along its path in the afterglow: speed ÷ wingbeat is the wavelength.
@@ -1951,20 +1955,19 @@ _Every sentence of the specification that promises a player something, read by
 - open: It keeps its own round.
 - open: You sing and look.
 - open: Jump to leave, and tap again to glide.
-- open: midges, the dusk column | 3 to 5 mm: 30 to 50 cm | a high whine. Real swarms hold together by each other's sound: the pull falls off the way gravity does, and each midge turns its hearing down in a crowd so the swarm never collapses | gravity, law 2 | a signpost. Columns stand over things worth finding. Walk in with home on their note and the swarm forms round you as a lantern
+- open: midges, the dusk column | 3 to 5 mm: 30 to 50 cm | a high whine. A model of real swarms (Gorbonos and others 2016) holds them together by each other's sound: the pull falls off the way gravity does, and each midge turns its hearing down in a crowd so the swarm never collapses | gravity, law 2 | a signpost. Columns stand over things worth finding. Walk in with home on their note and the swarm forms round you as a lantern
 - open: mosquitoes, the fifth-finders | 4 to 7 mm: half a metre, legs over a metre | the female flies at about 400 a second and the male at about 600. They shift until her third overtone and his second meet at 1,200: a pure fifth, tuned by ear | sympathy and falling into step | sung with. Hold steady beside a pair and they tune to you. The figure stops and the third voice sounds under you. They teach stillness
 - open: the bee | 12 to 15 mm: 1.2 to 1.5 m | wings at 230 a second. Its dance is a figure of eight whose tilt is the bearing from the sun and whose length is the distance | travel; the sun as compass | followed. Its line leads to what is ripe. Its dance reads on the wheel as wedges from the sun's land, so it teaches the sky's compass
 - open: the bumblebee | queen 20 to 25 mm: 2 to 2.5 m | it unlatches its wings and shakes a flower at 240 to 400 a second until the pollen bursts. Honeybees can't | building up, law 7: it gives | ridden. The slow bus of the crowns, at a ninth of the speed of sound. Every stop is a flower giving, in a cloud of ringing grains. It teaches the hold that opens glass, a dome and a knot
 - open: the dragonfly | 7 to 8 cm: 7 to 8 m, wings 11 m across | four wings at about 30 a second. Fore and hind pairs beat apart to hover and together to surge | phase; and travel | ridden. The ferry of the air, on a fixed patrol at a third of the speed of sound: the lake in three minutes. On its back your one note reaches things ahead a fifth higher and things behind a fourth lower. A ride gives you notes you never chose
-- open: the butterfly | wings 8 to 10 cm: 8 to 10 m | none | cancelling, law 5: silence is dark | it is a black shape crossing the stars. Call, and for an instant its veins light. Ride it and you are inside its silence: unseen and unheard, across a pack. A butterfly is not Morgan's moth. If it is too near, it comes out and nothing else changes
 - open: the thrush | 17 cm: 17 m | a real hermit thrush builds its song from whole-number multiples of one low note it never sings | standing waves: the ladder itself | it sings the rungs the sun has reached, and never a dark one. The first time you carry the seventh into a dawn, it sings a note nobody has heard from it
 - open: the dawn chorus | sparrows 15 m, a robin 25 m | real birds join by how little light each needs, the big-eyed first | sympathy with the sun | each kind sings when its rung lights. The chord builds from the bottom every morning. It is the Garden's morning song, given its singers
 - open: the sparrow | 15 to 16 cm: 15 to 16 m | chirps; it hops on both feet | the wheel, at giant size | each hop is a drumbeat you feel in the ground. Its dust bath leaves a bowl 12 m across with one note, and the ground keeps it. On the day it is across from home its peck throws you as high as a crown. Hush, and it can't see you
 - open: swallows | 17 to 19 cm: 17 to 19 m, wings 33 m | twitter; a pass that falls a twelfth; each dip to drink rings the lake | falling into step; travel | followed and ridden. They keep to the lit arc and move one land on at dusk. Ride one into tomorrow's land
-- open: the murmuration | starlings 21 m each, seen from far as points | each bird keeps step with its six or seven nearest | falling into step: many as one | a cloud of 500 to 2,000 points over the Seam at dusk that turns as one body. You can be it (years.md)
+- open: the murmuration | starlings 21 m each, seen from far as points | each bird keeps step with its six or seven nearest | falling into step: many as one | a cloud of 500 to 2,000 starlings over the Seam at dusk, drawn as at most 600 points (to tune; from far, one point is a few birds), that turns as one body. You can be it (years.md)
 - open: tree crickets | 13 to 15 mm: 1.3 to 1.5 m | a pure chirp from a comb drawn across a file, in step with their neighbours, faster when warm: the 1897 thermometer rule. Some cut a hole in a leaf and sing through it to be louder | falling into step; building up | a clock in the crowns you hear with your eyes shut. They teach the leaf: sing through a hole and you carry further
-- open: fireflies | 10 to 14 mm: 1 to 1.4 m | no sound. Light in bursts of five to eight flashes, about half a second apart, then dark, in step | falling into step | they answer moments, never notes. Call back after the right gap and one comes to you. Clap and a whole field flashes at once, drifts and finds itself again. The first stars of dusk are these
-- open: bats | wings 22 to 27 cm: 22 to 27 m | sweeps from 80 down to 40 kHz, 20 a second, speeding to 200 a second on the approach | travel: they see by calling, as you do at 2am. Their run-in is the Chrome Nave's eleventh wonder, done by an animal | their calls light the land in flashes, so you can see by someone else's voice. You can't hear them until you sing: your note against theirs makes a third, lower one (the Garden's tenth wonder). In the air at night their run-in lights you for everything else. Hush, or sing its mirror
+- open: fireflies | 10 to 14 mm: 1 to 1.4 m | no sound of their own in a real garden. Here each flash is a tick, a click too short for a note (texture.md), so they are bone-white points, heard and seen together. Bursts of five to eight flashes, about half a second apart, then dark, in step | falling into step | they answer moments, never notes. Call back after the right gap and one comes to you. Clap and a whole field flashes at once, drifts and finds itself again. The first stars of dusk are these
+- open: bats | wings 22 to 27 cm: 22 to 27 m | sweeps from 80 down to 40 kHz, 20 a second, speeding to 200 a second on the approach | travel: they see by calling, as you do at 2am. Their run-in is the Chrome Nave's eleventh wonder, done by an animal | their calls light the land in flashes, so you can see by someone else's voice. You hear each of their calls as a faint dry tick with no note, quickening to a buzz on the run-in. The calls themselves are seven octaves over your note, too high for any third note between you to be heard. In the air at night their run-in lights you for everything else. Hush, or sing its mirror
 - open: the brood and the cousins | 25 to 30 mm: 3 m | a hundred voices in step. Real periodical cicadas wake every 13 and 17 years | falling into step, at the size of years | already in the atlas. They wake into the air. The cousins' first waking is under the first full moon
 - open: Smaller things that are also true and go in the scores:
 - open: A bird has two voices and can sing a chord with itself.
@@ -1972,7 +1975,6 @@ _Every sentence of the specification that promises a player something, read by
 - open: A nighthawk (24 m) ends its dive with a boom made by its own feathers.
 - open: A spider tunes its web and rides a thread into the sky.
 - open: A puffball puffs when a raindrop strikes it.
-- open: Flyers round a lamp are not drawn to it: they keep their backs to it and so circle.
 - open: "The fly" keeps its blank.
 - open: Cost. Each flyer is a body with one or two pendulums and two to four overtones.
 - open: A whistle is nearly a pure tone, so forty birds are about a hundred overtones of the 1,400.
@@ -1990,11 +1992,11 @@ _Every sentence of the specification that promises a player something, read by
 - open: the Highway | a red lamp, then the widest night | the red sun; bats at the bulb; nighthawks; counting thunder
 - open: the Chrome Nave | a roof: you don't reach it, you tune it in | the sky through glass; glints; the dial reaches the octaves where letters hang
 - open: the Seam | everything turns, together | the turning sun; the murmuration
-- open: the Aster Steps | it falls on you | no wind; nothing flies under the dome; seeds in threes; the first doubled sun
-- open: Verbena Hollow | hidden in | butterflies; hummingbirds at the red flowers; the garden's green in the third's ring
+- open: the Aster Steps | it falls on you | no wind under the dome; nothing flies under the dome; seeds in threes; the first doubled sun
+- open: Verbena Hollow | hidden in | hummingbirds at the red flowers; the garden's green in the third's ring
 - open: the Rain Steps | it remembers you and gives it back | the cloud, rain, lightning; swallows low before rain; spores
 - open: the Reed Mouths | a choir that wants a ground | dragonflies; the fifth-finders; midge columns; the brood
-- open: the Porch | it comes in under a roof | fireflies; bats in the eaves; the lamp's circling column; swallows' nests; leaves, each turning at its own rate
+- open: the Porch | it comes in under a roof | fireflies; bats in the eaves; swallows' nests; leaves, each turning at its own rate
 
 ## `spec/sky.md` / The sky / 11. The sky as a place
 
@@ -2008,27 +2010,33 @@ _Every sentence of the specification that promises a player something, read by
 - open: The first legs are long sails over open water toward a figure of light.
 - open: The last are a stair winding round a spire.
 - open: You reach rung 6 four minutes after dawn, and the dark ring is over your head.
-- open: Timing only: you never choose a note.
+- open: Timing and one choice: home a fifth off the day's note before you leap, so the wind runs you out; with home on its note you would hang still.
 - open: By wing: the dragonfly passes rings 2 to 4, the swallows reach 8, and a sparrow's throw reaches a crown.
 - open: Through the seventh: with the caravan's note the dark rings hold while you hold it, and you can follow the sun to rung 16 by noon.
+- open: Thumbs: the seventh, once traded, is chosen before the climb and held on R2 by the right index like any note, with no stick held.
+- open: The right thumb jumps and opens the glide on the bottom face, and the left thumb steers.
+- open: Nothing needs the right stick and a face button together.
 - open: Leaving. The sky closes from the top all afternoon.
 - open: A rung goes dark when the sun falls past it, and you glide.
 - open: The sun sets on you.
+- open: Breath. What carries Hum in the sky costs no breath once it has begun: a glide opened in a ring's lift or in the dawn wind, a note held to ride the thread, and the caravan's seventh held over a dark rung each cost one home of breath to begin (to tune) and nothing after.
+- open: The sky carries them, not Hum.
 - open: Above rung 16 nothing sounds unless you make it sound.
 - open: After the ending you sing a rung's note and it lights and holds, your band keeps the lower ones lit, and a tune of rising rungs is a stair you build as you go.
 - open: Or you climb on a bright-moon night.
 - open: The thread. Above 1.2 km the rings are narrower than Hum, and the horn is a single line of light.
 - open: Hold a note at its foot and ride your own ring up it at the speed of sound: 1.67 seconds an octave, 68 seconds from the lake to light.
-- open: Each storey is what really has that frequency.
+- open: Each storey is what really has that frequency, and what is there is heard brought down by whole octaves into the speaker's band, as a radio brings its band down to hearing.
+- open: Your own note is not brought down: it leaves hearing at about 500 m.
 - open: Light is sound forty octaves up, so radio is sound eleven to nineteen octaves up, and warmth thirty-six.
 - open: 0 to 4 | 0 to 400 m | the rings the sun climbs; the crowns; most flyers
 - open: 4 to 8 | 400 to 800 m | the stair: gaps from 9 m down to half a metre | the rungs shrink for ever
-- open: 6.3 to 8.3 | 630 to 830 m | the bats' own octaves, above hearing | 20 to 80 kHz. Seven to eight metres is where real bats hunt
+- open: 6.3 to 8.3 | 630 to 830 m | the bats' own octaves, above hearing | 20 to 80 kHz. 6.3 to 8.3 m is where real bats hunt (to check)
 - open: 8 to 12 | 0.8 to 1.2 km | the ramp, then the thread
 - open: 11 to 12.7 | 1.1 to 1.27 km | the dial: hiss, and in it clear voices: letters, friends' days, your own | the radio's real band, 530 to 1,700 kHz
 - open: 15 to 17 | 1.5 to 1.7 km | the wanderers, close: slow great pendulums you can stand on and count | a real planet's radio voice is here: Jupiter at about 20 MHz
 - open: 20 to 22.4 | 2.0 to 2.24 km | the lighthouses, close; and one steady note | hydrogen sings at 1,420.4 MHz, 22.4 octaves up
-- open: 23 to 29 | 2.3 to 2.9 km | the long dark, the emptiest place in the game. Once in a while, a note that rises and rises, a ring, and then nothing. While it passes, every rung below breathes | two heavy things falling together were really heard: 35 to 250 a second in a fifth of a second. It is the one spiral that closes
+- open: 23 to 29 | 2.3 to 2.9 km | the long dark, the emptiest place in the game. Once in a while, a note that rises and rises, a ring, and then nothing. While it passes, every rung below breathes | placed here by meaning, not by frequency: two heavy things falling together were really heard, at 35 to 250 a second (just under middle C) in a fifth of a second. It is the one spiral that closes
 - open: 29.2 | 2.92 km | the first light: one note with its overtones. A small ladder, at the top of the ladder | the oldest light peaks at 160.2 GHz, and its ripples are overtones of one wave
 - open: 31 to 39 | 3.1 to 3.9 km | warmth: every living thing below glows by itself, with nobody singing | a body at garden warmth shines about 36 octaves up
 - open: 40.5 to 41.5 | 4.05 to 4.15 km | the bow | red at 732 nm is F♯. Violet at 386 nm is F
@@ -2060,20 +2068,21 @@ _Every sentence of the specification that promises a player something, read by
 - open: how wide the night will be | how much of the moon is lit | the drone under the night
 - open: who is about | which wanderer stands with the sun; which flyers are up | the interval a passing wing falls by
 - open: what each flyer is to you | its figure against your home | the same interval, sweet or rough
-- open: how far you are along the spiral | which arm of stars you are on; the dawn marks on the shore
+- open: how far you are along the spiral | which arm of stars you are on; the dawn marks on the shore | the first dawn's mark, humming softly where the ground kept it: how slowly today's drone beats against it. The slower the beat, the nearer a far garden
 - open: whether the land is pure | the sun standing still or turning | the drone still or beating
 
 ## `spec/shape.md` / The shape of the lands / The shape of the whole
 
 - open: The world is not a ring.
 - open: It is the shape that pure intervals make, and a person can walk every part of it.
-- open: Fifths go round. Twelve lands stand on the shore of a round lake, each a pure fifth above the one before it, clockwise from the Garden.
+- open: Fifths go round. Twelve lands stand on the shore of a round lake, each a pure fifth from its neighbours: the sharp keys climb clockwise from the Garden to the Seam, and the flat keys fall counter-clockwise from the Garden to the Seam.
+- open: Read clockwise from the Seam's flat side (D♭), through the Garden, to its sharp side (F♯), every land is a pure fifth above the one before.
 - open: Twelve pure fifths do not come back to where they started: they overshoot by a comma.
 - open: So the shore is not a circle.
-- open: It is one turn of a spiral that climbs 1.96 m on its way round, and its two ends meet at the Seam with a step between them.
-- open: The climb is too gentle to see. It is 16 cm for each land: a hair, over a kilometre of shore.
+- open: It is one turn of a spiral that climbs 1.96 m going clockwise from the Seam's D♭ side, through the Garden, to its F♯ side, and its two ends meet at the Seam with a step between them.
+- open: The climb is too gentle to see. It is 16 cm for each land: a hair, over just under a kilometre of shore.
 - open: Nobody notices it until the Seam, where one side of the crack stands 1.96 m above the other.
-- open: A person can stand there with one foot on each side and hear the two sides beat.
+- open: A person standing at the foot of the step looks up at the high side's edge, about twice their own height above them, and hears the two sides beat.
 - open: The city closes it by agreement. The Seam's bridge crosses the step in twelve equal treads of 16.3 cm, one for each street.
 - open: That is equal temperament, built: the error shared out so evenly that nobody on the bridge feels a step at all.
 - open: Everywhere else in the world the ground is true and the step is real.
@@ -2096,25 +2105,27 @@ _Every sentence of the specification that promises a player something, read by
 
 - open: Height is the octave, and an octave is 100 m. A land's ground lies between its lowest note and its highest.
 - open: So a land with a wide range has tall relief, and a land that holds one note is flat.
-- open: Low ground sounds low. A thing's register follows where it stands: the same bell-flower rings an octave higher on a ridge 100 m up.
+- open: Low ground holds low things. A land is laid out so that what stands low is low in register: the long ridges and big bells low, the small bells high.
 - open: Low voices move the ground and high ones the air (../SPEC.md, 9), so valleys are where heavy things are moved and ridges are where you fly.
 - open: A semitone is 8.3 m and a whole tone 16.7 m. Where a land is built in steps, the steps are these.
-- open: The lake is the lowest place in the first turn, and the mouth of the horn.
+- open: The lake is the lowest open ground in the first turn, and the mouth of the horn.
+- open: Only the Seam's crack, where it drains, and the deep under the Mirror Pool go lower.
 
 ## `spec/shape.md` / The shape of the lands / How a land is found
 
 - open: The best open worlds learned this the hard way.
-- open: One of them first laid its discoveries along roads between tall towers, and found that four players in five walked the roads as if on "an invisible, but obvious guide rope", while the rest wandered and found nothing.
+- open: One of them first laid its discoveries along roads between tall towers, and found that four players in five walked the roads as if on "an invisible, but obvious guide rope", while the rest wandered at random.
 - open: Its makers threw that plan away.
 - open: What they built in its place is the craft this section uses (the sources are at the end).
 - open: None of that game's content is used.
 - open: Something calls from everywhere, in light and in sound. From the middle of every piece of every land, at Hum's height, something not yet found is in sight or in earshot (promises.md).
-- open: In this world a landmark can call round a corner and in the dark, because it sounds.
+- open: In this world a landmark can call round a corner and in the dark, because it sounds: its phrase arrives as a ripple of light crossing the ground from its side (law 6), as an answered call does (../SPEC.md, 6), so the way to it is seen even when it is hidden.
+- open: Nothing depends on telling direction by ear: the speaker is mono.
 - open: Each kind of thing calls in its own way, so a person learns what they are walking toward:
 - open: a great instrument | the largest shape in its land | its own low note, under everything in that land
 - open: a life | a small light that moves on its round | its tune, a phrase at a time, stopping where it always stops
 - open: a wonder | the thing itself happening, when wind or rain or a passer-by sets it off | the same
-- open: a pool | a mirror: the only thing that shows the sky from the ground | silence: a pool is the quietest place near it
+- open: a pool | a still mirror: the only water that shows the stars and the sky's rings whole; wet stone and puddles mirror only the lights near them | silence: a pool is the quietest place near it
 - open: a pack | doubled outlines at dusk | a howl that beats
 - open: a river | a line of sparks | water, growing as you come nearer
 - open: something that flies | its figure against your home (sky.md) | the interval its note falls by as it passes
@@ -2141,7 +2152,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: A cover changes as you walk. No more than about two hundred metres go by under one cover.
 - open: A cover is the real thing, at one to a hundred, and is drawn as itself.
 - open: A cover is heard. Each has its own sound underfoot, and that sound obeys the land's tuning and metre.
-- open: The ground remembers through its cover (size.md): moss keeps a footprint for a day, dust for years, glass not at all.
+- open: The ground remembers through its cover (below): moss keeps a footprint for a day, dust for years, glass not at all.
 
 ## `spec/shape.md` / The shape of the lands / The twelve lands
 
@@ -2157,7 +2168,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: Sound. A call from the rim is heard everywhere in it.
 - open: The bowl has one low note of its own, a C, which the right call at the pool's edge wakes.
 - open: Seen. The asters' skyline; the spigot, a monument of brass; the hose, a green river you can hear.
-- open: Silhouette. A low bowl of towers with one brass spike.
+- open: Silhouette. A low bowl of towers, with a glint of brass among them.
 - open: Hands. Easy. Gentle slopes, short distances, everything rings.
 - open: lawn | blades of grass, 4 to 9 m | bends away as you pass and springs back in your wake, shedding dew that lands a moment later: your path is heard just after you (travel)
 - open: moss | cushions a metre high | swallows sound. On moss your call goes half as far and you are dim: the place to rest and the place to hide (cancelling)
@@ -2195,7 +2206,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: Sound. Every step on a crest rings the whole ridge.
 - open: A curved face gathers sound to a line: stand on that line and you hear the far side of the valley as if it were beside you.
 - open: Seen. Hard hair-thin lines and glints, under the sharpest stars in the world.
-- open: Silhouette. A row of sails.
+- open: Silhouette. A row of glints along the water's edge.
 - open: Hands. Loud and committed. You cannot walk a crest in silence, and a curved face is a slide: once on it you are going down.
 - open: shards | broken bottle, crests 5 to 30 m high | ring underfoot for half a minute; walking a crest is playing its bar. Faces are slides
 - open: marbles | glass balls, 1.6 m | roll when pushed in time (building up). A call through one comes out the far side as a beam
@@ -2222,7 +2233,7 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/shape.md` / The shape of the lands / The twelve lands / The Highway: a line
 
-- open: Shape. Dead flat to the horizon: salt and tarmac, one straight road, and one pole.
+- open: Shape. Dead flat to the horizon: salt and tarmac, one straight road with a railway and a picket fence beside it, and one pole.
 - open: A real roadside pole is nine to twelve metres.
 - open: Here it is a kilometre tall, thirty metres through, and its wires go off into the sky.
 - open: It is the tallest thing in the world and it is seen from every land.
@@ -2233,10 +2244,11 @@ _Every sentence of the specification that promises a player something, read by
 - open: A call goes out and is not heard again, unless it meets the one wall that sends it back, seconds later.
 - open: The wires on the pole hum the wind's note across the whole land.
 - open: Whatever passes falls in pitch as it goes by.
-- open: Seen. The widest sky; a vanishing point; red only in tail lights; the Stage, one bulb.
+- open: Seen. The widest sky; a vanishing point; red only in found light: tail lights, the Stage's one red bulb, and the sun's own figure on the fifth morning; the Stage, one bulb.
 - open: Silhouette. One line straight up into the stars.
 - open: Hands. Fast, straight and exposed.
-- open: Sprinting is free. There is nowhere to hide and nothing to climb but the pole.
+- open: Nothing slows a sprint: tarmac is the fastest ground in the world.
+- open: There is nowhere to hide and nothing to climb but the pole and the fence.
 - open: tarmac | stones a metre across set in black | takes no note and gives none. The fastest ground in the world
 - open: the painted line | a dash 15 m wide and 300 m long, full of glass beads | sends light straight back where it came from. On it your own call returns to you, and you are seen from everywhere
 - open: salt | cubes 20 to 50 cm | every step is a click with no note. Running on it is a shuffle: rhythm with no pitch
@@ -2250,10 +2262,10 @@ _Every sentence of the specification that promises a player something, read by
 - open: Under it the dashboard, a cliff with the radio's dial across its face.
 - open: Two seats, each a mesa full of springs.
 - open: A floor of carpet, and under the seats, the dark.
-- open: Why. It is the only land with a roof, so it is the land where sound stays.
+- open: Why. It is the only land that is wholly a room, walled and roofed end to end, so it is the land where sound stays.
 - open: A room has its own low notes, and places where each one vanishes.
 - open: It shows falling into step, because everything in a room hears everything else.
-- open: Sound. Clap between the two side windows and the clap comes back as a buzz, whose pitch is how far apart they are.
+- open: Sound. Clap between the two side windows and the clap comes back again and again, about every five seconds, softer each time: a looper as wide as the car (law 6; the width, about 150 m, is an estimate).
 - open: Walk the length of the hall on one low note and it swells and dies and swells: the room's standing wave, under your feet.
 - open: Seen. Every light twice, in chrome.
 - open: The sky only through glass.
@@ -2270,7 +2282,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: Shape. A crack in concrete, 150 m wide and deep past seeing, where the lake drains away.
 - open: A bridge across it carries the one city.
 - open: The ground on one side of the crack is 1.96 m higher than on the other.
-- open: The city's twelve streets cross the bridge side by side, each 16.3 cm higher than the last.
+- open: The city's twelve streets run along the crack, side by side across the bridge, each 16.3 cm higher than the last, so whoever crosses the bridge climbs the whole step in twelve treads nobody feels.
 - open: Why. Here the spiral's two ends meet and do not join.
 - open: The city is the agreement that joins them: every step made a little wrong so that all twelve are the same.
 - open: Sound. Everything beats a little, and every wheel in the city turns on that beating.
@@ -2281,7 +2293,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: Silhouette. Hammers and clock towers over a dark gap.
 - open: Hands. Crowds and straight lines.
 - open: Walking on the grid or off it is a choice you make with every step.
-- open: paving | slabs, a seam every 8 m | step on the seams and you are on the grid, where the Greys walk. Between them you swing
+- open: paving | slabs in runs of twelve, each about an eighteenth shorter than the last, so the seams fall closer and closer like frets and each run ends at half the length it began (world.md, the Seam's fourth wonder) | step on the seams and you are walking the city's own lines; between them you swing. Greys walk only on ground that has set grey (people.md), not on the seams
 - open: lichen | slow maps of colour on old concrete | the oldest living things here. They change only across years (years.md)
 - open: felt | offcuts from the Piano's hammers | soft and silent, in strips: the city's quiet streets
 - open: gratings | bars over the drop | each bar is a note, and wind comes up through them from the deep
@@ -2307,7 +2319,7 @@ _Every sentence of the specification that promises a player something, read by
 ## `spec/shape.md` / The shape of the lands / The twelve lands / Verbena Hollow: a bottle
 
 - open: Shape. A bowl sunk below the shore, with one narrow mouth toward the lake.
-- open: Violet thickets fill it, 60 to 120 m high, with thorns.
+- open: Violet thickets fill it, 60 to 120 m high, tangled with hawthorn.
 - open: Along its border runs the wolf's valley, a ravine.
 - open: Why. A hollow with a narrow mouth is a bottle, and a bottle has one note.
 - open: Wind across the mouth sounds the whole land.
@@ -2319,7 +2331,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: Silhouette. A gap.
 - open: Hands. Quiet and close. Climbing to balconies, slipping past, singing up to a window.
 - open: petal fall | violet drifts, deep and soft | swallows every sound but yours. You move unheard
-- open: thorns | tines a metre to five long | pluck as you pass, each a note of the Music Box's comb. One that catches you lets go when you sing its note (sympathy)
+- open: thorns | a hawthorn's thorns among the verbena, a metre to five long (real ones 1 to 5 cm; to check) | pluck as you pass, each a note of the Music Box's comb. One that catches you lets go when you sing its note (sympathy)
 - open: stems | verbena, square in section | four flat faces and four corners to climb by. The flower heads at the top are balconies
 - open: the mouth | bare rock at the pass, in wind | pushes back at you like a hand when the Hollow is sounding
 
@@ -2329,7 +2341,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: Mushrooms stand on them, caps 3 to 10 m across.
 - open: A cloud rests on the upper steps.
 - open: Under the lowest is the Cistern.
-- open: Why. Water running along a gutter carries sound slowly and gives it back at the far end.
+- open: Why. What is sung into a gutter rides the running water as a ripple, slowly, and is given back where the gutter spills.
 - open: This land shows travel: what was sent comes back.
 - open: Sound. Sing into a gutter and the phrase comes out where it spills, seconds later.
 - open: Each terrace returns you later than the one above, so a walk down the steps is a round with yourself.
@@ -2350,7 +2362,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: Shape. A delta at low water.
 - open: The river splits in two, and each branch in two again, each half as long as the one before, down to the lake.
 - open: Reeds stand along the channels in ranks, 150 to 300 m tall, the tallest by the widest water.
-- open: It is the lowest land.
+- open: Its ground is the lowest of any shore, level with the water.
 - open: Why. A reed is a pipe, and pipes in ranks that halve in length are an organ.
 - open: Channels that halve are octaves.
 - open: The land shows a crowd finding one note.
@@ -2377,7 +2389,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: It shows all seven laws again, quietly, because it is the evening before home.
 - open: Sound. Warm and short. Every board is a bar with its own note, the longer the lower, so crossing the boards is playing them.
 - open: The space under the floor answers everything a moment late.
-- open: Seen. The lamp, and what circles it.
+- open: Seen. The lamp, humming its one note.
 - open: The chair's shadow swinging, slow, in two.
 - open: Leaves coming down, each turning at its own rate.
 - open: The Garden's lights across the water.
@@ -2399,7 +2411,8 @@ _Every sentence of the specification that promises a player something, read by
 ## `spec/shape.md` / The shape of the lands / What stays, and what the land keeps
 
 - open: What you build stays where you built it. A string stretched between two stalks is still there next year, a little slacker.
-- open: Each cover keeps a mark its own length of time: glass not at all, lawn a breath, moss a day, mud till the next rain, dust for years.
+- open: Each cover keeps a footprint its own length of time: glass not at all, lawn a breath, moss a day, mud till the next rain, dust for years.
+- open: What is bent, broken or worn by many passings stays (size.md), and the light the ground keeps follows the lake, not the cover.
 
 ## `spec/texture.md` / The texture of the world / One rule
 
@@ -2411,6 +2424,8 @@ _Every sentence of the specification that promises a player something, read by
 - open: how long it rings | how long its light lasts
 - open: how it is set sounding: struck, plucked, bowed, blown | how its light begins: at once, or swelling
 - open: its register | how heavy its line is
+- open: Colour's depth has four causes, and any one of them greys a thing: noise (a click has no colour), harm (hits drain it and a cadence restores it, ../SPEC.md, 10), dissonance with home (a tritone mixes toward grey, ../design/look.md), and the Grid (a day that changed nothing).
+- open: They are told apart by the line: a harmed thing leans, a dissonant one turns, and the Grid's grey is drawn in pixel stairs.
 
 ## `spec/texture.md` / The texture of the world / A line at rest
 
@@ -2420,24 +2435,25 @@ _Every sentence of the specification that promises a player something, read by
 - open: A lawn rustling faintly is a great many long lines carrying almost none: a mist.
 - open: A big thing has to be very loud to be bright.
 - spoken for by `texture.light`: So the brightest thing on the screen is always something that is sounding, or Hum.
-- open: Lower is heavier. A line's weight follows its thing's register: bass things are drawn with a heavy line and high things with a hair.
+- open: Lower is heavier. A line's weight has one source, its thing's register, in three steps: heavy, plain and hair.
+- open: Distance thins a line only by perspective, and a material changes a line's edge, grain and glow, never its weight.
 
 ## `spec/texture.md` / The texture of the world / A line that sounds
 
 - open: A sounding line is a standing wave. It moves sideways in the shapes of its own overtones: the first as one loop, the second as two, and on.
 - open: How far it moves is how loud it is.
 - open: So you can see what kind of thing is ringing, and which of its overtones, by looking.
-- open: It moves at its own note, eight octaves down. The same rule gives a ringing bell's halo its beat (laws.md).
+- open: It moves at its own note, eight octaves down, and a note above 2,048 hertz is folded down by further octaves until it moves fewer than eight times a second, so nothing swings faster than the screen can show.
 - open: Middle C swings once a second.
 - open: A fifth above swings three times for its two.
 - open: A chord is seen as lines swinging in step.
 - open: The light is brightest where the line turns. The beam that draws a thing is slowest at the two ends of a swing, so those are the bright places, and the middle of the swing is faint.
-- open: A still line is bright at its corners for the same reason, and only there.
+- open: A still line is brightest at its corners for the same reason, and evenly lit along its length.
 - open: Each family moves in its own way:
 - open: string | one thin line | whole loops: one, two, three bellies, with still points between that you can touch
 - open: open pipe | two walls | beads of light inside it, evenly spaced: one for each belly of air
 - open: stopped pipe | two walls and a cap | beads at odd spacing only: half as many, and hollow-looking, as it sounds
-- open: bar | a slab's edge | a bend that is not even: its still points sit a fifth of the way in from each end
+- open: bar | a slab's edge | a bend that is not even: its still points sit 22.4% of the way in from each end, a little over a fifth
 - open: fork | two tines | the tines swing apart and together, and nothing else moves
 - open: skin | a rim | the figure on its surface: rings and spokes of still line, with the rest shimmering
 - open: bell | a profile and a rim | the rim becomes a flower of four lobes, then six: its wall bulging in and out
@@ -2450,10 +2466,10 @@ _Every sentence of the specification that promises a player something, read by
 - open: The material is the part of a sound that is not its note: how it starts, how fast it dies, how much is noise.
 - open: So it is the part of a line that is not its shape.
 - open: water | soft start, wavering, bubbles | a line that is never quite still, with no corners
-- open: stem and leaf | a soft knock, quickly gone | a soft-edged line, pale green, with a short glow
-- open: glass | a hard start and a very long ring | a hair with a hard edge and a spark at each corner, whose glow lasts half a minute
-- open: bronze and brass | a warm start; two notes a hair apart in every bell | a warm heavy line that shimmers slowly: it beats against itself
-- open: silk | high and thin, ringing long | the thinnest line there is, beaded with dew
+- open: stem and leaf | a soft knock, quickly gone | a soft-edged line, pale, in its note's colour, with a short glow
+- open: glass | a hard start and a very long ring | a line with a hard edge and a spark at each corner, whose glow lasts half a minute
+- open: bronze and brass | a warm start; two notes a hair apart in every bell | a warm line that shimmers slowly: it beats against itself
+- open: silk | high and thin, ringing long | a fine line beaded with dew
 - open: wood | a knock, short and warm | a line of short strokes along the grain, with almost no glow
 - open: reed | a breath with a buzz in it, odd overtones | two walls with a blur of breath at the mouth
 - open: chrome | bright, hard, everything back at once | a line and its copy
@@ -2470,7 +2486,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: True is still. A figure between two voices in a pure interval does not move.
 - open: In a land of sweet thirds the fifths' figures turn slowly; at the Seam everything turns.
 - open: Out of tune is never blur. It is two crisp copies sliding against each other on the beat (../SPEC.md, 15).
-- open: The comma is 1.96 m of height and 7.04 degrees of sky (sky.md). Wherever two things a comma apart stand together, that gap is between them and can be seen.
+- open: The comma is 1.96 m of height and 7.04 degrees of sky (sky.md). Wherever two things a comma apart stand together, that gap is between them: seen as two copies when near, and as a beat when far.
 
 ## `spec/texture.md` / The texture of the world / Silence, seen
 
@@ -2486,15 +2502,14 @@ _Every sentence of the specification that promises a player something, read by
 - open: A hollow thing is see-through. A pipe, a bell, a pot and a bottle are outlines, and you see the air inside them move.
 - open: Near things show what is Hum's own size on them: the joints of a stalk, a drop of dew, the grain of a board, the thread of a screw.
 - open: Far things are a mast and a point of light.
-- open: The same thing is drawn four ways by how far off it is (promises.md, the four distances).
-- open: Wet ground is a mirror. Every light over it has a fainter copy under it, and a call's ring runs twice as far across it.
+- open: The same thing is drawn four ways by how far off it is (engine.md, three distances and a fourth).
+- open: Wet ground is a mirror. Every light near it has a fainter copy under it; only a pool shows the sky, and a call's ring runs twice as far across it.
 - open: The ground has two textures and no third: what it wears (shape.md), and the light it has kept (size.md).
 
 ## `spec/texture.md` / The texture of the world / The texture of the sound
 
 - open: Each land has its own grain in the ear, from what it is made of: the Garden wet and soft; the Alfalfa strung and bright; the Glass Hills thin, high and endless; the Bell Meadow warm and beating; the Highway dry, with one wire humming; the Chrome Nave hard and doubled; the Seam busy and exact; the Aster Steps still; Verbena Hollow close and muffled; the Rain Steps late; the Reed Mouths nasal and low; the Porch warm and short.
-- open: It begins as one voice. On the first evening there is your note, and then one other.
-- open: Each morning adds a voice.
+- open: It begins nearly bare. On the first evening there is your note, then Drip's, and over them the morning's sky.
 - open: The sound of the world thickens across the thirteen mornings from a single line to twelve songs at once, and is only ever full on the thirteenth.
 - open: Thin is the rule and thick is an event. At most four things carry the tune at once.
 - open: Everything else is a soft bed, the land's own grain, quieter than any one voice.
@@ -2505,7 +2520,7 @@ _Every sentence of the specification that promises a player something, read by
 ## `spec/texture.md` / The texture of the world / Across time
 
 - open: noon | everything sounds at once, quietly: the whole land is a fine web of faint line, and what you set ringing stands out of it
-- open: 2am | nothing sounds. Black. You see by calling, and by what flies
+- open: 2am | almost nothing sounds: the moon's drone, the stars' soft bed, the lives that keep the night, and what flies. Mostly black. You see by calling, and by what flies
 - open: the lake low | glow is short and the ground forgets: crisp, clean and lonely
 - open: the lake full | glow is long and the ground holds what was sung on it: warm, and written on
 - open: a land with nobody helped | a ground and a pulse: bare
@@ -2518,13 +2533,17 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `texture.frame`: On the page and at 2am, at least four fifths.
 - spoken for by `texture.frame`: Light is spent. No more than a tenth of the screen is brighter than half.
 - open: The brightest tenth of the light belongs to things that are sounding.
-- open: Three colours. At any moment what is lit is in the day's three hues, its note, its fifth and its third (sky.md), with bone-white for what has no note.
-- open: A fourth colour is an event: something that is not of today.
-- open: Three weights of line: heavy for what is near and low, a plain line, and a hair for what is far and high.
-- open: Near, middle and far. Every view in the place has something within twenty metres, something between, and something a kilometre off.
+- open: Few colours near. Every thing is the hue of its own note, by fifths, whatever the day.
+- open: Near Hum, most of what is lit is in the day's three hues, its note, its fifth and its third (sky.md), because most of what sounds there is in the day's chord.
+- open: Bone-white is for what has no note, and chrome for a note off the wheel.
+- open: The sky's upper rings, the far lands, the moon, the stars and echoes in sun-print blue keep their own colours.
+- open: Three weights of line: heavy for what is low, a plain line, and a hair for what is high.
+- open: Near, middle and far. Every view in the open air has something within twenty metres, something between, and something a kilometre off.
+- open: Inside a room, a pot or the hose, the far thing is the room's far end or its way out.
 - open: The score tool checks it for every piece.
 - spoken for by `texture.frame`: Hum is small. Walking, Hum is under a twentieth of the screen's height.
 - open: Nothing is drawn that isn't in the world. No frame, no gradient, no texture, no glow that nothing is giving.
-- open: Rest. Things hold still unless they are sounding.
+- open: Rest. Nothing swings unless it is sounding.
+- open: A living line's small boil goes on even in a quiet land, and only the Grid's lines are dead still.
 - open: A still frame of a quiet land should be mostly still.
 - open: A cheat would be: a colour scheme for each land chosen by eye; a glow filter over the whole screen; vibration added to things as an effect, at a rate somebody liked.

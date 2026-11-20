@@ -149,6 +149,15 @@ The thirteen rules in `docs/other-platforms.md` hold. In code they mean:
   is sent each frame as a small table.
 - **Moving figures are built each frame** on the processor, as the page toy does: creatures, rings,
   the wheel, Hum. Up to about 3,000 marks.
+| what moves | marks a frame, at most |
+|---|---|
+| the sky: the sun, flyers and the murmuration, rain rings (`sky.md`) | 1,500 |
+| sounding lines bent into their overtones, nearest and loudest first (`texture.md`) | 600 |
+| creatures and lives near Hum | 400 |
+| rings of calls and answers | 300 |
+| Hum, its echoes and the wheel | 200 |
+| all of them | 3,000 (estimate, to be measured on the purple) |
+
 - **Three passes,** because each costs this GPU a fixed amount:
   1. light from things that sound, behind the black shapes, into a full-size target;
   2. the phosphor: a half-size copy that keeps the brighter of this frame and what is left of the
@@ -156,10 +165,10 @@ The thirteen rules in `docs/other-platforms.md` hold. In code they mean:
   3. the screen: the two together, then the black shapes again, then crisp light and whatever
      covers.
 - **The ground remembers** (`size.md`). Each piece has one picture, 256 dots on a side, of the light
-  left on its ground. It is drawn in the first pass, under the lines, and where something sounds
-  the world adds to it. Measured so far: a picture that size uploads in about 1.3 ms and the GPU
-  samples far more dots a second than the screen needs. Drawing it with pieces loading is stage
-  1's to measure.
+  left on its ground. It is drawn in the first pass, under the lines, and where something sounds the
+  world adds to it. Measured so far: a picture that size uploads in about 1.3 ms and the GPU samples
+  far more dots a second than the screen needs. Drawing it with pieces loading is stage 1's to
+  measure.
 - **Three distances and a fourth.** A tall thing is drawn in full near, as a mast with points of
   light far off, and between; and within 85 m it also shows what is Hum's own size on it
   (`game/src/draw/aster_lines.zig`).

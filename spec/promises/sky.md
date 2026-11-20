@@ -5,9 +5,9 @@ _Part of the promise book (`../promises.md`). What `../sky.md` says, sized as it
 ### `sky.dawn` The first dawn
 
 - **Said:** `spec/sky.md` "Rung n hangs at 100 × log2(n) metres." "Ring n is 1,850 ÷ n metres in
-  radius." "Every seventh rung is dark." "Every rung at or below the sun sounds." "Rungs 1 to 6 are
-  the only notes a bugle has." "A rung takes the hue of its note, by fifths, like everything else."
-  "Dawn travels at the speed of sound."
+  radius." "Every seventh rung is dark." "Every rung at or below the sun sounds." "Rungs 2 to 6 are
+  the five notes a bugle has, over the drone." "A rung takes the hue of its note, by fifths, like
+  everything else." "Dawn travels at the speed of sound."
 - **Stage:** 2
 - **Scene:** evening
 - **The moment:** The world has just stood up, and it is still nearly night. The asters are black

@@ -58,8 +58,7 @@ words; the sources are at the end._
 
 - **Paths lead people by the nose.** Their first plan put discoveries along routes between tall
   towers. Tracking their own testers showed about four in five walking those routes, as if on "an
-  invisible, but obvious guide rope", and the rest wandering and finding nothing. They threw the
-  plan away.
+  invisible, but obvious guide rope", and the rest wandering at random. They threw the plan away.
 - **Landmarks that answer a need pull people.** Each kind of place gives something a player wants,
   and each is made to be seen from far off: lit, smoking, or under one huge shape.
 - **Hills hide and show.** Their land is built of hills and peaks. A hill gives a choice, over or
@@ -78,7 +77,7 @@ words; the sources are at the end._
 | no counted lists | the songbook shows what was found and never how much is left | `spec/shape.md` |
 | what you make should last | what you build stays where you built it, and the ground keeps what you wear into it | `spec/shape.md`; `spec/size.md` |
 | no rope | most of what is worth finding is off the paths, and a person's own take is checked: no more than half their steps on a path | `spec/shape.md`; `spec/promises.md` |
-| things call by need and from far | each kind of thing has its own far sight and far sound, and here a landmark can call round a corner and in the dark, because it sounds | `spec/shape.md` |
+| things call by need and from far | each kind of thing has its own far sight and far sound, and here a landmark can call round a corner and in the dark, because it sounds, and its phrase arrives as a ripple of light from its side, so the way to it is seen even on one speaker | `spec/shape.md` |
 | hide and show | tall things are black shapes; only two or three things call from any place | `spec/shape.md` |
 | size has to be earned | a land is three square kilometres only if something calls from every piece of it | `spec/size.md`; `spec/promises.md` |
 | watch where people really go | a take is a list of hands, so every session is its own map of where a person went and stopped; and the ground's kept light draws the same map in the world | `spec/promises.md` |
