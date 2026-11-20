@@ -14,7 +14,10 @@ actionable differentiation"._
   thumb." "The ring of twelve notes turns behind them one notch each morning, so the wheel is also a
   compass, a calendar and a sky."
 - **Stage:** 2
-- **The moment:** You hold R1 and the world slows. Twelve wedges open on the ground around you,
+- **Scene:** asters
+- **The moment:** (From the room: once the day has come up, hold R1, point the right stick a
+  twelfth of a turn left, and let go.) You hold R1 and the world slows. Twelve wedges open on the
+  ground around you,
   seven
   of them lit, and a thread runs from every creature in sight to the wedge that would bring it home.
   You point at the wedge the stumbling knot's threads all run to and let go. Home moves, and every
