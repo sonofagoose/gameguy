@@ -44,7 +44,7 @@ rm -rf build/frames && mkdir -p build/frames
 quiet_run lines build/gameguy-x86_64 --lines --headless --frames 6 --dump build/frames
 
 echo "== no screen: the dark and the call, twenty seconds of the scripted hands, frames and sound kept"
-quiet_run dark build/gameguy-x86_64 --headless --frames 1200 --dump build/frames --dump-every 150 --wav build/dark.wav
+quiet_run dark build/gameguy-x86_64 --scene dark --headless --frames 1200 --dump build/frames --dump-every 150 --wav build/dark.wav
 grep "^the dark:" build/dark.out | sed 's/^/   /'
 
 echo "== no screen: the first evening and the asters, played by the scripted player, a frame at each standpoint a promise names"

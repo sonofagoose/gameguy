@@ -4,26 +4,48 @@ The game. Its specification is `../SPEC.md`; where the build stands is `../PROGR
 
 ## What is here so far
 
-The workshop, and the first minute of the first evening.
+The workshop, and the first evening.
 
-- **The dark and the call** (`src/dark.zig`). Black. R1 calls: a ring of light runs out over the
-  ground and lights what it passes. Whatever is kin to Hum's note answers, late by its distance
-  there and back. R2 hums. The left stick walks. Select and Start together leave.
-- **Two of the seven laws** (`src/world/world.zig`): travel, and sympathy.
+- **The first evening** (`src/dark.zig`, `--scene evening`, the default). It opens as a page in the
+  dark. R1 calls: a ring of light runs out and lights what it passes, and kin answer late by their
+  distance. Drip ticks far off and answers the second call. Hold R2 to hum beside it and let go on
+  its tick: four breaths bring its fifth true, and the two lock. The dawn rises at your feet and
+  runs out over the ground at the speed of sound, the page stands up ("Oh. You're in."), and the
+  Garden is there. The left stick walks, the right stick looks, and Select and Start together
+  leave. `--scene dark` is the older proof of the dark alone, and `--scene asters` starts at dawn.
+- **The asters** (`src/world/asters.zig`, `src/draw/aster_lines.zig`): a field of 67 asters as tall
+  as cathedrals, one to a hundred. A call climbs every stalk, and the bells of a crown are heard
+  late by their height. Stand still at a foot and the view leans back.
+- **The sky** (`spec/sky.md`): the dawn at your feet; the horn over the lake, each ring lit when the
+  sun reaches it and heard when its note has crossed the water; stars; the sun as a figure.
+- **The Garden's ground** (`src/world/ground.zig`): lawn sheds dew behind you, fallen leaves ring
+  underfoot each in its own note, moss halves your call and dims you, clover is a roof.
+- **The bee** (`src/world/flyers.zig`): it works the clover and hovers in figures of eight, and its
+  note falls a fifth as it passes.
+- **The puddles** (`src/world/pools.zig`): four, south of where Hum wakes. Hum at one and the shape
+  your note stands in comes up on the water as lines of light; walk across on them. Pollen
+  gathers on the still lines and keeps the last figure; a call makes a puddle flash its shape.
+- **The seven laws, so far** (`src/world/world.zig`): sympathy, travel, standing waves, building
+  up, and the beating of the breaths.
+- **One cue for every sound** (`src/world/cue.zig`): a sound can't be made without its light, and
+  `World.tell` is the only way anything sounds.
 - **The sound** (`src/sound/sound.zig`): one bank of resonators. A rung thing is a short burst into
-  its overtones; Hum's voice is pulses through a closed-mouth vowel.
-- **Lines of light kept on the GPU** (`src/draw/lines.zig`): black shapes that hide, and the
-  phosphor, in three passes.
-- **The asters** (`src/world/asters.zig`, `src/draw/aster_lines.zig`): a proof field of 70 asters
-  as tall as cathedrals, one to a hundred. A call runs over the ground and climbs every stalk; the
-  bells of a crown are heard late by their height. Stand still at a foot and the view leans back.
+  its overtones; voices are pulses through vowels; standing water is a held pure tone.
+- **Lines of light kept on the GPU** (`src/draw/lines.zig`): black shapes that hide, the phosphor,
+  light as loudness, the sky's glow, the ground's light, in three passes.
+- **Takes and saves** (`src/keep/`): a take is the hands, ten bytes a change, kept in
+  `keep/takes/` when a person leaves; a save is the whole world at a step, kept in `keep/dawns/`
+  at every dawn. `--replay TAKE` plays a take back, `--load SAVE` opens a save.
+- **The controls** (`src/plat/plat.zig`): face buttons are found by where they are, from the
+  kernel's codes, never from a controller database's names. `--controls` reports what was found
+  without opening a window.
 - **Witnesses** (`src/world/witness.zig`): the world notes when a promise's moment happens
   (`../spec/promises.md`).
 - **The room** (`src/room.zig`): where a person's ears, eyes and hands answer and every answer is
-  logged. It asks who is holding the handheld; then the walk puts them in each promise that has a
-  scene and asks its one question; then three checks (a tone, the backlight following a swell, the
-  left stick); then the 31 listening clips from `design/listen/`. A is yes, B is no, Y again, R1
-  and L1 move on and back.
+  logged. It asks who is holding the handheld (A Morgan, B JJ, Y someone else); then the ear
+  check; then the walk puts them in each promise that has a scene and asks its one question; then
+  three checks (a tone, the backlight following a swell, the left stick); then the 31 listening
+  clips from `design/listen/`. A is yes, B is no, Y again, R1 and L1 move on and back.
 - **The loop** the specification asks for: the sound card's sample count is the only clock, and a
   step of the world is 800 samples.
 
@@ -34,7 +56,8 @@ game/build.sh                        # tests, laptop build, two runs with no scr
                                      # check, handheld build, the pack
 game/build.sh laptop                 # everything up to the handheld build
 probe/tools/r36s.sh push 164 game/dist/ports/ /roms/ports/
-probe/tools/r36s.sh run 164 /roms/ports/Gameguy.sh            # play it on the handheld
+probe/tools/r36s.sh run 164 /roms/ports/Gameguy.sh            # play the first evening on the handheld
+probe/tools/r36s.sh run 164 /roms/ports/Gameguy.sh --scene dark   # the dark alone
 probe/tools/r36s.sh run 164 /roms/ports/Gameguy.sh --bot --frames 1800   # scripted hands, real sound
 probe/tools/r36s.sh run 164 /roms/ports/Gameguy.sh --scene asters        # the asters, in the hand
 probe/tools/r36s.sh run 164 /roms/ports/Gameguy.sh --scene asters --bot  # walked by the scripted player
