@@ -503,7 +503,7 @@ _Every sentence of the specification that promises a player something, read by
 ## `spec/laws.md` / The laws / For the ears
 
 - spoken for by `laws.ears`: Limits the engine keeps, so that "it sounds good" is checked and not hoped for:
-- open: Roughness. game/tools/ears measures it. More than two seconds of sustained roughness is an error, except in the moments on this list, each of which is brief and resolves: a wolf's howl, the two suns at dawn, the dome's shiver, the close that misses, and the comma held on the thirteenth morning.
+- spoken for by `laws.ears`: Roughness. game/tools/ears measures it. More than two seconds of sustained roughness is an error, except in the moments on this list, each of which is brief and resolves: a wolf's howl, the two suns at dawn, the dome's shiver, the close that misses, and the comma held on the thirteenth morning.
 - spoken for by `laws.ears`: Slow beating is allowed as shimmer where a land's tuning makes it (the Seam, the Shimmer), and Morgan's ears decide how much.
 - spoken for by `laws.ears`: Everything a player must hear sits between 400 Hz and 8 kHz, where the small speaker speaks.
 - spoken for by `laws.ears`: Low voices are built from upper overtones.
@@ -512,34 +512,34 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/world.md` / The world / The shape
 
-- open: A round lake with twelve lands on its rim, in the order of the circle of fifths: the Garden at the north, sharp keys warming clockwise, flat keys cooling the other way, meeting at the Seam in the south.
+- spoken for by `lands.shape`: A round lake with twelve lands on its rim, in the order of the circle of fifths: the Garden at the north, sharp keys warming clockwise, flat keys cooling the other way, meeting at the Seam in the south.
 - spoken for by `whole.scale`: A garden after a storm, from a seed's height. The lands are a yard, a field, a road, a parked car and a porch, each as big as a country to Hum.
 - spoken for by `garden.asters`: Asters are as tall as cathedrals.
-- open: One continuous place. There are no loading doors between lands.
+- spoken for by `lands.shape`: One continuous place. There are no loading doors between lands.
 - spoken for by `whole.lights`: From any shore you see every land's lights across the water and hear the far ones late.
-- open: One to a hundred. Hum stands one metre, a centimetre of the real garden, and every thing is its real size times a hundred (size.md).
-- open: Sizes (size.md): the lake is 3.7 km across, and its shore more than a day's run round.
-- open: Each land is about 3 square kilometres: a kilometre of shore, two kilometres deep.
-- open: The ring is 36 square kilometres of ground, and the whole world 7.7 km across.
-- open: The whole shape is a spiral shore of fifths, with thirds going outward, overtones going up and the mirror going down (shape.md).
-- open: Height is the octave, and an octave is 100 m.
-- open: Higher ground is a higher register.
-- open: The rim climbs by a hair all the way round, so at the Seam one side of the crack stands a step above the other: the comma, as a ledge.
-- open: The city bridges it.
-- open: Every place has two faces. At noon everything sounds at once, quietly, and the land is lit from the horizon.
-- open: At 2am the field is black and you see by calling.
-- open: The same things are there at both hours and do different things.
+- spoken for by `lands.shape`: One to a hundred. Hum stands one metre, a centimetre of the real garden, and every thing is its real size times a hundred (size.md).
+- spoken for by `lands.shape`: Sizes (size.md): the lake is 3.7 km across, and its shore more than a day's run round.
+- spoken for by `lands.shape`: Each land is about 3 square kilometres: a kilometre of shore, two kilometres deep.
+- spoken for by `lands.shape`: The ring is 36 square kilometres of ground, and the whole world 7.7 km across.
+- spoken for by `lands.shape`: The whole shape is a spiral shore of fifths, with thirds going outward, overtones going up and the mirror going down (shape.md).
+- spoken for by `lands.shape`: Height is the octave, and an octave is 100 m.
+- spoken for by `lands.shape`: Higher ground is a higher register.
+- spoken for by `lands.shape`: The rim climbs by a hair all the way round, so at the Seam one side of the crack stands a step above the other: the comma, as a ledge.
+- spoken for by `lands.shape`: The city bridges it.
+- spoken for by `lands.two-faces`: Every place has two faces. At noon everything sounds at once, quietly, and the land is lit from the horizon.
+- spoken for by `lands.two-faces`: At 2am the field is black and you see by calling.
+- spoken for by `lands.two-faces`: The same things are there at both hours and do different things.
 
 ## `spec/world.md` / The world / What every land has
 
-- open: A shape that follows from what it is made of, and three to five covers on its ground, each of which does something to Hum (shape.md); its own sky (sky.md); a key and a morning; a tuning; a material that sets its physics; the law it shows best; a metre; a reason its people sing; a tradition the songbook credits; a river to free, which raises the lake; one thing it lends when its note is borrowed; a great instrument to go inside; eight lives; twelve wonders.
-- open: A wonder is one true thing about sound, found by doing it.
-- open: It needs no fight and no words.
-- open: Finding one adds a page to the songbook, drawn by the beam.
-- open: A great instrument is a place you go inside.
-- open: Each has a trial for Fierce players and can be sat with on Gentle.
-- open: Setting it right frees the land's river.
-- open: The credits are from general knowledge and are to be checked against sources before the songbook is written.
+- spoken for by `lands.every-land`: A shape that follows from what it is made of, and three to five covers on its ground, each of which does something to Hum (shape.md); its own sky (sky.md); a key and a morning; a tuning; a material that sets its physics; the law it shows best; a metre; a reason its people sing; a tradition the songbook credits; a river to free, which raises the lake; one thing it lends when its note is borrowed; a great instrument to go inside; eight lives; twelve wonders.
+- spoken for by `lands.every-land`: A wonder is one true thing about sound, found by doing it.
+- spoken for by `lands.every-land`: It needs no fight and no words.
+- spoken for by `lands.every-land`: Finding one adds a page to the songbook, drawn by the beam.
+- spoken for by `lands.every-land`: A great instrument is a place you go inside.
+- spoken for by `lands.every-land`: Each has a trial for Fierce players and can be sat with on Gentle.
+- spoken for by `lands.every-land`: Setting it right frees the land's river.
+- spoken for by `lands.every-land`: The credits are from general knowledge and are to be checked against sources before the songbook is written.
 
 ## `spec/world.md` / The world / 1. The Garden (C, the first morning and the thirteenth)
 
@@ -1031,29 +1031,29 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/people.md` / The people / How a life works
 
-- open: Everyone is made of something ordinary: a peg, a marble, a bottle cap, a screen door.
-- open: Nobody has a face. Nobody is explained.
-- open: A tune. Each life has a short tune of its own, sung in its own vowel, and a body that is the figure of its note against home.
-- open: A round. Where it is on which morning.
-- open: Most stay in one place.
-- open: Some go round three, four, five or seven places, one a morning; a few take twelve, thirteen or seventeen.
-- open: A round is a sum from the morning's number, so the almanac can show any morning to come.
-- open: A want. An ending its tune can't reach by itself.
-- open: Notice who is there today.
-- open: Capture: lean in while they sing, and keep the phrase.
-- open: Extract: on the page, a kept phrase shows what it is made of and where it stops short.
-- open: Select: find what it is missing.
-- open: It is always somewhere: another life, another morning, a place, a wonder, one of your own echoes.
-- open: Sing: at dusk, when the land gathers, sing with them and land the ending.
-- open: What it changes. Their part joins the land's dusk song for good.
-- open: They lend you a small voice: one colour of one of the five.
-- open: The river sings them in your night.
-- open: Each land's eight are its band: a ground, a pulse, a tune, a third, and four colours.
-- open: A land with all eight sings its whole song at dusk.
-- open: Twelve songs, ninety-six parts.
-- open: A life goes on past its first ending (years.md): two more wants, ties to other lives, duets when they meet, a morning you can live as it, and over years a change into something that keeps its tune.
-- open: Nothing here is a chore list. Nobody asks. A life sings what it sings, where it is, and the player who never helps anyone still reaches the thirteenth morning.
-- open: The lands are thinner for it, and the lake is lower.
+- spoken for by `people.a-life`: Everyone is made of something ordinary: a peg, a marble, a bottle cap, a screen door.
+- spoken for by `people.a-life`: Nobody has a face. Nobody is explained.
+- spoken for by `people.a-life`: A tune. Each life has a short tune of its own, sung in its own vowel, and a body that is the figure of its note against home.
+- spoken for by `people.a-life`: A round. Where it is on which morning.
+- spoken for by `people.a-life`: Most stay in one place.
+- spoken for by `people.a-life`: Some go round three, four, five or seven places, one a morning; a few take twelve, thirteen or seventeen.
+- spoken for by `people.a-life`: A round is a sum from the morning's number, so the almanac can show any morning to come.
+- spoken for by `people.a-life`: A want. An ending its tune can't reach by itself.
+- spoken for by `people.a-life`: Notice who is there today.
+- spoken for by `people.a-life`: Capture: lean in while they sing, and keep the phrase.
+- spoken for by `people.a-life`: Extract: on the page, a kept phrase shows what it is made of and where it stops short.
+- spoken for by `people.a-life`: Select: find what it is missing.
+- spoken for by `people.a-life`: It is always somewhere: another life, another morning, a place, a wonder, one of your own echoes.
+- spoken for by `people.a-life`: Sing: at dusk, when the land gathers, sing with them and land the ending.
+- spoken for by `people.a-life`: What it changes. Their part joins the land's dusk song for good.
+- spoken for by `people.a-life`: They lend you a small voice: one colour of one of the five.
+- spoken for by `people.a-life`: The river sings them in your night.
+- spoken for by `people.a-life`: Each land's eight are its band: a ground, a pulse, a tune, a third, and four colours.
+- spoken for by `people.a-life`: A land with all eight sings its whole song at dusk.
+- spoken for by `people.a-life`: Twelve songs, ninety-six parts.
+- spoken for by `people.a-life`: A life goes on past its first ending (years.md): two more wants, ties to other lives, duets when they meet, a morning you can live as it, and over years a change into something that keeps its tune.
+- spoken for by `people.a-life`: Nothing here is a chore list. Nobody asks. A life sings what it sings, where it is, and the player who never helps anyone still reaches the thirteenth morning.
+- spoken for by `people.a-life`: The lands are thinner for it, and the lake is lower.
 
 ## `spec/people.md` / The people / The ones who go with you
 
@@ -1101,18 +1101,18 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/people.md` / The people / The lands' eights
 
-- open: Each table: who, what they are, their round, what their tune can't reach, what helps, and what they lend.
+- spoken for by `people.garden-eight`: Each table: who, what they are, their round, what their tune can't reach, what helps, and what they lend.
 
 ## `spec/people.md` / The people / The lands' eights / The Garden: the morning song
 
-- open: Pill | a pill bug that rolls up at any surprise | 3: Garden, Alfalfa, Porch | a march that loses a beat every time it curls | a steady pulse beside it for one whole phrase | a soft tick
-- open: Snail | carries a spiral; a morning late for everything | 7: down the east shore and back | arriving while the song is still being sung | keep its phrase and sing it at the gathering ahead of it | a long slow line
-- open: the Twins | two asters on one stem | stay | they sing one tune a beat apart and each thinks the other is late | the clap, on the one they share | a voice that answers a beat later
-- open: Moss | a patch of moss | stays | being heard: it swallows its own voice | set the pot over it | the softest start to a note
-- open: Sprinkler | a spinning sprinkler head | stays; goes round in five while the garden counts four | someone who counts with it | strike where five and four meet | a count of five
-- open: the Ants | a file of ants, many as one | 4: Garden, Bell Meadow, Aster Steps, Porch | a work song: they stumble on each other | lead them, by walking | a crowd's voice
-- open: Peg | a sprung clothes-peg on a line, holding nothing | stays | the other half of its tune: its sock is under a seat in the Chrome Nave | carry the sock's half back | a snap on the off-beat
-- open: Nozzle | the brass end of the hose | stays | the top line: it goes sharp when the sun warms it | plant something to shade it | the bright top
+- spoken for by `people.garden-eight`: Pill | a pill bug that rolls up at any surprise | 3: Garden, Alfalfa, Porch | a march that loses a beat every time it curls | a steady pulse beside it for one whole phrase | a soft tick
+- spoken for by `people.garden-eight`: Snail | carries a spiral; a morning late for everything | 7: down the east shore and back | arriving while the song is still being sung | keep its phrase and sing it at the gathering ahead of it | a long slow line
+- spoken for by `people.garden-eight`: the Twins | two asters on one stem | stay | they sing one tune a beat apart and each thinks the other is late | the clap, on the one they share | a voice that answers a beat later
+- spoken for by `people.garden-eight`: Moss | a patch of moss | stays | being heard: it swallows its own voice | set the pot over it | the softest start to a note
+- spoken for by `people.garden-eight`: Sprinkler | a spinning sprinkler head | stays; goes round in five while the garden counts four | someone who counts with it | strike where five and four meet | a count of five
+- spoken for by `people.garden-eight`: the Ants | a file of ants, many as one | 4: Garden, Bell Meadow, Aster Steps, Porch | a work song: they stumble on each other | lead them, by walking | a crowd's voice
+- spoken for by `people.garden-eight`: Peg | a sprung clothes-peg on a line, holding nothing | stays | the other half of its tune: its sock is under a seat in the Chrome Nave | carry the sock's half back | a snap on the off-beat
+- spoken for by `people.garden-eight`: Nozzle | the brass end of the hose | stays | the top line: it goes sharp when the sun warms it | plant something to shade it | the bright top
 
 ## `spec/people.md` / The people / The lands' eights / The Alfalfa: the work song
 
@@ -1237,11 +1237,11 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/people.md` / The people / Left blank on purpose
 
-- open: Who the vine is.
-- open: Who sat on the pool's edge.
-- open: Who sat in the chair.
-- open: Where Jeanne has been.
-- open: What the fly wants.
+- spoken for by `people.blank`: Who the vine is.
+- spoken for by `people.blank`: Who sat on the pool's edge.
+- spoken for by `people.blank`: Who sat in the chair.
+- spoken for by `people.blank`: Where Jeanne has been.
+- spoken for by `people.blank`: What the fly wants.
 
 ## `spec/people.md` / The people / On the thirteenth morning
 
@@ -1292,26 +1292,26 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `scale.ring`: The lake is the hub. Its shore is 11.6 km round: more than half an hour's run, more than a day.
 - spoken for by `scale.ring`: Straight across by boat is a few minutes.
 - spoken for by `scale.ring`: Sound crosses it in 62 seconds, so what rings on the far shore is seen at once and heard a minute later; a note that is ridden (law 6) carries Hum over in the same minute.
-- open: Why this size and no smaller. A place this rich, at a find every minute, holds five to eight hours of play in three square kilometres, which is what sixty to a hundred hours over twelve lands asks for (an estimate, from how the lands are written: eight lives, twelve wonders, a great instrument, a river, pools and packs in each).
+- spoken for by `scale.ring`: Why this size and no smaller. A place this rich, at a find every minute, holds five to eight hours of play in three square kilometres, which is what sixty to a hundred hours over twelve lands asks for (an estimate, from how the lands are written: eight lives, twelve wonders, a great instrument, a river, pools and packs in each).
 - spoken for by `scale.ring`: And things as tall as cathedrals need room to stand apart and be seen from far off.
 - spoken for by `scale.ring`: Past the lake each land that is made after the thirteenth morning is another three square kilometres, with no end to them.
 - spoken for by `scale.ring`: These replace the estimate the atlas had before (a ring of about 3 square kilometres), which let a "country" be crossed in a minute and a half.
 
 ## `spec/size.md` / How big / What the card is for
 
-- open: Why nothing on the card was a picture. Two decisions made the game light.
-- open: Its look is lines of light on black, and a line is two points and a colour: thirty thousand of them, a whole view, are one megabyte.
-- open: Its sound is made from resonators as it plays, so nothing is recorded.
-- open: A game built that way has nothing to paint and nothing to tape, and the whole of it fits in a few gigabytes however large its world is.
-- open: That lightness is room, and the room is spent. Not on padding: on the two things a light game can afford that a heavy one can't.
+- spoken for by `card.light`: Why nothing on the card was a picture. Two decisions made the game light.
+- spoken for by `card.light`: Its look is lines of light on black, and a line is two points and a colour: thirty thousand of them, a whole view, are one megabyte.
+- spoken for by `card.light`: Its sound is made from resonators as it plays, so nothing is recorded.
+- spoken for by `card.light`: A game built that way has nothing to paint and nothing to tape, and the whole of it fits in a few gigabytes however large its world is.
+- spoken for by `card.light`: That lightness is room, and the room is spent. Not on padding: on the two things a light game can afford that a heavy one can't.
 
 ## `spec/size.md` / How big / What the card is for / Nothing is a copy
 
-- open: No thing in the world is an instance of a model.
-- open: Every aster, every leaf, every blade of grass and crumb of soil is its own shape, made once by the score's rules and kept on the card, and it stays as it is left.
-- open: The blade you bent on the first evening is still bent seven years later.
-- open: A path you walk every morning wears into the grass.
-- open: A leaf that was struck too hard hangs lower for good.
+- spoken for by `card.no-copies`: No thing in the world is an instance of a model.
+- spoken for by `card.no-copies`: Every aster, every leaf, every blade of grass and crumb of soil is its own shape, made once by the score's rules and kept on the card, and it stays as it is left.
+- spoken for by `card.no-copies`: The blade you bent on the first evening is still bent seven years later.
+- spoken for by `card.no-copies`: A path you walk every morning wears into the grass.
+- spoken for by `card.no-copies`: A leaf that was struck too hard hangs lower for good.
 
 ## `spec/size.md` / How big / What the card is for / Nothing is forgotten
 
@@ -1322,33 +1322,33 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `card.ground`: Over months the black ground becomes a slow photograph of everything that has been sung on it: your own paths as bright rivers, the place a fight was won, the ring where a land gathered at dusk.
 - spoken for by `card.ground`: Under it is the old light, which was there before you: the rounds of the lives, worn faintly into the ground where each one walks, so the almanac can be read by looking down.
 - spoken for by `card.ground`: A friend who visits leaves their colour on your ground for as long as the card lasts.
-- open: Every dawn is kept. The save made each dawn is never thrown away.
-- open: Any morning of your life in the game can be opened from the book and walked again as it was, with your own past self walking it beside you, because a take is its inputs.
-- open: Someone you met in the first week and who has since changed (years.md) is still there on the morning you met them.
-- open: Your book is kept as sound and as paper. Each day's river song is written to the card as sound, with its separate voices beside it, and its page at print size.
-- open: Put the card in a computer and it is an album and a book with a song and a page for every day you played.
-- open: Your friends' worlds are kept. After a visit (together.md) each card holds the other's world as it stood that day.
-- open: You can walk in it when they are not there.
-- open: Every place has its own true echo. Each place's echoes are worked out from its shape on the laptop, slowly and properly, and kept: a few delays for every spot of open ground, and a whole second of real echo for every few metres inside the great instruments and the caves.
+- spoken for by `card.kept`: Every dawn is kept. The save made each dawn is never thrown away.
+- spoken for by `card.kept`: Any morning of your life in the game can be opened from the book and walked again as it was, with your own past self walking it beside you, because a take is its inputs.
+- spoken for by `card.kept`: Someone you met in the first week and who has since changed (years.md) is still there on the morning you met them.
+- spoken for by `card.kept`: Your book is kept as sound and as paper. Each day's river song is written to the card as sound, with its separate voices beside it, and its page at print size.
+- spoken for by `card.kept`: Put the card in a computer and it is an album and a book with a song and a page for every day you played.
+- spoken for by `card.kept`: Your friends' worlds are kept. After a visit (together.md) each card holds the other's world as it stood that day.
+- spoken for by `card.kept`: You can walk in it when they are not there.
+- spoken for by `card.kept`: Every place has its own true echo. Each place's echoes are worked out from its shape on the laptop, slowly and properly, and kept: a few delays for every spot of open ground, and a whole second of real echo for every few metres inside the great instruments and the caves.
 
 ## `spec/size.md` / How big / What the card is for / What that comes to
 
-- open: All estimates, to be measured as stage 1 and stage 2 build each part.
-- open: the program, the scores, the sounds as data | under 0.1 GB
-- open: every thing's own shape, at every distance it is seen from: about 12,600 pieces of world | 4 GB
-- open: the ground's old light: a 256 by 256 picture for each piece, 25 cm to a dot | 3 GB
-- open: the echoes | 2.5 GB
-- open: as it arrives | about 10 GB
-- open: each day played: the take, what the dawn keeps of the world's changes, the song as sound with its voices, the page | 25 to 45 MB
-- open: each friend's world | 1 to 4 GB
-- open: 32 GB (the two units have these now) | 420 to 760 days | one to two years
-- open: 64 GB | 1,100 to 1,960 days | three to five years
-- open: A card is a number of years. When one fills, the oldest dawns are thinned to their takes alone, a few hundred kilobytes each, from which any of them can be made again.
-- open: Nothing is ever lost; the oldest mornings just take a while to open.
-- open: The handheld can carry it (measured, docs/hardware-target.md): the card reads 43 MB a second with next to no interrupts; a picture the size of one piece's ground uploads in about 1.3 ms; the screen needs 18 million dots of it a second and the GPU samples 530 million; forty-nine pieces of ground in memory are 13 MB of the 815 that are free.
-- open: The same world on every card. What the rules read is the same on a 32 GB card and a 64 GB one.
-- open: Two consoles with different cards make the same take.
-- open: If he ever wants his own playing in the world, the room is there: an hour of it is 0.7 GB.
+- spoken for by `card.years`: All estimates, to be measured as stage 1 and stage 2 build each part.
+- spoken for by `card.years`: the program, the scores, the sounds as data | under 0.1 GB
+- spoken for by `card.years`: every thing's own shape, at every distance it is seen from: about 12,600 pieces of world | 4 GB
+- spoken for by `card.years`: the ground's old light: a 256 by 256 picture for each piece, 25 cm to a dot | 3 GB
+- spoken for by `card.years`: the echoes | 2.5 GB
+- spoken for by `card.years`: as it arrives | about 10 GB
+- spoken for by `card.years`: each day played: the take, what the dawn keeps of the world's changes, the song as sound with its voices, the page | 25 to 45 MB
+- spoken for by `card.years`: each friend's world | 1 to 4 GB
+- spoken for by `card.years`: 32 GB (the two units have these now) | 420 to 760 days | one to two years
+- spoken for by `card.years`: 64 GB | 1,100 to 1,960 days | three to five years
+- spoken for by `card.years`: A card is a number of years. When one fills, the oldest dawns are thinned to their takes alone, a few hundred kilobytes each, from which any of them can be made again.
+- spoken for by `card.years`: Nothing is ever lost; the oldest mornings just take a while to open.
+- spoken for by `card.carried`: The handheld can carry it (measured, docs/hardware-target.md): the card reads 43 MB a second with next to no interrupts; a picture the size of one piece's ground uploads in about 1.3 ms; the screen needs 18 million dots of it a second and the GPU samples 530 million; forty-nine pieces of ground in memory are 13 MB of the 815 that are free.
+- spoken for by `card.years`: The same world on every card. What the rules read is the same on a 32 GB card and a 64 GB one.
+- spoken for by `card.years`: Two consoles with different cards make the same take.
+- spoken for by `card.carried`: If he ever wants his own playing in the world, the room is there: an hour of it is 0.7 GB.
 
 ## `spec/years.md` / The years / Three wants
 
@@ -2167,16 +2167,16 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/shape.md` / The shape of the lands / The twelve lands / The Garden: a bowl
 
-- open: Shape. A shallow bowl a kilometre and a half across, with the Mirror Pool at its lowest point.
-- open: The ground rises gently from the pool on every side to a rim of raised beds, each edged with a wall of brick ten metres high.
-- open: The spigot stands on the highest rise at the back, and the hose runs from it down across the whole bowl to the pool.
-- open: Why. A bowl gathers. Every sound made in it runs down to the water and comes back up, so the Garden is the land where your own voice returns to you from all sides.
-- open: It shows all seven laws gently because nothing in a bowl is far away.
-- open: Sound. A call from the rim is heard everywhere in it.
-- open: The bowl has one low note of its own, a C, which the right call at the pool's edge wakes.
-- open: Seen. The asters' skyline; the spigot, a monument of brass; the hose, a green river you can hear.
-- open: Silhouette. A low bowl of towers, with a glint of brass among them.
-- open: Hands. Easy. Gentle slopes, short distances, everything rings.
+- spoken for by `lands.garden-bowl`: Shape. A shallow bowl a kilometre and a half across, with the Mirror Pool at its lowest point.
+- spoken for by `lands.garden-bowl`: The ground rises gently from the pool on every side to a rim of raised beds, each edged with a wall of brick ten metres high.
+- spoken for by `lands.garden-bowl`: The spigot stands on the highest rise at the back, and the hose runs from it down across the whole bowl to the pool.
+- spoken for by `lands.garden-bowl`: Why. A bowl gathers. Every sound made in it runs down to the water and comes back up, so the Garden is the land where your own voice returns to you from all sides.
+- spoken for by `lands.garden-bowl`: It shows all seven laws gently because nothing in a bowl is far away.
+- spoken for by `lands.garden-bowl`: Sound. A call from the rim is heard everywhere in it.
+- spoken for by `lands.garden-bowl`: The bowl has one low note of its own, a C, which the right call at the pool's edge wakes.
+- spoken for by `lands.garden-bowl`: Seen. The asters' skyline; the spigot, a monument of brass; the hose, a green river you can hear.
+- spoken for by `lands.garden-bowl`: Silhouette. A low bowl of towers, with a glint of brass among them.
+- spoken for by `lands.garden-bowl`: Hands. Easy. Gentle slopes, short distances, everything rings.
 - spoken for by `garden.ground`: lawn | blades of grass, 4 to 9 m | bends away as you pass and springs back in your wake, shedding dew that lands a moment later: your path is heard just after you (travel)
 - spoken for by `garden.ground`: moss | cushions a metre high | swallows sound. On moss your call goes half as far and you are dim: the place to rest and the place to hide (cancelling)
 - spoken for by `garden.ground`: clover | three leaves on a thread of a stalk, 3 to 7 m up | a roof. Each leaf is a drum skin: rain plays it, and when you hum under one its figure shows on its underside (standing waves)
@@ -2423,50 +2423,50 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/texture.md` / The texture of the world / One rule
 
-- open: How a thing looks is how it sounds. Every part of a thing's look is one part of its sound, by the same number.
-- open: how loud it is | how much light it gives
-- open: its note | its colour, by fifths round the wheel
-- open: how much of its sound is note and how much is noise | how deep its colour is: a clear note is full colour, and noise has no colour at all
-- open: its overtones | the shape its lines take when it sounds
-- open: how long it rings | how long its light lasts
-- open: how it is set sounding: struck, plucked, bowed, blown | how its light begins: at once, or swelling
-- open: its register | how heavy its line is
-- open: Colour's depth has four causes, and any one of them greys a thing: noise (a click has no colour), harm (hits drain it and a cadence restores it, ../SPEC.md, 10), dissonance with home (a tritone mixes toward grey, ../design/look.md), and the Grid (a day that changed nothing).
-- open: They are told apart by the line: a harmed thing leans, a dissonant one turns, and the Grid's grey is drawn in pixel stairs.
+- spoken for by `texture.one-rule`: How a thing looks is how it sounds. Every part of a thing's look is one part of its sound, by the same number.
+- spoken for by `texture.one-rule`: how loud it is | how much light it gives
+- spoken for by `texture.one-rule`: its note | its colour, by fifths round the wheel
+- spoken for by `texture.one-rule`: how much of its sound is note and how much is noise | how deep its colour is: a clear note is full colour, and noise has no colour at all
+- spoken for by `texture.one-rule`: its overtones | the shape its lines take when it sounds
+- spoken for by `texture.one-rule`: how long it rings | how long its light lasts
+- spoken for by `texture.one-rule`: how it is set sounding: struck, plucked, bowed, blown | how its light begins: at once, or swelling
+- spoken for by `texture.one-rule`: its register | how heavy its line is
+- spoken for by `texture.one-rule`: Colour's depth has four causes, and any one of them greys a thing: noise (a click has no colour), harm (hits drain it and a cadence restores it, ../SPEC.md, 10), dissonance with home (a tritone mixes toward grey, ../design/look.md), and the Grid (a day that changed nothing).
+- spoken for by `texture.one-rule`: They are told apart by the line: a harmed thing leans, a dissonant one turns, and the Grid's grey is drawn in pixel stairs.
 
 ## `spec/texture.md` / The texture of the world / A line at rest
 
 - spoken for by `texture.light`: A silent thing is not lit. It is seen only when something else lights it: the day, or a call's ring passing over it.
 - spoken for by `texture.light`: A thing's light is its loudness, spread over all its lines. This is the rule that makes brightness loudness.
-- open: A crown of small bells ringing loudly is a few short lines carrying a great deal of light: piercing.
-- open: A lawn rustling faintly is a great many long lines carrying almost none: a mist.
-- open: A big thing has to be very loud to be bright.
+- spoken for by `texture.at-rest`: A crown of small bells ringing loudly is a few short lines carrying a great deal of light: piercing.
+- spoken for by `texture.at-rest`: A lawn rustling faintly is a great many long lines carrying almost none: a mist.
+- spoken for by `texture.at-rest`: A big thing has to be very loud to be bright.
 - spoken for by `texture.light`: So the brightest thing on the screen is always something that is sounding, or Hum.
-- open: Lower is heavier. A line's weight has one source, its thing's register, in three steps: heavy, plain and hair.
-- open: Distance thins a line only by perspective, and a material changes a line's edge, grain and glow, never its weight.
+- spoken for by `texture.at-rest`: Lower is heavier. A line's weight has one source, its thing's register, in three steps: heavy, plain and hair.
+- spoken for by `texture.at-rest`: Distance thins a line only by perspective, and a material changes a line's edge, grain and glow, never its weight.
 
 ## `spec/texture.md` / The texture of the world / A line that sounds
 
-- open: A sounding line is a standing wave. It moves sideways in the shapes of its own overtones: the first as one loop, the second as two, and on.
-- open: How far it moves is how loud it is.
-- open: So you can see what kind of thing is ringing, and which of its overtones, by looking.
-- open: It moves at its own note, eight octaves down, and a note above 2,048 hertz is folded down by further octaves until it moves fewer than eight times a second, so nothing swings faster than the screen can show.
-- open: Middle C swings once a second.
-- open: A fifth above swings three times for its two.
-- open: A chord is seen as lines swinging in step.
-- open: The light is brightest where the line turns. The beam that draws a thing is slowest at the two ends of a swing, so those are the bright places, and the middle of the swing is faint.
-- open: A still line is brightest at its corners for the same reason, and evenly lit along its length.
-- open: Each family moves in its own way:
-- open: string | one thin line | whole loops: one, two, three bellies, with still points between that you can touch
-- open: open pipe | two walls | beads of light inside it, evenly spaced: one for each belly of air
-- open: stopped pipe | two walls and a cap | beads at odd spacing only: half as many, and hollow-looking, as it sounds
-- open: bar | a slab's edge | a bend that is not even: its still points sit 22.4% of the way in from each end, a little over a fifth
-- open: fork | two tines | the tines swing apart and together, and nothing else moves
-- open: skin | a rim | the figure on its surface: rings and spokes of still line, with the rest shimmering
-- open: bell | a profile and a rim | the rim becomes a flower of four lobes, then six: its wall bulging in and out
-- open: bottle | an outline with a neck | the air in its neck: one bead, swelling and shrinking
-- open: plate | an outline | its figure, from its own outline, in still line
-- open: voice | the singer's figure against your home | lobes by the ratio of its note to yours: still when the two are true, turning when they are not
+- spoken for by `texture.sounding`: A sounding line is a standing wave. It moves sideways in the shapes of its own overtones: the first as one loop, the second as two, and on.
+- spoken for by `texture.sounding`: How far it moves is how loud it is.
+- spoken for by `texture.sounding`: So you can see what kind of thing is ringing, and which of its overtones, by looking.
+- spoken for by `texture.sounding`: It moves at its own note, eight octaves down, and a note above 2,048 hertz is folded down by further octaves until it moves fewer than eight times a second, so nothing swings faster than the screen can show.
+- spoken for by `texture.sounding`: Middle C swings once a second.
+- spoken for by `texture.sounding`: A fifth above swings three times for its two.
+- spoken for by `texture.sounding`: A chord is seen as lines swinging in step.
+- spoken for by `texture.sounding`: The light is brightest where the line turns. The beam that draws a thing is slowest at the two ends of a swing, so those are the bright places, and the middle of the swing is faint.
+- spoken for by `texture.sounding`: A still line is brightest at its corners for the same reason, and evenly lit along its length.
+- spoken for by `texture.sounding`: Each family moves in its own way:
+- spoken for by `texture.sounding`: string | one thin line | whole loops: one, two, three bellies, with still points between that you can touch
+- spoken for by `texture.sounding`: open pipe | two walls | beads of light inside it, evenly spaced: one for each belly of air
+- spoken for by `texture.sounding`: stopped pipe | two walls and a cap | beads at odd spacing only: half as many, and hollow-looking, as it sounds
+- spoken for by `texture.sounding`: bar | a slab's edge | a bend that is not even: its still points sit 22.4% of the way in from each end, a little over a fifth
+- spoken for by `texture.sounding`: fork | two tines | the tines swing apart and together, and nothing else moves
+- spoken for by `texture.sounding`: skin | a rim | the figure on its surface: rings and spokes of still line, with the rest shimmering
+- spoken for by `texture.sounding`: bell | a profile and a rim | the rim becomes a flower of four lobes, then six: its wall bulging in and out
+- spoken for by `texture.sounding`: bottle | an outline with a neck | the air in its neck: one bead, swelling and shrinking
+- spoken for by `texture.sounding`: plate | an outline | its figure, from its own outline, in still line
+- spoken for by `texture.sounding`: voice | the singer's figure against your home | lobes by the ratio of its note to yours: still when the two are true, turning when they are not
 
 ## `spec/texture.md` / The texture of the world / What a thing is made of
 
@@ -2490,67 +2490,67 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/texture.md` / The texture of the world / Tuning, seen
 
-- open: True is still. A figure between two voices in a pure interval does not move.
-- open: In a land of sweet thirds the fifths' figures turn slowly; at the Seam everything turns.
-- open: Out of tune is never blur. It is two crisp copies sliding against each other on the beat (../SPEC.md, 15).
-- open: The comma is 1.96 m of height and 7.04 degrees of sky (sky.md). Wherever two things a comma apart stand together, that gap is between them: seen as two copies when near, and as a beat when far.
+- spoken for by `texture.tuning-seen`: True is still. A figure between two voices in a pure interval does not move.
+- spoken for by `texture.tuning-seen`: In a land of sweet thirds the fifths' figures turn slowly; at the Seam everything turns.
+- spoken for by `texture.tuning-seen`: Out of tune is never blur. It is two crisp copies sliding against each other on the beat (../SPEC.md, 15).
+- spoken for by `texture.tuning-seen`: The comma is 1.96 m of height and 7.04 degrees of sky (sky.md). Wherever two things a comma apart stand together, that gap is between them: seen as two copies when near, and as a beat when far.
 
 ## `spec/texture.md` / The texture of the world / Silence, seen
 
-- open: Silence is black, and black is the commonest thing on the screen.
-- open: A quiet place is darker than the dark round it. Where sounds cancel (law 5), the ground's kept light does not show and a call's ring does not enter.
-- open: It has an edge you can walk.
-- open: A silent thing in front of a sounding one is a hole in the shape of the silent thing.
+- spoken for by `texture.silence`: Silence is black, and black is the commonest thing on the screen.
+- spoken for by `texture.silence`: A quiet place is darker than the dark round it. Where sounds cancel (law 5), the ground's kept light does not show and a call's ring does not enter.
+- spoken for by `texture.silence`: It has an edge you can walk.
+- spoken for by `texture.silence`: A silent thing in front of a sounding one is a hole in the shape of the silent thing.
 
 ## `spec/texture.md` / The texture of the world / Surfaces, when there are only lines
 
-- open: Solid matter is black shape. It hides what is behind it.
-- open: The more of a thing is black, the heavier it is.
-- open: A hollow thing is see-through. A pipe, a bell, a pot and a bottle are outlines, and you see the air inside them move.
-- open: Near things show what is Hum's own size on them: the joints of a stalk, a drop of dew, the grain of a board, the thread of a screw.
-- open: Far things are a mast and a point of light.
-- open: The same thing is drawn four ways by how far off it is (engine.md, three distances and a fourth).
-- open: Wet ground is a mirror. Every light near it has a fainter copy under it; only a pool shows the sky, and a call's ring runs twice as far across it.
-- open: The ground has two textures and no third: what it wears (shape.md), and the light it has kept (size.md).
+- spoken for by `texture.surfaces`: Solid matter is black shape. It hides what is behind it.
+- spoken for by `texture.surfaces`: The more of a thing is black, the heavier it is.
+- spoken for by `texture.surfaces`: A hollow thing is see-through. A pipe, a bell, a pot and a bottle are outlines, and you see the air inside them move.
+- spoken for by `texture.surfaces`: Near things show what is Hum's own size on them: the joints of a stalk, a drop of dew, the grain of a board, the thread of a screw.
+- spoken for by `texture.surfaces`: Far things are a mast and a point of light.
+- spoken for by `texture.surfaces`: The same thing is drawn four ways by how far off it is (engine.md, three distances and a fourth).
+- spoken for by `texture.surfaces`: Wet ground is a mirror. Every light near it has a fainter copy under it; only a pool shows the sky, and a call's ring runs twice as far across it.
+- spoken for by `texture.surfaces`: The ground has two textures and no third: what it wears (shape.md), and the light it has kept (size.md).
 
 ## `spec/texture.md` / The texture of the world / The texture of the sound
 
-- open: Each land has its own grain in the ear, from what it is made of: the Garden wet and soft; the Alfalfa strung and bright; the Glass Hills thin, high and endless; the Bell Meadow warm and beating; the Highway dry, with one wire humming; the Chrome Nave hard and doubled; the Seam busy and exact; the Aster Steps still; Verbena Hollow close and muffled; the Rain Steps late; the Reed Mouths nasal and low; the Porch warm and short.
-- open: It begins nearly bare. On the first evening there is your note, then Drip's, and over them the morning's sky.
-- open: The sound of the world thickens across the thirteen mornings from a single line to twelve songs at once, and is only ever full on the thirteenth.
-- open: Thin is the rule and thick is an event. At most four things carry the tune at once.
-- open: Everything else is a soft bed, the land's own grain, quieter than any one voice.
-- open: A land's song thickens with its lives. With none helped a land has a ground and a pulse.
-- open: The speaker is the floor (../SPEC.md, 15). Low voices are built from their upper overtones and the ear supplies the root.
-- open: Nothing a player must hear lies below 400 hertz alone or above 8,000.
+- spoken for by `texture.sound-grain`: Each land has its own grain in the ear, from what it is made of: the Garden wet and soft; the Alfalfa strung and bright; the Glass Hills thin, high and endless; the Bell Meadow warm and beating; the Highway dry, with one wire humming; the Chrome Nave hard and doubled; the Seam busy and exact; the Aster Steps still; Verbena Hollow close and muffled; the Rain Steps late; the Reed Mouths nasal and low; the Porch warm and short.
+- spoken for by `texture.sound-grain`: It begins nearly bare. On the first evening there is your note, then Drip's, and over them the morning's sky.
+- spoken for by `texture.sound-grain`: The sound of the world thickens across the thirteen mornings from a single line to twelve songs at once, and is only ever full on the thirteenth.
+- spoken for by `texture.sound-grain`: Thin is the rule and thick is an event. At most four things carry the tune at once.
+- spoken for by `texture.sound-grain`: Everything else is a soft bed, the land's own grain, quieter than any one voice.
+- spoken for by `texture.sound-grain`: A land's song thickens with its lives. With none helped a land has a ground and a pulse.
+- spoken for by `texture.sound-grain`: The speaker is the floor (../SPEC.md, 15). Low voices are built from their upper overtones and the ear supplies the root.
+- spoken for by `texture.sound-grain`: Nothing a player must hear lies below 400 hertz alone or above 8,000.
 
 ## `spec/texture.md` / The texture of the world / Across time
 
-- open: noon | everything sounds at once, quietly: the whole land is a fine web of faint line, and what you set ringing stands out of it
-- open: 2am | almost nothing sounds: the moon's drone, the stars' soft bed, the lives that keep the night, and what flies. Mostly black. You see by calling, and by what flies
-- open: the lake low | glow is short and the ground forgets: crisp, clean and lonely
-- open: the lake full | glow is long and the ground holds what was sung on it: warm, and written on
-- open: a land with nobody helped | a ground and a pulse: bare
-- open: a land with all eight | a band: full
+- spoken for by `texture.across-time`: noon | everything sounds at once, quietly: the whole land is a fine web of faint line, and what you set ringing stands out of it
+- spoken for by `texture.across-time`: 2am | almost nothing sounds: the moon's drone, the stars' soft bed, the lives that keep the night, and what flies. Mostly black. You see by calling, and by what flies
+- spoken for by `texture.across-time`: the lake low | glow is short and the ground forgets: crisp, clean and lonely
+- spoken for by `texture.across-time`: the lake full | glow is long and the ground holds what was sung on it: warm, and written on
+- spoken for by `texture.across-time`: a land with nobody helped | a ground and a pulse: bare
+- spoken for by `texture.across-time`: a land with all eight | a band: full
 
 ## `spec/texture.md` / The texture of the world / What makes a frame beautiful
 
-- open: These are rules, and the build can check each one from its own frames.
+- spoken for by `texture.beautiful`: These are rules, and the build can check each one from its own frames.
 - spoken for by `texture.frame`: Black is most of every frame. In the place, at least half the screen is black.
 - spoken for by `texture.frame`: On the page and at 2am, at least four fifths.
 - spoken for by `texture.frame`: Light is spent. No more than a tenth of the screen is brighter than half.
-- open: The brightest tenth of the light belongs to things that are sounding.
-- open: Few colours near. Every thing is the hue of its own note, by fifths, whatever the day.
-- open: Near Hum, most of what is lit is in the day's three hues, its note, its fifth and its third (sky.md), because most of what sounds there is in the day's chord.
-- open: Bone-white is for what has no note, and chrome for a note off the wheel.
-- open: The sky's upper rings, the far lands, the moon, the stars and echoes in sun-print blue keep their own colours.
-- open: Three weights of line: heavy for what is low, a plain line, and a hair for what is high.
-- open: Near, middle and far. Every view in the open air has something within twenty metres, something between, and something a kilometre off.
-- open: Inside a room, a pot or the hose, the far thing is the room's far end or its way out.
-- open: The score tool checks it for every piece.
+- spoken for by `texture.beautiful`: The brightest tenth of the light belongs to things that are sounding.
+- spoken for by `texture.beautiful`: Few colours near. Every thing is the hue of its own note, by fifths, whatever the day.
+- spoken for by `texture.beautiful`: Near Hum, most of what is lit is in the day's three hues, its note, its fifth and its third (sky.md), because most of what sounds there is in the day's chord.
+- spoken for by `texture.beautiful`: Bone-white is for what has no note, and chrome for a note off the wheel.
+- spoken for by `texture.beautiful`: The sky's upper rings, the far lands, the moon, the stars and echoes in sun-print blue keep their own colours.
+- spoken for by `texture.beautiful`: Three weights of line: heavy for what is low, a plain line, and a hair for what is high.
+- spoken for by `texture.beautiful`: Near, middle and far. Every view in the open air has something within twenty metres, something between, and something a kilometre off.
+- spoken for by `texture.beautiful`: Inside a room, a pot or the hose, the far thing is the room's far end or its way out.
+- spoken for by `texture.beautiful`: The score tool checks it for every piece.
 - spoken for by `texture.frame`: Hum is small. Walking, Hum is under a twentieth of the screen's height.
-- open: Nothing is drawn that isn't in the world. No frame, no gradient, no texture, no glow that nothing is giving.
-- open: Rest. Nothing swings unless it is sounding.
-- open: A living line's small boil goes on even in a quiet land, and only the Grid's lines are dead still.
-- open: A still frame of a quiet land should be mostly still.
-- open: A cheat would be: a colour scheme for each land chosen by eye; a glow filter over the whole screen; vibration added to things as an effect, at a rate somebody liked.
+- spoken for by `texture.beautiful`: Nothing is drawn that isn't in the world. No frame, no gradient, no texture, no glow that nothing is giving.
+- spoken for by `texture.beautiful`: Rest. Nothing swings unless it is sounding.
+- spoken for by `texture.beautiful`: A living line's small boil goes on even in a quiet land, and only the Grid's lines are dead still.
+- spoken for by `texture.beautiful`: A still frame of a quiet land should be mostly still.
+- spoken for by `texture.beautiful`: A cheat would be: a colour scheme for each land chosen by eye; a glow filter over the whole screen; vibration added to things as an effect, at a rate somebody liked.

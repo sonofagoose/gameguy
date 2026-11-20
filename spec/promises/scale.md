@@ -63,7 +63,9 @@ for is in `loop.md`._
   lake is the hub. Its shore is 11.6 km round: more than half an hour's run, more than a day."
   "Straight across by boat is a few minutes." "Sound crosses it in 62 seconds, so what rings on the
   far shore is seen at once and heard a minute later; a note that is ridden (law 6) carries Hum over
-  in the same minute." "And things as tall as cathedrals need room to stand apart and be seen from
+  in the same minute." "Why this size and no smaller. A place this rich, at a find every minute,
+  holds five to eight hours of play in three square kilometres" "And things as tall as cathedrals
+  need room to stand apart and be seen from
   far off." "Past the lake each land that is made after the thirteenth morning is another three
   square kilometres, with no end to them." "These replace the estimate the atlas had before (a ring
   of about 3 square kilometres), which let a "country" be crossed in a minute and a half."

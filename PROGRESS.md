@@ -61,6 +61,8 @@ past the deepest game he knows.
 | the take written as it is played (`game/src/plat/card.zig`) | done: a thread drains it to the card five times a second and makes the card hold it once a second; after a kill or a flat battery the next start goes on from the last dawn and the take |
 | the first evening as the default | done: Gameguy opens the first evening; `--scene dark` is the older proof |
 | Hum's voice at once (`game/src/plat/shoulders.zig`, `hands.voice-in-a-buffer`) | built 2026-11-20: the sound thread reads R1 and R2 from the kernel before every buffer and starts Hum's call or hum on the buffer after the press; the world tells the same sound on the stamped sample and it is not sounded twice; takes keep the stamps (version 2). Before this a press reached the ear 33 to 50 ms late. To be measured on the handheld: the log's "the hands:" line. A let-go is still heard at the world's next step |
+| stage 2's claims sized | done 2026-11-20: every sentence the stage owes has a promise (138 promises sized over the whole book; stage 2's open claims went from 544 to none), so stage 2 may begin. The guard now refuses a quote too short to say which sentence it means, and reads three more facts from the source: nothing reads FN, the world never reads a clock, and play draws one line of words |
+| law 1's cascade | done: a thing that rings rings its kin, more faintly each time (`whole.law1`) |
 | the purple | connected again on 2026-11-20 (Morgan: it had been all along; it was not answering on USB before then). It has today's build. Its same-take file is stale: run it there when Morgan is not using it. It has a build from before the evening scene. Its same-take file no longer matches |
 
 ## Next

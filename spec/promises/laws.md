@@ -417,9 +417,9 @@ law to its own words._
 
 ### `laws.ears` Limits for the ears
 
-- **Said:** `spec/laws.md` "Limits the engine keeps, so that "it sounds good" is checked and not
-  hoped
-  for:" "Slow beating is allowed as shimmer where a land's tuning makes it (the Seam, the Shimmer),
+- **Said:** `spec/laws.md` "Limits the engine keeps, so that" "Roughness. game/tools/ears measures
+  it. More than two seconds of sustained roughness is an error" "Slow beating is allowed as shimmer
+  where a land's tuning makes it (the Seam, the Shimmer),
   and Morgan's ears decide how much." "Everything a player must hear sits between 400 Hz and 8 kHz,
   where the small speaker speaks." "Low voices are built from upper overtones." "Out of phase is
   never out of tune: hollow, then loose in time, then silent." "A missed beat sounds plainer, never

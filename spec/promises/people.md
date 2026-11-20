@@ -75,3 +75,85 @@ wants; Morgan's own layer (the vine, the pool's edge, the chair) is never filled
     band for hearing and a kind of body (`years.md`, "Being them").
   - `owed` Lives changing over years, by rule (stage 5 and after).
 - **Asks:** When you were someone else, did the garden sound different?
+
+### `people.a-life` How a life works
+
+- **Said:** `spec/people.md` "Everyone is made of something ordinary: a peg, a marble, a bottle cap,
+  a
+  screen door." "Nobody has a face. Nobody is explained." "A tune. Each life has a short tune of its
+  own, sung in its own vowel, and a body that is the figure of its note against home." "A round.
+  Where it is on which morning." "Most stay in one place." "Some go round three, four, five or seven
+  places, one a morning; a few take twelve, thirteen or seventeen." "A round is a sum from the
+  morning's number, so the almanac can show any morning to come." "A want. An ending its tune can't
+  reach by itself." "Notice who is there today." "Capture: lean in while they sing, and keep the
+  phrase." "Extract: on the page, a kept phrase shows what it is made of and where it stops short."
+  "Select: find what it is missing." "It is always somewhere: another life, another morning, a
+  place, a wonder, one of your own echoes." "Sing: at dusk, when the land gathers, sing with them
+  and
+  land the ending." "What it changes. Their part joins the land's dusk song for good." "They lend
+  you
+  a small voice: one colour of one of the five." "The river sings them in your night." "Each land's
+  eight are its band: a ground, a pulse, a tune, a third, and four colours." "A land with all eight
+  sings its whole song at dusk." "Twelve songs, ninety-six parts." "A life goes on past its first
+  ending (years.md): two more wants, ties to other lives, duets when they meet, a morning you can
+  live as it, and over years a change into something that keeps its tune." "Nothing here is a chore
+  list. Nobody asks. A life sings what it sings, where it is, and the player who never helps anyone
+  still reaches the thirteenth morning." "The lands are thinner for it, and the lake is lower."
+- **Stage:** 2
+- **The moment:** A clothes-peg on a line sings half a tune and stops; nobody asks you anything. You
+  notice, you keep the phrase, you find its other half, and at dusk the peg's part is in the song.
+- **A cheat would be:** a quest log; a life with a face and a speech bubble.
+- **Full size:**
+  - `fact hud.text_lines <= 1` Nobody is explained in words.
+  - `owed` A test for each step of the day's five (`people.helping`): notice, capture, extract,
+    select, sing, played by the scripted player for the Garden's eight.
+  - `owed` Each life's body drawn as the figure of its note against home, from something ordinary,
+    with no face.
+  - `owed` A test: the player who helps nobody still reaches the thirteenth morning, with the lands
+    thinner and the lake lower.
+- **Asks:** Did you help someone because you wanted to, not because you were asked?
+
+### `people.garden-eight` The Garden's eight
+
+- **Said:** `spec/people.md` "Each table: who, what they are, their round, what their tune can't
+  reach, what helps, and what they lend." "Pill | a pill bug that rolls up at any surprise | 3:
+  Garden, Alfalfa, Porch | a march that loses a beat every time it curls | a steady pulse beside it
+  for one whole phrase | a soft tick" "Snail | carries a spiral; a morning late for everything | 7:
+  down the east shore and back | arriving while the song is still being sung | keep its phrase and
+  sing it at the gathering ahead of it | a long slow line" "the Twins | two asters on one stem |
+  stay
+  | they sing one tune a beat apart and each thinks the other is late | the clap, on the one they
+  share | a voice that answers a beat later" "Moss | a patch of moss | stays | being heard: it
+  swallows its own voice | set the pot over it | the softest start to a note" "Sprinkler | a
+  spinning
+  sprinkler head | stays; goes round in five while the garden counts four | someone who counts with
+  it | strike where five and four meet | a count of five" "the Ants | a file of ants, many as one |
+  4: Garden, Bell Meadow, Aster Steps, Porch | a work song: they stumble on each other | lead them,
+  by walking | a crowd's voice" "Peg | a sprung clothes-peg on a line, holding nothing | stays | the
+  other half of its tune: its sock is under a seat in the Chrome Nave | carry the sock's half back |
+  a snap on the off-beat" "Nozzle | the brass end of the hose | stays | the top line: it goes sharp
+  when the sun warms it | plant something to shade it | the bright top"
+- **Stage:** 2
+- **The moment:** Sprinkler goes round in five while the Garden counts four; you strike where five
+  and four meet, and it lends you a count of five.
+- **A cheat would be:** eight lives with the same help and the same reward.
+- **Full size:**
+  - `owed` The Garden's eight in its score, each with its round, its want, what helps and what it
+    lends, and a test that the scripted player helps each one by what helps it.
+  - `owed` Each life's want reached by a law, not a list: Sprinkler by law 3 (five against four),
+    Moss by law 1 (the pot), Nozzle by tuning (it goes sharp in the sun).
+- **Asks:** Which of the eight did you love?
+
+### `people.blank` Left blank on purpose
+
+- **Said:** `spec/people.md` "Who the vine is." "Who sat on the pool's edge." "Who sat in the
+  chair."
+  "Where Jeanne has been." "What the fly wants."
+- **Stage:** 2
+- **The moment:** The vine sings, someone has sat on the pool's edge and in the chair, the fly wants
+  something; the game never says.
+- **A cheat would be:** a caption, or a line in the songbook, that fills them in.
+- **Full size:**
+  - `owed` A check over the scores and the songbook: none of the five is named or explained; Morgan
+    reads what the game says of them and says it is still his (`rules.morgans-layer`).
+- **Asks:** Is it still yours?
