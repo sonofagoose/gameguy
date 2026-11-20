@@ -91,8 +91,14 @@ twenty minutes anyone has with the game, so each one is held to its largest read
   - `fact evening.breaths_to_lock == 4`
   - `owed` A player with poor timing takes longer and still gets there, and nothing ever tells them
     they missed.
-  - `owed` The third note measured from the sound by `game/tools/ears`: for C and the true G above
-    it, C an octave down, and heard on the handheld's own speaker (Morgan's yes).
+  - `fact ears.breath1_beats >= 1.6` Read back from the sound itself: on the first breath the two
+    notes beat almost twice a second.
+  - `fact ears.breath4_beats <= 0.6` By the fourth they beat less than once in two seconds.
+  - `fact ears.hold_beats <= 0.02` Locked, they do not beat.
+  - `fact ears.third_note_db_over_quiet >= 30` While both hold, there is sound an octave under Hum
+    that neither is singing.
+  - `owed` Whether that third note is heard on the handheld's own small speaker, and whether the
+    beating slowing is felt as coming true, is for Morgan's ear.
   - `owed` The view leaning in as it does for anyone you stand beside, not only here.
 - **Asks:** When the figure stopped, did it feel like the two of you locking?
 

@@ -63,7 +63,7 @@ const Voice = struct {
 };
 /// How much of the voices' sum squared is added back. Two voices together then make a third
 /// note between them, the difference of the two, which neither is singing (spec/laws.md).
-const third_voice: f32 = 0.30;
+const third_voice: f32 = 0.70;
 
 const max_things = 192; // 8 overtones each: 1,536 overtones, two groups a thing
 const burst_len = 96; // 2 ms: what a strike is

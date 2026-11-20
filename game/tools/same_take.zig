@@ -23,6 +23,64 @@ extern "c" fn fclose(file: *anyopaque) c_int;
 var walk_changes: [4096]rules.take.Change = undefined;
 var walk_bytes: [rules.take.header_size + 4096 * rules.take.change_size]u8 = undefined;
 
+// ------------------------------------------------------------------ ears
+//
+// Nobody building this can hear it. So the tool listens for them: it keeps stretches of the
+// evening's sound and measures what a person would hear in them.
+
+/// How much sound there is at one pitch in a stretch of samples, and its phase.
+fn tone(samples: []const f32, hz: f64) struct { size: f64, phase: f64 } {
+    var re: f64 = 0.0;
+    var im: f64 = 0.0;
+    const n: f64 = @floatFromInt(samples.len);
+    for (samples, 0..) |sample, i| {
+        // a raised-cosine window, so that neighbouring pitches don't leak in
+        const t: f64 = @floatFromInt(i);
+        const window = 0.5 - 0.5 * @cos(2.0 * std.math.pi * t / n);
+        const a = 2.0 * std.math.pi * hz * t / 48000.0;
+        re += sample * window * @cos(a);
+        im -= sample * window * @sin(a);
+    }
+    return .{ .size = @sqrt(re * re + im * im) / n, .phase = std.math.atan2(im, re) };
+}
+
+/// The pitch of a steady voice near `near_hz`: how far the phase there moves between two
+/// stretches a known time apart.
+fn pitchNear(samples: []const f32, near_hz: f64) f64 {
+    const span = 9600; // a fifth of a second
+    const hop = 4800;
+    if (samples.len < span + hop) return 0.0;
+    var sum: f64 = 0.0;
+    var count: f64 = 0.0;
+    var at: usize = 2400;
+    while (at + span + hop <= samples.len) : (at += hop) {
+        const a = tone(samples[at..][0..span], near_hz);
+        const b = tone(samples[at + hop ..][0..span], near_hz);
+        var turn = b.phase - a.phase - 2.0 * std.math.pi * near_hz * @as(f64, hop) / 48000.0;
+        while (turn > std.math.pi) turn -= 2.0 * std.math.pi;
+        while (turn < -std.math.pi) turn += 2.0 * std.math.pi;
+        sum += near_hz + turn * 48000.0 / (2.0 * std.math.pi * @as(f64, hop));
+        count += 1.0;
+    }
+    return if (count > 0.0) sum / count else 0.0;
+}
+
+/// A stretch of sound kept to be listened to.
+const Stretch = struct {
+    samples: [48000 * 4]f32 = undefined,
+    n: usize = 0,
+
+    fn hear(self: *Stretch, buf: []const f32) void {
+        const room = self.samples.len - self.n;
+        const take_n = @min(room, buf.len);
+        @memcpy(self.samples[self.n..][0..take_n], buf[0..take_n]);
+        self.n += take_n;
+    }
+};
+var breaths_heard: [4]Stretch = undefined;
+var hold_heard: Stretch = undefined;
+var quiet_heard: Stretch = undefined;
+
 var world: world_mod.World = undefined;
 var snd: sound_mod.Sound = undefined;
 
@@ -32,15 +90,18 @@ const Take = struct {
     cue_total: u64 = 0,
     refused: u64 = 0,
 
+    /// The samples of the step just made, for the ears.
+    last: [world_mod.samples_per_step]f32 = undefined,
+
     fn step(self: *Take, hands: world_mod.Hands) void {
         var cues: [world_mod.max_cues]sound_mod.Cue = undefined;
-        var buf: [world_mod.samples_per_step]f32 = undefined;
+        const buf = &self.last;
         const n = world.stepOnce(hands, &cues);
         for (cues[0..n]) |cue| {
             if (!snd.push(cue)) self.refused += 1;
         }
         self.cue_total += n;
-        snd.render(&buf);
+        snd.render(buf);
         for (buf) |x| {
             self.sound_print ^= @as(u32, @bitCast(x));
             self.sound_print *%= 0x100000001b3;
@@ -99,11 +160,21 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     var bot = rules.walker.Walker{};
     var walk = Take{};
     var recorder = rules.take.Recorder{ .changes = &walk_changes };
+    for (&breaths_heard) |*stretch| stretch.n = 0;
+    hold_heard.n = 0;
+    quiet_heard.n = 0;
     step = 0;
     while (step < 8 * per_minute and !bot.done) : (step += 1) {
         const hands = bot.hands(&world);
         recorder.note(step, hands);
+        // which stretch of the evening this step belongs to, judged before it is made
+        const breath_now: ?usize = if (world.drip_humming and world.locked_at == world_mod.never and world.breaths < 4) world.breaths else null;
+        const holding = world.locked_at != world_mod.never and world.step > world.locked_at + 30 and world.step + 20 < world.hold_until;
+        const quiet = world.step > 100 and world.step < 200;
         walk.step(hands);
+        if (breath_now) |b| breaths_heard[b].hear(&walk.last);
+        if (holding) hold_heard.hear(&walk.last);
+        if (quiet) quiet_heard.hear(&walk.last);
         if ((step + 1) % per_minute == 0) walk.line("evening minute", (step + 1) / per_minute);
     }
     walk.line("evening end, minute", step / per_minute + 1);
@@ -149,6 +220,27 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     fact("evening.breaths_to_lock", @floatFromInt(world_mod.breaths_to_lock));
     fact("evening.answered_s", @as(f64, @floatFromInt(world.answered_at)) / 60.0);
     fact("evening.locked_s", if (world.locked_at == world_mod.never) -1.0 else @as(f64, @floatFromInt(world.locked_at)) / 60.0);
+    // what a person would hear. Drip's note, read back from the sound of each breath: how flat
+    // of a true fifth it is, in hundredths of a semitone, and so how fast the two beat.
+    const true_fifth: f64 = @as(f64, world_mod.garden_hz) * 1.5;
+    for (0..4) |b| {
+        var key: [40]u8 = undefined;
+        const heard = pitchNear(breaths_heard[b].samples[0..breaths_heard[b].n], true_fifth);
+        const flat = if (heard > 0.0) 1200.0 * @log2(heard / true_fifth) else 99.0;
+        fact(std.fmt.bufPrint(&key, "ears.breath{d}_cents", .{b + 1}) catch "ears.breath", flat);
+        fact(std.fmt.bufPrint(&key, "ears.breath{d}_beats", .{b + 1}) catch "ears.beats", if (heard > 0.0) @abs(3.0 * @as(f64, world_mod.garden_hz) - 2.0 * heard) else 99.0);
+    }
+    const held = pitchNear(hold_heard.samples[0..hold_heard.n], true_fifth);
+    fact("ears.hold_cents", if (held > 0.0) 1200.0 * @log2(held / true_fifth) else 99.0);
+    fact("ears.hold_beats", if (held > 0.0) @abs(3.0 * @as(f64, world_mod.garden_hz) - 2.0 * held) else 99.0);
+    // the third note: the octave under Hum, which neither voice sings, while both hold; and in
+    // a quiet stretch before they met
+    const third_hz: f64 = @as(f64, world_mod.garden_hz) * 0.5;
+    const third = tone(hold_heard.samples[0..@min(hold_heard.n, 48000)], third_hz).size;
+    const before = tone(quiet_heard.samples[0..@min(quiet_heard.n, 48000)], third_hz).size;
+    const hum_itself = tone(hold_heard.samples[0..@min(hold_heard.n, 48000)], world_mod.garden_hz).size;
+    fact("ears.third_note_db_under_hum", if (third > 0.0 and hum_itself > 0.0) 20.0 * @log10(third / hum_itself) else -200.0);
+    fact("ears.third_note_db_over_quiet", if (third > 0.0) 20.0 * @log10(third / @max(before, 1e-9)) else -200.0);
     fact("evening.stood_s", if (world.stand_from == world_mod.never) -1.0 else @as(f64, @floatFromInt(world.stand_from)) / 60.0);
     fact("asters.count", @floatFromInt(world.tower_count));
     fact("asters.tallest_m", tallest);

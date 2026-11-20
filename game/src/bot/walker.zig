@@ -15,6 +15,8 @@ pub const Walker = struct {
     heard_at: ?u64 = null,
     arrived_at: u64 = 0,
     figure_marked: bool = false,
+    breathing: bool = false,
+    ticks_held: u32 = 0,
     rising_marked: bool = false,
     settled: u32 = 0,
     /// The moment this step is, if it is one a promise wants a frame of.
@@ -71,8 +73,17 @@ pub const Walker = struct {
                 // before each tick and let go on the tick
                 const until = world_mod.untilTick(step);
                 if (after > 50 and !w.drip_met and w.locked_at == world_mod.never) {
-                    if (until > 0 and until <= 30) h.buttons |= Hands.sing;
-                    if (w.breaths == 1 and until == 10 and !self.figure_marked) {
+                    // a breath is two ticks long: begin just after one, let go on the next but one
+                    if (!self.breathing and until == world_mod.tick_every - 6) self.breathing = true;
+                    if (self.breathing and until == 0) {
+                        self.ticks_held += 1;
+                        if (self.ticks_held == 2) {
+                            self.breathing = false;
+                            self.ticks_held = 0;
+                        }
+                    }
+                    if (self.breathing) h.buttons |= Hands.sing;
+                    if (w.breaths == 1 and self.breathing and self.ticks_held == 1 and until == 20 and !self.figure_marked) {
                         self.figure_marked = true;
                         self.mark = "figure";
                     }

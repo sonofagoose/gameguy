@@ -681,9 +681,16 @@ pub const World = struct {
         }
         // while it hums with Hum, or holds, it shines
         if (self.drip_humming or self.step < self.hold_until) d.loud = @max(d.loud, 0.85);
-        // the figure between the two voices turns as fast as they beat
-        self.figure_turn += self.beat() * (2.0 * std.math.pi * dt);
-        if (self.figure_turn > 2.0 * std.math.pi) self.figure_turn -= 2.0 * std.math.pi;
+        // the figure between the two voices turns as fast as they beat. Once they are true it
+        // turns no more, and it falls into step (law 3): it settles on the nearer of the two
+        // places where its three lobes and its two stand open and even.
+        if (self.locked_at == never) {
+            self.figure_turn += self.beat() * (2.0 * std.math.pi * dt);
+            if (self.figure_turn > 2.0 * std.math.pi) self.figure_turn -= 2.0 * std.math.pi;
+        } else {
+            const open_at: f32 = if (self.figure_turn < std.math.pi) 0.5 * std.math.pi else 1.5 * std.math.pi;
+            self.figure_turn += (open_at - self.figure_turn) * 0.07;
+        }
         // stand still beside it and the page leans in
         const leaning_in = !self.drip_met and far <= beside * 1.6 and self.still >= 20;
         const want: f32 = if (leaning_in or self.step < self.hold_until) 1.0 else 0.0;
@@ -1112,11 +1119,15 @@ test "four breaths on the tick bring the drip's fifth true, and the figure stops
     for (1..5) |i| try std.testing.expect(beats[i] < beats[i - 1]);
     try std.testing.expect(beats[4] < 0.001);
     try std.testing.expect(w.seen.get(.evening_breathe).met);
-    // the figure turns no further
-    const still_at = w.figure_turn;
+    // the figure turns no further: within a second it has settled, open and even, and is still
     step = 0;
     while (step < 60) : (step += 1) _ = w.stepOnce(.{}, &cues);
-    try std.testing.expect(@abs(w.figure_turn - still_at) < 0.001);
+    const still_at = w.figure_turn;
+    const quarter = @abs(@mod(still_at, std.math.pi) - 0.5 * std.math.pi);
+    try std.testing.expect(quarter < 0.05);
+    step = 0;
+    while (step < 60) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(@abs(w.figure_turn - still_at) < 0.02);
     // both notes hold; then the drop lands and the page stands up
     try std.testing.expect(!w.drip_met and w.stand == 0.0);
     step = 0;
