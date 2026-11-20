@@ -281,6 +281,18 @@ Face buttons are named by position.
   the note is.
 - **The lean.** From the fifth morning, a half push toward a neighbouring wedge bends the held note
   toward it. It always resolves when you let go.
+- **R1 and R2 are told apart at a glance and in the hands.** Morgan, 2026-11-20, after the wheel
+  toy:
+  "the two need more visual and actionable differentiation". R1 is the world's; R2 is Hum's own.
+  - **R1 held, the mood wheel, jumps home to any wedge while time thickens.** The place lies back
+    toward the page, and the wheel is drawn large on the ground round Hum in the ground's cool
+    light,
+    with a thread from every thing to the wedge that would bring it home. What you hear stretches
+    into a held chord.
+  - **R2 held, the swell, steps home only to a neighbour, on a downbeat, in time.** Nothing is drawn
+    on the ground. Hum itself swells and takes a band of colour each bar, and the two neighbouring
+    wedges show as two small marks either side of Hum, lit on each downbeat. The view stays at
+    Hum's height.
 - **One breath** pays for singing, the wheels, sprint and glide, and silence refills it. Dodging and
   guarding are free. A breath holds three homes at first and grows by one each time you land a
   longer walk, up to seven; the ferry makes eight. In the sky, what carries Hum costs breath only to

@@ -9,14 +9,14 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 
 | | sentences |
 |---|---|
-| in the specification | 2139 |
+| in the specification | 2146 |
 | a promise speaks for it | 116 |
 | **kept** | **0** |
-| no promise speaks for it yet | 2023 |
+| no promise speaks for it yet | 2030 |
 
 | stage | claims | spoken for | kept | open |
 |---|---|---|---|---|
-| 2 | 637 | 100 | 0 | 537 |
+| 2 | 644 | 100 | 0 | 544 |
 | 3 | 955 | 13 | 0 | 942 |
 | 4 | 274 | 2 | 0 | 272 |
 | 5 | 194 | 1 | 0 | 193 |
@@ -24,7 +24,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 
 | document | claims | spoken for | kept |
 |---|---|---|---|
-| `SPEC.md` | 260 | 50 | 0 |
+| `SPEC.md` | 267 | 50 | 0 |
 | `spec/laws.md` | 152 | 0 | 0 |
 | `spec/world.md` | 459 | 36 | 0 |
 | `spec/people.md` | 161 | 0 | 0 |
