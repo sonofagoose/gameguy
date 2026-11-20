@@ -1,18 +1,22 @@
-//! R1 and R2, read straight from the kernel on the sound's own thread (spec/promises/workshop.md,
+//! The shoulders, read straight from the kernel on the sound's own thread (spec/promises/workshop.md,
 //! hands.voice-in-a-buffer). The sound thread looks at them before every buffer it renders, so
-//! Hum's call and hum start on the buffer after the press: under one buffer, 2.67 ms, after the
-//! kernel saw it. Everything else in the hands is read by the main thread as before.
+//! Hum's call, hum and clap start on the buffer after the press: under one buffer, 2.67 ms, after
+//! the kernel saw it. L1 and L2 come this way too, so all four are stamped on one clock and the
+//! clap (L1 and R1 together) is found where the presses are. Everything else in the hands is read
+//! by the main thread as before.
 const std = @import("std");
 const plat = @import("plat.zig");
 const c = plat.c;
 const keys = @import("keys.zig");
 
-pub const What = enum(u8) { call_down, call_up, sing_down, sing_up };
+pub const What = enum(u8) { call_down, call_up, sing_down, sing_up, voice_down, voice_up, guard_down, guard_up, clap };
 pub const Edge = struct { what: What, at_s: f64 };
 
 const ev_key: u16 = 1;
 const btn_tr: u16 = 0x137; // R1
 const btn_tr2: u16 = 0x139; // R2
+const btn_tl: u16 = 0x136; // L1
+const btn_tl2: u16 = 0x138; // L2
 /// _IOW('E', 0xa0, int): which clock the kernel stamps this device's events with.
 const eviocsclockid: c_ulong = 0x400445a0;
 const clock_monotonic: c_int = 1;
@@ -46,7 +50,8 @@ pub const Shoulders = struct {
         self.fd = -1;
     }
 
-    /// Whatever R1 and R2 have done since the last look, in order, each with when the kernel saw it.
+    /// Whatever the shoulders have done since the last look, in order, each with when the kernel saw
+    /// it.
     pub fn poll(self: *const Shoulders, out: []Edge) usize {
         if (self.fd < 0) return 0;
         var n: usize = 0;
@@ -66,6 +71,8 @@ pub const Shoulders = struct {
                 const what: What = switch (code) {
                     btn_tr => if (value == 1) .call_down else .call_up,
                     btn_tr2 => if (value == 1) .sing_down else .sing_up,
+                    btn_tl => if (value == 1) .voice_down else .voice_up,
+                    btn_tl2 => if (value == 1) .guard_down else .guard_up,
                     else => continue,
                 };
                 const sec = std.mem.readInt(i64, e[0..8], .little);

@@ -20,6 +20,12 @@ the build (`../stages.md`)._
     world, a step later, tells the same sound on the stamped sample, and it is not sounded twice.
   - `test a take cut off while it was written is read as far as it got` Each change in a take keeps
     its stamp, so a replay starts the voice on the same sample every time.
+  - `test the hands' clap sounds once and chokes the call begun just before it; a strike is never
+    taken for a call`
+    The clap too: the sound thread reads L1 with R1 and R2, finds the clap from the kernel's
+    stamps, and starts it on the buffer after the second press; a call begun just before is
+    choked, so the gesture is one sound. A strike, the pocket and the swell's step are Hum's own but
+    only the world starts them, and they are never taken for a call.
   - `fact handheld.hands.most_ms <= 3` From the kernel seeing a press to the buffer that starts
     Hum's sound, the most of any press in a session on the handheld, from its log.
   - `owed` A let-go is heard at the world's next step, up to a sixtieth of a second late, because

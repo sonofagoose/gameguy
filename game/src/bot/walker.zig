@@ -23,6 +23,7 @@ pub const Walker = struct {
     swell_marked: bool = false,
     knots_marked: bool = false,
     pocket_marked: bool = false,
+    afterimage_marked: bool = false,
     nudged: bool = false,
     nudge_left: u8 = 0,
     nudged_at: u64 = 0,
@@ -399,6 +400,16 @@ pub const Walker = struct {
                 if (w.pockets == 1 and !self.pocket_marked) {
                     self.pocket_marked = true;
                     self.mark = "pocket";
+                }
+                // the afterimage: a bar in the pocket keeps its strikes, and they land again beside Hum
+                if (w.layer_n >= 1 and w.ghost_strikes >= 1 and !self.afterimage_marked) {
+                    self.afterimage_marked = true;
+                    self.mark = "afterimage";
+                }
+                // with two layers kept and the knots still coloured, clap: L1 and R1 together
+                if (w.layer_n >= 2 and coloured and w.claps == 0 and !lunge_due and w.clock % (4 * world_mod.tick_every) == 100) {
+                    h.buttons |= Hands.voice | Hands.call | Hands.clap;
+                    self.mark = "clap";
                 }
                 if (near and coloured and w.clock % (4 * world_mod.tick_every) == 0 and w.clock > 0) h.buttons |= Hands.strike;
                 if (near and !coloured) self.next(step);

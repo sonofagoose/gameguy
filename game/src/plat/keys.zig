@@ -95,3 +95,48 @@ test "the purple's pad is event2" {
     try std.testing.expectEqual(@as(u32, 2), eventOf(text, "GO-Super Gamepad").?);
     try std.testing.expect(eventOf(text, "nobody") == null);
 }
+
+/// The clap (SPEC.md 8): L1 and R1 pressed together, both index fingers. Whichever press comes
+/// second completes it, if the other came no more than `window` before; each press claps once at
+/// most. Moments are in any one unit: the sound's own thread gives the kernel's seconds, the
+/// laptop gives steps over sixty.
+pub const Clap = struct {
+    l1_at: f64 = never,
+    r1_at: f64 = never,
+
+    pub const window: f64 = 0.1;
+    const never: f64 = -1e9;
+
+    /// A press of L1 (`l1`) or R1 at a moment: whether it completes a clap.
+    pub fn press(self: *Clap, l1: bool, at: f64) bool {
+        const other = if (l1) self.r1_at else self.l1_at;
+        if (at - other <= window) {
+            self.l1_at = never;
+            self.r1_at = never;
+            return true;
+        }
+        if (l1) self.l1_at = at else self.r1_at = at;
+        return false;
+    }
+
+    /// Whether a press of the other one, coming at a moment, would complete a clap with this press.
+    pub fn wouldClap(self: *const Clap, l1: bool, at: f64) bool {
+        const other = if (l1) self.r1_at else self.l1_at;
+        return at - other <= window;
+    }
+};
+
+test "the clap: L1 and R1 within a tenth of a second, whichever first, each press once" {
+    var c = Clap{};
+    // R1, then L1 forty milliseconds later: a clap
+    try std.testing.expect(!c.press(false, 10.0));
+    try std.testing.expect(c.press(true, 10.04));
+    // the presses are spent: R1 again at once is a call, not another clap
+    try std.testing.expect(!c.press(false, 10.05));
+    // L1 then R1, a fifth of a second apart: two presses, no clap
+    var d = Clap{};
+    try std.testing.expect(!d.press(true, 3.0));
+    try std.testing.expect(!d.press(false, 3.2));
+    // and L1 then R1 together: a clap
+    try std.testing.expect(d.press(true, 3.25));
+}

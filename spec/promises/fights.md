@@ -40,10 +40,22 @@ cadences._
   playing beside you. You clap, and every creature near you snaps to the same point in its cycle.
 - **A cheat would be:** a combo counter that multiplies damage.
 - **Full size:**
-  - `owed` A test: each bar in the pocket keeps the last bar's strikes as an afterimage that lands
-    again, up to four layers.
-  - `owed` A test: the clap (L1 and R1) resets every creature near to the same point in its cycle
-    (law 3), and spends the layers.
+  - `test each bar in the pocket keeps its strikes as an afterimage that lands again; the clap
+    spends them and sets the knots' one`
+    A bar in which the pocket opened keeps its strikes as a layer, up to four, the oldest going;
+    each layer's strikes land again where they fell in the bar, from a small Hum of light beside
+    Hum, at half a strike's drain. The clap spends the layers, each taking a part from every knot
+    near, and sets every knot in reach to the start of its cycle (law 3).
+  - `test out of the pocket the afterimage lands softer each bar, and is gone` A looper's feedback:
+    while you stay in the pocket the layers hold; each bar out of it they land at half, and the
+    faintest go, so an afterimage never follows Hum out of the fight.
+  - `test a clap takes back a call begun just before it, and leaves a call made long before` L1
+    and R1 together are one gesture: a call begun within the clap's window is taken back, its ring
+    and its sound.
+  - `frame evening-afterimage` The first afterimage, landing beside Hum.
+  - `frame evening-clap` The clap's ring out to its reach.
+  - `owed` The clap resets every other cycling thing in reach as well, as each comes to keep a phase
+    of its own (law 3): Drip's tick, the bee's buzz, the fireflies (`sky.md`).
 - **Asks:** Did the afterimages feel like your band?
 
 ### `fight.transform` Nothing dies in a fight

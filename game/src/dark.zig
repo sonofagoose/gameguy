@@ -25,6 +25,7 @@ const take = @import("keep/take.zig");
 const save = @import("keep/save.zig");
 const card_mod = @import("plat/card.zig");
 const shoulders_mod = @import("plat/shoulders.zig");
+const keys_mod = @import("plat/keys.zig");
 const Type = @import("room.zig").Type;
 const c = plat.c;
 const sdl = plat.sdl;
@@ -53,6 +54,15 @@ var ready_cover: u8 = 0;
 /// Home's note, as the main thread last saw it, for the hands' early start of Hum's own sounds.
 var ready_home: u32 = @bitCast(world_mod.garden_hz);
 var hands_most_us: u32 = 0;
+/// The clap's rule, kept where the presses are stamped (keys_mod.Clap), and how many claps the
+/// hands started.
+var clap_rule = keys_mod.Clap{};
+var hands_claps: u32 = 0;
+
+/// Hum's clap as the hands start it: the same sound the world tells for it.
+fn clapCue(home: f32) sound_mod.Cue {
+    return .{ .at = 0, .kind = .strike, .family = .bar, .own = sound_mod.own_clap, .hz = home * world_mod.clap_over, .gain = world_mod.clap_strength * world_mod.voice_level, .ring = world_mod.clap_ring };
+}
 var hands_started: u32 = 0;
 
 /// On the sound's thread, before a buffer: whatever R1 and R2 did since the last one. A press
@@ -63,23 +73,49 @@ fn handsNow() void {
     const n = shoulders.poll(&edges);
     if (n == 0) return;
     const now_s = plat.now();
-    for (edges[0..n]) |e| {
+    const home: f32 = @bitCast(@atomicLoad(u32, &ready_home, .monotonic));
+    for (edges[0..n], 0..) |e, i| {
+        // L1 and R1 within the clap's window, whichever second, is the clap (SPEC.md 8)
+        var clapped = false;
         const at: u64 = switch (e.what) {
-            .call_down => snd.ownNow(.{ .at = 0, .kind = .strike, .family = .string, .own = 1, .hz = @bitCast(@atomicLoad(u32, &ready_home, .monotonic)), .gain = world_mod.callStrength(@enumFromInt(@atomicLoad(u8, &ready_cover, .monotonic))) * world_mod.voice_level, .ring = 0.35 }),
-            .sing_down => snd.ownNow(.{ .at = 0, .kind = .hum_on, .own = 1, .hz = @bitCast(@atomicLoad(u32, &ready_home, .monotonic)), .gain = world_mod.voice_level }),
-            .call_up, .sing_up => snd.sample,
+            .call_down => blk: {
+                if (clap_rule.press(false, e.at_s)) {
+                    clapped = true;
+                    break :blk snd.ownNow(clapCue(home));
+                }
+                // L1 in this same look, near enough to make this a clap: no call to start
+                for (edges[i + 1 .. n]) |later| {
+                    if (later.what == .voice_down and clap_rule.wouldClap(true, later.at_s)) break :blk snd.sample;
+                }
+                break :blk snd.ownNow(.{ .at = 0, .kind = .strike, .family = .string, .own = sound_mod.own_hands, .hz = home, .gain = world_mod.callStrength(@enumFromInt(@atomicLoad(u8, &ready_cover, .monotonic))) * world_mod.voice_level, .ring = 0.35 });
+            },
+            .voice_down => blk: {
+                if (clap_rule.press(true, e.at_s)) {
+                    clapped = true;
+                    break :blk snd.ownNow(clapCue(home));
+                }
+                break :blk snd.sample;
+            },
+            .sing_down => snd.ownNow(.{ .at = 0, .kind = .hum_on, .own = sound_mod.own_hands, .hz = home, .gain = world_mod.voice_level }),
+            else => snd.sample,
         };
         const late_us: u32 = @intFromFloat(std.math.clamp((now_s - e.at_s) * 1e6, 0.0, 4e9));
-        if (e.what == .call_down or e.what == .sing_down) {
+        if (e.what == .call_down or e.what == .sing_down or clapped) {
             @atomicStore(u32, &hands_started, hands_started + 1, .monotonic);
             if (late_us > hands_most_us) @atomicStore(u32, &hands_most_us, late_us, .monotonic);
         }
-        const head = @atomicLoad(u32, &started_head, .monotonic);
-        const tail = @atomicLoad(u32, &started_tail, .acquire);
-        if (head -% tail >= started.len) continue;
-        started[head % started.len] = .{ .what = e.what, .sample = at, .late_us = late_us };
-        @atomicStore(u32, &started_head, head +% 1, .release);
+        if (clapped) @atomicStore(u32, &hands_claps, hands_claps + 1, .monotonic);
+        queueStarted(.{ .what = e.what, .sample = at, .late_us = late_us });
+        if (clapped) queueStarted(.{ .what = .clap, .sample = at, .late_us = late_us });
     }
+}
+
+fn queueStarted(s: Started) void {
+    const head = @atomicLoad(u32, &started_head, .monotonic);
+    const tail = @atomicLoad(u32, &started_tail, .acquire);
+    if (head -% tail >= started.len) return;
+    started[head % started.len] = s;
+    @atomicStore(u32, &started_head, head +% 1, .release);
 }
 
 fn audioCallback(userdata: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.c) void {
@@ -181,6 +217,8 @@ var edges_waiting: [128]Started = undefined;
 var edges_n: usize = 0;
 var r1_down = false;
 var r2_down = false;
+var l1_down = false;
+var l2_down = false;
 
 fn takeEdges() void {
     var tail = @atomicLoad(u32, &started_tail, .monotonic);
@@ -194,37 +232,68 @@ fn takeEdges() void {
     @atomicStore(u32, &started_tail, tail, .release);
 }
 
-/// R1 and R2 for a step, from the edges the sound thread stamped: each edge on the step its sample
-/// falls in, and the step's stamp where the first of them fell. A press and its let-go inside one
-/// step keep the press for this step and leave the let-go for the next, so no tap is lost.
+/// The shoulders for a step, from the edges the sound thread stamped: each edge on the step its
+/// sample falls in, and the step's stamp where the first of them fell. A press and its let-go
+/// inside one step keep the press for this step and leave the let-go for the next, so no tap is
+/// lost. A clap the sound thread found is the clap for the one step its press is on.
 fn shoulderHands(hands: *Hands, step: u64) void {
     const begin = step * world_mod.samples_per_step;
     const end = begin + world_mod.samples_per_step;
     var stamp: ?u16 = null;
-    var changed_r1 = false;
-    var changed_r2 = false;
+    var changed: [4]bool = @splat(false);
+    var clap = false;
     var used: usize = 0;
     while (used < edges_n and edges_waiting[used].sample < end) : (used += 1) {
         const e = edges_waiting[used];
-        const r1 = e.what == .call_down or e.what == .call_up;
-        if ((r1 and changed_r1) or (!r1 and changed_r2)) break;
+        const which: ?usize = switch (e.what) {
+            .call_down, .call_up => 0,
+            .sing_down, .sing_up => 1,
+            .voice_down, .voice_up => 2,
+            .guard_down, .guard_up => 3,
+            .clap => null,
+        };
+        if (which) |w| {
+            if (changed[w]) break;
+            changed[w] = true;
+        }
         switch (e.what) {
             .call_down => r1_down = true,
             .call_up => r1_down = false,
             .sing_down => r2_down = true,
             .sing_up => r2_down = false,
+            .voice_down => l1_down = true,
+            .voice_up => l1_down = false,
+            .guard_down => l2_down = true,
+            .guard_up => l2_down = false,
+            .clap => clap = true,
         }
-        if (r1) changed_r1 = true else changed_r2 = true;
         if (stamp == null) stamp = @intCast(if (e.sample > begin) e.sample - begin else 0);
     }
     if (used > 0) {
         std.mem.copyForwards(Started, edges_waiting[0 .. edges_n - used], edges_waiting[used..edges_n]);
         edges_n -= used;
     }
-    hands.buttons &= ~(Hands.call | Hands.sing);
+    hands.buttons &= ~(Hands.call | Hands.sing | Hands.voice | Hands.guard | Hands.clap);
     if (r1_down) hands.buttons |= Hands.call;
     if (r2_down) hands.buttons |= Hands.sing;
+    if (l1_down) hands.buttons |= Hands.voice;
+    if (l2_down) hands.buttons |= Hands.guard;
+    if (clap) hands.buttons |= Hands.clap;
     hands.stamp = stamp orelse 0;
+}
+
+/// With no shoulders read from the kernel (the laptop), the clap is found a step at a time by the
+/// same rule, sixty steps to a second.
+var steps_clap = keys_mod.Clap{};
+var steps_before: u16 = 0;
+fn clapOfSteps(hands: *Hands, step: u64) void {
+    const pressed = hands.buttons & ~steps_before;
+    steps_before = hands.buttons;
+    const at = @as(f64, @floatFromInt(step)) / @as(f64, @floatFromInt(world_mod.steps_per_second));
+    var clapped = false;
+    if (pressed & Hands.call != 0 and steps_clap.press(false, at)) clapped = true;
+    if (pressed & Hands.voice != 0 and steps_clap.press(true, at)) clapped = true;
+    if (clapped) hands.buttons |= Hands.clap;
 }
 
 const Pad = struct {
@@ -248,9 +317,9 @@ const Pad = struct {
                     }
                 }
                 if (shoulders.fd >= 0) {
-                    log("controls: R1 and R2 read from the kernel on the sound's own thread (/dev/input/event{d})", .{shoulders.event});
+                    log("controls: the shoulders read from the kernel on the sound's own thread (/dev/input/event{d}); the clap found there", .{shoulders.event});
                 } else {
-                    log("controls: R1 and R2 read with the rest of the hands, a step at a time", .{});
+                    log("controls: the shoulders read with the rest of the hands, a step at a time; the clap found a step at a time", .{});
                 }
                 break;
             }
@@ -1056,6 +1125,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             while (world.step < due and ran < 3) : (ran += 1) {
                 var hands = if (replay) |*r| r.hands(world.step) else if (!scripted) held else if (options.scene != .dark) walker.hands(&world) else script.hands(world.step);
                 if (!scripted and replay == null and shoulders.fd >= 0) shoulderHands(&hands, world.step);
+                if (!scripted and replay == null and shoulders.fd < 0) clapOfSteps(&hands, world.step);
                 if (keeping) card.note(world.step, hands);
                 if (replay) |*r| {
                     if (r.done(world.step + 1)) running = false;
@@ -1188,6 +1258,8 @@ pub fn run(window: plat.Window, options: Options) bool {
             moving_n += aster_lines.wheelLines(&world, moving[moving_n..]);
             moving_n += aster_lines.swellLines(&world, moving[moving_n..]);
             moving_n += aster_lines.knotLines(&world, eye, moving[moving_n..]);
+            moving_n += aster_lines.ghostLines(&world, moving[moving_n..]);
+            moving_n += aster_lines.clapLines(&world, moving[moving_n..]);
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);
@@ -1273,7 +1345,7 @@ pub fn run(window: plat.Window, options: Options) bool {
     if (shoulders.fd >= 0) {
         // how soon Hum answered the hands: from the kernel seeing a press to the buffer that began
         // the sound, the most of any press this scene
-        log("the hands: {d} presses of R1 and R2 started Hum's own sound on the buffer after them, the latest {d:.2} ms after the kernel saw the press; the world found {d} of them already sounding", .{ @atomicLoad(u32, &hands_started, .monotonic), @as(f64, @floatFromInt(@atomicLoad(u32, &hands_most_us, .monotonic))) / 1000.0, snd.own_met });
+        log("the hands: {d} presses of R1 and R2 and claps ({d} of them claps) started Hum's own sound on the buffer after them, the latest {d:.2} ms after the kernel saw the press; the world found {d} of them already sounding; {d} calls choked by a clap just after", .{ @atomicLoad(u32, &hands_started, .monotonic), @atomicLoad(u32, &hands_claps, .monotonic), @as(f64, @floatFromInt(@atomicLoad(u32, &hands_most_us, .monotonic))) / 1000.0, snd.own_met, snd.choked });
     }
     log("the slowest frame was {d} (step {d}): steps done by {d:.2} ms, the land by {d:.2}, the moving lines by {d:.2}, sent to the GPU by {d:.2}, drawn by {d:.2}, the backlight set by {d:.2}; {s}", .{ worst_at, worst_step, worst_parts[0], worst_parts[1], worst_parts[2], worst_parts[3], worst_parts[4], worst_parts[5], worst_why });
     for (world_mod.witness.names, 0..) |promise, i| {

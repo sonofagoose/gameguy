@@ -33,6 +33,20 @@ pub fn recipe(family: Family) Recipe {
     };
 }
 
+/// Whose a cue is (Cue.own).
+/// The world's: counted late if it comes after its sample.
+pub const own_world: u8 = 0;
+/// Hum's call, hum or let-go, which the hands may already have started (ownNow).
+pub const own_hands: u8 = 1;
+/// Hum's clap, which the hands may already have started. It chokes a call begun just before it:
+/// the two were one gesture.
+pub const own_clap: u8 = 2;
+/// Hum's own, on the hands' stamp, which only the world starts: a strike, the pocket, the swell's
+/// step. Never taken for a sound the hands started.
+pub const own_only: u8 = 3;
+/// How long after a call a clap still chokes it, in samples: the clap's window and a step.
+pub const clap_chokes: u64 = 5600;
+
 /// What the world asks of the sound. `at` is the sample it is due.
 pub const Cue = extern struct {
     at: u64,
@@ -40,9 +54,10 @@ pub const Cue = extern struct {
     family: Family = .bell,
     /// For a held voice: whose it is. 0 is Hum.
     voice: u8 = 0,
-    /// 1: Hum's own call or hum, for a press or a let-go, which the hands may already have started
-    /// on this very sample (ownNow). Then it is not sounded twice, and not counted late.
-    own: u8 = 0,
+    /// Whose sound it is: the world's (`own_world`), or Hum's own, which starts on the hands' stamp
+    /// and is never counted late. Hum's call, hum and clap the hands may already have started on
+    /// this very sample (ownNow), and then they are not sounded twice.
+    own: u8 = own_world,
     /// The lowest note of the thing, in hertz.
     hz: f32 = 0.0,
     /// How hard, 0 to 1.
@@ -142,6 +157,14 @@ pub const Sound = struct {
     own_call_at: u64 = std.math.maxInt(u64),
     own_on_at: u64 = std.math.maxInt(u64),
     own_off_at: u64 = std.math.maxInt(u64),
+    own_clap_at: u64 = std.math.maxInt(u64),
+    /// The thing the last call rang, the count of things when it took it, and the sample it began:
+    /// a clap just after chokes it.
+    call_slot: u32 = std.math.maxInt(u32),
+    call_serial: u32 = 0,
+    call_began: u64 = 0,
+    /// How many calls a clap has choked.
+    choked: u32 = 0,
     /// How many of the world's own cues found their sound already started by the hands.
     own_met: u32 = 0,
 
@@ -235,6 +258,17 @@ pub const Sound = struct {
                 self.y2[slot * 2] = @splat(0.0);
                 self.y2[slot * 2 + 1] = @splat(0.0);
                 self.things[slot] = .{ .left = burst_len, .level = cue.gain, .noise = 0x9e3779b9 ^ (self.next_thing *% 2654435761), .asleep = false };
+                if (cue.own == own_hands) {
+                    self.call_slot = slot;
+                    self.call_serial = self.next_thing;
+                    self.call_began = cue.at;
+                }
+                // a clap just after a call: the call was its first half, and stops
+                if (cue.own == own_clap and self.call_slot != std.math.maxInt(u32) and self.next_thing -% self.call_serial < max_things and cue.at >= self.call_began and cue.at - self.call_began <= clap_chokes) {
+                    self.choke(self.call_slot);
+                    self.call_slot = std.math.maxInt(u32);
+                    self.choked += 1;
+                }
             },
         }
     }
@@ -272,14 +306,34 @@ pub const Sound = struct {
     /// it starts on, which is the hands' stamp.
     pub fn ownNow(self: *Sound, cue: Cue) u64 {
         const at = self.sample;
-        switch (cue.kind) {
+        if (cue.own == own_clap) {
+            self.own_clap_at = at;
+        } else switch (cue.kind) {
             .strike => self.own_call_at = at,
             .hum_on => self.own_on_at = at,
             .hum_off => self.own_off_at = at,
             .tone, .tempo => {},
         }
-        self.apply(cue);
+        var now = cue;
+        now.at = at;
+        self.apply(now);
         return at;
+    }
+
+    /// A thing stopped short, a hand on a ringing string: its burst ends and everything it rings
+    /// dies away within a few milliseconds, its notes unchanged.
+    fn choke(self: *Sound, slot: usize) void {
+        self.things[slot].left = 0;
+        const r_new: V = @splat(@exp(-6.91 / (0.012 * rate)));
+        inline for (0..2) |half| {
+            const g = slot * 2 + half;
+            const r = @sqrt(@max(-self.a2[g], @as(V, @splat(0.0))));
+            const live = r > @as(V, @splat(1e-6));
+            const safe = @select(f32, live, r, @as(V, @splat(1.0)));
+            const c = self.a1[g] / (safe * @as(V, @splat(2.0)));
+            self.a1[g] = @select(f32, live, @as(V, @splat(2.0)) * r_new * c, self.a1[g]);
+            self.a2[g] = @select(f32, live, -(r_new * r_new), self.a2[g]);
+        }
     }
 
     /// The pace changed: every resonator still ringing decays by as much more slowly (or quickly
@@ -306,12 +360,15 @@ pub const Sound = struct {
 
     /// Whether the world's cue is one the hands have already started on its very sample.
     fn startedByHands(self: *Sound, cue: Cue) bool {
-        if (cue.own == 0) return false;
-        const slot = switch (cue.kind) {
-            .strike => &self.own_call_at,
-            .hum_on => &self.own_on_at,
-            .hum_off => &self.own_off_at,
-            .tone, .tempo => return false,
+        const slot = switch (cue.own) {
+            own_hands => switch (cue.kind) {
+                .strike => &self.own_call_at,
+                .hum_on => &self.own_on_at,
+                .hum_off => &self.own_off_at,
+                .tone, .tempo => return false,
+            },
+            own_clap => &self.own_clap_at,
+            else => return false,
         };
         // the same press, if the hands started it within a step of where the world tells it (two
         // buttons changing in one step share a stamp); used once, so a later press is not missed
@@ -545,4 +602,48 @@ test "a held tone is a clean sine at its note, and eases in and out" {
     _ = s.push(.{ .at = 48000, .kind = .tone, .voice = 3, .hz = 261.63, .gain = 0.0 });
     s.render(&out);
     try std.testing.expect(@abs(out[47999]) < 0.001);
+}
+
+test "the hands' clap sounds once and chokes the call begun just before it; a strike is never taken for a call" {
+    const s = try std.testing.allocator.create(Sound);
+    defer std.testing.allocator.destroy(s);
+    s.* = .{};
+    s.init();
+    var out: [800]f32 = undefined;
+    s.render(&out);
+    // the hands start a call; the world tells the same call, and a strike, on the same sample
+    const at = s.ownNow(.{ .at = 0, .kind = .strike, .family = .string, .own = own_hands, .hz = 261.63, .gain = 0.8, .ring = 0.35 });
+    const call = s.call_slot;
+    try std.testing.expect(s.push(.{ .at = at, .kind = .strike, .family = .fork, .own = own_only, .hz = 523.25, .gain = 0.6, .ring = 0.5 }));
+    try std.testing.expect(s.push(.{ .at = at, .kind = .strike, .family = .string, .own = own_hands, .hz = 261.63, .gain = 0.8, .ring = 0.35 }));
+    s.render(&out);
+    // the call sounded once, the strike sounded too: two things
+    try std.testing.expectEqual(@as(u32, 1), s.own_met);
+    try std.testing.expectEqual(@as(u32, 2), s.next_thing);
+    // forty milliseconds on, the clap: the call's thing dies away
+    var more: [1120]f32 = undefined;
+    s.render(&more);
+    const energy = struct {
+        fn of(snd: *const Sound, slot: usize) f32 {
+            var e: f32 = 0.0;
+            for (0..2) |half| {
+                const y1 = snd.y1[slot * 2 + half];
+                const y2 = snd.y2[slot * 2 + half];
+                e += @reduce(.Add, y1 * y1 + y2 * y2);
+            }
+            return e;
+        }
+    };
+    const before = energy.of(s, call);
+    try std.testing.expect(before > 0.0);
+    const clapped = s.ownNow(.{ .at = 0, .kind = .strike, .family = .bar, .own = own_clap, .hz = 1046.5, .gain = 0.7, .ring = 0.15 });
+    var after_clap: [960]f32 = undefined;
+    s.render(&after_clap);
+    try std.testing.expect(energy.of(s, call) < before * 0.001);
+    try std.testing.expectEqual(@as(u32, 1), s.choked);
+    // and the world's clap, told on the hands' sample, is not sounded twice
+    try std.testing.expect(s.push(.{ .at = clapped, .kind = .strike, .family = .bar, .own = own_clap, .hz = 1046.5, .gain = 0.7, .ring = 0.15 }));
+    s.render(&out);
+    try std.testing.expectEqual(@as(u32, 2), s.own_met);
+    try std.testing.expectEqual(@as(u32, 3), s.next_thing);
 }

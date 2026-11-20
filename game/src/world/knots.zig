@@ -56,6 +56,8 @@ pub const Knot = struct {
     pulsed: [2]u64 = .{ 0, 0 },
     /// A lunge: the step of the world's beat it began, so that it arrives on the knot's one.
     lunge_from: u64 = never_lunged,
+    /// Where its cycle starts, in steps of the world's beat: nought, until a clap sets it to then.
+    phase_from: u64 = 0,
 };
 
 pub const never_lunged: u64 = std.math.maxInt(u64);
@@ -71,6 +73,18 @@ pub const pocket_steps: u64 = 100;
 pub const pocket_drain: f32 = 0.15;
 /// A lunge that lands knocks Hum back this far, and dims it.
 pub const knock_back: f32 = 1.6;
+/// The afterimage: up to four layers, each a bar's strikes landing again from beside Hum, at this
+/// part of a strike's drain; the clap spends them, each layer taking this much from every knot near,
+/// and sets every knot within this reach to the start of its cycle (law 3).
+pub const layers_most = 4;
+pub const strikes_in_a_bar = 8;
+pub const ghost_part: f32 = 0.5;
+pub const clap_per_layer: f32 = 0.12;
+pub const clap_reach: f32 = 18.0;
+/// A looper's feedback: each bar out of the pocket every layer lands this much softer, and a layer
+/// softer than the least is gone. While you stay in the pocket they hold.
+pub const layer_fades: f32 = 0.5;
+pub const layer_least: f32 = 0.2;
 
 /// The next step of the world's beat at which both a knot's strands pulse together: its one.
 pub fn nextOne(clock: u64, cycle: f32) u64 {

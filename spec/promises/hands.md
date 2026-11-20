@@ -41,7 +41,17 @@ sized before the stage that builds them._
 - **Full size:**
   - `owed` A test for each row as it is built: the scripted player presses it and the world does
     what the row says, and nothing else. The call and the hum are built (`whole.law1`,
-    `evening.breathe`); the rest come with the stage.
+    `evening.breathe`), and the rows below; the rest come with the stage.
+  - `test a knot lunges to arrive on its one; a dodge on that beat opens the pocket, and a lunge not
+    dodged knocks Hum back`
+    Right face: dodge, and on the beat the pocket.
+  - `test a knot struck on the one with home on its root greys, and a cadence beside its root brings
+    it home`
+    Left face: strike with the fork.
+  - `test the clap: L1 and R1 within a tenth of a second, whichever first, each press once` L1 and
+    R1: the clap, found where the presses are stamped.
+  - `test a clap takes back a call begun just before it, and leaves a call made long before` A clap
+    is a clap and not a call as well.
   - `owed` A tap and a hold on the same button are told apart by how long it is held, a third of a
     second, the same for every button.
 - **Asks:** Was there ever a moment you didn't know which button to press?

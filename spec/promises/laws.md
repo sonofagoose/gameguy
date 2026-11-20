@@ -251,7 +251,11 @@ law to its own words._
     lock the figure falls into step: it settles on the nearer of its two open places (law 3).
   - `owed` A test: pendulums move by their rate plus pull × sin of the gap, and two lock when their
     rates differ by less than the pull; the pulls the law gives.
-  - `owed` A test: the clap sets everything in reach to the start of its cycle (`fight.looper`).
+  - `test each bar in the pocket keeps its strikes as an afterimage that lands again; the clap
+    spends them and sets the knots' one`
+    The clap sets every knot in reach to the start of its cycle.
+  - `owed` The clap sets everything else in reach to the start of its cycle too, as each cycling
+    thing comes to keep a phase of its own (`fight.looper`).
   - `owed` A test: a crowd's voice within a quarter tone of a louder steady note slides onto it over
     a few beats, and nothing else in the game slides in pitch by itself.
 - **Asks:** Did you ever notice things falling into step with you?

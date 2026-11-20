@@ -1244,3 +1244,52 @@ pub fn knotLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
     }
     return n;
 }
+
+/// The afterimage (SPEC.md 10): for each layer the looper keeps, a faint Hum beside Hum, one beside
+/// another, in home's colour, flaring when its strikes land.
+pub fn ghostLines(w: *const world_mod.World, out: []Inst) usize {
+    if (w.layer_n == 0 or w.stand < 0.9) return 0;
+    var n: usize = 0;
+    const rx = @cos(w.look_yaw);
+    const rz = @sin(w.look_yaw);
+    const flare: f32 = if (w.ghost_at != world_mod.never and w.clock >= w.ghost_at and w.clock - w.ghost_at < 10) 1.0 - @as(f32, @floatFromInt(w.clock - w.ghost_at)) / 10.0 else 0.0;
+    const tint = colour.ofNote(world_mod.garden_hz, w.home_hz);
+    var l: u8 = 0;
+    while (l < w.layer_n) : (l += 1) {
+        const side = @as(f32, @floatFromInt(l + 1)) * 1.3;
+        const cx = w.hum_x + rx * side;
+        const cz = w.hum_z + rz * side;
+        const col = col8(tint, (0.22 + 0.6 * flare) * w.layer_level[l]);
+        for (0..14) |k| {
+            if (n >= out.len) return n;
+            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 14.0);
+            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 14.0);
+            out[n] = .{ .a = .{ cx + rx * 0.36 * @cos(a0), 0.52 + 0.5 * @sin(a0), cz + rz * 0.36 * @cos(a0) }, .b = .{ cx + rx * 0.36 * @cos(a1), 0.52 + 0.5 * @sin(a1), cz + rz * 0.36 * @cos(a1) }, .half_width = 1.4, .body = 0.0, .col = col };
+            n += 1;
+        }
+    }
+    return n;
+}
+
+/// The clap (SPEC.md 8): a ring of bone-white light runs out along the ground to the clap's reach
+/// and is gone, as quick as a clap; a click has no note, so no colour. What it crosses starts its
+/// cycle together, and the knots it reset jerk as one.
+pub fn clapLines(w: *const world_mod.World, out: []Inst) usize {
+    if (w.clap_at == world_mod.never or w.clock < w.clap_at) return 0;
+    const into: f32 = @floatFromInt(w.clock - w.clap_at);
+    const lasts: f32 = 16.0;
+    if (into >= lasts) return 0;
+    const k = into / lasts;
+    const r = world_mod.knots.clap_reach * @sqrt(k);
+    const col = col8(.{ 0.95, 0.93, 0.86 }, 0.95 * (1.0 - k));
+    var n: usize = 0;
+    const parts = 56;
+    for (0..parts) |i| {
+        if (n >= out.len) return n;
+        const a0 = @as(f32, @floatFromInt(i)) * (6.2831853 / @as(f32, parts));
+        const a1 = @as(f32, @floatFromInt(i + 1)) * (6.2831853 / @as(f32, parts));
+        out[n] = .{ .a = .{ w.hum_x + r * @cos(a0), 0.12, w.hum_z + r * @sin(a0) }, .b = .{ w.hum_x + r * @cos(a1), 0.12, w.hum_z + r * @sin(a1) }, .half_width = 1.7, .body = 0.0, .col = col };
+        n += 1;
+    }
+    return n;
+}

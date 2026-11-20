@@ -33,6 +33,13 @@ pub const samples_per_step = 800;
 pub const dt: f32 = 1.0 / 60.0;
 /// Metres a second. About ten times Hum's run, so a ring can be watched (to tune).
 pub const sound_speed: f32 = 60.0;
+/// The clap: Hum's own, sounded where the hands find it; how bright, how short, how many octaves
+/// over home; and how many steps after a call a clap takes the call back (the clap's window,
+/// plat/keys.zig, and a step).
+pub const clap_strength: f32 = 0.7;
+pub const clap_ring: f32 = 0.15;
+pub const clap_over: f32 = 4.0;
+pub const clap_takes_back: u64 = 7;
 pub const run_speed: f32 = 6.0;
 /// The garden's note: middle C.
 pub const garden_hz: f32 = 261.63;
@@ -308,6 +315,9 @@ pub const Hands = extern struct {
     pub const strike: u16 = 1 << 6; // left face
     pub const grab: u16 = 1 << 7; // top face
     pub const select: u16 = 1 << 8;
+    /// L1 and R1 together, for the one step the second of them came: found where the presses are
+    /// stamped (plat/keys.zig, Clap), so the sound and the world agree on every clap.
+    pub const clap: u16 = 1 << 10;
     pub const start: u16 = 1 << 9;
 
     pub fn held(self: Hands, button: u16) bool {
@@ -562,7 +572,7 @@ pub const World = struct {
     answering: bool = false,
     /// Set while Hum's own call or hum is told for a press or a let-go of this step: it is sent on
     /// the stamped sample, and marked as Hum's own, since the hands may have started it already.
-    own_now: bool = false,
+    own_now: u8 = sound.own_world,
     own_at: u64 = 0,
     /// Puddles from the storm (pools.zig), and where Hum stepped onto one.
     pools: [max_pools]pools.Pool = undefined,
@@ -588,6 +598,25 @@ pub const World = struct {
     pocket_until: u64 = 0,
     pockets: u32 = 0,
     knocked: u32 = 0,
+    /// The afterimage (SPEC.md 10): this bar's strikes, where in the bar each fell; whether a
+    /// pocket opened in it; the layers kept from bars in the pocket, each a bar's strikes landing
+    /// again beside Hum; the claps that spent them.
+    bar_strikes: [knots.strikes_in_a_bar]u16 = @splat(0),
+    bar_strike_n: u8 = 0,
+    bar_pocketed: bool = false,
+    layers: [knots.layers_most][knots.strikes_in_a_bar]u16 = @splat(@splat(0)),
+    layer_strikes: [knots.layers_most]u8 = @splat(0),
+    layer_level: [knots.layers_most]f32 = @splat(0.0),
+    layer_n: u8 = 0,
+    ghost_strikes: u32 = 0,
+    ghost_at: u64 = never,
+    claps: u32 = 0,
+    clap_at: u64 = never,
+    /// When Hum last called, in steps, so a clap just after can take the call back; and how many
+    /// it has.
+    called_at: u64 = never,
+    calls_taken_back: u32 = 0,
+    looped_at: u64 = never,
     /// Each thing's kin, and the things due to ring because their kin rang (law 1).
     kin: [max_things][kin_most]Kin = @splat(@splat(.{})),
     echoes: [max_echoes]Echo = @splat(.{}),
@@ -796,8 +825,8 @@ pub const World = struct {
                     .glow => {},
                 }
                 self.hum_light = @max(self.hum_light, what.light.brightness);
-                const at = if (self.own_now) self.own_at else now_sample + lead;
-                self.send(at, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .voice = what.sound.voice, .own = @intFromBool(self.own_now), .hz = what.sound.hz, .gain = what.sound.strength * voice_level, .ring = what.sound.ring }, no_thing, what.light);
+                const at = if (self.own_now != sound.own_world) self.own_at else now_sample + lead;
+                self.send(at, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .voice = what.sound.voice, .own = self.own_now, .hz = what.sound.hz, .gain = what.sound.strength * voice_level, .ring = what.sound.ring }, no_thing, what.light);
             },
             .thing => |index| {
                 const thing = &self.things[index];
@@ -944,6 +973,10 @@ pub const World = struct {
             self.look(hands);
         }
 
+        // L1 and R1 together: the clap (SPEC.md 8). Wherever Hum is and whatever it is doing, as the
+        // hands have already sounded it
+        if (pressed & Hands.clap != 0) self.clap();
+
         // the right face dodges: a quick step aside, and on the beat a lunge lands on, the pocket
         if (self.view == .place and self.stand >= 1.0 and pressed & Hands.dodge != 0) self.dodge();
 
@@ -954,11 +987,12 @@ pub const World = struct {
         self.own_at = now_sample + @min(hands.stamp, samples_per_step - 1);
 
         // the call: a ring of light and Hum's own short note, as one cue
-        if (pressed & Hands.call != 0) {
+        if (pressed & Hands.call != 0 and pressed & Hands.clap == 0) {
             self.calls += 1;
-            self.own_now = true;
+            self.called_at = self.step;
+            self.own_now = sound.own_hands;
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz, .strength = callStrength(self.cover), .ring = 0.35 }, .ring_on_the_ground));
-            self.own_now = false;
+            self.own_now = sound.own_world;
         }
 
         // singing: Hum's one note for as long as R2 is held, and Hum swelling for as long. Beside
@@ -967,9 +1001,9 @@ pub const World = struct {
         if (pressed & Hands.sing != 0 and !holding) {
             self.swell_from = self.home_k;
             self.swell_bars = 0;
-            self.own_now = true;
+            self.own_now = sound.own_hands;
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = self.home_hz, .strength = 1.0, .ring = 0.0 }, .swell));
-            self.own_now = false;
+            self.own_now = sound.own_world;
             if (self.besideDrip()) {
                 self.drip_humming = true;
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.7, .ring = 0.0 }, .swell));
@@ -1004,9 +1038,9 @@ pub const World = struct {
                 // the cadence (SPEC.md 9)
                 if (self.locked_at != never and self.nearDownbeat(self.clock)) self.landCadence();
                 // let go: Hum's hum ends on the sample it was let go
-                self.own_now = true;
+                self.own_now = sound.own_hands;
                 self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = self.home_hz, .strength = 0.0, .ring = 0.0 }, .dims));
-                self.own_now = false;
+                self.own_now = sound.own_world;
                 if (self.drip_humming) {
                     self.drip_humming = false;
                     self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_off, .voice = 1, .hz = self.dripHz(), .strength = 0.0, .ring = 0.0 }, .dims));
@@ -1027,6 +1061,7 @@ pub const World = struct {
         if (self.clock_part + self.tempo >= 1.0) self.bee.step(self);
         if (self.pool_count > 0) self.poolStep();
         if (self.knot_count > 0) self.knotStep();
+        if (self.clock_part + self.tempo >= 1.0) self.looperStep();
         self.dawn = self.dayAt(self.hum_x, self.hum_z);
         if (self.singing) self.hum_light = @max(self.hum_light, 0.8);
         self.hum_light *= 0.94;
@@ -1208,9 +1243,9 @@ pub const World = struct {
                 const to: i8 = self.home_k + (if (rx > 0.0) @as(i8, 1) else -1);
                 if (self.moveHome(to)) {
                     // the hum moves with home, on this very step
-                    self.own_now = true;
+                    self.own_now = sound.own_only;
                     self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = self.home_hz, .strength = 1.0, .ring = 0.0 }, .swell));
-                    self.own_now = false;
+                    self.own_now = sound.own_world;
                 }
             }
         }
@@ -1254,9 +1289,13 @@ pub const World = struct {
     /// its strands meet the strike (knots.zig).
     fn strike(self: *World) void {
         self.strikes += 1;
-        self.own_now = true;
+        if (self.bar_strike_n < knots.strikes_in_a_bar) {
+            self.bar_strikes[self.bar_strike_n] = @intCast(self.clock % (4 * tick_every));
+            self.bar_strike_n += 1;
+        }
+        self.own_now = sound.own_only;
         self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.home_hz * 2.0, .strength = 0.6, .ring = 0.5 }, .glow));
-        self.own_now = false;
+        self.own_now = sound.own_world;
         const bar: f32 = @floatFromInt(4 * tick_every);
         for (self.knots[0..self.knot_count]) |*kn| {
             if (kn.home) continue;
@@ -1264,11 +1303,107 @@ pub const World = struct {
             const dz = kn.z - self.hum_z;
             if (dx * dx + dz * dz > knots.strike_reach * knots.strike_reach) continue;
             const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
-            const take = knots.drainAt(kn, @floatFromInt(self.clock), cycle) + (if (self.step < self.pocket_until) knots.pocket_drain else 0.0);
+            const take = knots.drainAt(kn, @floatFromInt(self.clock - kn.phase_from), cycle) + (if (self.step < self.pocket_until) knots.pocket_drain else 0.0);
             kn.colour = @max(0.0, kn.colour - take);
             // it rings at its own notes, as hard as the strike met it
             for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.4 + take, .ring = 0.8 }, .glow));
         }
+    }
+
+    /// The looper, once for each step of the world's beat. At each downbeat a bar in which the pocket
+    /// opened keeps its strikes as a layer, up to four; and every layer's strikes land again where
+    /// they fell in the bar, as ghost strikes from beside Hum, a part as hard (SPEC.md 10).
+    fn looperStep(self: *World) void {
+        const bar: u64 = 4 * tick_every;
+        const into: u16 = @intCast(self.clock % bar);
+        if (into == 0 and self.clock != self.looped_at) {
+            self.looped_at = self.clock;
+            if (self.bar_pocketed and self.bar_strike_n > 0) {
+                if (self.layer_n == knots.layers_most) self.dropLayer(0); // the oldest goes
+                self.layers[self.layer_n] = self.bar_strikes;
+                self.layer_strikes[self.layer_n] = self.bar_strike_n;
+                self.layer_level[self.layer_n] = 1.0;
+                self.layer_n += 1;
+            } else if (!self.bar_pocketed) {
+                // a bar out of the pocket: every layer lands softer, and the faintest go
+                var i: usize = 0;
+                while (i < self.layer_n) {
+                    self.layer_level[i] *= knots.layer_fades;
+                    if (self.layer_level[i] < knots.layer_least) self.dropLayer(i) else i += 1;
+                }
+            }
+            self.bar_strike_n = 0;
+            self.bar_pocketed = false;
+        }
+        for (self.layers[0..self.layer_n], 0..) |layer, li| {
+            for (layer[0..self.layer_strikes[li]]) |at| {
+                if (at != into) continue;
+                self.ghostStrike(li);
+            }
+        }
+    }
+
+    fn dropLayer(self: *World, at: usize) void {
+        var i = at;
+        while (i + 1 < self.layer_n) : (i += 1) {
+            self.layers[i] = self.layers[i + 1];
+            self.layer_strikes[i] = self.layer_strikes[i + 1];
+            self.layer_level[i] = self.layer_level[i + 1];
+        }
+        self.layer_n -= 1;
+    }
+
+    /// A strike from the afterimage: from beside Hum, at home's note, softer, draining every knot
+    /// in reach by a part of what a strike would, and as much less as the layer has faded.
+    fn ghostStrike(self: *World, layer: usize) void {
+        self.ghost_strikes += 1;
+        self.ghost_at = self.clock;
+        const side = @as(f32, @floatFromInt(layer + 1)) * 1.3;
+        const at = Place{ .x = self.hum_x + @cos(self.look_yaw) * side, .y = 0.6, .z = self.hum_z + @sin(self.look_yaw) * side };
+        const level = self.layer_level[layer];
+        self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.home_hz * 2.0, .strength = 0.3 * level, .ring = 0.4 }, .glow));
+        const bar: f32 = @floatFromInt(4 * tick_every);
+        for (self.knots[0..self.knot_count]) |*kn| {
+            if (kn.home) continue;
+            const dx = kn.x - self.hum_x;
+            const dz = kn.z - self.hum_z;
+            if (dx * dx + dz * dz > knots.strike_reach * knots.strike_reach) continue;
+            const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
+            kn.colour = @max(0.0, kn.colour - level * knots.ghost_part * knots.drainAt(kn, @floatFromInt(self.clock - kn.phase_from), cycle));
+        }
+    }
+
+    /// The clap (L1 and R1 together): the layers are spent, each taking a part from every knot
+    /// near, and everything near is set to the start of its cycle (spec/laws.md, law 3: "The clap
+    /// sets everything in reach to the start of its cycle").
+    fn clap(self: *World) void {
+        self.claps += 1;
+        self.clap_at = self.clock;
+        var spent: f32 = 0.0;
+        for (self.layer_level[0..self.layer_n]) |level| spent += level * knots.clap_per_layer;
+        for (self.knots[0..self.knot_count]) |*kn| {
+            if (kn.home) continue;
+            const dx = kn.x - self.hum_x;
+            const dz = kn.z - self.hum_z;
+            if (dx * dx + dz * dz > knots.clap_reach * knots.clap_reach) continue;
+            kn.phase_from = self.clock;
+            kn.pulsed = .{ self.clock, self.clock };
+            kn.colour = @max(0.0, kn.colour - spent);
+            for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.3 + spent, .ring = 0.6 }, .glow));
+        }
+        self.layer_n = 0;
+        // a call begun just before was the clap's first half: its ring is taken back, and the sound
+        // chokes it (sound.own_clap)
+        if (self.called_at != never and self.step - self.called_at <= clap_takes_back) {
+            for (&self.rings) |*r| {
+                if (r.live and r.own and r.born == self.called_at) r.live = false;
+            }
+            self.calls_taken_back += 1;
+            self.called_at = never;
+        }
+        self.own_now = sound.own_clap;
+        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = self.home_hz * clap_over, .strength = clap_strength, .ring = clap_ring }, .glow));
+        self.own_now = sound.own_world;
     }
 
     /// The right face: Hum steps quickly aside; on the beat a lunge lands on, the pocket opens: time
@@ -1285,11 +1420,12 @@ pub const World = struct {
             if (apart > knots.dodge_window) continue;
             self.pocket_until = self.step + knots.pocket_steps;
             self.pockets += 1;
+            self.bar_pocketed = true;
             // the pocket is heard: Hum's own note, soft and long, and Hum glows with it. Not a ring on
             // the ground: a dodge is not a call, and the field does not answer it
-            self.own_now = true;
+            self.own_now = sound.own_only;
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.home_hz, .strength = 0.3, .ring = 1.5 }, .glow));
-            self.own_now = false;
+            self.own_now = sound.own_world;
             break;
         }
     }
@@ -1339,8 +1475,8 @@ pub const World = struct {
             // a lunge: begun so it arrives on the knot's one, closing most of the way to Hum
             const cycle_now = knots.cycleSteps(@floatFromInt(4 * tick_every), self.home_hz, kn.root_hz);
             if (kn.lunge_from == knots.never_lunged and kn.colour > 0.0 and far < knots.keeps_off + 2.0) {
-                const one = knots.nextOne(self.clock + knots.lunge_steps / 2, cycle_now);
-                if (one == self.clock + knots.lunge_steps / 2) kn.lunge_from = self.clock;
+                const ahead = self.clock - kn.phase_from + knots.lunge_steps / 2;
+                if (knots.nextOne(ahead, cycle_now) == ahead) kn.lunge_from = self.clock;
             }
             if (kn.lunge_from != knots.never_lunged) {
                 const into = self.clock - kn.lunge_from;
@@ -1360,7 +1496,7 @@ pub const World = struct {
             if (!beat_moves) continue;
             const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
             for (kn.strands, 0..) |st, s| {
-                if (!knots.pulsesAt(self.clock, cycle, st.over)) continue;
+                if (!knots.pulsesAt(self.clock - kn.phase_from, cycle, st.over)) continue;
                 kn.pulsed[s] = self.clock;
                 if (far < 80.0) self.tell(.{ .thing = kn.thing[s] }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = st.hz, .strength = 0.08 + 0.17 * kn.colour, .ring = 0.3 }, .glow));
             }
@@ -1999,6 +2135,9 @@ pub const World = struct {
         mixIn(&h, self.knots_home);
         mixIn(&h, self.strikes);
         mixIn(&h, self.pockets);
+        mixIn(&h, self.ghost_strikes);
+        mixIn(&h, self.claps);
+        mixIn(&h, self.calls_taken_back);
         mixIn(&h, self.knocked);
         for (self.knots[0..self.knot_count]) |kn| mixIn(&h, @as(u32, @bitCast(kn.colour)));
         mixIn(&h, self.swell_bars);
@@ -2928,4 +3067,121 @@ test "a knot lunges to arrive on its one; a dodge on that beat opens the pocket,
     try std.testing.expect(before - after > knots.drain_alone + knots.pocket_drain * 0.9);
     // and the lunge that was dodged landed nothing more
     try std.testing.expect(w.knocked <= knocked + 1);
+}
+
+test "each bar in the pocket keeps its strikes as an afterimage that lands again; the clap spends them and sets the knots' one" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    w.hum_x = -110.0;
+    w.hum_z = 400.0;
+    _ = w.moveHome(-1);
+    var step: u32 = 0;
+    while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    // two bars: dodge each lunge on its beat, strike on each downbeat
+    var bars: u32 = 0;
+    while (bars < 3) {
+        var lunge_due = false;
+        for (w.knots[0..w.knot_count]) |kn| {
+            if (kn.lunge_from != knots.never_lunged and w.clock + 2 == kn.lunge_from + knots.lunge_steps / 2) lunge_due = true;
+        }
+        var hands = Hands{};
+        if (lunge_due) hands.buttons |= Hands.dodge;
+        if (w.clock % (4 * tick_every) == 0 and w.clock > 0) {
+            hands.buttons |= Hands.strike;
+            bars += 1;
+        }
+        _ = w.stepOnce(hands, &cues);
+    }
+    // the bars in the pocket became layers, and their strikes land again from beside Hum
+    try std.testing.expect(w.layer_n >= 1);
+    step = 0;
+    while (step < 4 * tick_every * 2) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.ghost_strikes >= 1);
+    // the clap: the layers are spent, and every knot near starts its cycle now
+    for (w.knots[0..w.knot_count]) |*kn| kn.colour = 1.0;
+    _ = w.stepOnce(.{ .buttons = Hands.voice | Hands.call | Hands.clap }, &cues);
+    try std.testing.expectEqual(@as(u32, 1), w.claps);
+    try std.testing.expectEqual(@as(u8, 0), w.layer_n);
+    var reset: u32 = 0;
+    for (w.knots[0..w.knot_count]) |kn| {
+        if (kn.phase_from == w.clap_at) reset += 1;
+    }
+    try std.testing.expect(reset >= 1);
+}
+
+test "a clap takes back a call begun just before it, and leaves a call made long before" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    var step: u32 = 0;
+    while (step < 30) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    const live = struct {
+        fn own(world: *const World) u32 {
+            var n: u32 = 0;
+            for (world.rings) |r| {
+                if (r.live and r.own) n += 1;
+            }
+            return n;
+        }
+    };
+    // R1, and L1 three steps later: one gesture, a clap, and the call's ring is taken back
+    _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    try std.testing.expectEqual(@as(u32, 1), live.own(w));
+    _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    const n = w.stepOnce(.{ .buttons = Hands.call | Hands.voice | Hands.clap }, &cues);
+    try std.testing.expectEqual(@as(u32, 1), w.claps);
+    try std.testing.expectEqual(@as(u32, 0), live.own(w));
+    // the clap is Hum's own, on the hands' stamp, for the sound to match with what it started
+    var clap_told = false;
+    for (cues[0..n]) |cue| {
+        if (cue.own == sound.own_clap) clap_told = true;
+    }
+    try std.testing.expect(clap_told);
+    // R1 and L1 pressed on one step: a clap and no call at all
+    step = 0;
+    while (step < 10) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    const calls = w.calls;
+    _ = w.stepOnce(.{ .buttons = Hands.call | Hands.voice | Hands.clap }, &cues);
+    try std.testing.expectEqual(calls, w.calls);
+    try std.testing.expectEqual(@as(u32, 0), live.own(w));
+    // a call, and a clap a third of a second later: two things, and the call stands
+    step = 0;
+    while (step < 10) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    step = 0;
+    while (step < 20) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.voice | Hands.call | Hands.clap }, &cues);
+    try std.testing.expectEqual(@as(u32, 3), w.claps);
+    try std.testing.expectEqual(@as(u32, 1), live.own(w));
+}
+
+test "out of the pocket the afterimage lands softer each bar, and is gone" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    // into the first bar, two layers kept, each striking on the downbeat
+    const bar: u64 = 4 * tick_every;
+    while (w.clock < 10) _ = w.stepOnce(.{}, &cues);
+    w.layer_n = 2;
+    w.layer_strikes = .{ 1, 1, 0, 0 };
+    w.layer_level = .{ 1.0, 1.0, 0.0, 0.0 };
+    while (w.clock % bar != bar - 2) _ = w.stepOnce(.{}, &cues);
+    // a bar with no pocket ends: both land at half
+    while (w.clock % bar != 2) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(u8, 2), w.layer_n);
+    try std.testing.expectEqual(@as(f32, 0.5), w.layer_level[0]);
+    const struck = w.ghost_strikes;
+    try std.testing.expect(struck >= 2);
+    // two more bars out of the pocket, and they are gone
+    var bars: u32 = 0;
+    while (bars < 2) : (bars += 1) {
+        _ = w.stepOnce(.{}, &cues);
+        while (w.clock % bar != 2) _ = w.stepOnce(.{}, &cues);
+    }
+    try std.testing.expectEqual(@as(u8, 0), w.layer_n);
 }
