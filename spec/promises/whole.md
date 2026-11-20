@@ -214,7 +214,8 @@ every land._
   - `test the same cues make the same samples`
   - `fact same_take.identical == 1` The scripted takes give the same fingerprints on the laptop and
     on the purple.
-  - `owed` Takes are written and replayed; a save loaded in the middle reaches the same end.
+  - `fact take.replays_same == 1` Takes are written and replayed.
+  - `fact save.middle_same_end == 1` A save loaded in the middle reaches the same end.
 - **Asks:** nobody: two machines answer it, and a person can't.
 
 ### `whole.alone` Whole alone, more together

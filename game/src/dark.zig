@@ -22,6 +22,7 @@ const sound_mod = @import("sound/sound.zig");
 const Script = @import("bot/script.zig").Script;
 const Walker = @import("bot/walker.zig").Walker;
 const take = @import("keep/take.zig");
+const save = @import("keep/save.zig");
 const Type = @import("room.zig").Type;
 const c = plat.c;
 const sdl = plat.sdl;
@@ -603,6 +604,8 @@ pub const Options = struct {
     promise: ?[]const u8 = null,
     /// A take to play back in place of anyone's hands.
     replay: ?[*:0]const u8 = null,
+    /// A save to open the world from (keep/save.zig): the scene goes on from where it was.
+    load: ?[*:0]const u8 = null,
 };
 
 /// What a person did on a visit from the room's walk.
@@ -676,6 +679,43 @@ fn keepTake(recorder: *const take.Recorder, scene: Scene) void {
     const wrote = c.fwrite(&take_bytes, 1, size, file);
     _ = c.fclose(file);
     log("the take: {d} changes of the hands over {d} steps, {d} bytes, kept as {s}{s}", .{ recorder.count, recorder.steps, wrote, p, if (recorder.lost > 0) " (NOT WHOLE: it ran out of room)" else "" });
+}
+
+var save_bytes: [save.size]u8 = undefined;
+
+/// Keep the world as it is now on the card: keep/dawns/SCENE-NUMBER.save, the first number not
+/// used. Every dawn's save is kept (spec/size.md, "Nothing is forgotten").
+fn keepSave(scene: Scene) void {
+    _ = c.mkdir("keep", 0o755);
+    _ = c.mkdir("keep/dawns", 0o755);
+    var path: [96]u8 = undefined;
+    var number: u32 = 1;
+    while (number < 1_000_000) : (number += 1) {
+        const p = std.mem.printSentinel(&path, "keep/dawns/{s}-{d:0>6}.save", .{ @tagName(scene), number }, 0) catch return;
+        if (c.access(p.ptr, 0) != 0) break;
+    }
+    const p = std.mem.printSentinel(&path, "keep/dawns/{s}-{d:0>6}.save", .{ @tagName(scene), number }, 0) catch return;
+    const n = save.write(&world, &save_bytes);
+    const file = c.fopen(p.ptr, "wb") orelse return;
+    const wrote = c.fwrite(&save_bytes, 1, n, file);
+    _ = c.fclose(file);
+    log("the dawn: the world kept as {s}, {d} bytes, at step {d}", .{ p, wrote, world.step });
+}
+
+/// Open the world from a save. False, with the reason in the log, if it can't be.
+fn openSave(path: [*:0]const u8) bool {
+    const file = c.fopen(path, "rb") orelse {
+        log("no save at {s}", .{std.mem.span(path)});
+        return false;
+    };
+    const n = c.fread(&save_bytes, 1, save_bytes.len, file);
+    _ = c.fclose(file);
+    save.read(save_bytes[0..n], &world) catch |why| {
+        log("that save can't be opened ({s}): {s}", .{ @errorName(why), std.mem.span(path) });
+        return false;
+    };
+    log("opened from a save at step {d}: {s}", .{ world.step, std.mem.span(path) });
+    return true;
 }
 
 fn loadTake(path: [*:0]const u8) ?take.Player {
@@ -762,7 +802,16 @@ pub fn run(window: plat.Window, options: Options) bool {
             log("the {s}: {d} asters, {d} things; R1 calls (held, the place lies down), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave", .{ name, world.tower_count, world.thing_count });
         },
     }
+    if (options.load) |path| {
+        if (!openSave(path)) return false;
+    }
     snd.init();
+    if (options.load != null) {
+        // the sound's count is the clock: it starts where the world was, and what was being held
+        // is told again
+        snd.sample = world.step * world_mod.samples_per_step;
+        world.soundAgain();
+    }
     var loud: [lines.max_bodies]lines.Shine = @splat(.{});
     loud[0] = .{ .lit = 255 };
 
@@ -850,6 +899,8 @@ pub fn run(window: plat.Window, options: Options) bool {
                 }
                 const calls_before = world.calls;
                 const n = world.stepOnce(hands, &cues);
+                // the day has just begun: keep the world as it is at its dawn
+                if (!scripted and world.dawn_from != world_mod.never and world.dawn_from + 1 == world.step) keepSave(options.scene);
                 if (options.scene != .dark) groundStep(&world, world.calls != calls_before);
                 for (cues[0..n]) |cue| {
                     if (!snd.push(cue)) refused += 1;

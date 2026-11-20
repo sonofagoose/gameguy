@@ -69,7 +69,7 @@ quiet_run room build/gameguy-x86_64 --room build/room --headless --frames 5 --du
 grep "items" build/room.out | sed 's/^/   /'
 
 echo "== same take: ten minutes of the dark, and the first evening with the walk to the great aster, fingerprinted"
-build/same-take-x86_64 10 build/walk.take 2> build/same-take-x86_64.txt
+build/same-take-x86_64 10 build/walk.take build/middle.save 2> build/same-take-x86_64.txt
 grep -E "^(minute 10|evening end)" build/same-take-x86_64.txt | sed 's/^/   /'
 identical=0
 if [ -f results/same-take-aarch64.txt ]; then
@@ -98,6 +98,19 @@ else
   echo "   NOT the same: '$met_live' when played, '$met_back' when played back from the file"
   echo "fact take.file_replays_same 0" >> build/facts.txt
 fi
+
+echo "== a save, kept as a file: the world at minute three of the walk, opened by the game itself and played on by the take"
+quiet_run loaded build/gameguy-x86_64 --scene evening --headless --load build/middle.save --replay build/walk.take
+end_live=$(grep -o "^witness garden.w04 first=[0-9]*" build/same-take-x86_64.txt | tail -1)
+end_back=$(grep -o "^witness garden.w04 first=[0-9]*" build/loaded.out | tail -1)
+if [ -n "$end_live" ] && [ "$end_live" = "$end_back" ]; then
+  echo "   the same crossing on the same step: $end_back ($(stat -c %s build/middle.save) bytes)"
+  echo "fact save.file_opens_same 1" >> build/facts.txt
+else
+  echo "   NOT the same: '$end_live' when played, '$end_back' when opened from the save and played on"
+  echo "fact save.file_opens_same 0" >> build/facts.txt
+fi
+grep -h "^fact save\." build/same-take-x86_64.txt >> build/facts.txt || true
 
 echo "== the promise book: every claim, and where each promise stands (spec/promises/BOARD.md)"
 $PROMISES | sed 's/^/   /'

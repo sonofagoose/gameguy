@@ -41,12 +41,22 @@ the build (`../stages.md`)._
     bytes: the same world and the same sound.
   - `fact take.file_replays_same == 1` The same take as a file, played back through the game itself:
     the promise's moment happens on the same step.
-  - `fact take.bytes <= 4096` That whole walk is this small.
+  - `fact take.bytes <= 16384` The whole scripted evening, seven minutes from the dark to the far
+    side of the bridge puddle, is this small: ten bytes for each change of the hands.
   - `owed` A person's take is written to the card when they leave a scene (it is, into
     `keep/takes/`). Owed: written as it happens, 4 KB at a time by its own thread, so that killing
     the game at any moment loses under five seconds. A test kills it a hundred times.
-  - `owed` A save made every dawn; a save loaded in the middle of a day reaches the same fingerprint
-    as the day played through. A test.
+  - `test a save made in the middle of the evening and loaded again reaches the same end` The whole
+    world is its bytes, with a print of its layout, so a build that has changed it refuses the save
+    rather than misreading it.
+  - `test a dawn's save is kept and opened again a hundred dawns later` And a damaged save is
+    refused and changes nothing.
+  - `fact save.middle_same_end == 1` The world kept at minute three of the walk, opened again and
+    played on by the same hands: the same end, in the take tool.
+  - `fact save.file_opens_same == 1` The same save as a file, opened by the game itself and played
+    on by the take: the puddle is crossed on the same step.
+  - `owed` A save is written at every dawn a person plays (it is, into `keep/dawns/`), and the game
+    starts where the last one and its take leave off: owed until the take is written as it happens.
   - `owed` A person's take played back on the handheld gives the same fingerprints as on the laptop.
   - `owed` Measured on the handheld: writing the take never makes a frame late or a gap in the
     sound.

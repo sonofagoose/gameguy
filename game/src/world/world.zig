@@ -895,6 +895,21 @@ pub const World = struct {
         return n;
     }
 
+    /// After a world is opened from a save (keep/save.zig) the sound starts with nothing ringing:
+    /// tell again whatever was being held, each with its light, so the voices go on where they
+    /// were. Only for a person playing on; a save read back to prove it is whole is left alone.
+    pub fn soundAgain(self: *World) void {
+        const holding = self.step < self.hold_until;
+        if (self.singing or holding) {
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = garden_hz, .strength = 1.0, .ring = 0.0 }, .swell));
+        }
+        if (self.drip != no_thing and (self.drip_humming or holding)) {
+            self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.7, .ring = 0.0 }, .swell));
+        }
+        // standing water sings again at its next turn
+        for (self.pools[0..self.pool_count]) |*p| p.sent = .{ 0.0, 0.0 };
+    }
+
     /// How many seconds since the sun rose; below nought before it has.
     pub fn dawnAge(self: *const World) f32 {
         if (self.dawn_from == never or self.step < self.dawn_from) return -1.0;

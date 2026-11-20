@@ -21,6 +21,9 @@ extern "c" fn fwrite(ptr: [*]const u8, size: usize, count: usize, file: *anyopaq
 extern "c" fn fclose(file: *anyopaque) c_int;
 
 var walk_changes: [4096]rules.take.Change = undefined;
+/// The world kept in the middle of the walk, to be opened again and played on to the end.
+var middle_save: [rules.save.size]u8 = undefined;
+const middle_step: u64 = 3 * 60 * world_mod.steps_per_second;
 var walk_bytes: [rules.take.header_size + 4096 * rules.take.change_size]u8 = undefined;
 
 // ------------------------------------------------------------------ ears
@@ -179,6 +182,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
         const at_pool = bot.phase == 10 and world.singing and world.pool_count > 0;
         const pool_quiet = at_pool and world.pools[0].loud() < 0.12;
         const pool_full = at_pool and world.pools[0].loud() > 0.97;
+        if (world.step == middle_step) _ = rules.save.write(&world, &middle_save);
         walk.step(hands);
         if (pool_quiet) pool_alone.hear(&walk.last);
         if (pool_full) pool_standing.hear(&walk.last);
@@ -203,6 +207,25 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
         while (!player.done(at)) : (at += 1) back.step(player.hands(at));
         same_again = world.fingerprint() == walk_end and back.sound_print == walk.sound_print;
     }
+    // the world kept at minute three, opened again and played on by the same hands: the same end
+    var same_end = false;
+    if (rules.take.Player.open(walk_bytes[0..size])) |opened| {
+        var player = opened;
+        if (rules.save.read(&middle_save, &world)) |_| {
+            var cues: [world_mod.max_cues]sound_mod.Cue = undefined;
+            var at: u64 = middle_step;
+            while (!player.done(at)) : (at += 1) _ = world.stepOnce(player.hands(at), &cues);
+            same_end = world.fingerprint() == walk_end;
+        } else |_| {}
+    }
+    if (argc > 3) {
+        if (fopen(argv[3], "wb")) |file| {
+            _ = fwrite(&middle_save, 1, middle_save.len, file);
+            _ = fclose(file);
+        }
+    }
+    fact("save.bytes", @floatFromInt(rules.save.size));
+    fact("save.middle_same_end", if (same_end) 1.0 else 0.0);
     fact("take.changes", @floatFromInt(recorder.count));
     fact("take.bytes", @floatFromInt(size));
     fact("take.replays_same", if (same_again) 1.0 else 0.0);
