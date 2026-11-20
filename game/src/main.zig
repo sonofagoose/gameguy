@@ -228,7 +228,7 @@ fn benchLines(window: plat.Window, args: Args) bool {
         const p: [*]u8 = @ptrCast(c.malloc(n) orelse return false);
         break :blk p[0..n];
     };
-    var loud: [lines.max_bodies]u8 = @splat(255);
+    var loud: [lines.max_bodies]lines.Shine = @splat(.{ .sounding = 255 });
 
     const runs = [_]Bench{
         .{ .lines = 10_000, .occ_cell = 8.0 },
@@ -269,9 +269,9 @@ fn benchLines(window: plat.Window, args: Args) bool {
             const vp = m.mul(proj, view);
             for (&loud, 0..) |*v, i| {
                 const phase = @as(f32, @floatFromInt(i % 97)) * 0.13 + t * (1.0 + @as(f32, @floatFromInt(i % 7)) * 0.4);
-                v.* = @intFromFloat(140.0 + 115.0 * @sin(phase));
+                v.* = .{ .sounding = @intFromFloat(140.0 + 115.0 * @sin(phase)), .lit = 0 };
             }
-            loud[0] = 255;
+            loud[0] = .{ .lit = 255 };
 
             const began = plat.now();
             renderer.frame(&vp, &loud);

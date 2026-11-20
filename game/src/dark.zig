@@ -565,7 +565,9 @@ fn groundStep(w: *const World, called: bool) void {
     if (w.still == 0) leaveLight(w.hum_x, w.hum_z, 1.2, .{ 0.886, 0.839, 0.784 }, 0.016);
     // each ringing bell, one step in sixty-four, taken in turn: a crown of them ringing at once
     // must not cost a frame
-    for (w.things[0..w.thing_count], 0..) |thing, i| {
+    // the sky's rungs are last in the list, and their light is the day's, not left on the ground
+    const land_end = if (w.rung_first == world_mod.no_thing) w.thing_count else w.rung_first;
+    for (w.things[0..land_end], 0..) |thing, i| {
         if (!thing.sounds or thing.loud < 0.06 or (i + w.step) % 64 != 0) continue;
         leaveLight(thing.x, thing.z, 4.0 + thing.tall * 1.5, noteColour(thing.hz), thing.loud * 0.12);
     }
@@ -607,6 +609,33 @@ var renderer: lines.Renderer = undefined;
 var renderer_ready = false;
 var pixels: []u8 = &.{};
 var static_lines: [36_000]lines.Inst = undefined;
+/// Each body's share of its own light, by the total length of the lines it is drawn with.
+var spread: [lines.max_bodies]f32 = @splat(1.0);
+var body_len: [lines.max_bodies]f32 = @splat(0.0);
+/// A thing whose lines add up to no more than this carries its whole light in each.
+const spread_ref: f32 = 24.0;
+
+/// A thing's own light is its loudness spread over all its lines (spec/texture.md).
+fn spreadLight(insts: []const lines.Inst) void {
+    @memset(&body_len, 0.0);
+    for (insts) |inst| {
+        const body: usize = @intFromFloat(inst.body);
+        if (body < aster_lines.thing_body or body >= lines.max_bodies) continue;
+        const dx = inst.b[0] - inst.a[0];
+        const dy = inst.b[1] - inst.a[1];
+        const dz = inst.b[2] - inst.a[2];
+        body_len[body] += @sqrt(dx * dx + dy * dy + dz * dz);
+    }
+    for (&spread, body_len) |*s, len| s.* = if (len <= spread_ref) 1.0 else @max(0.06, spread_ref / len);
+}
+
+fn byte(v: f32) u8 {
+    return @intFromFloat(std.math.clamp(v, 0.0, 1.0) * 255.0);
+}
+
+fn shine(sounding: f32, lit: f32, share: f32, gives: f32) lines.Shine {
+    return .{ .sounding = byte(sounding), .lit = byte(lit), .spread = byte(share), .gives = byte(gives) };
+}
 var static_occ: [40_000][3]f32 = undefined;
 var moving: [9_000]lines.Inst = undefined;
 /// A person's hands, as they play: room for an hour of a thumb that never rests.
@@ -688,7 +717,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             renderer.fade = 70.0;
             renderer.far_floor = 0.05;
             renderer.heft = 0.55;
-            renderer.sky = .{ 0.085, 0.055, 0.045 };
+            renderer.sky = .{ 0.0, 0.0, 0.0 };
             proj = m.perspective(world_mod.place_fov, aspect, 0.4, 5000.0);
             // the ground starts black, or as it was left: a run with no screen always starts black,
             // so its frames are the same every time
@@ -704,8 +733,8 @@ pub fn run(window: plat.Window, options: Options) bool {
         },
     }
     snd.init();
-    var loud: [lines.max_bodies]u8 = @splat(0);
-    loud[0] = 255;
+    var loud: [lines.max_bodies]lines.Shine = @splat(.{});
+    loud[0] = .{ .lit = 255 };
 
     const device: c.SDL_AudioDeviceID = if (options.headless) 0 else openAudio();
     defer if (device != 0) sdl.CloseAudioDevice(device);
@@ -812,9 +841,8 @@ pub fn run(window: plat.Window, options: Options) bool {
         var brightest: f32 = 0.0;
         if (options.scene == .dark) {
             for (world.things[0..world.thing_count], 0..) |thing, i| {
-                const light = World.light(thing);
-                brightest = @max(brightest, light);
-                loud[i + 1] = @intFromFloat(light * 255.0);
+                brightest = @max(brightest, World.light(thing));
+                loud[i + 1] = shine(thing.loud, thing.lit * 0.55, 1.0, 1.0);
             }
             for (world.rings) |ring| {
                 if (ring.live) brightest = @max(brightest, 0.5);
@@ -822,38 +850,51 @@ pub fn run(window: plat.Window, options: Options) bool {
             eye = .{ world.hum_x, 40.0, world.hum_z + 36.0 };
             view = m.lookAt(eye, .{ world.hum_x, 0.0, world.hum_z - 3.0 }, .{ 0.0, 1.0, 0.0 });
         } else {
-            // In the dark a thing is seen only when it sounds or a call passes it. As the day
-            // comes up everything can just be seen, and what a call lights or rings stands out.
-            const day = world.dawn;
-            loud[1] = @intFromFloat(day * 255.0);
+            // A thing shines with its own sound, spread over its lines, and gives back the light
+            // that falls on it: the day, once the dawn has reached it, or a passing call. In the
+            // dark a silent thing is seen only when a call passes it (spec/texture.md).
+            const sky_level = world.skyLevel();
+            loud[1] = shine(0.0, sky_level, 1.0, 1.0);
+            // before the dawn's edge reaches a place, the sky's own light falls on it faintly
+            const twilight = 0.4 * sky_level;
+            const rung_end = if (world.rung_first == world_mod.no_thing) 0 else world.rung_first + world_mod.rungs;
             for (world.things[0..world.thing_count], 0..) |thing, i| {
-                const light = World.light(thing);
+                const body = aster_lines.thing_body + i;
+                if (i >= world.rung_first and i < rung_end) {
+                    // the sky's rungs shine only with the sun's held overtones
+                    loud[body] = shine(thing.loud, 0.0, 1.0, 0.0);
+                    continue;
+                }
+                const day = @max(world.dayAt(thing.x, thing.z), twilight);
                 const dim: f32 = if (thing.sounds) 0.30 else 0.26;
-                const floor = dim * day;
-                if (thing.sounds) brightest = @max(brightest, light);
-                loud[aster_lines.thing_body + i] = @intFromFloat(@max(floor, light) * 255.0);
+                const own: f32 = if (thing.sounds) thing.loud else 0.0;
+                if (thing.sounds) brightest = @max(brightest, World.light(thing));
+                loud[body] = shine(own, @max(dim * day, thing.lit * 0.55), spread[body], 0.9);
             }
-            // the ground's cover, a square at a time: the day, and the edge of any ring crossing it
+            // the ground's cover, a square at a time: the day where the dawn has reached it, and
+            // the edge of any ring crossing it, given back as its cover gives
             for (0..@as(usize, @intCast(aster_lines.cover_side * aster_lines.cover_side))) |cell| {
                 const gx: f32 = @floatFromInt(@as(i32, @intCast(cell % @as(usize, @intCast(aster_lines.cover_side)))) + cover_grid[0]);
                 const gz: f32 = @floatFromInt(@as(i32, @intCast(cell / @as(usize, @intCast(aster_lines.cover_side)))) + cover_grid[1]);
+                const cx = (gx + 0.5) * 16.0;
+                const cz = (gz + 0.5) * 16.0;
                 var band: f32 = 0.0;
                 for (world.rings) |ring| {
                     if (!ring.live) continue;
-                    const dx = (gx + 0.5) * 16.0 - ring.x;
-                    const dz = (gz + 0.5) * 16.0 - ring.z;
+                    const dx = cx - ring.x;
+                    const dz = cz - ring.z;
                     const behind = @as(f32, @floatFromInt(world.step - ring.born)) * world_mod.dt * world_mod.sound_speed - @sqrt(dx * dx + dz * dz);
                     if (behind < 0.0 or behind > 110.0) continue;
                     const fall = 1.0 - behind / 110.0;
                     band = @max(band, fall * fall);
                 }
-                loud[aster_lines.cover_body + cell] = @intFromFloat(std.math.clamp(day + band * 1.6, 0.0, 1.0) * 255.0);
+                loud[aster_lines.cover_body + cell] = shine(0.0, @max(world.dayAt(cx, cz), twilight) + band * 1.6, 1.0, aster_lines.coverGives(aster_lines.coverAt(cx, cz)));
             }
             const cam = world.camera();
             renderer.stand = cam.stand;
             eye = cam.eye;
             view = m.lookAt(cam.eye, cam.at, .{ 0.0, 1.0, 0.0 });
-            proj = m.perspective(cam.fov, aspect, 0.4, 5000.0);
+            proj = m.perspective(cam.fov, aspect, 0.4, 9000.0);
             const fx = @sin(world.look_yaw);
             const fz = -@cos(world.look_yaw);
             renderer.ground_eye = .{ eye[0], eye[2] };
@@ -862,11 +903,14 @@ pub fn run(window: plat.Window, options: Options) bool {
             const dy = (cam.at[1] - cam.eye[1]) / 10.0;
             const pitch = std.math.asin(std.math.clamp(dy, -1.0, 1.0));
             const half = cam.fov * 0.5 * std.math.pi / 180.0;
-            var turn: f32 = aster_lines.dawn_yaw - world.look_yaw;
+            const sun_at = world.sunPlace();
+            var turn: f32 = std.math.atan2(sun_at[0] - eye[0], -(sun_at[2] - eye[2])) - world.look_yaw;
             while (turn > std.math.pi) turn -= 2.0 * std.math.pi;
             while (turn < -std.math.pi) turn += 2.0 * std.math.pi;
             const across: f32 = if (@abs(turn) < 1.3) 0.5 + @tan(turn) / (2.0 * @tan(half) * aspect) else 9.0;
             renderer.dawn = .{ across, 0.5 - @tan(pitch) / (2.0 * @tan(half)) };
+            const glow = [3]f32{ 0.16, 0.10, 0.075 };
+            renderer.sky = .{ glow[0] * sky_level, glow[1] * sky_level, glow[2] * sky_level };
             // each aster at the detail its distance asks for, picked again every twenty metres
             const moved_x = eye[0] - picked_x;
             const moved_z = eye[2] - picked_z;
@@ -874,6 +918,8 @@ pub fn run(window: plat.Window, options: Options) bool {
                 picked = aster_lines.pick(world.hum_x, world.hum_z, static_lines[0..26_000], static_occ[0..24_000]);
                 picked.lines += aster_lines.fallen(&world, static_lines[picked.lines..]);
                 picked.lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[picked.lines..], &static_occ, &picked.occ, &cover_grid);
+                picked.lines += aster_lines.horn(&world, static_lines[picked.lines..]);
+                spreadLight(static_lines[0..picked.lines]);
                 renderer.setLand(static_lines[0..picked.lines], static_lines[0..0], static_occ[0..picked.occ]);
                 picked_x = eye[0];
                 picked_z = eye[2];
@@ -883,7 +929,9 @@ pub fn run(window: plat.Window, options: Options) bool {
         parts[1] = (plat.now() - began) * 1000.0;
         var moving_n: usize = 0;
         if (options.scene != .dark) {
-            moving_n = aster_lines.sky(eye, &moving);
+            moving_n = aster_lines.sun(&world, eye, &moving);
+            moving_n += aster_lines.stars(&world, eye, moving[moving_n..]);
+            moving_n += aster_lines.dawnEdge(&world, moving[moving_n..]);
             if (world.stand > 0.6) moving_n += aster_lines.halos(&world, eye, moving[moving_n..]);
             moving_n += eveningLines(&world, moving[moving_n..]);
         }

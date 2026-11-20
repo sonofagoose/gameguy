@@ -28,6 +28,17 @@ pub const Inst = extern struct {
     col: [4]u8,
 };
 
+/// How a body shines this frame (spec/texture.md): how loud it is sounding; how much light falls
+/// on it from outside, the day or a passing call; how its own light is spread over its lines;
+/// and how much of the outside light it gives back. A thing's own light is its loudness spread
+/// over all its lines, so a big thing has to be very loud to be bright.
+pub const Shine = extern struct {
+    sounding: u8 = 0,
+    lit: u8 = 0,
+    spread: u8 = 255,
+    gives: u8 = 255,
+};
+
 pub const ground_tile = 256;
 pub const ground_tiles_side = 8;
 pub const body_cols = 256;
@@ -46,6 +57,7 @@ const line_vs =
     \\uniform float u_fade;
     \\uniform vec2 u_far;
     \\uniform float u_stand;
+    \\uniform float u_emit;
     \\out vec2 v_uv;
     \\out vec3 v_col;
     \\void main() {
@@ -71,15 +83,19 @@ const line_vs =
     \\    vec2 dir = d / len;
     \\    vec2 nrm = vec2(-dir.y, dir.x);
     \\    vec4 p = e > 0.5 ? pb : pa;
-    \\    // Far parts of a figure are fainter and thinner.
-    \\    float nearness = clamp(u_fade / p.w, u_far.x, 1.0);
-    \\    float hw = a_wb.x * (0.55 + (0.45 + u_far.y) * nearness);
+    \\    // Far parts of a figure are fainter and thinner; the sky's lines, given with a width below
+    \\    // nought, are not.
+    \\    bool sky = a_wb.x < 0.0;
+    \\    float nearness = sky ? 1.0 : clamp(u_fade / p.w, u_far.x, 1.0);
+    \\    float hw = abs(a_wb.x) * (0.55 + (0.45 + u_far.y) * nearness);
     \\    vec2 px = (e > 0.5 ? sb : sa) + nrm * (s * hw) + dir * ((e * 2.0 - 1.0) * hw * 0.5);
     \\    gl_Position = vec4(px / u_half * p.w, p.z, p.w);
     \\    int body = int(a_wb.y);
-    \\    float loud = texelFetch(u_loud, ivec2(body & 255, body >> 8), 0).r;
+    \\    vec4 t = texelFetch(u_loud, ivec2(body & 255, body >> 8), 0);
+    \\    // its own sound, spread over its lines; and the light that falls on it, given back
+    \\    float shine = t.r * t.b * u_emit + t.g * t.a;
     \\    v_uv = vec2(e, s);
-    \\    v_col = a_col.rgb * (a_col.a * loud * nearness);
+    \\    v_col = a_col.rgb * (a_col.a * shine * nearness);
     \\}
 ;
 
@@ -175,6 +191,33 @@ const decay_fs =
     \\}
 ;
 
+// The day coming up: light low in the sky, most toward where the sun is. It is drawn behind
+// everything, so the black shapes of things stand against it.
+const sky_vs =
+    \\#version 300 es
+    \\out vec2 v_uv;
+    \\void main() {
+    \\    vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));
+    \\    v_uv = p;
+    \\    gl_Position = vec4(p * 2.0 - 1.0, 0.9999, 1.0);
+    \\}
+;
+
+const sky_fs =
+    \\#version 300 es
+    \\precision mediump float;
+    \\in vec2 v_uv;
+    \\uniform vec3 u_sky;
+    \\uniform vec2 u_dawn;
+    \\out vec4 o;
+    \\void main() {
+    \\    float up = v_uv.y - u_dawn.y;
+    \\    float glow = up > 0.0 ? exp(-up * 3.4) : exp(up * 26.0);
+    \\    float side = v_uv.x - u_dawn.x;
+    \\    o = vec4(u_sky * (glow * (0.30 + 0.70 * exp(-side * side * 1.8))), 0.0);
+    \\}
+;
+
 const comp_fs =
     \\#version 300 es
     \\precision mediump float;
@@ -182,17 +225,11 @@ const comp_fs =
     \\uniform sampler2D u_cur;
     \\uniform sampler2D u_phosphor;
     \\uniform vec3 u_base;
-    \\uniform vec3 u_sky;
-    \\uniform vec2 u_dawn;
     \\uniform float u_seed;
     \\out vec4 o;
     \\void main() {
     \\    vec3 lit = max(texture(u_cur, v_uv).rgb, texture(u_phosphor, v_uv).rgb);
-    \\    // the day coming up: light low in the sky, most toward where the sun will be
-    \\    float up = v_uv.y - u_dawn.y;
-    \\    float glow = up > 0.0 ? exp(-up * 3.4) : exp(up * 26.0);
-    \\    float side = v_uv.x - u_dawn.x;
-    \\    vec3 c = u_base + lit + u_sky * (glow * (0.30 + 0.70 * exp(-side * side * 1.8)));
+    \\    vec3 c = u_base + lit;
     \\    float n = fract(sin(dot(gl_FragCoord.xy + u_seed, vec2(12.9898, 78.233))) * 43758.5453);
     \\    o = vec4(c + (n - 0.5) / 255.0, 1.0);
     \\}
@@ -215,8 +252,12 @@ pub const Renderer = struct {
     occ_u_stand: c.GLint = -1,
     /// The hinge between the page (0) and the place (1): every height is multiplied by it.
     stand: f32 = 1.0,
-    comp_u_sky: c.GLint = -1,
-    comp_u_dawn: c.GLint = -1,
+    sky_prog: c.GLuint = 0,
+    sky_u_sky: c.GLint = -1,
+    sky_u_dawn: c.GLint = -1,
+    line_u_emit: c.GLint = -1,
+    /// How bright a thing's own sound makes it, against the light that falls on it.
+    emit: f32 = 1.3,
     /// How faint a line may get with distance, and how much heavier a near line is drawn.
     far_floor: f32 = 0.12,
     heft: f32 = 0.0,
@@ -320,8 +361,10 @@ pub const Renderer = struct {
         self.comp_u_phosphor = gl.GetUniformLocation(self.comp_prog, "u_phosphor");
         self.comp_u_base = gl.GetUniformLocation(self.comp_prog, "u_base");
         self.comp_u_seed = gl.GetUniformLocation(self.comp_prog, "u_seed");
-        self.comp_u_sky = gl.GetUniformLocation(self.comp_prog, "u_sky");
-        self.comp_u_dawn = gl.GetUniformLocation(self.comp_prog, "u_dawn");
+        self.sky_prog = plat.linkProgram(sky_vs, sky_fs, "the sky's glow") orelse return false;
+        self.sky_u_sky = gl.GetUniformLocation(self.sky_prog, "u_sky");
+        self.sky_u_dawn = gl.GetUniformLocation(self.sky_prog, "u_dawn");
+        self.line_u_emit = gl.GetUniformLocation(self.line_prog, "u_emit");
         self.ground_prog = plat.linkProgram(ground_vs, ground_fs, "the ground") orelse return false;
         self.ground_u_vp = gl.GetUniformLocation(self.ground_prog, "u_vp");
         self.ground_u_from = gl.GetUniformLocation(self.ground_prog, "u_from");
@@ -366,7 +409,7 @@ pub const Renderer = struct {
         gl.GenTextures(1, &self.loud_tex);
         gl.BindTexture(c.GL_TEXTURE_2D, self.loud_tex);
         gl.PixelStorei(c.GL_UNPACK_ALIGNMENT, 1);
-        gl.TexImage2D(c.GL_TEXTURE_2D, 0, c.GL_R8, body_cols, body_rows, 0, c.GL_RED, c.GL_UNSIGNED_BYTE, null);
+        gl.TexImage2D(c.GL_TEXTURE_2D, 0, c.GL_RGBA8, body_cols, body_rows, 0, c.GL_RGBA, c.GL_UNSIGNED_BYTE, null);
         gl.TexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_MIN_FILTER, c.GL_NEAREST);
         gl.TexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_MAG_FILTER, c.GL_NEAREST);
         gl.TexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_WRAP_S, c.GL_CLAMP_TO_EDGE);
@@ -584,6 +627,7 @@ pub const Renderer = struct {
         gl.Uniform1f(self.line_u_fade, self.fade);
         gl.Uniform2f(self.line_u_far, self.far_floor, self.heft);
         gl.Uniform1f(self.line_u_stand, self.stand);
+        gl.Uniform1f(self.line_u_emit, self.emit);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_FALSE);
@@ -605,6 +649,24 @@ pub const Renderer = struct {
         gl.Disable(c.GL_DEPTH_TEST);
     }
 
+    fn drawSky(self: *Renderer) void {
+        if (self.sky[0] + self.sky[1] + self.sky[2] <= 0.0) return;
+        gl.UseProgram(self.sky_prog);
+        gl.Uniform3f(self.sky_u_sky, self.sky[0], self.sky[1], self.sky[2]);
+        gl.Uniform2f(self.sky_u_dawn, self.dawn[0], self.dawn[1]);
+        gl.Enable(c.GL_DEPTH_TEST);
+        gl.DepthFunc(c.GL_LEQUAL);
+        gl.DepthMask(c.GL_FALSE);
+        gl.Enable(c.GL_BLEND);
+        gl.BlendFunc(c.GL_ONE, c.GL_ONE);
+        gl.BindVertexArray(self.empty_vao);
+        gl.DrawArrays(c.GL_TRIANGLES, 0, 3);
+        gl.BindVertexArray(0);
+        gl.Disable(c.GL_BLEND);
+        gl.DepthMask(c.GL_TRUE);
+        gl.Disable(c.GL_DEPTH_TEST);
+    }
+
     fn fullScreen(self: *Renderer, fbo: c.GLuint, w: i32, h: i32) void {
         gl.BindFramebuffer(c.GL_FRAMEBUFFER, fbo);
         gl.Viewport(0, 0, w, h);
@@ -614,10 +676,10 @@ pub const Renderer = struct {
     }
 
     /// Draw one frame of the land through `vp`, with each body as loud as `loud` says.
-    pub fn frame(self: *Renderer, vp: *const m.M4, loud: *const [max_bodies]u8) void {
+    pub fn frame(self: *Renderer, vp: *const m.M4, loud: *const [max_bodies]Shine) void {
         gl.BindTexture(c.GL_TEXTURE_2D, self.loud_tex);
         gl.PixelStorei(c.GL_UNPACK_ALIGNMENT, 1);
-        gl.TexSubImage2D(c.GL_TEXTURE_2D, 0, 0, 0, body_cols, body_rows, c.GL_RED, c.GL_UNSIGNED_BYTE, loud);
+        gl.TexSubImage2D(c.GL_TEXTURE_2D, 0, 0, 0, body_cols, body_rows, c.GL_RGBA, c.GL_UNSIGNED_BYTE, loud);
 
         const prev = self.ping;
         const next = 1 - prev;
@@ -630,6 +692,7 @@ pub const Renderer = struct {
         gl.DepthMask(c.GL_TRUE);
         gl.Clear(c.GL_COLOR_BUFFER_BIT | c.GL_DEPTH_BUFFER_BIT);
         self.drawOcc(vp);
+        self.drawSky();
         self.drawLines(vp, self.line_vbo, 0, self.sounding);
         self.drawLines(vp, self.dyn_vbo, 0, self.dyn_count);
 
@@ -664,8 +727,7 @@ pub const Renderer = struct {
         gl.Uniform1i(self.comp_u_phosphor, 1);
         gl.Uniform3f(self.comp_u_base, self.base[0], self.base[1], self.base[2]);
         gl.Uniform1f(self.comp_u_seed, self.seed);
-        gl.Uniform3f(self.comp_u_sky, self.sky[0], self.sky[1], self.sky[2]);
-        gl.Uniform2f(self.comp_u_dawn, self.dawn[0], self.dawn[1]);
+
         self.fullScreen(0, self.fb_w, self.fb_h);
         gl.ActiveTexture(c.GL_TEXTURE0);
         self.drawOcc(vp);

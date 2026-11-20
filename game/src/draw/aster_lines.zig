@@ -49,6 +49,8 @@ pub const cover_side: i32 = 15;
 pub const thing_body: u32 = 2 + 15 * 15 + 3;
 
 const stalk = [3]f32{ 0.62, 0.86, 0.66 };
+/// The colour of a note that is not on the wheel (spec/sky.md): no hue.
+const chrome = [3]f32{ 0.72, 0.76, 0.82 };
 
 fn col8(rgb: [3]f32, alpha: f32) [4]u8 {
     return .{
@@ -402,6 +404,17 @@ pub fn coverAt(x: f32, z: f32) Cover {
     return if (v < 0.40) .soil else if (v < 0.50) .lawn else if (v < 0.60) .clover else .moss;
 }
 
+/// How much of the light that falls on it a cover gives back: moss swallows light as it swallows
+/// sound (spec/shape.md; spec/texture.md).
+pub fn coverGives(cover: Cover) f32 {
+    return switch (cover) {
+        .soil => 1.0,
+        .lawn => 0.85,
+        .clover => 0.9,
+        .moss => 0.45,
+    };
+}
+
 const Out = struct {
     lines: []Inst,
     n: *usize,
@@ -619,53 +632,154 @@ pub fn fallen(w: *const world_mod.World, out: []Inst) usize {
     return made;
 }
 
-/// Where the sun will come up: as a way across the ground (x is its cosine, z its sine), and as
-/// a turn of the view from straight ahead.
-const dawn_way: f32 = -1.12;
-pub const dawn_yaw: f32 = dawn_way + 1.5707963;
-
-/// The day coming up: the rim of the sun on the horizon, as arcs of light, and a faint line
-/// where the ground ends. They stand round the eye, as a sky does.
-pub fn sky(eye: V, out: []Inst) usize {
-    const radius: f32 = 420.0;
-    const dawn: f32 = dawn_way;
-    const centre = V{ eye[0] + radius * @cos(dawn), eye[1], eye[2] + radius * @sin(dawn) };
-    const right = V{ -@sin(dawn), 0.0, @cos(dawn) };
+/// The sun (spec/sky.md): not a disc but a figure of light, drawn as its note against home. With
+/// home on the day's own note it is a plain ring. It rises on the shore and climbs the horn.
+pub fn sun(w: *const world_mod.World, eye: V, out: []Inst) usize {
+    if (w.dawnAge() < 0.0 or w.stand < 0.3) return 0;
+    const p = w.sunPlace();
+    const dx = p[0] - eye[0];
+    const dz = p[2] - eye[2];
+    const len = @max(@sqrt(dx * dx + dz * dz), 1.0);
+    const side = V{ -dz / len, 0.0, dx / len };
+    const tint = col8(colour.ofNote(world_mod.garden_hz, world_mod.garden_hz), 1.0);
     var n: usize = 0;
-    const arcs = 9;
-    const parts = 18;
-    for (0..arcs) |k| {
-        const f = @as(f32, @floatFromInt(k)) / @as(f32, arcs - 1);
-        const wide = radius * @tan((1.6 + 2.1 * @as(f32, @floatFromInt(k))) * (std.math.pi / 180.0));
-        const tint = col8(.{ 1.0, 0.74 - 0.20 * f, 0.44 + 0.30 * f }, (1.0 - f) * (1.0 - f) * 0.88 + 0.12);
-        for (0..parts) |j| {
+    const radii = [2]f32{ 30.0, 19.0 };
+    for (radii) |r| {
+        for (0..32) |k| {
             if (n >= out.len) return n;
-            const a0 = @as(f32, @floatFromInt(j)) * (std.math.pi / @as(f32, parts));
-            const a1 = @as(f32, @floatFromInt(j + 1)) * (std.math.pi / @as(f32, parts));
+            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 32.0);
+            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 32.0);
             out[n] = .{
-                .a = add(add(centre, mul(right, wide * @cos(a0))), V{ 0.0, wide * @sin(a0), 0.0 }),
-                .b = add(add(centre, mul(right, wide * @cos(a1))), V{ 0.0, wide * @sin(a1), 0.0 }),
-                .half_width = 3.0,
+                .a = add(add(V{ p[0], p[1] + r, p[2] }, mul(side, r * @cos(a0))), V{ 0.0, r * @sin(a0), 0.0 }),
+                .b = add(add(V{ p[0], p[1] + r, p[2] }, mul(side, r * @cos(a1))), V{ 0.0, r * @sin(a1), 0.0 }),
+                .half_width = -1.8,
                 .body = day_body,
                 .col = tint,
             };
             n += 1;
         }
     }
-    const rim = col8(.{ 0.75, 0.62, 0.55 }, 0.30);
-    const round = 48;
-    for (0..round) |k| {
+    return n;
+}
+
+/// The horn (spec/sky.md): over the lake, a ring of light for each of the sun's overtones, at
+/// 100 m an octave, each as wide as the shore's radius over its number. Each of the first sixteen
+/// is a thing of the world, in the hue of its note, and shines as loud as the sun holds it.
+/// Above them a ring every octave narrows to a thread, lit by the day.
+pub fn horn(w: *const world_mod.World, out: []Inst) usize {
+    if (w.rung_first == world_mod.no_thing) return 0;
+    var n: usize = 0;
+    var k: u32 = 1;
+    while (k <= world_mod.rungs) : (k += 1) {
+        const r = world_mod.rungRadius(k);
+        const h = world_mod.rungHeight(k);
+        const hz = world_mod.sun_hz * @as(f32, @floatFromInt(k));
+        // a note more than a fifth of a half step from the wheel's has no hue
+        const steps = 12.0 * @log2(hz / world_mod.garden_hz);
+        const on_wheel = @abs(steps - @round(steps)) <= 0.2;
+        const tint = if (on_wheel) colour.ofNote(world_mod.garden_hz, hz) else chrome;
+        // red is only ever a thin line (design/look.md)
+        const red = on_wheel and colour.fifthsFrom(world_mod.garden_hz, hz) == 4;
+        const width: f32 = if (red or k == 1) 0.9 else 1.9;
+        const parts: usize = if (k <= 2) 160 else if (k <= 6) 112 else 72;
+        const body: f32 = @floatFromInt(thing_body + w.rung_first + k - 1);
+        for (0..parts) |j| {
+            if (n >= out.len) return n;
+            const a0 = @as(f32, @floatFromInt(j)) * (6.2831853 / @as(f32, @floatFromInt(parts)));
+            const a1 = @as(f32, @floatFromInt(j + 1)) * (6.2831853 / @as(f32, @floatFromInt(parts)));
+            out[n] = .{
+                .a = .{ world_mod.lake_x + r * @cos(a0), h, world_mod.lake_z + r * @sin(a0) },
+                .b = .{ world_mod.lake_x + r * @cos(a1), h, world_mod.lake_z + r * @sin(a1) },
+                // a width below nought: the sky is not hazed by distance
+                .half_width = -width,
+                .body = body,
+                .col = col8(tint, 1.0),
+            };
+            n += 1;
+        }
+    }
+    // above rung sixteen, a ring an octave, narrowing to a thread
+    const faint = col8(chrome, 0.45);
+    var o: u32 = 5;
+    while (o <= 12) : (o += 1) {
+        const r = world_mod.lake_r / @as(f32, @floatFromInt(@as(u32, 1) << @intCast(o)));
+        const h = world_mod.octave_m * @as(f32, @floatFromInt(o));
+        for (0..24) |j| {
+            if (n >= out.len) return n;
+            const a0 = @as(f32, @floatFromInt(j)) * (6.2831853 / 24.0);
+            const a1 = @as(f32, @floatFromInt(j + 1)) * (6.2831853 / 24.0);
+            out[n] = .{
+                .a = .{ world_mod.lake_x + r * @cos(a0), h, world_mod.lake_z + r * @sin(a0) },
+                .b = .{ world_mod.lake_x + r * @cos(a1), h, world_mod.lake_z + r * @sin(a1) },
+                .half_width = -1.1,
+                .body = day_body,
+                .col = faint,
+            };
+            n += 1;
+        }
+    }
+    // the thread: from 1.2 km to forty-one octaves, light
+    var y: f32 = 1200.0;
+    while (y < 4100.0) : (y += 100.0) {
         if (n >= out.len) return n;
-        const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, round));
-        const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, round));
-        const toward = @max(0.0, @cos((a0 + a1) * 0.5 - dawn));
-        if (toward < 0.2) continue;
+        out[n] = .{ .a = .{ world_mod.lake_x, y, world_mod.lake_z }, .b = .{ world_mod.lake_x, y + 100.0, world_mod.lake_z }, .half_width = -1.0, .body = day_body, .col = col8(chrome, 0.35) };
+        n += 1;
+    }
+    return n;
+}
+
+/// The stars (spec/sky.md): star n is the land n pure fifths from the Garden, set round the
+/// horizon by the fifth's own turn of the octave and higher the farther out it is. Each is in its
+/// land's colour and twinkles at its land's note eight octaves down. They fade as the day fills
+/// the sky.
+pub fn stars(w: *const world_mod.World, eye: V, out: []Inst) usize {
+    const night = 1.0 - w.skyLevel();
+    if (night <= 0.01 or w.stand < 0.3) return 0;
+    const seconds = @as(f32, @floatFromInt(w.step)) * world_mod.dt;
+    const base = std.math.atan2(world_mod.lake_z, world_mod.lake_x);
+    var n: usize = 0;
+    var k: u32 = 12;
+    while (k < 665) : (k += 1) {
+        if (n >= out.len) return n;
+        const kf: f32 = @floatFromInt(k);
+        // the fifth is 0.585 of an octave: 210.59 degrees of the horizon
+        const turn = kf * 0.5849625;
+        const az = base + (turn - @floor(turn)) * 6.2831853;
+        const from_top = 1.5707963 * @sqrt(1.0 - kf / 665.0);
+        const up = 1.5707963 - from_top;
+        const far: f32 = 6000.0;
+        const p = V{ eye[0] + far * @cos(up) * @cos(az), eye[1] + far * @sin(up), eye[2] + far * @cos(up) * @sin(az) };
+        // its land's note, folded into the garden's octave
+        const ratio = std.math.pow(f32, 1.5, @floatFromInt(k % 12));
+        const folded = world_mod.garden_hz * ratio / std.math.pow(f32, 2.0, @floor(@log2(ratio)));
+        const beat = 0.55 + 0.45 * @cos(seconds * folded * (6.2831853 / 256.0) + kf);
+        out[n] = .{ .a = p, .b = .{ p[0], p[1] + 14.0, p[2] }, .half_width = -1.2, .body = 0.0, .col = col8(colour.ofNote(world_mod.garden_hz, folded), night * beat * 0.8) };
+        n += 1;
+    }
+    return n;
+}
+
+/// The dawn's edge: a line of the day's light running over the ground from where the sun rose,
+/// at the speed of sound (spec/sky.md, "Dawn travels at the speed of sound").
+pub fn dawnEdge(w: *const world_mod.World, out: []Inst) usize {
+    const age = w.dawnAge();
+    if (age < 0.0 or w.stand < 0.5) return 0;
+    const reach = age * world_mod.sound_speed;
+    if (reach > 2600.0) return 0;
+    const fade = 1.0 - reach / 2600.0;
+    const tint = col8(colour.ofNote(world_mod.garden_hz, world_mod.garden_hz), 0.75 * fade);
+    const parts = 180;
+    var n: usize = 0;
+    for (0..parts) |j| {
+        if (n >= out.len) return n;
+        const a0 = @as(f32, @floatFromInt(j)) * (6.2831853 / @as(f32, parts));
+        const a1 = @as(f32, @floatFromInt(j + 1)) * (6.2831853 / @as(f32, parts));
         out[n] = .{
-            .a = .{ eye[0] + radius * @cos(a0), eye[1] - 1.5, eye[2] + radius * @sin(a0) },
-            .b = .{ eye[0] + radius * @cos(a1), eye[1] - 1.5, eye[2] + radius * @sin(a1) },
-            .half_width = 2.0,
-            .body = day_body,
-            .col = rim,
+            .a = .{ w.sun_x + reach * @cos(a0), 0.06, w.sun_z + reach * @sin(a0) },
+            .b = .{ w.sun_x + reach * @cos(a1), 0.06, w.sun_z + reach * @sin(a1) },
+            .half_width = 2.2,
+            .body = 0.0,
+            .col = tint,
         };
         n += 1;
     }

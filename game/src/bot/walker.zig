@@ -15,6 +15,8 @@ pub const Walker = struct {
     heard_at: ?u64 = null,
     arrived_at: u64 = 0,
     figure_marked: bool = false,
+    horn_marked: bool = false,
+    six_at: ?u64 = null,
     breathing: bool = false,
     ticks_held: u32 = 0,
     rising_marked: bool = false,
@@ -97,7 +99,7 @@ pub const Walker = struct {
                     self.rising_marked = true;
                     self.mark = "rising";
                 }
-                if (w.stand >= 1.0 and w.dawn >= 0.8) {
+                if (w.stand >= 1.0) {
                     self.settled += 1;
                     if (self.settled == 130) self.mark = "far";
                     if (self.settled >= 150) {
@@ -154,6 +156,26 @@ pub const Walker = struct {
                     self.next(step);
                 }
             },
+            8 => {
+                // turn to the lake and watch the sky come up: the rungs light as the sun climbs,
+                // and each is heard when its note has crossed the water
+                const want = std.math.atan2(world_mod.lake_x - w.hum_x, -(world_mod.lake_z - w.hum_z));
+                var turn = want - w.look_yaw;
+                while (turn > std.math.pi) turn -= 2.0 * std.math.pi;
+                while (turn < -std.math.pi) turn += 2.0 * std.math.pi;
+                if (@abs(turn) > 0.03) h.rx = @intFromFloat(std.math.clamp(turn * 300.0, -110.0, 110.0));
+                if (w.look_tilt < -0.02) h.ry = -110 else if (w.look_tilt > 0.02) h.ry = 110;
+                const six = @as(u32, 1) << 6;
+                if (w.rung_lit & six != 0 and self.six_at == null) self.six_at = step;
+                if (self.six_at) |at| {
+                    if (!self.horn_marked and step == at + 120) {
+                        self.horn_marked = true;
+                        self.mark = "horn";
+                    }
+                }
+                if (w.rung_heard >= 6) self.next(step);
+                if (after > 60 * 400) self.next(step);
+            },
             else => self.done = true,
         }
         return h;
@@ -198,6 +220,6 @@ test "the scripted player is answered by the drip, breathes with it, and the pag
     // the drop landed, the page stood up and the day came
     try std.testing.expect(w.drip_met);
     try std.testing.expectEqual(@as(f32, 1.0), w.stand);
-    try std.testing.expect(w.dawn >= 0.8);
+    try std.testing.expect(w.dawnAge() > 0.0);
     try std.testing.expectEqual(@as(u32, 0), w.dropped);
 }

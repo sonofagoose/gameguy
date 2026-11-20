@@ -40,6 +40,45 @@ pub const quietest: f32 = 0.004;
 pub const answer_level: f32 = 0.22;
 pub const voice_level: f32 = 0.35;
 
+// ------------------------------------------------------------------ the sky (spec/sky.md)
+
+/// Height is the octave, and an octave is 100 m.
+pub const octave_m: f32 = 100.0;
+/// The lake's middle, beyond the far edge of the proof field, and the radius of its shore.
+pub const lake_x: f32 = 1100.0;
+pub const lake_z: f32 = -2700.0;
+pub const lake_r: f32 = 1850.0;
+/// The sun holds the day's note, an octave under middle C.
+pub const sun_hz: f32 = garden_hz * 0.5;
+/// The rungs of the horn that are things of the world: one for each of the sun's first sixteen
+/// overtones, standing in the air over the lake.
+pub const rungs: u32 = 16;
+/// Daylight is eighteen minutes of a day's twenty (an estimate, to tune). At noon the sun stands
+/// 400 m up, on rung 16.
+pub const daylight_s: f32 = 1080.0;
+pub const noon_m: f32 = 400.0;
+/// How long the sky takes to fill with the day once the sun is up, and how wide the edge between
+/// night and day is as the dawn crosses the ground.
+pub const sky_fills_s: f32 = 30.0;
+pub const dawn_edge_m: f32 = 160.0;
+
+/// How high rung `n` hangs: the octaves of its overtone.
+pub fn rungHeight(n: u32) f32 {
+    return octave_m * @log2(@as(f32, @floatFromInt(n)));
+}
+
+/// How wide rung `n` is: the shore's radius over its number, so the stack is a horn.
+pub fn rungRadius(n: u32) f32 {
+    return lake_r / @as(f32, @floatFromInt(n));
+}
+
+/// The sun rises a seventh of the way along the shore between yesterday's land and today's, and a
+/// string struck a seventh of the way along has no seventh overtone, nor any multiple of it. So
+/// those rungs never sound.
+pub fn rungSounds(n: u32) bool {
+    return n % 7 != 0;
+}
+
 /// A step that never comes.
 pub const never: u64 = std.math.maxInt(u64);
 
@@ -167,6 +206,9 @@ pub const Thing = struct {
     sounds: bool = true,
     /// The tower it is part of, if it is.
     tower: u16 = no_tower,
+    /// How loud it stays for as long as something holds it sounding: a rung of the horn while
+    /// the sun stands at or above it.
+    held: f32 = 0.0,
 };
 
 /// A tall thing with a foot: the view leans back at it, and a call climbs it.
@@ -280,6 +322,18 @@ pub const World = struct {
     hold_until: u64 = 0,
     /// How far the page has leaned in beside Drip, 0 to 1.
     near_in: f32 = 0.0,
+    /// The dawn: the step it began on, and how many seconds of it had already gone by then.
+    dawn_from: u64 = never,
+    dawn_age0: f32 = 0.0,
+    /// Where the sun rose: the point of the shore nearest where Hum wakes.
+    sun_x: f32 = 0.0,
+    sun_z: f32 = 0.0,
+    /// The first of the horn's rungs in the list of things, and which of them the sun is holding,
+    /// one bit each.
+    rung_first: u32 = no_thing,
+    rung_lit: u32 = 0,
+    /// The highest rung whose note has reached Hum's ears.
+    rung_heard: u32 = 0,
     /// A flower head that has fallen by the great aster's foot: a bell at Hum's own size.
     fallen: u32 = no_thing,
     /// The tower Hum is nearest, and how far its foot is.
@@ -345,6 +399,9 @@ pub const World = struct {
         self.stand = 1.0;
         self.stand_from = 0;
         self.dawn = 1.0;
+        // the sun rose two minutes ago: the dawn has crossed the field, and two rungs are lit
+        self.dawn_from = 0;
+        self.dawn_age0 = 120.0;
         self.drip_met = true;
         self.breaths = breaths_to_lock;
         self.answered = true;
@@ -398,6 +455,32 @@ pub const World = struct {
         self.drip = at;
         self.things[at] = .{ .x = drip_x, .y = 0.3, .z = drip_z, .tall = 0.4, .hz = garden_hz * 1.5, .family = .bar, .ring = 0.2 };
         at += 1;
+        // the horn: a ring of light for each of the sun's first sixteen overtones, over the lake.
+        // Each is a thing whose place is the point of its ring nearest where Hum wakes, since
+        // that is where its sound comes from first.
+        const to_x = -lake_x;
+        const to_z = -lake_z;
+        const away = @sqrt(to_x * to_x + to_z * to_z);
+        self.rung_first = at;
+        var k: u32 = 1;
+        while (k <= rungs) : (k += 1) {
+            const r = rungRadius(k);
+            self.things[at] = .{
+                .x = lake_x + to_x / away * r,
+                .y = rungHeight(k),
+                .z = lake_z + to_z / away * r,
+                .tall = r,
+                .hz = sun_hz * @as(f32, @floatFromInt(k)),
+                .family = .string,
+                .ring = 10.0,
+                .carry = 1e9,
+                .sounds = rungSounds(k),
+            };
+            at += 1;
+        }
+        // the sun rises on the shore, at the first rung's place
+        self.sun_x = self.things[self.rung_first].x;
+        self.sun_z = self.things[self.rung_first].z;
         self.thing_count = at;
     }
 
@@ -514,7 +597,7 @@ pub const World = struct {
             // the hinge: the world is a page until it stands, and holding R1 lays it down again
             self.call_held = if (hands.held(Hands.call)) self.call_held +| 1 else 0;
             const standing = self.step >= self.stand_from and self.call_held < fold_after;
-            if (self.step >= self.stand_from) self.dawn = @min(1.0, self.dawn + 0.0035);
+            if (self.step == self.stand_from and self.dawn_from == never) self.dawn_from = self.step;
             self.stand = if (standing) @min(1.0, self.stand + rise_rate) else @max(0.0, self.stand - fold_rate);
             self.look(hands);
         }
@@ -549,6 +632,14 @@ pub const World = struct {
                 // the fourth: the figure stops, and both notes hold by themselves
                 self.locked_at = self.step;
                 self.hold_until = self.step + lock_holds;
+                // the day begins to come up as the two lock. On the first morning dawn is at your
+                // feet (spec/sky.md): the sun rises where the two of you are, and the day runs out
+                // over the ground from there at the speed of sound
+                if (self.dawn_from == never) {
+                    self.dawn_from = self.step;
+                    self.sun_x = self.hum_x;
+                    self.sun_z = self.hum_z;
+                }
                 self.seen.meet(.evening_breathe, self.step);
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.7, .ring = 0.0 }, .swell));
             } else {
@@ -568,6 +659,8 @@ pub const World = struct {
             self.stand_from = self.step + 40;
         }
         if (self.drip != no_thing) self.dripStep();
+        if (self.rung_first != no_thing) self.skyStep();
+        self.dawn = self.dayAt(self.hum_x, self.hum_z);
         if (self.singing) self.hum_light = @max(self.hum_light, 0.8);
         self.hum_light *= 0.94;
         if (self.hum_light < 0.002) self.hum_light = 0.0;
@@ -636,7 +729,8 @@ pub const World = struct {
             if (thing.lit < 0.002) thing.lit = 0.0;
             thing.loud *= @exp(-dt * 2.3 / thing.ring);
             if (thing.loud < 0.002) thing.loud = 0.0;
-            if (thing.loud > 0.1) ringing += 1;
+            thing.loud = @max(thing.loud, thing.held);
+            if (thing.loud > 0.1 and thing.held == 0.0) ringing += 1;
         }
         if (ringing > 0 and self.still > 0) self.seen.hold(.evening_call);
         if (self.drip_humming and self.besideDrip()) self.seen.hold(.evening_breathe);
@@ -661,6 +755,74 @@ pub const World = struct {
 
         self.step += 1;
         return n;
+    }
+
+    /// How many seconds since the sun rose; below nought before it has.
+    pub fn dawnAge(self: *const World) f32 {
+        if (self.dawn_from == never or self.step < self.dawn_from) return -1.0;
+        return self.dawn_age0 + @as(f32, @floatFromInt(self.step - self.dawn_from)) * dt;
+    }
+
+    /// How much daylight has reached a place on the ground, 0 to 1. The dawn runs out over the
+    /// ground from where the sun rose, at the speed of sound, like a call (spec/sky.md).
+    pub fn dayAt(self: *const World, x: f32, z: f32) f32 {
+        const age = self.dawnAge();
+        if (age < 0.0) return 0.0;
+        const dx = x - self.sun_x;
+        const dz = z - self.sun_z;
+        const ahead = age * sound_speed - @sqrt(dx * dx + dz * dz);
+        const f = std.math.clamp(ahead / dawn_edge_m, 0.0, 1.0);
+        return f * f * (3.0 - 2.0 * f);
+    }
+
+    /// How far the day has come up in the sky, 0 to 1: the sky fills before the land does.
+    pub fn skyLevel(self: *const World) f32 {
+        const age = self.dawnAge();
+        if (age < 0.0) return 0.0;
+        const f = std.math.clamp(age / sky_fills_s, 0.0, 1.0);
+        return f * f * (3.0 - 2.0 * f);
+    }
+
+    /// Where the sun is: it rises on the shore and climbs the horn's wall toward the lake's middle,
+    /// along the line from where it rose (spec/sky.md).
+    pub fn sunPlace(self: *const World) [3]f32 {
+        const h = self.sunHeight();
+        const dx = self.sun_x - lake_x;
+        const dz = self.sun_z - lake_z;
+        const shrink = 1.0 / std.math.pow(f32, 2.0, h / octave_m);
+        return .{ lake_x + dx * shrink, h, lake_z + dz * shrink };
+    }
+
+    /// How high the sun stands, in metres: up the horn's wall to noon, and down again.
+    pub fn sunHeight(self: *const World) f32 {
+        const age = self.dawnAge();
+        if (age < 0.0 or age > daylight_s) return 0.0;
+        return noon_m * @sin(std.math.pi * age / daylight_s);
+    }
+
+    /// The sun holds every rung at or below it. A rung it reaches lights at once where it stands
+    /// and sounds its overtone, which is heard when it has crossed the distance to Hum; a rung it
+    /// falls below goes dark (spec/sky.md, the horn).
+    fn skyStep(self: *World) void {
+        const age = self.dawnAge();
+        if (age < 0.0) return;
+        const h = self.sunHeight();
+        var k: u32 = 1;
+        while (k <= rungs) : (k += 1) {
+            const index = self.rung_first + k - 1;
+            const bit = @as(u32, 1) << @intCast(k);
+            const holds = age <= daylight_s and h + 0.001 >= rungHeight(k) and rungSounds(k);
+            if (holds and self.rung_lit & bit == 0) {
+                self.rung_lit |= bit;
+                // the sun's nth overtone is one nth as loud
+                const part = 1.0 / @as(f32, @floatFromInt(k));
+                self.things[index].held = 0.8 * @sqrt(part);
+                self.tell(.{ .thing = index }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.things[index].hz, .strength = 0.6 * @sqrt(part), .ring = 10.0 }, .glow));
+            } else if (!holds and self.rung_lit & bit != 0) {
+                self.rung_lit &= ~bit;
+                self.things[index].held = 0.0;
+            }
+        }
     }
 
     /// Drip keeps its time, turns the figure, and once it has landed rides on Hum's head.
@@ -803,6 +965,13 @@ pub const World = struct {
 
     /// An answer has reached Hum's ears: the moments that are made of being answered.
     fn heard(self: *World, from: u32) void {
+        if (self.rung_first != no_thing and from >= self.rung_first and from < self.rung_first + rungs) {
+            const k = from - self.rung_first + 1;
+            self.rung_heard = @max(self.rung_heard, k);
+            if (k == 6) self.seen.meet(.sky_dawn, self.step);
+            return;
+        }
+        if (from == self.drip) return;
         // where there is no Drip to answer, any answer is being answered
         if (self.drip == no_thing) self.seen.meet(.evening_call, self.step);
         self.seen.meet(.whole_law1, self.step);
@@ -846,6 +1015,8 @@ pub const World = struct {
         mixIn(&h, @as(u32, @bitCast(self.dawn)));
         mixIn(&h, @as(u32, @bitCast(self.figure_turn)));
         mixIn(&h, self.breaths);
+        mixIn(&h, self.rung_lit);
+        mixIn(&h, self.rung_heard);
         mixIn(&h, @intFromBool(self.drip_met));
         mixIn(&h, @as(u32, @bitCast(self.hum_light)));
         mixIn(&h, self.told);
@@ -1134,7 +1305,7 @@ test "four breaths on the tick bring the drip's fifth true, and the figure stops
     while (step < 700) : (step += 1) _ = w.stepOnce(.{}, &cues);
     try std.testing.expect(w.drip_met);
     try std.testing.expectEqual(@as(f32, 1.0), w.stand);
-    try std.testing.expect(w.dawn > 0.9);
+    try std.testing.expect(w.dawnAge() > 5.0 and w.skyLevel() > 0.2);
     try std.testing.expectEqual(w.told, w.sent);
     try std.testing.expectEqual(@as(u32, 0), w.dark_sounds);
 }
@@ -1156,4 +1327,64 @@ test "the second call is answered by the drip, late by the distance there and ba
     const took = @as(f32, @floatFromInt(w.answered_at - called)) * dt;
     try std.testing.expect(@abs(took - 2.0 * far / sound_speed) < 0.06);
     try std.testing.expect(w.seen.get(.evening_call).met);
+}
+
+test "the horn's rungs stand at the heights of the overtones, and the seventh never sounds" {
+    // a hundred metres an octave, and each ring the shore's radius over its number
+    try std.testing.expectEqual(@as(f32, 0.0), rungHeight(1));
+    try std.testing.expect(@abs(rungHeight(2) - 100.0) < 0.01);
+    try std.testing.expect(@abs(rungHeight(3) - 158.496) < 0.01);
+    try std.testing.expect(@abs(rungHeight(16) - 400.0) < 0.01);
+    try std.testing.expect(@abs(rungRadius(2) - 925.0) < 0.01);
+    try std.testing.expect(@abs(rungRadius(16) - 115.625) < 0.01);
+    // a belly throws you as high as its overtone is loud, 100 / ln 2 / n metres: always past the
+    // gap to the next rung, and never as far as the one after (spec/sky.md)
+    var k: u32 = 1;
+    while (k < 256) : (k += 1) {
+        const throw = octave_m / std.math.ln2 / @as(f32, @floatFromInt(k));
+        try std.testing.expect(throw > rungHeight(k + 1) - rungHeight(k));
+        try std.testing.expect(throw < rungHeight(k + 2) - rungHeight(k));
+    }
+    try std.testing.expect(!rungSounds(7) and !rungSounds(14) and !rungSounds(21));
+    try std.testing.expect(rungSounds(6) and rungSounds(8) and rungSounds(16));
+}
+
+test "the sun climbs the horn: each rung lights where it stands at once, and is heard late by its distance" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initEvening();
+    w.dawn_from = 0; // the sun rises now
+    var cues: [max_cues]sound.Cue = undefined;
+    var lit_at: [rungs + 1]?u64 = @splat(null);
+    var heard_at: [rungs + 1]?u64 = @splat(null);
+    var step: u64 = 0;
+    while (step < 60 * 330) : (step += 1) {
+        const n = w.stepOnce(.{}, &cues);
+        var k: u32 = 1;
+        while (k <= rungs) : (k += 1) {
+            if (lit_at[k] == null and w.rung_lit & (@as(u32, 1) << @intCast(k)) != 0) lit_at[k] = step;
+        }
+        for (cues[0..n]) |cue| {
+            if (cue.kind != .strike or cue.family != .string) continue;
+            var j: u32 = 1;
+            while (j <= rungs) : (j += 1) {
+                if (heard_at[j] == null and @abs(cue.hz - sun_hz * @as(f32, @floatFromInt(j))) < 0.01) heard_at[j] = cue.at;
+            }
+        }
+    }
+    // dawn is an arpeggio: rungs one to six light in order, and the seventh never does
+    var k: u32 = 2;
+    while (k <= 6) : (k += 1) try std.testing.expect(lit_at[k].? > lit_at[k - 1].?);
+    try std.testing.expect(lit_at[7] == null);
+    try std.testing.expectEqual(@as(u32, 6), w.rung_heard);
+    // rung two is 100 m up: the sun reaches it a minute and a half after it rises
+    const two = @as(f32, @floatFromInt(lit_at[2].?)) * dt;
+    try std.testing.expect(@abs(two - daylight_s * std.math.asin(@as(f32, 0.25)) / std.math.pi) < 0.1);
+    // its light is there at once, and its note is heard as late as it is far from Hum
+    const r = w.things[w.rung_first + 1];
+    const far = @sqrt(r.x * r.x + r.z * r.z + r.y * r.y);
+    const late = @as(f32, @floatFromInt(heard_at[2].? - lead)) / sound.rate - two;
+    try std.testing.expect(@abs(late - far / sound_speed) < 0.1);
+    // and the day reached Hum when the dawn had crossed the ground from the shore
+    try std.testing.expectEqual(@as(f32, 1.0), w.dayAt(0.0, 0.0));
 }

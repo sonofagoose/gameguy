@@ -4,6 +4,7 @@ pub const Id = enum(u16) {
     evening_call,
     evening_breathe,
     garden_asters,
+    sky_dawn,
     whole_law1,
     whole_law6,
 };
@@ -12,6 +13,7 @@ pub const names = [_][]const u8{
     "evening.call",
     "evening.breathe",
     "garden.asters",
+    "sky.dawn",
     "whole.law1",
     "whole.law6",
 };

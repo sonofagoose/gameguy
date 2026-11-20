@@ -1615,8 +1615,8 @@ _Every sentence of the specification that promises a player something, read by
 - open: Things rest in the still places.
 - open: This is real: small things hang in the quiet nodes of a standing sound wave (acoustic levitation; general knowledge, to check).
 - open: The reefs are what a garden's air holds after a storm, at one to a hundred: a dandelion parachute is 0.7 m across, a box elder key 3 to 4 m, a sparrow's feather 5 m.
-- open: Rung n hangs at 100 × log2(n) metres. The gaps are an octave, a fifth, a fourth, a third, a smaller third, and on, for ever, as the atlas says.
-- open: Ring n is 1,850 ÷ n metres in radius. Ring 1 is the lake's own shore.
+- spoken for by `sky.dawn`: Rung n hangs at 100 × log2(n) metres. The gaps are an octave, a fifth, a fourth, a third, a smaller third, and on, for ever, as the atlas says.
+- spoken for by `sky.dawn`: Ring n is 1,850 ÷ n metres in radius. Ring 1 is the lake's own shore.
 - open: That makes the stack an exponential horn, which is the shape of a real horn's bell.
 - open: Ring n carries n waves round it, so it has 2n still places and 2n bellies.
 - open: You stand on the still places. A belly throws.
@@ -1624,7 +1624,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: The gap to the next rung is 100 × log2(1 + 1/n), which is always a little less.
 - open: So every belly throws you exactly one rung and never two.
 - open: Nobody chose that: the loudness of the harmonic series falls at the same rate as its gaps close.
-- open: Every seventh rung is dark. The sun rises on the border between yesterday's land and today's, which is one seventh of the way along the day's seven lit lands.
+- spoken for by `sky.dawn`: Every seventh rung is dark. The sun rises on the border between yesterday's land and today's, which is one seventh of the way along the day's seven lit lands.
 - open: So rungs 7, 14, 21, 28 and on never sound, never shine and hold nothing.
 - open: From rung 6 the throw is 24 m.
 - open: It carries you to 282 m, where rung 7 should be, and there is nothing there.
@@ -1644,7 +1644,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: 128 | 700 m | 14 m | 1.1 m: a stair
 - open: 1,024 | 1,000 m | 1.8 m | 0.14 m: a ramp
 - open: 4,096 and up | 1,200 m and up | under half a metre | the thread
-- open: Colour. A rung takes the hue of its note, by fifths, like everything else.
+- spoken for by `sky.dawn`: Colour. A rung takes the hue of its note, by fifths, like everything else.
 - open: A rung whose note is not on the wheel (11, 13, and the sevenths once lit) has no hue and is drawn in chrome.
 - open: The reefs let go at dusk. When the sun's note dies the still places go with it, and everything they held comes down over the lake through the dusk, ringing where it lands.
 - open: Every dawn the rings fill again with what the wind brings.
@@ -1673,7 +1673,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: How it climbs. Up the horn's wall on the day's meridian, like a thrown ball: height 400 m × sin(π × t ÷ 18 min).
 - open: It reaches rung 16 at noon, 400 m up and 116 m from the axis, and comes down the same way.
 - open: Eighteen minutes of daylight in the twenty is an estimate, to tune.
-- open: Every rung at or below the sun sounds. Every rung above it is silent, dark, and not there.
+- spoken for by `sky.dawn`: Every rung at or below the sun sounds. Every rung above it is silent, dark, and not there.
 - open: 0 | rung 1, the shore | the drone alone | the horizon ring
 - open: 1.5 | 2 | the octave | one hoop
 - open: 2.3, 3.0, 3.6, 4.0 | 3, 4, 5, 6 | fifth, octave, third, fifth: the arpeggio | the triad's three hues
@@ -1681,7 +1681,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: 4.9 to 7.8 | 8 to 15 | a scale, a step every 25 to 35 seconds | five hues and two chrome rings
 - open: 9 | 16: noon | the top octave, held for over a minute | every ring lit; the backlight at its highest
 - open: 9 to 18 | 16 back down to 1 | the same, falling | the sky closing from the top
-- open: Dawn is an arpeggio by physics. Rungs 1 to 6 are the only notes a bugle has.
+- spoken for by `sky.dawn`: Dawn is an arpeggio by physics. Rungs 1 to 6 are the only notes a bugle has.
 - open: Nobody wrote the morning call.
 - open: The backlight follows the sun's loudness as heard where Hum stands: 14 of 255 in the first dark (as built), low at 2am, highest at noon.
 - open: Noon shimmer. The sun warms pipes sharp, which the atlas already says of the Nozzle and of cold glass.
@@ -1771,7 +1771,7 @@ _Every sentence of the specification that promises a player something, read by
 - open: The land behind rings because the sun's note is its own third overtone.
 - open: Two lands a third round each way glow faintly warm through the fifth overtone, which is why the vine's three lands are never fully dark to each other.
 - open: Each land's brightness is twelve sums at dawn from its own tuning, so pure lands ring and the Seam is never bright and never black.
-- open: Dawn travels at the speed of sound. The sun's first light runs out from its rising point as a ring, like a call.
+- spoken for by `sky.dawn`: Dawn travels at the speed of sound. The sun's first light runs out from its rising point as a ring, like a call.
 - open: It crosses the lake in 62 seconds and the whole world in 128.
 - open: On the first morning dawn is at your feet.
 - open: On the seventh you see the sun on the far shore, and a minute later the line of answering dew reaches you, with a wave of small high ticks.
