@@ -2414,12 +2414,12 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `spec/texture.md` / The texture of the world / A line at rest
 
-- open: A silent thing is not lit. It is seen only when something else lights it: the day, or a call's ring passing over it.
-- open: A thing's light is its loudness, spread over all its lines. This is the rule that makes brightness loudness.
+- spoken for by `texture.light`: A silent thing is not lit. It is seen only when something else lights it: the day, or a call's ring passing over it.
+- spoken for by `texture.light`: A thing's light is its loudness, spread over all its lines. This is the rule that makes brightness loudness.
 - open: A crown of small bells ringing loudly is a few short lines carrying a great deal of light: piercing.
 - open: A lawn rustling faintly is a great many long lines carrying almost none: a mist.
 - open: A big thing has to be very loud to be bright.
-- open: So the brightest thing on the screen is always something that is sounding, or Hum.
+- spoken for by `texture.light`: So the brightest thing on the screen is always something that is sounding, or Hum.
 - open: Lower is heavier. A line's weight follows its thing's register: bass things are drawn with a heavy line and high things with a hair.
 
 ## `spec/texture.md` / The texture of the world / A line that sounds
@@ -2514,16 +2514,16 @@ _Every sentence of the specification that promises a player something, read by
 ## `spec/texture.md` / The texture of the world / What makes a frame beautiful
 
 - open: These are rules, and the build can check each one from its own frames.
-- open: Black is most of every frame. In the place, at least half the screen is black.
-- open: On the page and at 2am, at least four fifths.
-- open: Light is spent. No more than a tenth of the screen is brighter than half.
+- spoken for by `texture.frame`: Black is most of every frame. In the place, at least half the screen is black.
+- spoken for by `texture.frame`: On the page and at 2am, at least four fifths.
+- spoken for by `texture.frame`: Light is spent. No more than a tenth of the screen is brighter than half.
 - open: The brightest tenth of the light belongs to things that are sounding.
 - open: Three colours. At any moment what is lit is in the day's three hues, its note, its fifth and its third (sky.md), with bone-white for what has no note.
 - open: A fourth colour is an event: something that is not of today.
 - open: Three weights of line: heavy for what is near and low, a plain line, and a hair for what is far and high.
 - open: Near, middle and far. Every view in the place has something within twenty metres, something between, and something a kilometre off.
 - open: The score tool checks it for every piece.
-- open: Hum is small. Walking, Hum is under a twentieth of the screen's height.
+- spoken for by `texture.frame`: Hum is small. Walking, Hum is under a twentieth of the screen's height.
 - open: Nothing is drawn that isn't in the world. No frame, no gradient, no texture, no glow that nothing is giving.
 - open: Rest. Things hold still unless they are sounding.
 - open: A still frame of a quiet land should be mostly still.

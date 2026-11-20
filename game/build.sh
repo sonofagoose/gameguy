@@ -82,6 +82,11 @@ if [ -f results/same-take-aarch64.txt ]; then
 fi
 echo "fact same_take.identical $identical" > build/facts.txt
 
+echo "== what each kept frame is made of (spec/texture.md, what makes a frame beautiful)"
+grep -h "^fact beauty\." build/evening.out >> build/facts.txt || true
+python3 -I ../spec/tools/beauty.py build/facts.txt >> build/facts.txt
+grep "beauty\.\(page\|place\|bright\)" build/facts.txt | sed 's/^/   /'
+
 echo "== a take, kept as a file: the walk played back through the game itself, from the file alone"
 quiet_run replay build/gameguy-x86_64 --scene evening --headless --replay build/walk.take
 met_live=$(grep -o "^witness garden.asters first=[0-9]*" build/same-take-x86_64.txt | tail -1)

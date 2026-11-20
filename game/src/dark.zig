@@ -490,6 +490,7 @@ const ground_span: f32 = 1280.0;
 const ground_block = 64;
 const ground_blocks = ground_size / ground_block;
 const ground_file = "keep/asters-ground.rgb";
+const ground_most: f32 = 150.0;
 var ground: [ground_size * ground_size * 3]u8 = undefined;
 var ground_dirty: [ground_blocks * ground_blocks]bool = @splat(false);
 var ground_cursor: usize = 0;
@@ -518,7 +519,9 @@ fn leaveLight(x: f32, z: f32, radius: f32, rgb: [3]f32, amount: f32) void {
             for (0..3) |k| {
                 const more = amount * fall * rgb[k] * 255.0;
                 const now = @as(f32, @floatFromInt(ground[at + k])) + more;
-                ground[at + k] = @intFromFloat(@min(now, 255.0));
+                // kept light never passes this: what the ground remembers is never brighter than
+                // half (spec/texture.md)
+                ground[at + k] = @intFromFloat(@min(now, ground_most));
             }
             ground_dirty[@intCast(@divTrunc(iz, ground_block) * ground_blocks + @divTrunc(ix, ground_block))] = true;
         }
@@ -561,7 +564,7 @@ fn saveGround() void {
 fn groundStep(w: *const World, called: bool) void {
     const home = colour.ofNote(world_mod.garden_hz, world_mod.garden_hz);
     if (called) leaveLight(w.hum_x, w.hum_z, 4.5, home, 0.55);
-    if (w.singing) leaveLight(w.hum_x, w.hum_z, 3.0, home, 0.0015);
+    if (w.singing) leaveLight(w.hum_x, w.hum_z, 1.6, home, 0.0006);
     if (w.still == 0) leaveLight(w.hum_x, w.hum_z, 1.2, .{ 0.886, 0.839, 0.784 }, 0.016);
     // each ringing bell, one step in sixty-four, taken in turn: a crown of them ringing at once
     // must not cost a frame
@@ -569,7 +572,8 @@ fn groundStep(w: *const World, called: bool) void {
     const land_end = if (w.rung_first == world_mod.no_thing) w.thing_count else w.rung_first;
     for (w.things[0..land_end], 0..) |thing, i| {
         if (!thing.sounds or thing.loud < 0.06 or (i + w.step) % 64 != 0) continue;
-        leaveLight(thing.x, thing.z, 4.0 + thing.tall * 1.5, noteColour(thing.hz), thing.loud * 0.12);
+        // light falls wider the higher the thing that gives it
+        leaveLight(thing.x, thing.z, 0.5 + 0.08 * thing.y + thing.tall, noteColour(thing.hz), thing.loud * 0.04);
     }
 }
 
@@ -680,6 +684,23 @@ fn dumpNamed(dir: [*:0]const u8, comptime fmt: []const u8, args: anytype) void {
     if (std.mem.printSentinel(&path, "{s}/{s}.png", .{ std.mem.span(dir), leaf }, 0)) |text| {
         _ = png.writeFromGl(text.ptr, @intCast(renderer.fb_w), @intCast(renderer.fb_h), pixels);
     } else |_| {}
+    // A frame a promise names is measured as it is kept (spec/texture.md, what makes a frame
+    // beautiful): how much of it is black, and how much is brighter than half.
+    if (std.mem.startsWith(u8, leaf, "promise-")) {
+        var black: usize = 0;
+        var bright: usize = 0;
+        const dots = pixels.len / 4;
+        for (0..dots) |i| {
+            const r: u32 = pixels[i * 4];
+            const g: u32 = pixels[i * 4 + 1];
+            const b: u32 = pixels[i * 4 + 2];
+            if (@max(r, @max(g, b)) < 16) black += 1;
+            if (r * 2126 + g * 7152 + b * 722 > 128 * 10000) bright += 1;
+        }
+        const n: f64 = @floatFromInt(@max(dots, 1));
+        log("fact beauty.{s}.black {d:.4}", .{ leaf["promise-".len..], @as(f64, @floatFromInt(black)) / n });
+        log("fact beauty.{s}.bright {d:.4}", .{ leaf["promise-".len..], @as(f64, @floatFromInt(bright)) / n });
+    }
 }
 
 pub fn run(window: plat.Window, options: Options) bool {

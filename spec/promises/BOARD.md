@@ -10,13 +10,13 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | | sentences |
 |---|---|
 | in the specification | 2120 |
-| a promise speaks for it | 100 |
+| a promise speaks for it | 107 |
 | **kept** | **0** |
-| no promise speaks for it yet | 2020 |
+| no promise speaks for it yet | 2013 |
 
 | stage | claims | spoken for | kept | open |
 |---|---|---|---|---|
-| 2 | 631 | 88 | 0 | 543 |
+| 2 | 631 | 95 | 0 | 536 |
 | 3 | 949 | 9 | 0 | 940 |
 | 4 | 274 | 2 | 0 | 272 |
 | 5 | 187 | 1 | 0 | 186 |
@@ -33,13 +33,13 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | `spec/together.md` | 66 | 0 | 0 |
 | `spec/sky.md` | 466 | 7 | 0 |
 | `spec/shape.md` | 281 | 0 | 0 |
-| `spec/texture.md` | 98 | 0 | 0 |
+| `spec/texture.md` | 98 | 7 | 0 |
 
 ## Promises: what speaks for the claims
 
 | rung | promises |
 |---|---|
-| sized: its moment, its cheat, its full size and its question written | 45 of 45 |
+| sized: its moment, its cheat, its full size and its question written | 47 of 47 |
 | proven: every measure passes today and nothing is owed | 0 |
 | reached: the scripted player met it by playing | 6 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
@@ -63,6 +63,8 @@ asks its question.
 | `garden.w01` The answering field | Did the answers coming in from far away make the garden feel big? | none |
 | `card.ground` The ground remembers | Coming back to it, could you see where you had been? | none |
 | `sky.dawn` The first dawn | Did you stop to watch the sky come up? | none |
+| `texture.frame` What makes a frame beautiful | Is every frame something you would want to look at? | none |
+| `texture.light` Light is loudness | Could you tell what was loud by looking? | none |
 | `hands.voice-in-a-buffer` Your voice, at once | When you hum, does it start the moment you press? | none |
 | `light.hue` One set of numbers for sound and light | Could you tell which bells were kin to your note by their colour? | none |
 
@@ -94,6 +96,8 @@ asks its question.
 | `garden.w12` The pot | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `card.ground` The ground remembers | 2 | 7 | no | - | no | no | no | 6 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
 | `sky.dawn` The first dawn | 2 | 7 | no | yes | no | no | no | 5 owed; no yes from Morgan yet |
+| `texture.frame` What makes a frame beautiful | 2 | 4 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
+| `texture.light` Light is loudness | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `whole.scale` One to a hundred | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.true` Literally true | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.law1` Sympathy | 1 | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |
