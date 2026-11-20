@@ -22,6 +22,7 @@ pub const Walker = struct {
     bridge_marked: bool = false,
     swell_marked: bool = false,
     knots_marked: bool = false,
+    pocket_marked: bool = false,
     nudged: bool = false,
     nudge_left: u8 = 0,
     nudged_at: u64 = 0,
@@ -388,6 +389,16 @@ pub const Walker = struct {
                 if (near and !self.knots_marked) {
                     self.knots_marked = true;
                     self.mark = "knots";
+                }
+                // a lunge about to arrive: step aside on its beat, and the pocket opens
+                var lunge_due = false;
+                for (w.knots[0..w.knot_count]) |kn| {
+                    if (kn.lunge_from != world_mod.knots.never_lunged and w.clock + 2 == kn.lunge_from + world_mod.knots.lunge_steps / 2) lunge_due = true;
+                }
+                if (lunge_due) h.buttons |= Hands.dodge;
+                if (w.pockets == 1 and !self.pocket_marked) {
+                    self.pocket_marked = true;
+                    self.mark = "pocket";
                 }
                 if (near and coloured and w.clock % (4 * world_mod.tick_every) == 0 and w.clock > 0) h.buttons |= Hands.strike;
                 if (near and !coloured) self.next(step);

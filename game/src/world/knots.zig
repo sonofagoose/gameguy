@@ -54,7 +54,29 @@ pub const Knot = struct {
     thing: [2]u32 = .{ 0, 0 },
     /// When each strand last pulsed, in steps of the world's beat (for the drawing's jerk).
     pulsed: [2]u64 = .{ 0, 0 },
+    /// A lunge: the step of the world's beat it began, so that it arrives on the knot's one.
+    lunge_from: u64 = never_lunged,
 };
+
+pub const never_lunged: u64 = std.math.maxInt(u64);
+/// A lunge lasts this many steps of the world's beat and arrives halfway, on the knot's one; it
+/// closes this part of the way to Hum.
+pub const lunge_steps: u64 = 24;
+pub const lunge_reach: f32 = 0.8;
+/// A dodge this near a lunge's arrival, in steps of the world's beat, opens the pocket: time
+/// thickens to this pace for this many steps, and a strike in it takes this much more.
+pub const dodge_window: u64 = 8;
+pub const pocket: f32 = 0.4;
+pub const pocket_steps: u64 = 100;
+pub const pocket_drain: f32 = 0.15;
+/// A lunge that lands knocks Hum back this far, and dims it.
+pub const knock_back: f32 = 1.6;
+
+/// The next step of the world's beat at which both a knot's strands pulse together: its one.
+pub fn nextOne(clock: u64, cycle: f32) u64 {
+    const c = @as(f32, @floatFromInt(clock));
+    return @intFromFloat(@ceil(c / cycle) * cycle);
+}
 
 /// A knot's cycle, in steps of the world's beat: a bar stretched by home's pitch against its root,
 /// folded by octaves into the range round a bar.

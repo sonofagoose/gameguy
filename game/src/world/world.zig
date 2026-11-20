@@ -582,6 +582,12 @@ pub const World = struct {
     knot_count: u32 = 0,
     knots_home: u32 = 0,
     strikes: u32 = 0,
+    /// The dodge and the pocket (SPEC.md 10): when the last dodge was, in steps of the world's
+    /// beat; until when the pocket is open, in steps; how many pockets and how many lunges landed.
+    dodged_at: u64 = never,
+    pocket_until: u64 = 0,
+    pockets: u32 = 0,
+    knocked: u32 = 0,
     /// Each thing's kin, and the things due to ring because their kin rang (law 1).
     kin: [max_things][kin_most]Kin = @splat(@splat(.{})),
     echoes: [max_echoes]Echo = @splat(.{}),
@@ -921,7 +927,7 @@ pub const World = struct {
             // the hinge: the world is a page until it stands, and holding R1 lays it down again
             self.call_held = if (hands.held(Hands.call)) self.call_held +| 1 else 0;
             self.wheelStep(hands);
-            const pace: f32 = if (self.wheel_open) thick else 1.0;
+            const pace: f32 = if (self.wheel_open) thick else if (self.step < self.pocket_until) knots.pocket else 1.0;
             if (pace != self.tempo) {
                 self.tempo = pace;
                 // what is ringing stretches into a held chord while time is thick, and lets go after
@@ -937,6 +943,9 @@ pub const World = struct {
             }
             self.look(hands);
         }
+
+        // the right face dodges: a quick step aside, and on the beat a lunge lands on, the pocket
+        if (self.view == .place and self.stand >= 1.0 and pressed & Hands.dodge != 0) self.dodge();
 
         // the left face strikes with Hum's fork (SPEC.md 10)
         if (self.view == .place and self.stand >= 1.0 and pressed & Hands.strike != 0) self.strike();
@@ -1255,11 +1264,52 @@ pub const World = struct {
             const dz = kn.z - self.hum_z;
             if (dx * dx + dz * dz > knots.strike_reach * knots.strike_reach) continue;
             const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
-            const take = knots.drainAt(kn, @floatFromInt(self.clock), cycle);
+            const take = knots.drainAt(kn, @floatFromInt(self.clock), cycle) + (if (self.step < self.pocket_until) knots.pocket_drain else 0.0);
             kn.colour = @max(0.0, kn.colour - take);
             // it rings at its own notes, as hard as the strike met it
             for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.4 + take, .ring = 0.8 }, .glow));
         }
+    }
+
+    /// The right face: Hum steps quickly aside; on the beat a lunge lands on, the pocket opens: time
+    /// thickens, and the next strikes take more (SPEC.md 10).
+    fn dodge(self: *World) void {
+        self.dodged_at = self.clock;
+        const side: f32 = if (self.strikes % 2 == 0) 1.0 else -1.0;
+        self.hum_x += @cos(self.look_yaw) * 2.2 * side;
+        self.hum_z += @sin(self.look_yaw) * 2.2 * side;
+        for (self.knots[0..self.knot_count]) |kn| {
+            if (kn.lunge_from == knots.never_lunged) continue;
+            const arrives = kn.lunge_from + knots.lunge_steps / 2;
+            const apart = if (arrives > self.clock) arrives - self.clock else self.clock - arrives;
+            if (apart > knots.dodge_window) continue;
+            self.pocket_until = self.step + knots.pocket_steps;
+            self.pockets += 1;
+            // the pocket is heard: Hum's own note, soft and long, and Hum glows with it. Not a ring on
+            // the ground: a dodge is not a call, and the field does not answer it
+            self.own_now = true;
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.home_hz, .strength = 0.3, .ring = 1.5 }, .glow));
+            self.own_now = false;
+            break;
+        }
+    }
+
+    /// A lunge arrives. Dodged near its arrival, it misses; otherwise it lands: Hum is knocked back
+    /// and dimmed, and the knot's strands ring hard. Nothing dies.
+    fn lungeLands(self: *World, kn: *knots.Knot) void {
+        if (self.dodged_at != never) {
+            const apart = if (self.dodged_at > self.clock) self.dodged_at - self.clock else self.clock - self.dodged_at;
+            if (apart <= knots.dodge_window) return;
+        }
+        const dx = self.hum_x - kn.x;
+        const dz = self.hum_z - kn.z;
+        const far = @max(@sqrt(dx * dx + dz * dz), 0.1);
+        if (far > knots.keeps_off) return;
+        self.hum_x += dx / far * knots.knock_back;
+        self.hum_z += dz / far * knots.knock_back;
+        self.hum_light = 0.0;
+        self.knocked += 1;
+        for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.6, .ring = 0.4 }, .glow));
     }
 
     /// Knots near Hum come and keep a circle round it, and each strand pulses on its own count of
@@ -1286,6 +1336,23 @@ pub const World = struct {
                 kn.z += gz / gap * stride;
             }
             kn.around += 0.2 * dt * self.tempo;
+            // a lunge: begun so it arrives on the knot's one, closing most of the way to Hum
+            const cycle_now = knots.cycleSteps(@floatFromInt(4 * tick_every), self.home_hz, kn.root_hz);
+            if (kn.lunge_from == knots.never_lunged and kn.colour > 0.0 and far < knots.keeps_off + 2.0) {
+                const one = knots.nextOne(self.clock + knots.lunge_steps / 2, cycle_now);
+                if (one == self.clock + knots.lunge_steps / 2) kn.lunge_from = self.clock;
+            }
+            if (kn.lunge_from != knots.never_lunged) {
+                const into = self.clock - kn.lunge_from;
+                if (into >= knots.lunge_steps) {
+                    kn.lunge_from = knots.never_lunged;
+                } else {
+                    const reach = knots.lunge_reach * @sin(std.math.pi * @as(f32, @floatFromInt(into)) / @as(f32, @floatFromInt(knots.lunge_steps)));
+                    kn.x += (self.hum_x - kn.x) * reach * 0.25;
+                    kn.z += (self.hum_z - kn.z) * reach * 0.25;
+                    if (into == knots.lunge_steps / 2 and beat_moves) self.lungeLands(kn);
+                }
+            }
             for (kn.thing) |th| {
                 self.things[th].x = kn.x;
                 self.things[th].z = kn.z;
@@ -1931,6 +1998,8 @@ pub const World = struct {
         mixIn(&h, self.cadences);
         mixIn(&h, self.knots_home);
         mixIn(&h, self.strikes);
+        mixIn(&h, self.pockets);
+        mixIn(&h, self.knocked);
         for (self.knots[0..self.knot_count]) |kn| mixIn(&h, @as(u32, @bitCast(kn.colour)));
         mixIn(&h, self.swell_bars);
         mixIn(&h, @truncate(self.clock));
@@ -2820,4 +2889,43 @@ test "struck with home elsewhere, a knot drains slower: the dance's one is not H
         } else _ = w.stepOnce(.{}, &cues);
     }
     try std.testing.expect(w.knots[0].colour > 0.3 and w.knots[0].colour < 1.0);
+}
+
+test "a knot lunges to arrive on its one; a dodge on that beat opens the pocket, and a lunge not dodged knocks Hum back" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    w.hum_x = -110.0;
+    w.hum_z = 400.0;
+    _ = w.moveHome(-1);
+    var step: u32 = 0;
+    // they come; with home on their root, their one is Hum's downbeat, and they lunge to arrive on it
+    while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.knocked > 0);
+    const knocked = w.knocked;
+    // dodge just as the next lunge arrives: the pocket opens, and the lunge misses
+    var dodged = false;
+    step = 0;
+    while (step < 60 * 10 and !dodged) : (step += 1) {
+        var lunging = false;
+        for (w.knots[0..w.knot_count]) |kn| {
+            if (kn.lunge_from != knots.never_lunged and w.clock == kn.lunge_from + knots.lunge_steps / 2 - 2) lunging = true;
+        }
+        if (lunging) {
+            _ = w.stepOnce(.{ .buttons = Hands.dodge }, &cues);
+            dodged = true;
+        } else _ = w.stepOnce(.{}, &cues);
+    }
+    try std.testing.expect(dodged);
+    try std.testing.expectEqual(@as(u32, 1), w.pockets);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(knots.pocket, w.tempo);
+    // the pocket's strike takes more than a strike out of it
+    const before = w.knots[0].colour + w.knots[1].colour + w.knots[2].colour;
+    _ = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    const after = w.knots[0].colour + w.knots[1].colour + w.knots[2].colour;
+    try std.testing.expect(before - after > knots.drain_alone + knots.pocket_drain * 0.9);
+    // and the lunge that was dodged landed nothing more
+    try std.testing.expect(w.knocked <= knocked + 1);
 }

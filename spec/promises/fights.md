@@ -19,7 +19,12 @@ cadences._
   - `test a knot struck on the one with home on its root greys, and a cadence beside its root brings
     it home`
     A strike rings the struck knot at its own strands' notes, as hard as the strike met it.
-  - `owed` A test: a dodge on the beat opens the pocket; off the beat it is only a dodge.
+  - `test a knot lunges to arrive on its one; a dodge on that beat opens the pocket, and a lunge not
+    dodged knocks Hum back`
+    Knots lunge to arrive on their one, so with home on their root a lunge comes on Hum's downbeat;
+    a dodge within a few steps of it opens the pocket, time thickens and the next strike takes more;
+    a lunge not dodged knocks Hum back and dims it, and nothing dies.
+  - `frame evening-pocket` The first pocket: a knot mid-lunge, Hum stepped aside and glowing.
   - `owed` A test: a strike timed by the hands within the window rings fuller than one the game
     placed, by a sum of how near the beat it fell (the stamps, `hands.voice-in-a-buffer`).
 - **Asks:** Did a timed strike feel like power?

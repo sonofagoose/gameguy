@@ -85,7 +85,7 @@ asks its question.
 | `card.kept` Nothing is forgotten | 2 | 8 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `card.years` A card is a number of years | 2 | 14 | no | - | - | no | no | 2 owed; same_take.identical == 1  (is 0) |
 | `card.carried` The handheld can carry it | 2 | 2 | no | - | no | no | no | 1 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
-| `fight.beat` On the beat | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `fight.beat` On the beat | 2 | 3 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `fight.looper` The looper in a fight | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `fight.transform` Nothing dies in a fight | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `fight.kinds` Wolves, knots and greys | 2 | 3 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
