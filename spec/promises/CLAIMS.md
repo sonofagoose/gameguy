@@ -290,8 +290,8 @@ _Every sentence of the specification that promises a player something, read by
 - open: The beam. Things that sound leave a short afterglow.
 - spoken for by `light.beam`: A figure is brightest where its beam slows to turn.
 - open: Afterglow is memory: a low lake forgets and trails die fast.
-- open: The page and the place are one world on one hinge.
-- open: Hold the wheel and it lies down to be read.
+- spoken for by `evening.in`: The page and the place are one world on one hinge.
+- spoken for by `evening.in`: Hold the wheel and it lies down to be read.
 - open: The backlight is the sun. The game sets the screen's backlight itself: nearly off in the first dark, low at 2am, up at noon, and breathing a little with the music.
 - open: It is more than half of what the idle handheld draws, so dark hours are also long hours on the battery.
 - open: Morgan's eyes decide whether the breathing stays.

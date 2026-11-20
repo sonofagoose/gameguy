@@ -78,25 +78,38 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 ### `evening.in` "Oh. You're in."
 
 - **Said:** `SPEC.md` "The drop falls on your head and stays." "Until now the world has been a page
-  seen from above." "Now it tilts back and stands up around you"
+  seen from above." "Now it tilts back and stands up around you" "The page and the place are one
+  world on one hinge." "Hold the wheel and it lies down to be read."
 - **Stage:** 2
 - **Scene:** asters
 - **The moment:** The drop falls on your head and stays. Until this second the world has been a page
-  you looked down on: small circles, a few lines. Now the page tilts back, and everything drawn on
-  it stands up, and keeps standing up, past the top of the screen. The circles were the feet of
-  towers. The line was a hose you could walk inside. There is a sky and the day is coming up in it.
-  You are very small and you are in it.
-- **Far:** the skyline of asters against the dawn, where a moment ago there was a flat page.
-- **At its foot:** the nearest stalk, thicker than you are tall.
-- **After:** whenever you hold the wheel the world lies down to be read again, and you know both are
-  the same place.
-- **A cheat would be:** a cut to a 3D level; a fade; a hinge that only the first screen uses.
+  you looked down on: you were a small ring on it, an aster was a burst of coloured dots, a boulder
+  was a pencilled outline. Now the page tilts back, and everything drawn on it stands up from
+  exactly where it lay, and keeps standing up, past the top of the screen. The burst of dots was the
+  crown of a tower, seen from above. There is a sky and the day is coming up in it. You are very
+  small and you are in it. Hold R1 and it all lies down to be read again, and you know both are the
+  same place.
+- **Far:** on the page, every thing in the land at once, as its own plan.
+- **At its foot:** the nearest stalk, thicker than you are tall, rising out of the mark that was its
+  plan.
+- **After:** whenever you hold the wheel the world lies down, and you read on it where you have
+  been, in the light you left.
+- **A cheat would be:** a cut to a 3D level; a fade; a map screen; a hinge that only the first
+  screen uses.
 - **Full size:**
-  - `frame asters-far` The place, standing: towers to the horizon and Hum small among them.
-  - `owed` The hinge: every mark on the page is the foot of the thing that stands up from it, and
-    you can watch any one of them rise.
-  - `owed` It takes long enough to be watched: the tops go out of the frame before they stop rising.
-  - `owed` The one line of text, large, in the style book's face, and no other text all evening.
+  - `test the page stands up slowly enough to be watched, and lies down while R1 is held` More than
+    three seconds to rise; under a second to lie down; back up when R1 is let go.
+  - `frame asters-page` The page: Hum a mark on it, an aster in plan as a ring of its own bells, the
+    call's ring crossing.
+  - `frame asters-rising` The hinge half open, with the one line of text, large, and no other text
+    anywhere.
+  - `frame asters-far` The place, standing: towers beyond open ground and Hum small before them.
+  - `owed` What sets it off: the drop landing on Hum's head. In the proof the page stands by itself
+    after two and a half seconds.
+  - `owed` Something tall in the frame while it rises, so the rising is seen: the tops go out of the
+    frame before they stop.
+  - `owed` The line in the style book's own face and size, checked against `design/look.md`.
+  - `owed` On the handheld: every frame of the rise on time.
 - **Asks:** When the world stood up, did you say something out loud?
 
 ### `evening.instrument` Everything is an instrument

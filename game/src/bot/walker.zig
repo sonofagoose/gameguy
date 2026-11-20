@@ -29,10 +29,13 @@ pub const Walker = struct {
         const after = step - self.since;
         switch (self.phase) {
             0 => {
-                // where the page stood up: call once, and look at what answers
+                // the page: call once, and watch the ring cross it. Then it stands up; look at what
+                // has risen, and at what answers
                 if (step == 40) h.buttons |= Hands.call;
-                if (step == 150) self.mark = "far";
-                if (step >= 170) self.next(step);
+                if (step == 120) self.mark = "page";
+                if (step == 265) self.mark = "rising";
+                if (step == 500) self.mark = "far";
+                if (step >= 520) self.next(step);
             },
             1 => {
                 const tower = w.towers[0];

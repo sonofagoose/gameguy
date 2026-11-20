@@ -22,6 +22,7 @@ const sound_mod = @import("sound/sound.zig");
 const Script = @import("bot/script.zig").Script;
 const Walker = @import("bot/walker.zig").Walker;
 const take = @import("keep/take.zig");
+const Type = @import("room.zig").Type;
 const c = plat.c;
 const sdl = plat.sdl;
 const gl = plat.gl;
@@ -281,7 +282,29 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
     }
 
     const hum_tint = col8(bone, 1.0);
-    if (w.view == .page) {
+    if (w.view == .place and w.stand < 0.5) {
+        // on the page Hum is a mark like any other: a small ring, and a tick for where it faces
+        for (0..10) |k| {
+            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 10.0);
+            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 10.0);
+            out[n] = .{
+                .a = .{ w.hum_x + 0.9 * @cos(a0), 0.05, w.hum_z + 0.9 * @sin(a0) },
+                .b = .{ w.hum_x + 0.9 * @cos(a1), 0.05, w.hum_z + 0.9 * @sin(a1) },
+                .half_width = 2.2,
+                .body = 0.0,
+                .col = hum_tint,
+            };
+            n += 1;
+        }
+        out[n] = .{
+            .a = .{ w.hum_x, 0.05, w.hum_z },
+            .b = .{ w.hum_x + 1.6 * @sin(w.hum_face), 0.05, w.hum_z - 1.6 * @cos(w.hum_face) },
+            .half_width = 1.6,
+            .body = 0.0,
+            .col = hum_tint,
+        };
+        n += 1;
+    } else if (w.view == .page) {
         // seen from above: a small bone-white shape whose outline swells while it sings
         const size: f32 = if (w.singing) 0.75 else 0.5;
         for (0..10) |k| {
@@ -485,6 +508,7 @@ pub const Visit = struct {
 pub var last_visit: Visit = .{};
 
 var world: World = undefined;
+var words: Type = undefined;
 var renderer: lines.Renderer = undefined;
 var renderer_ready = false;
 var pixels: []u8 = &.{};
@@ -534,6 +558,7 @@ fn dumpNamed(dir: [*:0]const u8, comptime fmt: []const u8, args: anytype) void {
 pub fn run(window: plat.Window, options: Options) bool {
     if (!renderer_ready) {
         if (!renderer.init(window.width, window.height)) return false;
+        if (!words.init(window.width, window.height)) return false;
         const n: usize = @intCast(window.width * window.height * 4);
         const p: [*]u8 = @ptrCast(c.malloc(n) orelse return false);
         pixels = p[0..n];
@@ -547,6 +572,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         .dark => {
             world = World.init();
             renderer.keep = 0.82;
+            renderer.stand = 1.0;
             renderer.fade = 70.0;
             renderer.far_floor = 0.12;
             renderer.heft = 0.0;
@@ -705,6 +731,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                 loud[i + 1] = @intFromFloat(@max(floor, light) * 255.0);
             }
             const cam = world.camera();
+            renderer.stand = cam.stand;
             eye = cam.eye;
             view = m.lookAt(cam.eye, cam.at, .{ 0.0, 1.0, 0.0 });
             proj = m.perspective(cam.fov, aspect, 0.4, 5000.0);
@@ -738,7 +765,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         var moving_n: usize = 0;
         if (options.scene == .asters) {
             moving_n = aster_lines.sky(eye, &moving);
-            moving_n += aster_lines.halos(&world, eye, moving[moving_n..]);
+            if (world.stand > 0.6) moving_n += aster_lines.halos(&world, eye, moving[moving_n..]);
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         most_lines = @max(most_lines, picked.lines + moving_n);
@@ -748,6 +775,16 @@ pub fn run(window: plat.Window, options: Options) bool {
         const vp = m.mul(proj, view);
         parts[3] = (plat.now() - began) * 1000.0;
         renderer.frame(&vp, &loud);
+        if (options.scene == .asters and world.step >= world_mod.stands_at and world.step < world_mod.stands_at + 330) {
+            // the first words anyone says in it, as the page stands up: the one line of text
+            const since: f32 = @floatFromInt(world.step - world_mod.stands_at);
+            const shown = std.math.clamp(@min(since / 40.0, (330.0 - since) / 70.0), 0.0, 1.0);
+            const line = "Oh. You're in.";
+            const scale: f32 = 2.6;
+            const wide = @as(f32, @floatFromInt(line.len)) * 9.6 * scale;
+            words.line((@as(f32, @floatFromInt(window.width)) - wide) * 0.5, @as(f32, @floatFromInt(window.height)) * 0.17, scale, .{ 0.886 * shown, 0.839 * shown, 0.784 * shown, shown }, line);
+            words.flush();
+        }
         parts[4] = (plat.now() - began) * 1000.0;
         if (!options.headless) backlight.follow(if (options.scene == .dark) brightest else 0.38 + 0.62 * brightest);
         const work = (plat.now() - began) * 1000.0;

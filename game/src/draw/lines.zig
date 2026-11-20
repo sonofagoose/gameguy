@@ -45,14 +45,16 @@ const line_vs =
     \\uniform highp sampler2D u_loud;
     \\uniform float u_fade;
     \\uniform vec2 u_far;
+    \\uniform float u_stand;
     \\out vec2 v_uv;
     \\out vec3 v_col;
     \\void main() {
     \\    int id = gl_VertexID;
     \\    float e = (id >= 2) ? 1.0 : 0.0;
     \\    float s = ((id & 1) == 1) ? 1.0 : -1.0;
-    \\    vec4 pa = u_vp * vec4(a_a, 1.0);
-    \\    vec4 pb = u_vp * vec4(a_b, 1.0);
+    \\    // the hinge: on the page everything lies flat, and it stands up from where it lies
+    \\    vec4 pa = u_vp * vec4(a_a.x, a_a.y * u_stand, a_a.z, 1.0);
+    \\    vec4 pb = u_vp * vec4(a_b.x, a_b.y * u_stand, a_b.z, 1.0);
     \\    const float nr = 0.05;
     \\    if (pa.w < nr && pb.w < nr) {
     \\        gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
@@ -97,8 +99,9 @@ const occ_vs =
     \\#version 300 es
     \\layout(location = 0) in vec3 a_pos;
     \\uniform mat4 u_vp;
+    \\uniform float u_stand;
     \\void main() {
-    \\    gl_Position = u_vp * vec4(a_pos, 1.0);
+    \\    gl_Position = u_vp * vec4(a_pos.x, a_pos.y * u_stand, a_pos.z, 1.0);
     \\}
 ;
 
@@ -208,6 +211,10 @@ pub const Renderer = struct {
     line_u_loud: c.GLint = -1,
     line_u_fade: c.GLint = -1,
     line_u_far: c.GLint = -1,
+    line_u_stand: c.GLint = -1,
+    occ_u_stand: c.GLint = -1,
+    /// The hinge between the page (0) and the place (1): every height is multiplied by it.
+    stand: f32 = 1.0,
     comp_u_sky: c.GLint = -1,
     comp_u_dawn: c.GLint = -1,
     /// How faint a line may get with distance, and how much heavier a near line is drawn.
@@ -300,6 +307,8 @@ pub const Renderer = struct {
         self.line_u_loud = gl.GetUniformLocation(self.line_prog, "u_loud");
         self.line_u_fade = gl.GetUniformLocation(self.line_prog, "u_fade");
         self.line_u_far = gl.GetUniformLocation(self.line_prog, "u_far");
+        self.line_u_stand = gl.GetUniformLocation(self.line_prog, "u_stand");
+        self.occ_u_stand = gl.GetUniformLocation(self.occ_prog, "u_stand");
         self.occ_u_vp = gl.GetUniformLocation(self.occ_prog, "u_vp");
         self.decay_u_src = gl.GetUniformLocation(self.decay_prog, "u_src");
         self.decay_u_cur = gl.GetUniformLocation(self.decay_prog, "u_cur");
@@ -551,6 +560,7 @@ pub const Renderer = struct {
         if (self.occ_verts == 0) return;
         gl.UseProgram(self.occ_prog);
         gl.UniformMatrix4fv(self.occ_u_vp, 1, c.GL_FALSE, vp);
+        gl.Uniform1f(self.occ_u_stand, self.stand);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_TRUE);
@@ -573,6 +583,7 @@ pub const Renderer = struct {
         gl.Uniform1i(self.line_u_loud, 0);
         gl.Uniform1f(self.line_u_fade, self.fade);
         gl.Uniform2f(self.line_u_far, self.far_floor, self.heft);
+        gl.Uniform1f(self.line_u_stand, self.stand);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_FALSE);

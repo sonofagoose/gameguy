@@ -58,7 +58,18 @@ pub const lean_up: f32 = 1.0;
 pub const lean_frame: f32 = 30.0;
 pub const lean_fov_least: f32 = 13.0;
 
-pub const Camera = struct { eye: [3]f32, at: [3]f32, fov: f32 };
+pub const Camera = struct { eye: [3]f32, at: [3]f32, fov: f32, stand: f32 };
+
+/// The page: the same world seen from above, lying flat. The eye is this high, this far behind.
+pub const page_up: f32 = 105.0;
+pub const page_back: f32 = 26.0;
+pub const page_fov: f32 = 50.0;
+/// The step the page first stands up on, how fast it rises and how fast it lies down again.
+pub const stands_at: u64 = 150;
+pub const rise_rate: f32 = 0.0045;
+pub const fold_rate: f32 = 0.03;
+/// R1 held this many steps folds the place back to the page for as long as it is held.
+pub const fold_after: u32 = 15;
 /// Standing still within this of a tall thing's foot, the view leans back to take it in.
 pub const lean_within: f32 = 40.0;
 /// How near a tower's foot counts as standing at it.
@@ -196,6 +207,11 @@ pub const World = struct {
     lean: f32 = 0.0,
     /// How high up the tall thing the leaned view is looking, in metres.
     gaze: f32 = 0.0,
+    /// The hinge between the page and the place: 0 is the page, lying flat and seen from above,
+    /// and 1 is the place, standing round Hum. Everything's height is multiplied by this.
+    stand: f32 = 1.0,
+    /// How many steps R1 has been held.
+    call_held: u32 = 0,
     /// A flower head that has fallen by the great aster's foot: a bell at Hum's own size.
     fallen: u32 = no_thing,
     /// The tower Hum is nearest, and how far its foot is.
@@ -259,6 +275,7 @@ pub const World = struct {
     pub fn initAsters(self: *World) void {
         self.* = .{};
         self.view = .place;
+        self.stand = 0.0;
         self.ring_reach = 900.0;
         var plans: [asters.max_towers]asters.Plan = undefined;
         const n = asters.field(&plans, garden_hz);
@@ -378,7 +395,13 @@ pub const World = struct {
         } else {
             self.still +|= 1;
         }
-        if (self.view == .place) self.look(hands);
+        if (self.view == .place) {
+            // the hinge: the world is a page until it stands, and holding R1 lays it down again
+            self.call_held = if (hands.held(Hands.call)) self.call_held +| 1 else 0;
+            const standing = self.step >= stands_at and self.call_held < fold_after;
+            self.stand = if (standing) @min(1.0, self.stand + rise_rate) else @max(0.0, self.stand - fold_rate);
+            self.look(hands);
+        }
 
         // the call: a ring of light and Hum's own short note, as one cue
         if (pressed & Hands.call != 0) {
@@ -481,7 +504,7 @@ pub const World = struct {
                 self.near_tower = @intCast(i);
             }
         }
-        const leaning = self.still >= 30 and self.near_tower != no_tower and self.near_far < lean_within;
+        const leaning = self.still >= 30 and self.near_tower != no_tower and self.near_far < lean_within and self.stand > 0.98;
         const want: f32 = if (leaning) 1.0 else 0.0;
         self.lean += (want - self.lean) * 0.035;
         if (leaning) {
@@ -511,14 +534,15 @@ pub const World = struct {
         }
     }
 
-    /// Where the eye is, what it looks at and how wide: walking, behind Hum and a little up;
-    /// leaned back, at the height the gaze has reached on the thing, narrowed to frame it.
+    /// Where the eye is, what it looks at and how wide. The place: behind Hum and a little up,
+    /// or leaned back with the gaze part-way up a tall thing. The page: high above, looking down.
+    /// Between them, one hinge.
     pub fn camera(self: *const World) Camera {
         const fx = @sin(self.look_yaw);
         const fz = -@cos(self.look_yaw);
         const back = cam_back + self.lean * (lean_back - cam_back);
         const up = cam_up + self.lean * (lean_up - cam_up);
-        const eye = [3]f32{ self.hum_x - fx * back, up, self.hum_z - fz * back };
+        var eye = [3]f32{ self.hum_x - fx * back, up, self.hum_z - fz * back };
         const pitch = std.math.clamp(walk_pitch + self.look_tilt, -0.35, 1.2);
         const walking = [3]f32{ fx * @cos(pitch), @sin(pitch), fz * @cos(pitch) };
         var dir = walking;
@@ -536,7 +560,19 @@ pub const World = struct {
             fov = place_fov + (narrow - place_fov) * k;
         }
         const len = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
-        return .{ .eye = eye, .at = .{ eye[0] + dir[0] / len * 10.0, eye[1] + dir[1] / len * 10.0, eye[2] + dir[2] / len * 10.0 }, .fov = fov };
+        var at = [3]f32{ eye[0] + dir[0] / len * 10.0, eye[1] + dir[1] / len * 10.0, eye[2] + dir[2] / len * 10.0 };
+        // the hinge, eased so that it starts and ends gently
+        const s = self.stand * self.stand * (3.0 - 2.0 * self.stand);
+        if (s < 1.0) {
+            const page_eye = [3]f32{ self.hum_x - fx * page_back, page_up, self.hum_z - fz * page_back };
+            const page_at = [3]f32{ self.hum_x + fx * 4.0, 0.0, self.hum_z + fz * 4.0 };
+            for (0..3) |i| {
+                eye[i] = page_eye[i] + (eye[i] - page_eye[i]) * s;
+                at[i] = page_at[i] + (at[i] - page_at[i]) * s;
+            }
+            fov = page_fov + (fov - page_fov) * s;
+        }
+        return .{ .eye = eye, .at = at, .fov = fov, .stand = s };
     }
 
     fn atTallFoot(self: *const World) bool {
@@ -584,6 +620,7 @@ pub const World = struct {
         mixIn(&h, @as(u32, @bitCast(self.look_tilt)));
         mixIn(&h, @as(u32, @bitCast(self.lean)));
         mixIn(&h, @as(u32, @bitCast(self.gaze)));
+        mixIn(&h, @as(u32, @bitCast(self.stand)));
         mixIn(&h, @as(u32, @bitCast(self.hum_light)));
         mixIn(&h, self.told);
         mixIn(&h, self.calls);
@@ -783,4 +820,36 @@ test "nothing sounds without its light: every sound in a scripted take was told 
     try std.testing.expect(handed > 100 and w.answers > 100);
     try std.testing.expectEqual(w.told, w.sent);
     try std.testing.expectEqual(@as(u32, 0), w.dark_sounds);
+}
+
+test "the page stands up slowly enough to be watched, and lies down while R1 is held" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    // it begins as a page, flat
+    try std.testing.expectEqual(@as(f32, 0.0), w.stand);
+    var step: u32 = 0;
+    var began: ?u32 = null;
+    var stood: ?u32 = null;
+    var last: f32 = 0.0;
+    while (step < 600) : (step += 1) {
+        _ = w.stepOnce(.{}, &cues);
+        try std.testing.expect(w.stand >= last); // it only ever rises here
+        last = w.stand;
+        if (began == null and w.stand > 0.0) began = step;
+        if (stood == null and w.stand >= 1.0) stood = step;
+    }
+    // more than three seconds from the first movement to standing
+    try std.testing.expect(stood.? - began.? > 180);
+    // seen from the page the eye is high above Hum; standing, it is near the ground
+    try std.testing.expect(w.camera().eye[1] < 4.0);
+    // hold R1 and the place lies down again, within a second; let go and it stands
+    step = 0;
+    while (step < 60) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    try std.testing.expect(w.stand < 0.05);
+    try std.testing.expect(w.camera().eye[1] > 90.0);
+    step = 0;
+    while (step < 300) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(f32, 1.0), w.stand);
 }

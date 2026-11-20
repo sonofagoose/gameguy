@@ -61,7 +61,7 @@ const text_fs =
     \\}
 ;
 
-const Type = struct {
+pub const Type = struct {
     prog: c.GLuint = 0,
     u_size: c.GLint = -1,
     u_font: c.GLint = -1,
@@ -73,7 +73,7 @@ const Type = struct {
     w: f32 = 640.0,
     h: f32 = 480.0,
 
-    fn init(self: *Type, w: i32, h: i32) bool {
+    pub fn init(self: *Type, w: i32, h: i32) bool {
         self.* = .{};
         self.w = @floatFromInt(w);
         self.h = @floatFromInt(h);
@@ -104,7 +104,7 @@ const Type = struct {
     }
 
     /// One line of type with its top left at (x, y), in pixels.
-    fn line(self: *Type, x: f32, y: f32, scale: f32, col: [4]f32, string: []const u8) void {
+    pub fn line(self: *Type, x: f32, y: f32, scale: f32, col: [4]f32, string: []const u8) void {
         const cw: f32 = @as(f32, font.cw) * scale;
         const ch: f32 = @as(f32, font.ch) * scale;
         const step: f32 = (@as(f32, font.cw) + 3.0) * scale;
@@ -132,7 +132,7 @@ const Type = struct {
         }
     }
 
-    fn flush(self: *Type) void {
+    pub fn flush(self: *Type) void {
         if (self.used == 0) return;
         gl.UseProgram(self.prog);
         gl.Uniform2f(self.u_size, self.w, self.h);
