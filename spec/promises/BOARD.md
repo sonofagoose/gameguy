@@ -53,6 +53,7 @@ asks its question.
 
 | promise | it asks | answers so far |
 |---|---|---|
+| `fight.kinds` Wolves, knots and greys | When you moved home to where their threads met, did the knots stop stumbling? | none |
 | `evening.black` Black, and a drip | Did the screen look switched off until you called? | jj: no |
 | `evening.call` You call, and you are answered | When you called in the dark and something answered, did it feel like being answered? | none |
 | `evening.breathe` You breathe with it, and it locks | When the figure stopped, did it feel like the two of you locking? | none |

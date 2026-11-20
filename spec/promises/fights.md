@@ -67,8 +67,11 @@ cadences._
   the Grid's soldiers, on the grid exactly; swing breaks them and standing a third away brings their
   colour back."
 - **Stage:** 2
-- **The moment:** A knot's two strands stumble against each other until you find the wedge where
-  they meet on the one.
+- **Scene:** asters
+- **The moment:** (From the room: the first knots are south of the puddles, a minute and a half's
+  walk behind where you wake; they come to you. Hold R1, point where their threads meet, let go, and
+  strike with the left face on the one.) A knot's two strands stumble against each other until you
+  find the wedge where they meet on the one.
 - **A cheat would be:** three enemy types told apart by colour only.
 - **Full size:**
   - `test a knot dances on Hum's one with home on its root, and stumbles anywhere else` A knot's
@@ -81,7 +84,7 @@ cadences._
     works, and home on the root works best.
   - `frame evening-knots` A knot: two strands tangled, a loop of three lobes and one of five.
   - `owed` Wolves (the comma) and greys (the grid) come with the lands that have them (stage 3).
-- **Asks:** Could you hear what kind of creature it was before you saw it?
+- **Asks:** When you moved home to where their threads met, did the knots stop stumbling?
 
 ### `fight.bosses` Bosses are pieces of music
 
