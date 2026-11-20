@@ -11,8 +11,11 @@ The workshop, and the first evening.
   distance. Drip ticks far off and answers the second call. Hold R2 to hum beside it and let go on
   its tick: four breaths bring its fifth true, and the two lock. The dawn rises at your feet and
   runs out over the ground at the speed of sound, the page stands up ("Oh. You're in."), and the
-  Garden is there. The left stick walks, the right stick looks, and Select and Start together
-  leave. `--scene dark` is the older proof of the dark alone, and `--scene asters` starts at dawn.
+The left stick walks, the right stick looks, and Select and Start together leave. Once the day has
+  come up, R1 held opens the wheel: the view rises over Hum and the wheel lies on the ground; point
+  with the right stick and let go to move home (two moods are awake: sunny home, at the top, and
+  wonder, a twelfth of a turn left), and Hum's note moves with it. `--scene dark` is the older proof
+  of the dark alone, and `--scene asters` starts at dawn.
 - **The asters** (`src/world/asters.zig`, `src/draw/aster_lines.zig`): a field of 67 asters as tall
   as cathedrals, one to a hundred. A call climbs every stalk, and the bells of a crown are heard
   late by their height. Stand still at a foot and the view leans back.
