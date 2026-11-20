@@ -110,3 +110,23 @@ print("== the years (spec/years.md)")
 print(f"  every round lining up: {math.lcm(3, 4, 5, 7, 13, 17)} mornings, {math.lcm(3, 4, 5, 7, 13, 17) / 365:.0f} years of a morning a day")
 print(f"  the last far garden: 665 nights, {665 / 365:.1f} years; 96 lives with three wants: {96 * 3}")
 print(f"  a halo's beat, middle C eight octaves down: {C4 / 256:.2f} a second")
+
+print("== the sky and the shape (spec/sky.md, spec/shape.md)")
+OCT = 100.0
+comma = 12 * FIFTH - 7 * 1200
+turn = FIFTH / 1200
+shore = 2 * math.pi * 1850
+print(f"  an octave is {OCT:.0f} m, so the comma is {comma / 1200 * OCT:.2f} m; a half step {OCT / 12:.1f} m, a whole tone {OCT / 6:.1f} m")
+print(f"  twelve equal treads across it: {comma / 1200 * OCT / 12 * 100:.1f} cm each; the rim climbs {comma / 1200 * OCT / 12 * 100:.0f} cm a land")
+print(f"  a fifth is {turn * 360:.2f} degrees of the horizon; the comma {12 * turn % 1 * 360:.2f} degrees, {12 * turn % 1 * shore:.0f} m of a {shore:.0f} m shore")
+for k in (41, 53, 306, 665):
+    off = (k * turn + 0.5) % 1 - 0.5
+    print(f"    {k:>3} fifths out the sun rises {off * shore:+8.2f} m from the first mark")
+print("  rungs: " + ", ".join(f"{k}: {OCT * math.log2(k):.1f} m" for k in (2, 3, 4, 5, 6, 7, 8, 16)))
+print("  a belly's throw against the gap above it: " + ", ".join(
+    f"{k}: {OCT / math.log(2) / k:.1f} over {OCT * math.log2(1 + 1 / k):.1f}" for k in (1, 2, 3, 6, 7)))
+print(f"  ring radii: 2: {1850 / 2:.0f} m, 16: {1850 / 16:.0f} m; from the lake to light, 41 octaves: {41 * OCT / 1000:.1f} km, {41 * OCT / 60:.0f} s at the speed of sound")
+moon = (365.2422 / 29.530589 - 12) / 12
+print(f"  the moon gains {moon:.6f} of its cycle a morning: full on morning {1 + 0.5 / moon:.1f}, new again on {1 + 1 / moon:.1f}")
+print("  the wanderers pulse, twelve octaves up: " + ", ".join(f"{k}: {4096 / (k * 1200):.2f}" for k in (3, 4, 5, 7, 13, 17)) + " a second")
+print(f"  light: A forty octaves up {299792458 / (440 * 2 ** 40) * 1e9:.0f} nm; the garden's C forty-one up {299792458 / (C4 * 2 ** 41) * 1e9:.0f} nm")

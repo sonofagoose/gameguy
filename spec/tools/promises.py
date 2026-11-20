@@ -38,13 +38,23 @@ CLAIM_FILES = [
     ('spec/size.md', None, None),
     ('spec/years.md', None, None),
     ('spec/together.md', None, None),
+    ('spec/sky.md', None, None),
+    ('spec/shape.md', None, None),
+    ('spec/texture.md', None, None),
 ]
+
+LAND_NAMES = ['The Garden', 'The Alfalfa', 'The Glass Hills', 'The Bell Meadow', 'The Highway', 'The Chrome Nave',
+              'The Seam', 'The Aster Steps', 'Verbena Hollow', 'The Rain Steps', 'The Reed Mouths', 'The Porch']
 
 # Sections that are about the documents or about other games, not promises to a player.
 SKIP_SECTIONS = [
     ('spec/size.md', 'What it is measured against'), ('spec/size.md', 'Still to be measured'), ('spec/size.md', 'Sources'),
     ('spec/years.md', 'What a small world known by heart does'), ('spec/years.md', 'What stays Morgan'),
     ('spec/together.md', 'What is measured'), ('spec/together.md', 'What it never leans on'),
+    ('spec/sky.md', '13. The sky as a promise'), ('spec/sky.md', '14. What it costs'), ('spec/sky.md', '15. Where the numbers'),
+    ('spec/sky.md', 'Decided when'), ('spec/sky.md', 'What stays Morgan'),
+    ('spec/shape.md', 'Decided here'), ('spec/shape.md', 'To be measured'), ('spec/shape.md', 'Sources'),
+    ('spec/texture.md', 'What it asks of the engine'), ('spec/texture.md', 'Decided here'), ('spec/texture.md', 'What stays Morgan'),
 ]
 
 # The stage that owes a section, until a promise that quotes a sentence says otherwise. The first
@@ -64,6 +74,9 @@ STAGE_RULES = [
     ('spec/size.md', 'What the card', 2), ('spec/size.md', '', 2),
     ('spec/years.md', 'Generations', 5), ('spec/years.md', 'The great year', 5), ('spec/years.md', '', 3),
     ('spec/together.md', '', 6),
+    ('spec/sky.md', '7. The stars', 5), ('spec/sky.md', '11. The sky as a place', 5), ('spec/sky.md', '', 3),
+    ('spec/shape.md', '', 3),
+    ('spec/texture.md', '', 2),
 ]
 FIELDS = {
     'said': 'said', 'stage': 'stage', 'scene': 'scene', 'the moment': 'moment', 'far': 'far',
@@ -351,6 +364,11 @@ def stage_of(claim):
         i = order.index(top[2])
         if i < 12:
             return LAND_STAGE[i]
+    # a land's own section in any other file is owed by that land's stage too
+    for h in top[1:]:
+        for i, land in enumerate(LAND_NAMES):
+            if h.startswith(land + ':') or h == land:
+                return LAND_STAGE[i]
     for path, words, stage in STAGE_RULES:
         if path == claim.file and (words == '' or any(h.startswith(words) for h in top)):
             return stage

@@ -19,7 +19,9 @@ its stage is built, may add to this but not take away._
 - **Sizes** (`size.md`): the lake is 3.7 km across, and its shore more than a day's run round. Each
   land is about 3 square kilometres: a kilometre of shore, two kilometres deep. The ring is 36
   square kilometres of ground, and the whole world 7.7 km across.
-- **Height is the octave.** Higher ground is a higher register. The rim climbs by a hair all the way
+- **The whole shape** is a spiral shore of fifths, with thirds going outward, overtones going up and
+  the mirror going down (`shape.md`).
+- **Height is the octave,** and an octave is 100 m. Higher ground is a higher register. The rim climbs by a hair all the way
   round, so at the Seam one side of the crack stands a step above the other: the comma, as a ledge.
   The city bridges it.
 - **Every place has two faces.** At noon everything sounds at once, quietly, and the land is lit
@@ -28,7 +30,9 @@ its stage is built, may add to this but not take away._
 
 ## What every land has
 
-A key and a morning; a tuning; a material that sets its physics; the law it shows best; a metre; a
+A shape that follows from what it is made of, and three to five covers on its ground, each of which
+does something to Hum (`shape.md`); its own sky (`sky.md`); a key and a morning; a tuning; a
+material that sets its physics; the law it shows best; a metre; a
 reason its people sing; a tradition the songbook credits; a river to free, which raises the lake;
 one thing it lends when its note is borrowed; a great instrument to go inside; eight lives; twelve
 wonders.
@@ -579,6 +583,9 @@ the garden.
   has set grey.
 
 ## The sky
+
+`sky.md` has the sky in full: the rings of the day's note over the lake, the sun as a voice, the
+colours by law, the moon, the stars, the weather, and everything that flies. In brief:
 
 - **The way up** is a note that isn't on the wheel: the low seventh, traded by the caravan for
   something you let go.

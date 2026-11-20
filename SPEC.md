@@ -347,6 +347,15 @@ About a hundred lives (`spec/people.md`).
   raises it.
 - **The Seam:** the one city, on a bridge over the crack where the lake drains, running on the
   beating it agreed to share.
+- **The whole shape** (`spec/shape.md`): fifths go round the lake as a spiral shore that climbs one
+  comma, 1.96 m, and meets itself at the Seam as a step; thirds go outward; overtones go up; the
+  mirror goes down. Each land's shape follows from what it is made of, and its ground wears three to
+  five covers of its own, each of which does something to Hum.
+- **Something calls from everywhere,** in light and in sound, and tall things hide and show what is
+  behind them. There is no path to follow, no marker and no count.
+- **The sky** (`spec/sky.md`) is one sung voice: the sun holds the day's note, and its overtones
+  stand over the lake as rings of light. The hour is a height, a colour and a note. Everything that
+  flies sings at its real wingbeat.
 - **The sky** is a ladder of overtones whose rungs shrink for ever. **The deep** is its mirror, and
   at its bottom is a country with no octave.
 - **The forty octaves** are places: inside a petal, the planets, the beginning, and light.
@@ -404,6 +413,9 @@ In brief:
 
 ## 15. Sound and picture
 
+- **How a thing looks is how it sounds** (`spec/texture.md`). A thing's light is its loudness spread
+  over its lines; the depth of its colour is how much of its sound is note; a sounding line stands
+  in the shapes of its own overtones; what it is made of is the grain of its line.
 - **One set of numbers.** Pitch class is hue, by fifths. Octave is height. Loudness is brightness,
   and silence is dark. An interval is the figure between two voices: still when pure, turning at the
   beat rate when tempered. Timbre is the texture of a line. Phase is things moving together. Depth

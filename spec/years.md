@@ -138,6 +138,10 @@ This is where the sadness is, and it is never a punishment.
 - **What you missed can be heard about and not seen:** in the ground's light, in a pool, in a
   child's tune.
 - **On Gentle** the almanac marks a meeting you are about to miss for good, once, quietly.
+- **Nothing can be failed for good by a slip.** No step of any want has to be done right the first
+  time, and no want is closed by a mistake.
+- **Nothing is counted for you.** The songbook shows what you have found and never how much is
+  left.
 
 ## The great year
 

@@ -215,6 +215,9 @@ written. They sit on the laws like this:
 
 ## Sound and light
 
+`texture.md` carries this table all the way through: what every line looks like at rest and
+sounding, what each material's line is, and the rules that keep a frame beautiful.
+
 | quantity | heard as | seen as |
 |---|---|---|
 | pitch class | note | hue, by fifths: C green, sharps warming, flats cooling, purple at the seam |

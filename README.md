@@ -9,7 +9,7 @@ Start here:
 | file | what |
 |---|---|
 | `SPEC.md` | the specification: the whole game, decided. Where it disagrees with an older document, it wins |
-| `spec/` | its annexes: the laws and their numbers, the atlas of lands and wonders, the people, how big it all is and what the card is for, the years, two consoles, the engine, the stages and their proofs, and a ledger of every idea from every document |
+| `spec/` | its annexes: the laws and their numbers, the atlas of lands and wonders, the people, how big it all is and what the card is for, the years, two consoles, the sky, the shape of the lands and what their ground wears, the texture of the world, the engine, the stages and their proofs, and a ledger of every idea from every document |
 | `spec/promises.md`, `spec/promises/` | the guard: every sentence of the specification read as a claim, the promises that speak for them, and `BOARD.md`, which says where each one stands today |
 | `DECISIONS.md` | every question the documents left open, decided, with the reason |
 | `PROGRESS.md` | which stage the build is in, what is proven, what is next |
