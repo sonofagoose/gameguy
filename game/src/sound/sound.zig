@@ -14,7 +14,7 @@ pub const rate: f32 = 48000.0;
 const V = @Vector(4, f32);
 
 /// The shapes things come in, each with the overtones of that shape (spec/laws.md).
-pub const Family = enum(u8) { bell, string, stopped_pipe, bar, skin, tone, fork };
+pub const Family = enum(u8) { bell, string, stopped_pipe, bar, skin, tone, fork, fork_octave };
 
 pub const Recipe = struct { mult: [8]f32, gain: [8]f32 };
 
@@ -28,6 +28,8 @@ pub fn recipe(family: Family) Recipe {
         .skin => .{ .mult = .{ 1.0, 1.593, 2.136, 2.295, 2.653, 2.917, 3.156, 3.501 }, .gain = .{ 1.0, 0.55, 0.40, 0.30, 0.25, 0.18, 0.12, 0.10 } },
         // Hum's tuning fork: nearly a pure tone (spec/laws.md, "The families")
         .fork => .{ .mult = .{ 1.0, 6.27, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, .gain = .{ 1.0, 0.22, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 } },
+        // a strike you timed yourself: the same note with its octave, fuller (SPEC.md 10)
+        .fork_octave => .{ .mult = .{ 1.0, 2.0, 6.27, 12.54, 0.0, 0.0, 0.0, 0.0 }, .gain = .{ 1.0, 0.6, 0.22, 0.12, 0.0, 0.0, 0.0, 0.0 } },
         // one standing shape alone: a single tone
         .tone => .{ .mult = .{ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, .gain = .{ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 } },
     };
@@ -44,6 +46,9 @@ pub const own_clap: u8 = 2;
 /// Hum's own, on the hands' stamp, which only the world starts: a strike, the pocket, the swell's
 /// step. Never taken for a sound the hands started.
 pub const own_only: u8 = 3;
+/// Hum's strike, timed by the hands within the beat's window, which the hands may already have
+/// started.
+pub const own_strike: u8 = 4;
 /// How long after a call a clap still chokes it, in samples: the clap's window and a step.
 pub const clap_chokes: u64 = 5600;
 
@@ -158,6 +163,7 @@ pub const Sound = struct {
     own_on_at: u64 = std.math.maxInt(u64),
     own_off_at: u64 = std.math.maxInt(u64),
     own_clap_at: u64 = std.math.maxInt(u64),
+    own_strike_at: u64 = std.math.maxInt(u64),
     /// The thing the last call rang, the count of things when it took it, and the sample it began:
     /// a clap just after chokes it.
     call_slot: u32 = std.math.maxInt(u32),
@@ -308,6 +314,8 @@ pub const Sound = struct {
         const at = self.sample;
         if (cue.own == own_clap) {
             self.own_clap_at = at;
+        } else if (cue.own == own_strike) {
+            self.own_strike_at = at;
         } else switch (cue.kind) {
             .strike => self.own_call_at = at,
             .hum_on => self.own_on_at = at,
@@ -368,6 +376,7 @@ pub const Sound = struct {
                 .tone, .tempo => return false,
             },
             own_clap => &self.own_clap_at,
+            own_strike => &self.own_strike_at,
             else => return false,
         };
         // the same press, if the hands started it within a step of where the world tells it (two
@@ -646,4 +655,20 @@ test "the hands' clap sounds once and chokes the call begun just before it; a st
     s.render(&out);
     try std.testing.expectEqual(@as(u32, 2), s.own_met);
     try std.testing.expectEqual(@as(u32, 3), s.next_thing);
+}
+
+test "a strike the hands timed sounds once, with its octave" {
+    const s = try std.testing.allocator.create(Sound);
+    defer std.testing.allocator.destroy(s);
+    s.* = .{};
+    s.init();
+    var out: [800]f32 = undefined;
+    s.render(&out);
+    const at = s.ownNow(.{ .at = 0, .kind = .strike, .family = .fork_octave, .own = own_strike, .hz = 523.25, .gain = 0.6, .ring = 0.5 });
+    try std.testing.expect(s.push(.{ .at = at, .kind = .strike, .family = .fork_octave, .own = own_strike, .hz = 523.25, .gain = 0.6, .ring = 0.5 }));
+    s.render(&out);
+    try std.testing.expectEqual(@as(u32, 1), s.own_met);
+    try std.testing.expectEqual(@as(u32, 1), s.next_thing);
+    // its octave rings as well as its note
+    try std.testing.expect(recipe(.fork_octave).mult[1] == 2.0);
 }

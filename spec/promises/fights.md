@@ -25,8 +25,15 @@ cadences._
     a dodge within a few steps of it opens the pocket, time thickens and the next strike takes more;
     a lunge not dodged knocks Hum back and dims it, and nothing dies.
   - `frame evening-pocket` The first pocket: a knot mid-lunge, Hum stepped aside and glowing.
-  - `owed` A test: a strike timed by the hands within the window rings fuller than one the game
-    placed, by a sum of how near the beat it fell (the stamps, `hands.voice-in-a-buffer`).
+  - `test a strike timed within an eighth of a beat lands at once with its octave; off the beat the
+    game places it on the next beat, plain`
+    Within an eighth of Hum's beat (law 7's window) a strike is the hands' own: it lands on the
+    sample pressed, rings with its octave and a brighter light, and takes a quarter more. Off the
+    beat the game places it on the next beat, on the beat's own sample, its note alone.
+  - `fact ears.strike_timed_octave_db >= -10` Measured from the evening's sound by
+    `game/tools/ears`:
+    a timed strike's octave stands within a few decibels of its note.
+  - `fact ears.strike_placed_octave_db <= -30` A placed strike has no octave to speak of.
 - **Asks:** Did a timed strike feel like power?
 
 ### `fight.looper` The looper in a fight

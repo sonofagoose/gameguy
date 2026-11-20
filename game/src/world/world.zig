@@ -40,6 +40,16 @@ pub const clap_strength: f32 = 0.7;
 pub const clap_ring: f32 = 0.15;
 pub const clap_over: f32 = 4.0;
 pub const clap_takes_back: u64 = 7;
+/// A strike pressed within an eighth of a beat of Hum's beat is timed: it lands at once and rings
+/// fuller, its note with its octave and a brighter light, and takes more (law 7: a push within an
+/// eighth of a cycle of the right moment adds its whole size). Off the beat the game places it on
+/// the next beat, plain (SPEC.md 10).
+/// Hum's strike: the fork, an octave over home, how hard and how long.
+pub const strike_over: f32 = 2.0;
+pub const strike_strength: f32 = 0.6;
+pub const strike_ring: f32 = 0.5;
+pub const strike_window: f64 = @as(f64, @floatFromInt(tick_every)) / 8.0;
+pub const timed_takes: f32 = 1.25;
 pub const run_speed: f32 = 6.0;
 /// The garden's note: middle C.
 pub const garden_hz: f32 = 261.63;
@@ -612,6 +622,11 @@ pub const World = struct {
     ghost_at: u64 = never,
     claps: u32 = 0,
     clap_at: u64 = never,
+    /// A strike pressed off the beat waits for the beat the game places it on: that beat, in steps
+    /// of the world's beat. And how many strikes were timed and how many placed.
+    strike_due: u64 = never,
+    timed_strikes: u32 = 0,
+    placed_strikes: u32 = 0,
     /// When Hum last called, in steps, so a clap just after can take the call back; and how many
     /// it has.
     called_at: u64 = never,
@@ -981,7 +996,19 @@ pub const World = struct {
         if (self.view == .place and self.stand >= 1.0 and pressed & Hands.dodge != 0) self.dodge();
 
         // the left face strikes with Hum's fork (SPEC.md 10)
-        if (self.view == .place and self.stand >= 1.0 and pressed & Hands.strike != 0) self.strike();
+        // the left face strikes: timed by the hands near the beat, at once and fuller; otherwise the
+        // game places it on the next beat
+        if (self.canStrike() and pressed & Hands.strike != 0) {
+            const at = self.beatAt(hands.stamp);
+            if (at.from_beat <= strike_window) {
+                self.strike_due = never;
+                self.strike(at.pos, true);
+            } else if (self.strike_due == never) {
+                self.strike_due = at.next_beat;
+            }
+        }
+        // a placed strike lands on its beat, on the sample the beat falls
+        if (self.strike_due != never) self.placedStrike(now_sample);
 
         // Hum's own sounds start on the sample the hands were stamped with
         self.own_at = now_sample + @min(hands.stamp, samples_per_step - 1);
@@ -1287,23 +1314,82 @@ pub const World = struct {
 
     /// The left face: Hum's fork rings at home's note, and every knot within reach is drained by how
     /// its strands meet the strike (knots.zig).
-    fn strike(self: *World) void {
+    /// Whether Hum can strike now: standing, in the place. Told to the sound's thread too, so it
+    /// never starts a strike the world would not make.
+    pub fn canStrike(self: *const World) bool {
+        return self.view == .place and self.stand >= 1.0;
+    }
+
+    pub const BeatAt = struct {
+        /// Where in the world's beat, in its steps; how far from the nearest of Hum's beats; and
+        /// the next beat after it.
+        pos: f64,
+        from_beat: f64,
+        next_beat: u64,
+    };
+
+    /// Where a moment stamped this many samples into the step falls in the world's beat. Whole
+    /// steps of the beat are counted as whole numbers, so a beat is found by a whole remainder and
+    /// never a float one (spec/engine.md).
+    pub fn beatAt(self: *const World, stamp: u16) BeatAt {
+        return beatOf(self.clock, self.clock_part, self.tempo, stamp);
+    }
+
+    /// The beat's arithmetic, kept on its own so the sound's thread does exactly the same sum.
+    pub fn beatOf(clock: u64, part: f32, tempo: f32, stamp: u16) BeatAt {
+        var whole = clock;
+        var frac: f64 = @as(f64, part) + @as(f64, tempo) * (@as(f64, @floatFromInt(@min(stamp, samples_per_step - 1))) / @as(f64, @floatFromInt(samples_per_step)));
+        while (frac >= 1.0) {
+            frac -= 1.0;
+            whole += 1;
+        }
+        const into = whole % tick_every;
+        const after: f64 = @as(f64, @floatFromInt(into)) + frac;
+        const before: f64 = @as(f64, @floatFromInt(tick_every)) - after;
+        return .{
+            .pos = @as(f64, @floatFromInt(whole)) + frac,
+            .from_beat = @min(after, before),
+            .next_beat = whole - into + tick_every,
+        };
+    }
+
+    /// A placed strike lands in the step its beat falls in, told on that very sample.
+    fn placedStrike(self: *World, now_sample: u64) void {
+        const ahead = @as(f64, @floatFromInt(self.strike_due)) - @as(f64, @floatFromInt(self.clock)) - @as(f64, self.clock_part);
+        if (ahead > @as(f64, self.tempo)) return;
+        const into: f64 = if (self.tempo > 0.0) @max(0.0, ahead) / @as(f64, self.tempo) else 0.0;
+        const was = self.own_at;
+        self.own_at = now_sample + lead + @as(u64, @intFromFloat(into * @as(f64, @floatFromInt(samples_per_step))));
+        const due = self.strike_due;
+        self.strike_due = never;
+        self.strike(@floatFromInt(due), false);
+        self.own_at = was;
+    }
+
+    /// A strike lands at a moment of the world's beat: timed by the hands, or placed by the game.
+    fn strike(self: *World, at: f64, timed: bool) void {
         self.strikes += 1;
+        if (timed) self.timed_strikes += 1 else self.placed_strikes += 1;
+        const landed: u64 = @intFromFloat(@round(at));
         if (self.bar_strike_n < knots.strikes_in_a_bar) {
-            self.bar_strikes[self.bar_strike_n] = @intCast(self.clock % (4 * tick_every));
+            self.bar_strikes[self.bar_strike_n] = @intCast(landed % (4 * tick_every));
             self.bar_strike_n += 1;
         }
-        self.own_now = sound.own_only;
-        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.home_hz * 2.0, .strength = 0.6, .ring = 0.5 }, .glow));
+        // timed: its note with its octave and a brighter light, which the hands may already have
+        // started; placed: its note alone, on the beat
+        self.own_now = if (timed) sound.own_strike else sound.own_only;
+        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = if (timed) .fork_octave else .fork, .hz = self.home_hz * strike_over, .strength = strike_strength, .ring = strike_ring }, .glow));
         self.own_now = sound.own_world;
-        const bar: f32 = @floatFromInt(4 * tick_every);
+        if (timed) self.hum_light = 1.0;
+        const more: f32 = if (timed) timed_takes else 1.0;
+        const bar: f64 = @floatFromInt(4 * tick_every);
         for (self.knots[0..self.knot_count]) |*kn| {
             if (kn.home) continue;
             const dx = kn.x - self.hum_x;
             const dz = kn.z - self.hum_z;
             if (dx * dx + dz * dz > knots.strike_reach * knots.strike_reach) continue;
             const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
-            const take = knots.drainAt(kn, @floatFromInt(self.clock - kn.phase_from), cycle) + (if (self.step < self.pocket_until) knots.pocket_drain else 0.0);
+            const take = more * knots.drainAt(kn, @max(0.0, at - @as(f64, @floatFromInt(kn.phase_from))), cycle) + (if (self.step < self.pocket_until) knots.pocket_drain else 0.0);
             kn.colour = @max(0.0, kn.colour - take);
             // it rings at its own notes, as hard as the strike met it
             for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.4 + take, .ring = 0.8 }, .glow));
@@ -1362,7 +1448,7 @@ pub const World = struct {
         const at = Place{ .x = self.hum_x + @cos(self.look_yaw) * side, .y = 0.6, .z = self.hum_z + @sin(self.look_yaw) * side };
         const level = self.layer_level[layer];
         self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.home_hz * 2.0, .strength = 0.3 * level, .ring = 0.4 }, .glow));
-        const bar: f32 = @floatFromInt(4 * tick_every);
+        const bar: f64 = @floatFromInt(4 * tick_every);
         for (self.knots[0..self.knot_count]) |*kn| {
             if (kn.home) continue;
             const dx = kn.x - self.hum_x;
@@ -1452,7 +1538,7 @@ pub const World = struct {
     /// the knot's cycle, which is a bar stretched by home's pitch against the knot's root. Their
     /// pulses are heard and seen once for each step of the world's beat.
     fn knotStep(self: *World) void {
-        const bar: f32 = @floatFromInt(4 * tick_every);
+        const bar: f64 = @floatFromInt(4 * tick_every);
         const beat_moves = self.clock_part + self.tempo >= 1.0;
         for (self.knots[0..self.knot_count]) |*kn| {
             if (kn.home) continue;
@@ -2138,6 +2224,8 @@ pub const World = struct {
         mixIn(&h, self.ghost_strikes);
         mixIn(&h, self.claps);
         mixIn(&h, self.calls_taken_back);
+        mixIn(&h, self.timed_strikes);
+        mixIn(&h, self.placed_strikes);
         mixIn(&h, self.knocked);
         for (self.knots[0..self.knot_count]) |kn| mixIn(&h, @as(u32, @bitCast(kn.colour)));
         mixIn(&h, self.swell_bars);
@@ -3019,7 +3107,8 @@ test "struck with home elsewhere, a knot drains slower: the dance's one is not H
     const dx = w.knots[0].x - w.hum_x;
     const dz = w.knots[0].z - w.hum_z;
     try std.testing.expect(dx * dx + dz * dz < knots.strike_reach * knots.strike_reach);
-    // home on sunny home: three strikes on the downbeat leave it coloured
+    // home on sunny home: three strikes timed on the downbeat, which greyed it with home on its
+    // root, leave it coloured
     var struck: u32 = 0;
     while (struck < 3) {
         if (w.clock % (4 * tick_every) == 0 and w.clock > 0) {
@@ -3027,7 +3116,8 @@ test "struck with home elsewhere, a knot drains slower: the dance's one is not H
             struck += 1;
         } else _ = w.stepOnce(.{}, &cues);
     }
-    try std.testing.expect(w.knots[0].colour > 0.3 and w.knots[0].colour < 1.0);
+    try std.testing.expectEqual(@as(u32, 3), w.timed_strikes);
+    try std.testing.expect(w.knots[0].colour > 0.05 and w.knots[0].colour < 1.0);
 }
 
 test "a knot lunges to arrive on its one; a dodge on that beat opens the pocket, and a lunge not dodged knocks Hum back" {
@@ -3184,4 +3274,51 @@ test "out of the pocket the afterimage lands softer each bar, and is gone" {
         while (w.clock % bar != 2) _ = w.stepOnce(.{}, &cues);
     }
     try std.testing.expectEqual(@as(u8, 0), w.layer_n);
+}
+
+test "a strike timed within an eighth of a beat lands at once with its octave; off the beat the game places it on the next beat, plain" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    var step: u32 = 0;
+    while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.canStrike());
+    // two steps after a beat: within the window, so it is the hands' own, and lands at once, fuller
+    while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
+    var n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    try std.testing.expectEqual(@as(u32, 1), w.timed_strikes);
+    var fuller = false;
+    for (cues[0..n]) |cue| {
+        if (cue.own == sound.own_strike and cue.family == .fork_octave) fuller = true;
+    }
+    try std.testing.expect(fuller);
+    // a quarter of a beat after a beat: off it, so the game places it on the next beat
+    while (w.clock % tick_every != tick_every / 4) _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    try std.testing.expectEqual(@as(u32, 0), w.placed_strikes);
+    const due = w.strike_due;
+    try std.testing.expectEqual(@as(u64, 0), due % tick_every);
+    // it lands in the step its beat falls in, its note alone, sent for the sample the beat falls on
+    var landed = false;
+    step = 0;
+    while (!landed and step < 2 * tick_every) : (step += 1) {
+        const was = w.clock;
+        n = w.stepOnce(.{}, &cues);
+        if (w.placed_strikes == 1) {
+            landed = true;
+            try std.testing.expect(was <= due and w.clock >= due);
+        }
+    }
+    try std.testing.expect(landed);
+    var plain = false;
+    step = 0;
+    while (step < 4) : (step += 1) {
+        for (cues[0..n]) |cue| {
+            if (cue.own == sound.own_only and cue.family == .fork) plain = true;
+        }
+        n = w.stepOnce(.{}, &cues);
+    }
+    try std.testing.expect(plain);
+    try std.testing.expectEqual(never, w.strike_due);
 }

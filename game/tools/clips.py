@@ -38,6 +38,9 @@ CLIPS = [
     ('36-the-amen', 'swell', 6.0, 9.0,
      'the swell: Hum holds its note two bars, steps home back up a fifth on a downbeat, and lets go on the next one; the amen lands, a chord from Hum, and the garden answers',
      'does letting go on the one feel like landing somewhere?'),
+    ('37-placed-then-timed', 'placed', 0.5, 6.0,
+     'a strike pressed well off the beat, which the game places on the next beat, its note alone; then the downbeat struck on time by the hands, its note with its octave, and the knots ringing harder',
+     'does the strike you time yourself sound like more power than the one the game placed?'),
 ]
 
 

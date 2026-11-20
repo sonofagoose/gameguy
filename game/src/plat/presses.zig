@@ -1,15 +1,15 @@
-//! The shoulders, read straight from the kernel on the sound's own thread (spec/promises/workshop.md,
-//! hands.voice-in-a-buffer). The sound thread looks at them before every buffer it renders, so
-//! Hum's call, hum and clap start on the buffer after the press: under one buffer, 2.67 ms, after
-//! the kernel saw it. L1 and L2 come this way too, so all four are stamped on one clock and the
-//! clap (L1 and R1 together) is found where the presses are. Everything else in the hands is read
-//! by the main thread as before.
+//! The shoulders and the face buttons, read straight from the kernel on the sound's own thread
+//! (spec/promises/workshop.md, hands.voice-in-a-buffer). The sound thread looks at them before every
+//! buffer it renders, so Hum's call, hum, clap and timed strike start on the buffer after the press:
+//! under one buffer, 2.67 ms, after the kernel saw it. All eight are stamped on one clock, so the
+//! clap (L1 and R1 together) is found where the presses are, and a strike's timing against the beat
+//! is the press's own. The sticks, the D-pad, Select and Start are read by the main thread.
 const std = @import("std");
 const plat = @import("plat.zig");
 const c = plat.c;
 const keys = @import("keys.zig");
 
-pub const What = enum(u8) { call_down, call_up, sing_down, sing_up, voice_down, voice_up, guard_down, guard_up, clap };
+pub const What = enum(u8) { call_down, call_up, sing_down, sing_up, voice_down, voice_up, guard_down, guard_up, jump_down, jump_up, dodge_down, dodge_up, strike_down, strike_up, grab_down, grab_up, clap };
 pub const Edge = struct { what: What, at_s: f64 };
 
 const ev_key: u16 = 1;
@@ -17,17 +17,22 @@ const btn_tr: u16 = 0x137; // R1
 const btn_tr2: u16 = 0x139; // R2
 const btn_tl: u16 = 0x136; // L1
 const btn_tl2: u16 = 0x138; // L2
+// the face buttons by where they are (docs/hardware-target.md, "Controls")
+const btn_south: u16 = 0x130; // bottom: jump
+const btn_east: u16 = 0x131; // right: dodge
+const btn_north: u16 = 0x133; // top: grab
+const btn_west: u16 = 0x134; // left: strike
 /// _IOW('E', 0xa0, int): which clock the kernel stamps this device's events with.
 const eviocsclockid: c_ulong = 0x400445a0;
 const clock_monotonic: c_int = 1;
 
-pub const Shoulders = struct {
+pub const Presses = struct {
     fd: c_int = -1,
     event: u32 = 0,
 
     /// Find the pad's own device by its name and open it to be read without waiting.
-    pub fn open(name: []const u8) Shoulders {
-        var s = Shoulders{};
+    pub fn open(name: []const u8) Presses {
+        var s = Presses{};
         var buf: [32768]u8 = undefined;
         const file = c.fopen("/proc/bus/input/devices", "r") orelse return s;
         const got = c.fread(&buf, 1, buf.len, file);
@@ -45,14 +50,14 @@ pub const Shoulders = struct {
         return s;
     }
 
-    pub fn close(self: *Shoulders) void {
+    pub fn close(self: *Presses) void {
         if (self.fd >= 0) _ = c.close(self.fd);
         self.fd = -1;
     }
 
-    /// Whatever the shoulders have done since the last look, in order, each with when the kernel saw
-    /// it.
-    pub fn poll(self: *const Shoulders, out: []Edge) usize {
+    /// Whatever the shoulders and face buttons have done since the last look, in order, each with
+    /// when the kernel saw it.
+    pub fn poll(self: *const Presses, out: []Edge) usize {
         if (self.fd < 0) return 0;
         var n: usize = 0;
         // struct input_event on a 64-bit kernel: seconds and microseconds (8 bytes each), type,
@@ -73,6 +78,10 @@ pub const Shoulders = struct {
                     btn_tr2 => if (value == 1) .sing_down else .sing_up,
                     btn_tl => if (value == 1) .voice_down else .voice_up,
                     btn_tl2 => if (value == 1) .guard_down else .guard_up,
+                    btn_south => if (value == 1) .jump_down else .jump_up,
+                    btn_east => if (value == 1) .dodge_down else .dodge_up,
+                    btn_north => if (value == 1) .grab_down else .grab_up,
+                    btn_west => if (value == 1) .strike_down else .strike_up,
                     else => continue,
                 };
                 const sec = std.mem.readInt(i64, e[0..8], .little);

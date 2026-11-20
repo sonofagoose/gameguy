@@ -24,6 +24,7 @@ pub const Walker = struct {
     knots_marked: bool = false,
     pocket_marked: bool = false,
     afterimage_marked: bool = false,
+    placed_tried: bool = false,
     nudged: bool = false,
     nudge_left: u8 = 0,
     nudged_at: u64 = 0,
@@ -412,6 +413,13 @@ pub const Walker = struct {
                     self.mark = "clap";
                 }
                 if (near and coloured and w.clock % (4 * world_mod.tick_every) == 0 and w.clock > 0) h.buttons |= Hands.strike;
+                // once, before any strike lands, a press well off the beat: the game places it on the
+                // next beat, plain, and the downbeat after is struck on time, fuller
+                if (near and coloured and w.strikes == 0 and !self.placed_tried and w.clock % (4 * world_mod.tick_every) == 120) {
+                    self.placed_tried = true;
+                    h.buttons |= Hands.strike;
+                    self.mark = "placed";
+                }
                 if (near and !coloured) self.next(step);
                 if (after > 60 * 60) self.next(step);
             },

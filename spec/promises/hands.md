@@ -45,9 +45,9 @@ sized before the stage that builds them._
   - `test a knot lunges to arrive on its one; a dodge on that beat opens the pocket, and a lunge not
     dodged knocks Hum back`
     Right face: dodge, and on the beat the pocket.
-  - `test a knot struck on the one with home on its root greys, and a cadence beside its root brings
-    it home`
-    Left face: strike with the fork.
+  - `test a strike timed within an eighth of a beat lands at once with its octave; off the beat the
+    game places it on the next beat, plain`
+    Left face: strike with the fork, timed by you or placed by the game.
   - `test the clap: L1 and R1 within a tenth of a second, whichever first, each press once` L1 and
     R1: the clap, found where the presses are stamped.
   - `test a clap takes back a call begun just before it, and leaves a call made long before` A clap

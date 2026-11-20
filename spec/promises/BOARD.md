@@ -40,7 +40,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | rung | promises |
 |---|---|
 | sized: its moment, its cheat, its full size and its question written | 138 of 138 |
-| proven: every measure passes today and nothing is owed | 2 |
+| proven: every measure passes today and nothing is owed | 3 |
 | reached: the scripted player met it by playing | 8 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
 | graded full by a fresh reader | 0 |
@@ -85,7 +85,7 @@ asks its question.
 | `card.kept` Nothing is forgotten | 2 | 8 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `card.years` A card is a number of years | 2 | 14 | no | - | - | no | no | 2 owed; same_take.identical == 1  (is 0) |
 | `card.carried` The handheld can carry it | 2 | 2 | no | - | no | no | no | 1 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
-| `fight.beat` On the beat | 2 | 3 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `fight.beat` On the beat | 2 | 3 | yes | - | no | no | no | no yes from Morgan yet; not graded |
 | `fight.looper` The looper in a fight | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `fight.transform` Nothing dies in a fight | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `fight.kinds` Wolves, knots and greys | 2 | 3 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
@@ -135,7 +135,7 @@ asks its question.
 | `laws.sound-and-light` The table of sound and light | 2 | 11 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `laws.home` Home over the laws | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `laws.tuning` Tuning | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `laws.ears` Limits for the ears | 2 | 7 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
+| `laws.ears` Limits for the ears | 2 | 7 | no | - | no | no | no | 2 owed; ears.speaker_share >= 0.5  (is 0.0588); no yes from Morgan yet |
 | `loop.river` The river sings your day back | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `loop.echoes` Echoes | 2 | 4 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `loop.release` What you let go becomes the place | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
@@ -208,10 +208,10 @@ asks its question.
 | `whole.alone` Whole alone, more together | 6 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.endless` The mornings never repeat | 5 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.lights` Every land's lights across the water | 3 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `whole.good` It sounds good | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
+| `whole.good` It sounds good | 2 | 1 | no | - | no | no | no | 1 owed; ears.speaker_share >= 0.5  (is 0.0588); no yes from Morgan yet |
 | `whole.hands` Nothing asks the hands for the impossible | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.ear` The ear, before and after | 2 | 1 | no | - | - | no | no | 3 owed |
 | `hands.voice-in-a-buffer` Your voice, at once | 1 | 1 | no | - | no | no | no | 2 owed; handheld.hands.most_ms <= 3  (is not reported); no yes from Morgan yet |
-| `card.takes` The card is the world's memory | 1 | 2 | no | - | - | no | no | 4 owed |
+| `card.takes` The card is the world's memory | 1 | 2 | no | - | - | no | no | 4 owed; take.kills_survived >= 100  (is not reported); take.kill_most_lost_steps <= 299  (is not reported) |
 | `light.hue` One set of numbers for sound and light | 1 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `light.beam` The beam | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |

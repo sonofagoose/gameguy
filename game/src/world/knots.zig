@@ -25,7 +25,7 @@ pub const max_knots = 8;
 pub const Strand = struct { hz: f32, over: u8 };
 
 /// How near a strand's pulse must fall to a strike to meet it, in steps of the world's beat.
-pub const meet_window: f32 = 8.0;
+pub const meet_window: f64 = 8.0;
 /// How much colour a strike takes: a little alone, more with one strand, most on a meeting.
 pub const drain_alone: f32 = 0.08;
 pub const drain_strand: f32 = 0.16;
@@ -87,37 +87,39 @@ pub const layer_fades: f32 = 0.5;
 pub const layer_least: f32 = 0.2;
 
 /// The next step of the world's beat at which both a knot's strands pulse together: its one.
-pub fn nextOne(clock: u64, cycle: f32) u64 {
-    const c = @as(f32, @floatFromInt(clock));
+pub fn nextOne(clock: u64, cycle: f64) u64 {
+    const c = @as(f64, @floatFromInt(clock));
     return @intFromFloat(@ceil(c / cycle) * cycle);
 }
 
 /// A knot's cycle, in steps of the world's beat: a bar stretched by home's pitch against its root,
 /// folded by octaves into the range round a bar.
-pub fn cycleSteps(bar_steps: f32, home_hz: f32, root_hz: f32) f32 {
-    var ratio = home_hz / root_hz;
+pub fn cycleSteps(bar_steps: f64, home_hz: f32, root_hz: f32) f64 {
+    var ratio = @as(f64, home_hz) / @as(f64, root_hz);
     while (ratio >= std.math.sqrt2) ratio *= 0.5;
     while (ratio < 1.0 / std.math.sqrt2) ratio *= 2.0;
     return bar_steps * ratio;
 }
 
 /// How far a moment of the world's beat is from the nearest pulse of a strand, in steps.
-pub fn fromPulse(clock: f32, cycle: f32, over: u8) f32 {
-    const period = cycle / @as(f32, @floatFromInt(over));
-    const into = @mod(clock, period);
+pub fn fromPulse(clock: f64, cycle: f64, over: u8) f64 {
+    const period = cycle / @as(f64, @floatFromInt(over));
+    // whole pulses taken away: a float remainder is only ever taken by a power of two
+    // (spec/engine.md), and a pulse is not one
+    const into = clock - @floor(clock / period) * period;
     return @min(into, period - into);
 }
 
 /// Whether a strand pulses on this step of the world's beat.
-pub fn pulsesAt(clock: u64, cycle: f32, over: u8) bool {
-    const period = cycle / @as(f32, @floatFromInt(over));
-    const a = @floor(@as(f32, @floatFromInt(clock)) / period);
-    const b = @floor(@as(f32, @floatFromInt(clock + 1)) / period);
+pub fn pulsesAt(clock: u64, cycle: f64, over: u8) bool {
+    const period = cycle / @as(f64, @floatFromInt(over));
+    const a = @floor(@as(f64, @floatFromInt(clock)) / period);
+    const b = @floor(@as(f64, @floatFromInt(clock + 1)) / period);
     return b > a;
 }
 
 /// What a strike at a moment of the beat takes from a knot: alone, with one strand, or a meeting.
-pub fn drainAt(k: *const Knot, clock: f32, cycle: f32) f32 {
+pub fn drainAt(k: *const Knot, clock: f64, cycle: f64) f32 {
     var met: u32 = 0;
     for (k.strands) |s| {
         if (fromPulse(clock, cycle, s.over) <= meet_window) met += 1;
@@ -132,7 +134,7 @@ pub fn drainAt(k: *const Knot, clock: f32, cycle: f32) f32 {
 test "a knot dances on Hum's one with home on its root, and stumbles anywhere else" {
     const c: f32 = 261.63;
     const f = c * 2.0 / 3.0; // the F below, as the root
-    const bar: f32 = 200.0;
+    const bar: f64 = 200.0;
     // with home on the root, the cycle is Hum's bar, and both strands pulse on the one
     const at_root = cycleSteps(bar, f, f);
     try std.testing.expectEqual(bar, at_root);

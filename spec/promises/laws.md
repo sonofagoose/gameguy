@@ -434,8 +434,12 @@ law to its own words._
 - **A cheat would be:** a limiter that hides harsh sounds by making them quiet.
 - **Full size:**
   - `fact ears.pool_near_note_db <= -30` Nothing rough near the water's note.
-  - `owed` `ears` over a whole take: more than two seconds of sustained roughness is an error,
-    except in the moments `laws.md` lists.
-  - `owed` A check that every sound a player must hear has its weight between 400 Hz and 8 kHz.
+  - `fact ears.rough_longest_s <= 2` `game/tools/ears` over the whole first evening: no stretch of
+    roughness lasts two seconds. None of the moments `laws.md` excuses happens in it.
+  - `fact ears.speaker_share >= 0.5` Most of the evening's sound sits between 400 Hz and 8 kHz.
+    Measured 2026-11-20 at 0.06, with 0.91 in the octave round 250 Hz: the garden's notes are low,
+    and the speaker's shaping at the end of the chain (`spec/engine.md`), which builds low voices
+    from upper overtones, is not built yet.
+  - `owed` A check that every sound a player must hear has its own weight between 400 Hz and 8 kHz.
   - `owed` A test: a missed beat lands plainer, never out of tune.
 - **Asks:** Did anything ever sound wrong?

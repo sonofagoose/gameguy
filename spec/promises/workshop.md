@@ -16,7 +16,7 @@ the build (`../stages.md`)._
 - **Full size:**
   - `test Hum's own call starts on the sample the hands were stamped with, and is not sounded twice`
     The sound thread reads R1 and R2 straight from the kernel before every buffer
-    (`game/src/plat/shoulders.zig`) and starts Hum's call or hum on the buffer after the press; the
+    (`game/src/plat/presses.zig`) and starts Hum's call or hum on the buffer after the press; the
     world, a step later, tells the same sound on the stamped sample, and it is not sounded twice.
   - `test a take cut off while it was written is read as far as it got` Each change in a take keeps
     its stamp, so a replay starts the voice on the same sample every time.
@@ -26,6 +26,9 @@ the build (`../stages.md`)._
     stamps, and starts it on the buffer after the second press; a call begun just before is
     choked, so the gesture is one sound. A strike, the pocket and the swell's step are Hum's own but
     only the world starts them, and they are never taken for a call.
+  - `test a strike the hands timed sounds once, with its octave` The face buttons are read from
+    the kernel with the shoulders, and a strike pressed well inside the beat's window starts on the
+    buffer after the press, by the world's own sum of where the beat is.
   - `fact handheld.hands.most_ms <= 3` From the kernel seeing a press to the buffer that starts
     Hum's sound, the most of any press in a session on the handheld, from its log.
   - `owed` A let-go is heard at the world's next step, up to a sixtieth of a second late, because

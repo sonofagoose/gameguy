@@ -19,6 +19,9 @@ build_for() {  # name, then extra zig flags for the target
   "$ZIG" build-exe "$@" -O ReleaseFast bench/modes.zig -lc -femit-bin="build/modes-$name" --cache-dir build/cache
   "$ZIG" build-exe "$@" -O ReleaseSafe --dep rules -Mroot=tools/same_take.zig -Mrules=src/rules.zig \
       -lc -femit-bin="build/same-take-$name" --cache-dir build/cache
+  if [ "$name" = x86_64 ]; then
+    "$ZIG" build-exe "$@" -O ReleaseFast tools/ears.zig -lc -femit-bin="build/ears" --cache-dir build/cache
+  fi
 }
 
 quiet_run() {  # label, then the command: it must write nothing to the error stream
@@ -35,6 +38,7 @@ grep -c '^    "' src/world/promise_list.zig | sed 's/^/   witnessed promises: /'
 
 echo "== tests (the rules, the sound, the arithmetic: nothing that needs a screen)"
 "$ZIG" test src/rules.zig --cache-dir build/cache 2>&1 | tail -1
+"$ZIG" test tools/ears.zig -lc --cache-dir build/cache 2>&1 | tail -1 | sed 's/^/   the ears: /'
 
 echo "== laptop (x86_64)"
 build_for x86_64
@@ -81,6 +85,12 @@ if [ -f results/same-take-aarch64.txt ]; then
   fi
 fi
 echo "fact same_take.identical $identical" > build/facts.txt
+
+echo "== the ears on the evening's sound (tools/ears.zig; spec/laws.md, For the ears)"
+build/ears build/evening.wav build/evening.out > build/ears.out
+grep "^fact ears\." build/ears.out >> build/facts.txt
+grep "^fact ears\.\(rough_longest_s\|rough_share\|speaker_share\|peak\|strike\)" build/ears.out | sed 's/^fact /   /'
+grep "^rough:" build/ears.out | head -12 | sed 's/^/   /' || true
 
 echo "== what each kept frame is made of (spec/texture.md, what makes a frame beautiful)"
 grep -h "^fact beauty\." build/evening.out >> build/facts.txt || true
