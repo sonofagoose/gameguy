@@ -25,6 +25,9 @@ pub const Walker = struct {
     pocket_marked: bool = false,
     afterimage_marked: bool = false,
     placed_tried: bool = false,
+    drip_marked: bool = false,
+    waited_from: u64 = 0,
+    knots_from: u64 = 0,
     asleep_marked: bool = false,
     lean_marked: bool = false,
     nudged: bool = false,
@@ -124,7 +127,19 @@ pub const Walker = struct {
                 if (step == 40) h.buttons |= Hands.call;
                 if (step == 78) self.mark = "page";
                 if (step == 220) h.buttons |= Hands.call;
-                if (step == 318) self.mark = "drip";
+                // the answer on its way back, almost half way: far off, a ring in teal
+                if (!self.drip_marked) {
+                    for (w.rings) |r| {
+                        if (!r.live or r.own) continue;
+                        const dx = w.hum_x - r.x;
+                        const dz = w.hum_z - r.z;
+                        const reach = r.age * world_mod.dt * world_mod.sound_speed;
+                        if (reach >= 0.45 * @sqrt(dx * dx + dz * dz)) {
+                            self.drip_marked = true;
+                            self.mark = "drip";
+                        }
+                    }
+                }
                 if (w.answered and step > w.answered_at + 50) self.next(step);
             },
             1 => {
@@ -370,13 +385,23 @@ pub const Walker = struct {
                 if (after > 60 * 13) self.next(step);
             },
             16 => {
-                // let go, and walk away from the water, so the swell is seen at Hum's own height
-                const fp = &w.pools[w.pool_count - 1];
-                if (after < 360) {
-                    _ = toward(w, &h, w.hum_x + (w.hum_x - fp.x), w.hum_z + (w.hum_z - fp.z));
-                    _ = face(w, &h, w.hum_x + (w.hum_x - fp.x), w.hum_z + (w.hum_z - fp.z));
+                // let go, and walk away from the water toward the hose's knot, so the swell is seen at
+                // Hum's own height and the knots, stumbling, come out to meet it
+                // until the knot is near enough for the knots to notice, and no nearer: Hum stays
+                // on its side of the hose
+                const k = world_mod.hose.knot;
+                const kx = k[0] - w.hum_x;
+                const kz = k[1] - w.hum_z;
+                const near_knot = kx * kx + kz * kz < 150.0 * 150.0;
+                if (!near_knot and after < 60 * 60) {
+                    // round the puddle's water, not through it
+                    const via = detour(w, k[0], k[1]);
+                    _ = toward(w, &h, via[0], via[1]);
+                    _ = face(w, &h, via[0], via[1]);
+                } else if (self.waited_from == 0) {
+                    self.waited_from = step;
                 }
-                if (after > 480) self.next(step);
+                if (self.waited_from != 0 and step > self.waited_from + 120) self.next(step);
             },
             17 => {
                 // the first knots come and circle, stumbling. Home is on wonder, their root: strike on
@@ -392,6 +417,7 @@ pub const Walker = struct {
                 }
                 if (near and !self.knots_marked) {
                     self.knots_marked = true;
+                    self.knots_from = step;
                     self.mark = "knots";
                 }
                 // a lunge about to arrive: step aside on its beat, and the pocket opens
@@ -417,13 +443,14 @@ pub const Walker = struct {
                 if (near and coloured and w.clock % (4 * world_mod.tick_every) == 0 and w.clock > 0) h.buttons |= Hands.strike;
                 // once, before any strike lands, a press well off the beat: the game places it on the
                 // next beat, plain, and the downbeat after is struck on time, fuller
-                if (near and coloured and w.strikes == 0 and !self.placed_tried and w.clock % (4 * world_mod.tick_every) == 120) {
+                if (near and coloured and !self.placed_tried and w.clock % (4 * world_mod.tick_every) == 120) {
                     self.placed_tried = true;
                     h.buttons |= Hands.strike;
                     self.mark = "placed";
                 }
                 if (near and !coloured) self.next(step);
-                if (after > 60 * 60) self.next(step);
+                // a minute and a half after they came, or three minutes waiting for them
+                if ((self.knots_marked and step > self.knots_from + 60 * 90) or after > 60 * 180) self.next(step);
             },
             18 => {
                 // the swell, Gentle: hold R2 and never touch the stick. After a bar home drifts

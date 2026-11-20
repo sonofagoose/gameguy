@@ -83,9 +83,9 @@ asks its question.
 | `card.light` Why nothing on the card was a picture | 2 | 5 | no | - | - | no | no | 1 owed |
 | `card.no-copies` Nothing is a copy | 2 | 5 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `card.kept` Nothing is forgotten | 2 | 8 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `card.years` A card is a number of years | 2 | 14 | no | - | - | no | no | 2 owed |
+| `card.years` A card is a number of years | 2 | 14 | no | - | - | no | no | 2 owed; same_take.identical == 1  (is 0) |
 | `card.carried` The handheld can carry it | 2 | 2 | no | - | no | no | no | 1 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
-| `fight.beat` On the beat | 2 | 3 | no | - | no | no | no | ears.strike_timed_octave_db >= -10  (is -10.2); no yes from Morgan yet |
+| `fight.beat` On the beat | 2 | 3 | yes | - | no | no | no | no yes from Morgan yet; not graded |
 | `fight.looper` The looper in a fight | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `fight.transform` Nothing dies in a fight | 2 | 2 | yes | - | no | no | no | no yes from Morgan yet; not graded |
 | `fight.kinds` Wolves, knots and greys | 2 | 3 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
@@ -105,7 +105,7 @@ asks its question.
 | `garden.w01` The answering field | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w02` The seed that follows | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w03` The parade | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `garden.w04` The puddle bridge | 2 | 1 | no | yes | no | no | no | 4 owed; ears.pool_adds_db >= 3  (is 2.659); no yes from Morgan yet |
+| `garden.w04` The puddle bridge | 2 | 1 | no | yes | no | no | no | 4 owed; ears.pool_adds_db >= 3  (is -0.744); no yes from Morgan yet |
 | `garden.w05` The quiet ball | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w06` The far shore, late | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `garden.w07` The swing | 2 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
@@ -174,7 +174,7 @@ asks its question.
 | `scale.ring` The ring round the lake | 2 | 13 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `sky.dawn` The first dawn | 2 | 7 | no | yes | no | no | no | 5 owed; no yes from Morgan yet |
 | `sky.bee` The bee | 2 | 3 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
-| `texture.frame` What makes a frame beautiful | 2 | 4 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
+| `texture.frame` What makes a frame beautiful | 2 | 4 | no | - | no | no | no | 4 owed; beauty.page_black_least >= 0.8  (is 0.7919); no yes from Morgan yet |
 | `texture.light` Light is loudness | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `texture.one-rule` How a thing looks is how it sounds | 2 | 10 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `texture.at-rest` A line at rest | 2 | 5 | no | - | no | no | no | 2 owed; frame evening-climb: nobody has looked at it yet; no yes from Morgan yet |
@@ -204,7 +204,7 @@ asks its question.
 | `whole.law6` Travel | 1 | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |
 | `whole.law7` Building up | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.twice` Every cue twice | 1 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `whole.same` A take is its inputs | 1 | 1 | yes | - | - | no | no | not graded |
+| `whole.same` A take is its inputs | 1 | 1 | no | - | - | no | no | same_take.identical == 1  (is 0) |
 | `whole.alone` Whole alone, more together | 6 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.endless` The mornings never repeat | 5 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.lights` Every land's lights across the water | 3 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |

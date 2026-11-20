@@ -62,6 +62,23 @@ def read(path):
         what, rest = words[0], words[1:]
         if what == 'note':
             land['note'] = number(rest[0], line_no)
+        elif what in ('pool', 'rim'):
+            n = named(rest[2:], line_no)
+            land[what] = (number(rest[0], line_no), number(rest[1], line_no), number(n['radius'][0], line_no), number(n['reeds'][0], line_no) if 'reeds' in n else '0.0')
+        elif what == 'spigot':
+            land['spigot'] = (number(rest[0], line_no), number(rest[1], line_no), number(named(rest[2:], line_no)['tall'][0], line_no))
+        elif what == 'hose' and rest and rest[0][0].isalpha():
+            n = named(rest, line_no)
+            land['hose_bore'] = number(n['bore'][0], line_no)
+            land['hose_knot'] = number(n['knot'][0], line_no)
+        elif what == 'hose':
+            pts = []
+            for part in ' '.join(rest).split('/'):
+                xz = part.split()
+                if len(xz) != 2:
+                    fail(line_no, f'a point of the hose is two numbers, not {part.strip()}')
+                pts.append((number(xz[0], line_no), number(xz[1], line_no)))
+            land['hose'] = pts
         elif what in ('wake', 'clear', 'lake'):
             land[what] = (number(rest[0], line_no), number(rest[1], line_no))
         elif what == 'great':
@@ -107,10 +124,10 @@ def read(path):
             land['knot_strands'] = strands
         else:
             fail(line_no, f'nothing in a score is called {what}')
-    for need in ('note', 'wake', 'great', 'clear', 'lake', 'asters', 'knot_root'):
+    for need in ('note', 'wake', 'great', 'clear', 'lake', 'asters', 'knot_root', 'pool', 'rim', 'spigot', 'hose', 'hose_bore'):
         if need not in land:
             sys.exit(f'score: {path} says nothing of its {need}')
-    for need in ('wake', 'great', 'clear', 'puddle'):
+    for need in ('wake', 'great', 'clear', 'puddle', 'pool', 'hose', 'spigot'):
         if need not in land['keep']:
             sys.exit(f'score: {path} says nothing of how far the asters keep from the {need}')
     return land
@@ -140,6 +157,22 @@ def write(land, src, out):
         f'pub const keep_great: f32 = {k["great"]};',
         f'pub const keep_clear: f32 = {k["clear"]};',
         f'pub const keep_puddle: f32 = {k["puddle"]};',
+        f'pub const keep_pool: f32 = {k["pool"]};',
+        f'pub const keep_hose: f32 = {k["hose"]};',
+        f'pub const keep_spigot: f32 = {k["spigot"]};',
+        '/// The Mirror Pool: its middle, its radius, and the band of reeds round it.',
+        f'pub const pool = [4]f32{{ {", ".join(land["pool"])} }};',
+        '/// The bowl\'s rim: its middle and radius.',
+        f'pub const rim = [3]f32{{ {", ".join(land["rim"][:3])} }};',
+        '/// The spigot: where, and how tall.',
+        f'pub const spigot = [3]f32{{ {", ".join(land["spigot"])} }};',
+        '/// The hose: the points its curve passes through, from the spigot to its end; its bore; how far',
+        '/// back from its end it is knotted.',
+        'pub const hose = [_][2]f32{',
+        *[f'    .{{ {x}, {z} }},' for x, z in land['hose']],
+        '};',
+        f'pub const hose_bore: f32 = {land["hose_bore"]};',
+        f'pub const hose_knot: f32 = {land["hose_knot"]};',
         'pub const puddles = [_]Puddle{',
     ]
     for x, z, shape, note in land['puddles']:

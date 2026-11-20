@@ -56,6 +56,10 @@ const world = @import("world.zig");
 /// Whether a place is under a puddle's water (pools.zig): nothing grows there, and nothing lies
 /// there but what floats.
 pub fn wet(x: f32, z: f32) bool {
+    // the Mirror Pool
+    const mx = x - world.land.pool[0];
+    const mz = z - world.land.pool[1];
+    if (mx * mx + mz * mz < world.land.pool[2] * world.land.pool[2]) return true;
     inline for (pools.garden) |p| {
         const r = comptime pools.radiusFor(p.shape, world.garden_hz * p.note);
         const dx = x - p.x;

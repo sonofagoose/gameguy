@@ -160,6 +160,7 @@ fn note(home_hz: f32, triad: [3]f32, r: f32, pick: f32) f32 {
 
 // where they stand comes from the Garden's score (scores/garden.txt, through tools/score.py)
 const land = @import("land.zig");
+const hose = @import("hose.zig");
 pub const great_tall: f32 = land.great_tall;
 pub const great_x: f32 = land.great[0];
 pub const great_z: f32 = land.great[1];
@@ -168,8 +169,9 @@ pub const field_across: f32 = land.aster_rule.across;
 pub const clear_x: f32 = land.clear[0];
 pub const clear_z: f32 = land.clear[1];
 
-/// The proof field: the great aster a hundred and fifty metres ahead of where Hum stands, and
-/// the rest on a loose grid over a field more than a kilometre across. The return is how many.
+/// The Garden's asters (scores/garden.txt): the great aster a hundred and fifty metres ahead of where
+/// Hum wakes, and the rest on a loose grid over the bowl, clear of the pool, the hose, the spigot and
+/// the puddles. The return is how many.
 pub fn field(out: *[max_towers]Plan, home_hz: f32) usize {
     out[0] = plan(0, great_x, great_z, great_tall, home_hz);
     var n: usize = 1;
@@ -195,6 +197,19 @@ pub fn field(out: *[max_towers]Plan, home_hz: f32) usize {
             const dx = x - clear_x;
             const dz = z - clear_z;
             const near_clear = dx * dx + dz * dz < land.keep_clear * land.keep_clear;
+            // nor in the Mirror Pool or its reeds, nor past the bowl's rim, nor on the hose or the
+            // spigot's rise
+            const qx = x - land.pool[0];
+            const qz = z - land.pool[1];
+            const pool_keep = land.pool[2] + land.pool[3] + land.keep_pool;
+            const in_pool = qx * qx + qz * qz < pool_keep * pool_keep;
+            const rx = x - land.rim[0];
+            const rz = z - land.rim[1];
+            const past_rim = rx * rx + rz * rz > land.rim[2] * land.rim[2];
+            const sx = x - land.spigot[0];
+            const sz = z - land.spigot[1];
+            const near_spigot = sx * sx + sz * sz < land.keep_spigot * land.keep_spigot;
+            const near_hose = !(in_pool or past_rim) and hose.distance(x, z) < land.keep_hose;
             // and nothing standing in a puddle, nor so near one that it leans over the water
             var in_water = false;
             for (pools.garden) |pd| {
@@ -203,7 +218,7 @@ pub fn field(out: *[max_towers]Plan, home_hz: f32) usize {
                 const keep = pools.radiusFor(pd.shape, home_hz) + land.keep_puddle;
                 if (px * px + pz * pz < keep * keep) in_water = true;
             }
-            if (skip or near_start or near_great or near_clear or in_water or n >= max_towers) continue;
+            if (skip or near_start or near_great or near_clear or in_water or in_pool or past_rim or near_spigot or near_hose or n >= max_towers) continue;
             out[n] = plan(@intCast(n), x, z, tall, home_hz);
             n += 1;
         }

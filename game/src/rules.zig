@@ -15,6 +15,7 @@ test {
     _ = world.cues_mod;
     _ = world.pools;
     _ = world.knots;
+    _ = world.hose;
     _ = @import("plat/keys.zig");
     _ = sound;
     _ = m;

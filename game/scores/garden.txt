@@ -1,12 +1,14 @@
 # The Garden's score (spec/world.md 1; spec/shape.md, "The Garden: a bowl"; spec/engine.md,
 # "Places and scores"). tools/score.py turns it into the land's tables (src/world/land.zig).
 #
-# For now it holds the proof field exactly as the first evening was built on it: flat, the asters
-# on a loose grid, the puddles and the first knots where the scripted walk finds them. The Garden
-# as spec/shape.md draws it, a bowl a kilometre and a half across with the Mirror Pool at its
-# lowest point, the spigot on the highest rise at the back and the hose down across it, is written
-# into this file next, one thing at a time, each looked at from above and from inside.
-#
+# The Garden as spec/shape.md draws it, laid out round the first evening (SPEC.md 6.1): Hum wakes in
+# the reeds on the Mirror Pool's north shore. The coiled end of the hose lies seventy metres east,
+# where Drip hangs at its mouth; the great aster stands a hundred and fifty metres ahead, up the
+# slope. The spigot stands on the highest rise at the back, and the hose runs from it down the east
+# side of the garden and back along the pool's north shore to its end, knotted a little way before
+# it. The puddles from the storm lie on the lower slopes either side, the asters everywhere else in
+# the bowl. For now the ground is flat; the bowl's heights come next.
+
 # Metres, one to a hundred. x runs east and z runs south; Hum wakes facing north, toward -z.
 # A note is a ratio over the land's own note: 4/3 is the F above the garden's C.
 
@@ -19,36 +21,60 @@ wake 0 0
 # the great aster, a hundred and fifty metres ahead of where Hum wakes, and how tall
 great 0 -150 tall 172
 
-# the clearing in the reeds where Drip waits in the dark
-clear -34 -52
+# the clearing in the reeds where Drip waits in the dark: the hose's mouth, far enough off that the
+# second call's answer comes from somewhere to be found (SPEC.md 6.1)
+clear 70 22
 
 # where the lake lies, for the sun's rings of light over it
 lake 1100 -2700
 
-# the rest of the asters, by rule: a grid of cells across the field from its south edge, each
+# the Mirror Pool, at the bowl's lowest point: its middle and its radius, and the band of reeds round
+# its edge, as tall as towers (spec/world.md: "the Mirror Pool black and still, reeds as tall as
+# towers at its edge"). Three hundred metres across where Hum first stands: ten seconds there and back
+pool 0 175 radius 150 reeds 45
+
+# the bowl's rim: no aster stands past it
+rim 0 175 radius 740
+
+# the spigot, on the highest rise at the back: ten metres of brass
+spigot 80 -560 tall 10
+
+# the hose, from the spigot down the east of the garden and back along the pool's north shore to its
+# coiled end in the reeds east of where Hum wakes, through these points, so the first evening's walk
+# never has to cross it; its bore, a door's height; and how far back along it from its end it is
+# knotted
+hose 80 -560 / 250 -530 / 450 -420 / 590 -220 / 640 0 / 520 120 / 380 100 / 260 50 / 150 30 / 70 22
+hose bore 1.8 knot 300
+
+# the rest of the asters, by rule: a grid of cells across the garden from its south edge, each
 # aster thrown about its cell, of a height between the least and the least and more, one cell in
 # so many left empty, all from one seed
-asters across 1200 cells 9 from 150 jitter 90 tall 92 76 skip 11 seed 0x51ed270b
+asters across 1560 cells 12 from 955 jitter 90 tall 92 76 skip 11 seed 0x51ed270b
 
-# how far the asters keep from where Hum wakes, from the great aster, from Drip's clearing, and
-# from a puddle's edge
+# how far the asters keep from where Hum wakes, from the great aster, from Drip's clearing, from a
+# puddle's edge, beyond the reeds, from the hose, and from the spigot
 keep wake 45
 keep great 60
 keep clear 32
 keep puddle 25
+keep pool 10
+keep hose 25
+keep spigot 50
 
 # the puddles from the storm: where, which standing shape the garden's note makes in each, and the
-# note it is sized for (the last is sized for wonder, the F above)
-puddle 175 215 shape 7
-puddle -130 160 shape 1
-puddle -10 360 shape 3
-puddle 330 450 shape 4
-puddle -230 330 shape 7 note 4/3
+# note it is sized for. A puddle at a hundred to one is a lake to Hum: the bridge, the first, is
+# two hundred metres across. It lies north-west of the pool; the last, north-east, is sized for
+# wonder, the F above
+puddle -200 -80 shape 7
+puddle -320 60 shape 1
+puddle -300 230 shape 3
+puddle 360 300 shape 4
+puddle 210 -110 shape 7 note 4/3
 
-# the first knots, south of the puddle sized for wonder: where each waits, and what each is,
-# two strands over a root (spec/world.md, "stand where they meet"): C and the A above it, the third
-# and fifth overtones of the F below, pulsing three and five to a cycle
-knot -110 440
-knot -95 455
-knot -125 458
+# the first knots: where each waits about the hose's knot, and what each is, two strands over a
+# root (spec/world.md, "stand where they meet"): C and the A above it, the third and fifth overtones
+# of the F below, pulsing three and five to a cycle
+knot 0 0
+knot 15 15
+knot -15 18
 knots root 2/3 strand 1/1 3 strand 5/3 5

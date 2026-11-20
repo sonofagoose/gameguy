@@ -167,8 +167,11 @@ stage 2 begins._
 - **A cheat would be:** a corridor level with fans on timers; a rhythm game at the end; a swapped
   sound when it is over.
 - **Full size:**
-  - `owed` It is at least 1.5 km long and 1.3 m in the bore: a real hose of 15 to 30 m and 13 to 19
-    mm, one to a hundred. Hum walks inside upright, and it takes at least four minutes.
+  - `test the hose runs from the spigot to its end in the reeds, at least a kilometre and a half`
+    It lies across the Garden from the spigot on the back rise to its coiled end in the reeds, its
+    curve worked out from the score's points when the game is built: 1,519 m, its bore 1.8 m, a
+    door's height (`game/scores/garden.txt`, `game/src/world/hose.zig`).
+  - `owed` Hum walks inside it upright, and it takes at least four minutes.
   - `owed` The still places and the winds are the pipe's own standing wave, worked out from its
     length. Change its length at a kink and they move to where the sum says.
   - `owed` Stopped, it sounds its odd overtones only; opened, all of them, an octave higher. A test.

@@ -21,6 +21,8 @@ pub const pools = @import("pools.zig");
 pub const knots = @import("knots.zig");
 /// The land's tables, from its score (scores/garden.txt, through tools/score.py).
 pub const land = @import("land.zig");
+/// The hose's curve, worked out from the score when the game is built.
+pub const hose = @import("hose.zig");
 
 /// The puddles on the ground at once (pools.zig).
 pub const max_pools = pools.garden.len;
@@ -627,6 +629,9 @@ pub const World = struct {
     ghost_at: u64 = never,
     claps: u32 = 0,
     clap_at: u64 = never,
+    /// Built from the Garden's score (scores/garden.txt), with its Mirror Pool; a world made for a
+    /// test of one thing has none.
+    in_garden: bool = false,
     /// Gentle or Fierce (SPEC.md 10), chosen any night; the first evening is Gentle. Gentle widens
     /// the timing, leans home for you and lets fights end by comfort; Fierce asks for the full close.
     fierce: bool = false,
@@ -736,6 +741,9 @@ pub const World = struct {
 
     fn initField(self: *World) void {
         self.* = .{};
+        self.in_garden = true;
+        self.hum_x = land.wake[0];
+        self.hum_z = land.wake[1];
         self.view = .place;
         self.ring_reach = 900.0;
         var plans: [asters.max_towers]asters.Plan = undefined;
@@ -813,9 +821,11 @@ pub const World = struct {
         self.pool_count = pools.garden.len;
         // the first knots: two strands each, C and the A above it, over the F below that both are
         // overtones of (design/the-wheel.md); three of them south of the puddle sized for wonder
+        // where each waits about the hose's knot
         const knot_at = land.knots;
         const st = land.knot_strands;
-        for (knot_at, 0..) |p, i| {
+        for (knot_at, 0..) |off, i| {
+            const p = [2]f32{ hose.knot[0] + off[0], hose.knot[1] + off[1] };
             var kn = knots.Knot{
                 .x = p[0],
                 .z = p[1],
@@ -977,6 +987,7 @@ pub const World = struct {
         }
         // on the water, the water has its say in where a step goes
         if (self.view == .place and self.pool_count > 0) self.onWater(&go_x, &go_z);
+        if (self.view == .place) self.atShore(&go_x, &go_z);
         self.hum_x += go_x;
         self.hum_z += go_z;
         if (size > 0.12 and self.view == .place and self.stand >= 1.0) self.underfoot();
@@ -1952,6 +1963,25 @@ pub const World = struct {
     /// or down off a belly, is free; walking up into a belly is turned along the line, and a belly
     /// throws Hum back toward the line, harder the louder it is. Still water gives no grip: a step
     /// on it is a fifth of one, and it floats Hum back to the nearest shore.
+    /// The Mirror Pool is still and deep: Hum stops at its edge, and a step that would go in slides
+    /// along the shore instead.
+    fn atShore(self: *World, go_x: *f32, go_z: *f32) void {
+        if (!self.in_garden) return;
+        const px = self.hum_x + go_x.* - land.pool[0];
+        const pz = self.hum_z + go_z.* - land.pool[1];
+        const edge = land.pool[2];
+        const r2 = px * px + pz * pz;
+        if (r2 >= edge * edge) return;
+        const r = @max(@sqrt(r2), 0.01);
+        const nx = px / r;
+        const nz = pz / r;
+        const inward = go_x.* * nx + go_z.* * nz;
+        if (inward < 0.0) {
+            go_x.* -= inward * nx;
+            go_z.* -= inward * nz;
+        }
+    }
+
     fn onWater(self: *World, go_x: *f32, go_z: *f32) void {
         const to_x = self.hum_x + go_x.*;
         const to_z = self.hum_z + go_z.*;
@@ -3188,8 +3218,8 @@ test "a knot struck on the one with home on its root greys, and a cadence beside
     w.initAsters();
     var cues: [max_cues]sound.Cue = undefined;
     // stand near the first knots: they come and keep a circle round Hum
-    w.hum_x = -110.0;
-    w.hum_z = 400.0;
+    w.hum_x = w.knots[0].x;
+    w.hum_z = w.knots[0].z - 40.0;
     var step: u32 = 0;
     while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
     for (w.knots[0..w.knot_count]) |kn| {
@@ -3227,8 +3257,8 @@ test "struck with home elsewhere, a knot drains slower: the dance's one is not H
     defer std.testing.allocator.destroy(w);
     w.initAsters();
     var cues: [max_cues]sound.Cue = undefined;
-    w.hum_x = -110.0;
-    w.hum_z = 400.0;
+    w.hum_x = w.knots[0].x;
+    w.hum_z = w.knots[0].z - 40.0;
     var step: u32 = 0;
     while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
     const dx = w.knots[0].x - w.hum_x;
@@ -3253,8 +3283,8 @@ test "a knot lunges to arrive on its one; a dodge on that beat opens the pocket,
     defer std.testing.allocator.destroy(w);
     w.initAsters();
     var cues: [max_cues]sound.Cue = undefined;
-    w.hum_x = -110.0;
-    w.hum_z = 400.0;
+    w.hum_x = w.knots[0].x;
+    w.hum_z = w.knots[0].z - 40.0;
     _ = w.moveHome(-1);
     var step: u32 = 0;
     // they come; with home on their root, their one is Hum's downbeat, and they lunge to arrive on it
@@ -3292,8 +3322,8 @@ test "each bar in the pocket keeps its strikes as an afterimage that lands again
     defer std.testing.allocator.destroy(w);
     w.initAsters();
     var cues: [max_cues]sound.Cue = undefined;
-    w.hum_x = -110.0;
-    w.hum_z = 400.0;
+    w.hum_x = w.knots[0].x;
+    w.hum_z = w.knots[0].z - 40.0;
     _ = w.moveHome(-1);
     var step: u32 = 0;
     while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
@@ -3536,8 +3566,8 @@ test "on Gentle a swell held a bar unsteered leans home beside the grey knot on 
     defer std.testing.allocator.destroy(w);
     w.initAsters();
     var cues: [max_cues]sound.Cue = undefined;
-    w.hum_x = -110.0;
-    w.hum_z = 400.0;
+    w.hum_x = w.knots[0].x;
+    w.hum_z = w.knots[0].z - 40.0;
     var step: u32 = 0;
     while (step < 60 * 25) : (step += 1) _ = w.stepOnce(.{}, &cues);
     _ = w.moveHome(-1);
@@ -3561,8 +3591,8 @@ test "on Gentle a swell held a bar unsteered leans home beside the grey knot on 
     defer std.testing.allocator.destroy(f);
     f.initAsters();
     f.fierce = true;
-    f.hum_x = -110.0;
-    f.hum_z = 400.0;
+    f.hum_x = f.knots[0].x;
+    f.hum_z = f.knots[0].z - 40.0;
     step = 0;
     while (step < 60 * 25) : (step += 1) _ = f.stepOnce(.{}, &cues);
     _ = f.moveHome(-1);

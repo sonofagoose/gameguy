@@ -15,6 +15,7 @@ const plat = @import("plat/plat.zig");
 const png = @import("plat/png.zig");
 const lines = @import("draw/lines.zig");
 const aster_lines = @import("draw/aster_lines.zig");
+const garden_lines = @import("draw/garden_lines.zig");
 const colour = @import("draw/colour.zig");
 const m = @import("m.zig");
 const world_mod = @import("world/world.zig");
@@ -908,7 +909,7 @@ var words: Type = undefined;
 var renderer: lines.Renderer = undefined;
 var renderer_ready = false;
 var pixels: []u8 = &.{};
-var static_lines: [36_000]lines.Inst = undefined;
+var static_lines: [42_000]lines.Inst = undefined;
 /// Each body's share of its own light, by the total length of the lines it is drawn with.
 var spread: [lines.max_bodies]f32 = @splat(1.0);
 var body_len: [lines.max_bodies]f32 = @splat(0.0);
@@ -1058,6 +1059,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         .evening, .asters => {
             if (options.scene == .evening) world.initEvening() else world.initAsters();
             aster_lines.build(&world);
+            garden_lines.build();
             renderer.keep = 0.55;
             renderer.fade = 70.0;
             renderer.far_floor = 0.05;
@@ -1333,6 +1335,11 @@ pub fn run(window: plat.Window, options: Options) bool {
             const moved_z = eye[2] - picked_z;
             if (moved_x * moved_x + moved_z * moved_z > 20.0 * 20.0) {
                 picked = aster_lines.pick(world.hum_x, world.hum_z, static_lines[0..26_000], static_occ[0..24_000]);
+                // the hose, the spigot, the reeds and the pool's edge, each square of ground round
+                // Hum lending its body to what stands in it (garden_lines.zig)
+                const half_side: i32 = @divTrunc(aster_lines.cover_side, 2);
+                const grid_now = [2]i32{ @as(i32, @intFromFloat(@floor(world.hum_x / 16.0))) - half_side, @as(i32, @intFromFloat(@floor(world.hum_z / 16.0))) - half_side };
+                picked.lines += garden_lines.pick(world.hum_x, world.hum_z, grid_now, static_lines[picked.lines..]);
                 picked.lines += aster_lines.fallen(&world, static_lines[picked.lines..]);
                 picked.lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[picked.lines..], &static_occ, &picked.occ, &cover_grid);
                 picked.lines += aster_lines.horn(&world, static_lines[picked.lines..]);
