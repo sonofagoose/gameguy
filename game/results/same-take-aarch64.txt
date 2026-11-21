@@ -11,28 +11,28 @@ minute 10: world a829699ab68ff237  sound c7cc39642f7d31dd  loudest 0.952  calls 
 witness evening.call first=57 held=373
 witness whole.law1 first=57 held=0
 witness whole.law6 first=57 held=0
-evening minute  1: world dd6eb2818a0bebea  sound d5b3f83de575bf38  loudest 0.925  calls 3  answers 403  cues 1470  late 0  refused 0
-evening minute  2: world 8b03e9e05d81ca58  sound 99c3266912fb09fb  loudest 0.925  calls 3  answers 564  cues 3250  late 0  refused 0
-evening minute  3: world 864522d3ee0ad36f  sound 429fa9121e7ebaaf  loudest 0.925  calls 3  answers 564  cues 4769  late 0  refused 0
-evening minute  4: world 01ddbda8cdc76e24  sound 8ed40fe20977e443  loudest 0.925  calls 3  answers 564  cues 6284  late 0  refused 0
-evening minute  5: world ed986867e2c7fbf4  sound c61e4edbda1b586a  loudest 0.925  calls 3  answers 564  cues 7812  late 0  refused 0
-evening minute  6: world 7ebaff2061d806d9  sound d94a9c9cc0f800d4  loudest 0.925  calls 3  answers 564  cues 9476  late 0  refused 0
-evening minute  7: world f3ef08b958fce0e1  sound 0599d65bb1744a96  loudest 0.925  calls 4  answers 712  cues 11534  late 0  refused 0
-evening minute  8: world d518de4350962524  sound 8fb498d2374fe5e3  loudest 0.925  calls 4  answers 712  cues 13238  late 0  refused 0
-evening minute  9: world af40910e1e83dbbc  sound a1b972c892d34955  loudest 0.939  calls 4  answers 712  cues 14999  late 0  refused 0
-evening end, minute 10: world 9a34226608653d91  sound 15bee042a91d3abb  loudest 0.939  calls 4  answers 825  cues 15686  late 0  refused 0
+evening minute  1: world d1f9b30e33e34aa9  sound e6e496204d461264  loudest 0.925  calls 3  answers 403  cues 1469  late 0  refused 0
+evening minute  2: world 0bf8a34e04fa1c68  sound de50650fc0a632d5  loudest 0.925  calls 3  answers 563  cues 3249  late 0  refused 0
+evening minute  3: world 89a54d2e73979841  sound 187b8ef083b4624b  loudest 0.925  calls 3  answers 563  cues 4768  late 0  refused 0
+evening minute  4: world 25ed74dd3c282ca5  sound 9e319352ffbe43c6  loudest 0.925  calls 3  answers 563  cues 6283  late 0  refused 0
+evening minute  5: world 4ce800c430ed579b  sound 8522c6d7753ad429  loudest 0.925  calls 3  answers 563  cues 7811  late 0  refused 0
+evening minute  6: world a31bd5202e8ae346  sound a20d02e2c1d51dd7  loudest 0.925  calls 3  answers 563  cues 9474  late 0  refused 0
+evening minute  7: world 057353b10379eadf  sound 768e5bb451f90e0d  loudest 0.925  calls 4  answers 711  cues 11533  late 0  refused 0
+evening minute  8: world a46e76d20bd3c972  sound 5f3320b7537ab2a1  loudest 0.925  calls 4  answers 711  cues 13237  late 0  refused 0
+evening minute  9: world f099c406c03cd34a  sound c1bf60709e55a685  loudest 0.946  calls 4  answers 711  cues 14998  late 0  refused 0
+evening end, minute 10: world 4229eb6d40b2558e  sound 2f2056a9f5fd8f0b  loudest 0.946  calls 4  answers 824  cues 15685  late 0  refused 0
 witness evening.call first=368 held=22447
 witness evening.breathe first=1454 held=562
-witness garden.asters first=3628 held=871
-witness garden.w04 first=22830 held=0
-witness sky.dawn first=18487 held=0
-witness sky.bee first=2549 held=0
+witness garden.asters first=3632 held=871
+witness garden.w04 first=22834 held=0
+witness sky.dawn first=18485 held=0
+witness sky.bee first=2552 held=0
 witness whole.law1 first=327 held=0
 witness whole.law6 first=327 held=0
 fact save.bytes 388888.000
 fact save.middle_same_end 1.000
-fact take.changes 2605.000
-fact take.bytes 31276.000
+fact take.changes 2800.000
+fact take.bytes 33616.000
 fact take.replays_same 1.000
 fact scale.one_to 100.000
 fact scale.hum_tall_m 1.000
@@ -41,21 +41,21 @@ fact dark.first_backlight 14.000
 fact evening.breaths_to_lock 4.000
 fact evening.answered_s 6.133
 fact evening.locked_s 24.233
-fact ears.breath1_cents -3.970
-fact ears.breath1_beats 1.798
-fact ears.breath2_cents -2.953
-fact ears.breath2_beats 1.337
-fact ears.breath3_cents -1.968
-fact ears.breath3_beats 0.892
-fact ears.breath4_cents -1.049
-fact ears.breath4_beats 0.475
-fact ears.hold_cents -0.006
-fact ears.hold_beats 0.003
-fact ears.third_note_db_under_hum -30.821
-fact ears.third_note_db_over_quiet 49.185
-fact ears.pool_adds_db 4.017
+fact ears.breath1_cents -3.963
+fact ears.breath1_beats 1.795
+fact ears.breath2_cents -3.023
+fact ears.breath2_beats 1.369
+fact ears.breath3_cents -2.002
+fact ears.breath3_beats 0.907
+fact ears.breath4_cents -0.941
+fact ears.breath4_beats 0.426
+fact ears.hold_cents -0.001
+fact ears.hold_beats 0.000
+fact ears.third_note_db_under_hum -39.349
+fact ears.third_note_db_over_quiet 40.525
+fact ears.pool_adds_db 0.465
 fact ears.pool_beats_hz 0.000
-fact ears.pool_near_note_db -48.141
+fact ears.pool_near_note_db -44.301
 fact evening.stood_s 27.733
 fact asters.count 68.000
 fact asters.tallest_m 172.000
@@ -65,7 +65,7 @@ fact asters.field_m 1560.000
 fact asters.great_tall_m 172.000
 fact asters.great_bells 20.000
 fact asters.great_climb_s 2.867
-fact asters.walk_s 52.400
+fact asters.walk_s 52.467
 fact asters.top_out_of_frame 1.000
 fact asters.leaned_fov 13.000
 fact asters.leaned_bell_px 38.024

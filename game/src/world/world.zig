@@ -2780,7 +2780,8 @@ pub const World = struct {
         // once the right stick has rested, the view swings in behind where Hum is going, faster
         // the faster it goes, so one thumb steers (SPEC.md 8, the thumb audit)
         const going = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
-        if (!self.wheel_open and self.looked_ago > follow_after and going > 0.5 and self.lean < 0.01 and self.water_view < 0.01) {
+        // (never on the page: a page lies still under Hum, as a page does)
+        if (!self.wheel_open and self.stand >= 1.0 and self.looked_ago > follow_after and going > 0.5 and self.lean < 0.01 and self.water_view < 0.01) {
             var gap = std.math.atan2(self.hum_vx, -self.hum_vz) - self.look_yaw;
             while (gap > std.math.pi) gap -= 2.0 * std.math.pi;
             while (gap < -std.math.pi) gap += 2.0 * std.math.pi;
@@ -2812,6 +2813,7 @@ pub const World = struct {
         }
         self.wheel_view += ((if (self.wheel_open) @as(f32, 1.0) else 0.0) - self.wheel_view) * 0.08;
         if (self.wheel_view < 0.0005) self.wheel_view = 0.0;
+        if (self.wheel_open) over_pool = 0.0;
         self.pool_view += (over_pool - self.pool_view) * 0.012;
         if (self.pool_view < 0.0005) self.pool_view = 0.0;
         // out on standing water the view lifts behind Hum and looks down, so the line ahead and
@@ -2876,22 +2878,6 @@ pub const World = struct {
             const narrow = std.math.clamp(2.0 * std.math.atan2(lean_frame * 0.5, far) * (180.0 / std.math.pi), lean_fov_least, place_fov);
             fov = place_fov + (narrow - place_fov) * k;
         }
-        if (self.wheel_view > 0.0) {
-            // the wheel open: the view rises behind Hum and looks down on it, the wheel spread on
-            // the ground round it
-            const k = self.wheel_view * self.wheel_view * (3.0 - 2.0 * self.wheel_view);
-            const high = [3]f32{ self.hum_x - fx * wheel_back, wheel_up, self.hum_z - fz * wheel_back };
-            const hx = self.hum_x - high[0];
-            const hy = -high[1];
-            const hz = self.hum_z - high[2];
-            const hl = @sqrt(hx * hx + hy * hy + hz * hz);
-            const dl = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
-            const down = [3]f32{ hx / hl, hy / hl, hz / hl };
-            for (0..3) |i| {
-                eye[i] += (high[i] - eye[i]) * k;
-                dir[i] = dir[i] / dl + (down[i] - dir[i] / dl) * k;
-            }
-        }
         if (self.pool_view > 0.0 and self.pool_seen < self.pool_count) {
             // above the shore behind Hum, looking down across the water at its middle
             const p = &self.pools[self.pool_seen];
@@ -2903,6 +2889,22 @@ pub const World = struct {
             const hx = p.x - high[0];
             const hy = -high[1];
             const hz = p.z - high[2];
+            const hl = @sqrt(hx * hx + hy * hy + hz * hz);
+            const dl = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
+            const down = [3]f32{ hx / hl, hy / hl, hz / hl };
+            for (0..3) |i| {
+                eye[i] += (high[i] - eye[i]) * k;
+                dir[i] = dir[i] / dl + (down[i] - dir[i] / dl) * k;
+            }
+        }
+        if (self.wheel_view > 0.0) {
+            // the wheel open: the view rises behind Hum and looks down on it, over any other view, the wheel spread on
+            // the ground round it
+            const k = self.wheel_view * self.wheel_view * (3.0 - 2.0 * self.wheel_view);
+            const high = [3]f32{ self.hum_x - fx * wheel_back, wheel_up, self.hum_z - fz * wheel_back };
+            const hx = self.hum_x - high[0];
+            const hy = -high[1];
+            const hz = self.hum_z - high[2];
             const hl = @sqrt(hx * hx + hy * hy + hz * hz);
             const dl = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
             const down = [3]f32{ hx / hl, hy / hl, hz / hl };
