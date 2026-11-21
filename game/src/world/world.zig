@@ -128,6 +128,8 @@ pub const glide_voice: u8 = 14;
 /// Hum goes round a stalk, never through it.
 pub const hum_body: f32 = 0.36;
 pub const stalk_foot: f32 = 0.54;
+/// How wide the spigot's brass body is from its middle.
+pub const spigot_body: f32 = 1.2;
 /// Going into a stalk faster than this rings it; at a full run it rings as hard as a brush can.
 pub const bump_least: f32 = 1.5;
 /// How much of an aster's bells' strength a brush at a full run gives them, and its knock.
@@ -630,6 +632,8 @@ pub const World = struct {
     /// sounds only as it begins.
     at_hose: bool = false,
     was_at_hose: bool = false,
+    /// Hum is against the spigot.
+    at_spigot: bool = false,
     /// Sprinting now, how many sprints, how many times the breath ran out and grew.
     sprinting: bool = false,
     sprints: u32 = 0,
@@ -780,6 +784,7 @@ pub const World = struct {
     /// stretch; whether its knot has sprung open; when the water set out from the knot and when it
     /// reached the pool; when the figure sat on the pool's edge.
     hose_thing: u32 = no_thing,
+    spigot_thing: u32 = no_thing,
     hose_open: bool = false,
     hose_opened_at: u64 = never,
     water_from: u64 = never,
@@ -998,6 +1003,11 @@ pub const World = struct {
         // the hose, sounding from its stretch nearest Hum
         self.hose_thing = at;
         self.things[at] = .{ .x = hose.knot[0], .y = 1.0, .z = hose.knot[1], .tall = 1.0, .hz = hose_stopped_hz, .family = .stopped_pipe, .ring = 0.0, .carry = 1e9, .sounds = false };
+        at += 1;
+        // the spigot: a brass tap at the hose's head, a small bell of a thing, two octaves over the
+        // garden's note; it answers what is kin to it, and rings when it is touched
+        self.spigot_thing = at;
+        self.things[at] = .{ .x = land.spigot[0], .y = land.spigot[2] * 0.5, .z = land.spigot[1], .tall = land.spigot[2], .hz = garden_hz * 4.0, .family = .bell, .ring = 3.0, .carry = 110.0 };
         at += 1;
         // the sun rises on the shore, at the first rung's place
         self.sun_x = self.things[self.rung_first].x;
@@ -1245,6 +1255,7 @@ pub const World = struct {
         if (self.view == .place) self.atRim(&go_x, &go_z);
         if (self.view == .place) self.atStalks(&go_x, &go_z);
         if (self.view == .place) self.atHose(&go_x, &go_z);
+        if (self.view == .place) self.atSpigot(&go_x, &go_z);
         const height_was = self.hum_ground + self.hum_y;
         self.hum_x += go_x;
         self.hum_z += go_z;
@@ -2415,6 +2426,30 @@ pub const World = struct {
             self.hum_vz -= v_in * nz;
             // run into, the hose sounds, in its own voice
             if (-v_in > bump_least and !self.was_at_hose) self.touch(self.hose_thing, -v_in, .{ .x = near.p[0], .y = land.hose_bore * 0.5, .z = near.p[1] });
+        }
+    }
+
+    /// The spigot stands on its rise, solid: Hum goes round it, and touched it rings.
+    fn atSpigot(self: *World, go_x: *f32, go_z: *f32) void {
+        if (self.spigot_thing == no_thing) return;
+        if (self.airborne and self.hum_y > land.spigot[2]) return;
+        const reach = spigot_body + hum_body;
+        const px = self.hum_x + go_x.* - land.spigot[0];
+        const pz = self.hum_z + go_z.* - land.spigot[1];
+        const d2 = px * px + pz * pz;
+        const touching = d2 < reach * reach;
+        defer self.at_spigot = touching;
+        if (!touching) return;
+        const d = @max(@sqrt(d2), 0.01);
+        const nx = px / d;
+        const nz = pz / d;
+        go_x.* = land.spigot[0] + nx * reach - self.hum_x;
+        go_z.* = land.spigot[1] + nz * reach - self.hum_z;
+        const v_in = self.hum_vx * nx + self.hum_vz * nz;
+        if (v_in < 0.0) {
+            self.hum_vx -= v_in * nx;
+            self.hum_vz -= v_in * nz;
+            if (-v_in > bump_least and !self.at_spigot) self.touch(self.spigot_thing, -v_in, .{ .x = self.hum_x, .y = 0.5, .z = self.hum_z });
         }
     }
 
