@@ -135,7 +135,7 @@ asks its question.
 | `laws.sound-and-light` The table of sound and light | 2 | 11 | no | - | no | no | no | 2 owed; frame evening-bridge: it has changed since it was looked at (by 9.4 of 255 a channel); no yes from Morgan yet |
 | `laws.home` Home over the laws | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `laws.tuning` Tuning | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `laws.ears` Limits for the ears | 2 | 7 | no | - | no | no | no | 2 owed; ears.rough_longest_s <= 2  (is 2.3); no yes from Morgan yet |
+| `laws.ears` Limits for the ears | 2 | 7 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `loop.river` The river sings your day back | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `loop.echoes` Echoes | 2 | 4 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `loop.release` What you let go becomes the place | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
@@ -208,7 +208,7 @@ asks its question.
 | `whole.alone` Whole alone, more together | 6 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.endless` The mornings never repeat | 5 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.lights` Every land's lights across the water | 3 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `whole.good` It sounds good | 2 | 1 | no | - | no | no | no | 1 owed; ears.rough_longest_s <= 2  (is 2.3); no yes from Morgan yet |
+| `whole.good` It sounds good | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `whole.hands` Nothing asks the hands for the impossible | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.ear` The ear, before and after | 2 | 1 | no | - | - | no | no | 3 owed |
 | `hands.voice-in-a-buffer` Your voice, at once | 1 | 1 | no | - | no | no | no | 2 owed; handheld.hands.most_ms <= 3  (is not reported); no yes from Morgan yet |

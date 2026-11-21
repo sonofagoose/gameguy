@@ -339,9 +339,9 @@ pub const small_carry: f32 = 40.0;
 /// Moss swallows sound: a call made on it carries half as far (spec/shape.md, the Garden).
 pub const moss_carries: f32 = 0.5;
 /// Steps of walking between one drop of dew landing in your wake, and between leaves underfoot.
-/// Underfoot, by how far Hum has walked: dew shed every 0.9 m of lawn, a leaf rung every 1.4 m.
+/// Underfoot, by how far Hum has walked: dew shed every 0.9 m of lawn. A leaf rings as it is
+/// stepped onto (World.newLeaf).
 pub const dew_every: f32 = 0.9;
-pub const leaf_every: f32 = 1.4;
 
 /// The view of the place. Walking: the eye sits far behind Hum and low, looking up a little, so
 /// the horizon is low in the frame and Hum is small in it. Stopped at a tall thing's foot, the
@@ -720,6 +720,8 @@ pub const World = struct {
     /// What the ground under Hum wears, and how many steps it has walked.
     cover: ground.Cover = .soil,
     walked: u32 = 0,
+    /// The fallen leaf Hum last stood on, by its square.
+    leaf_cell: [2]i32 = .{ std.math.maxInt(i32), std.math.maxInt(i32) },
     sparks: [max_sparks]Spark = @splat(.{}),
     next_spark: u32 = 0,
     /// Who lives in the sky (flyers.zig).
@@ -2453,10 +2455,10 @@ pub const World = struct {
         }
         if (self.sprinting) {
             spending = true;
-            // a body that runs breathes: on every half beat of Drip's tick, a soft breath at home's
-            // note, and Hum's lines flare with it
+            // a body that runs breathes: on every half beat of Drip's tick, a soft breath an octave
+            // over home, plain, and Hum's lines flare with it
             if (self.clock % (tick_every / 2) == 0) {
-                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .stopped_pipe, .hz = self.home_hz, .strength = 0.05, .ring = 0.18 }, .glow));
+                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.home_hz * 2.0, .strength = 0.05, .ring = 0.18 }, .glow));
             }
             self.spend(sprint_costs / bar_steps);
         }
@@ -2642,6 +2644,16 @@ pub const World = struct {
         }
     }
 
+    /// Whether Hum has just stepped onto a leaf it was not on: each fallen leaf is a raft six metres
+    /// square with its own note (ground.leafNote), and rings once as it is stepped onto, so
+    /// crossing the leaf fall at any speed plays a tune, a note a leaf.
+    fn newLeaf(self: *World) bool {
+        const cell = [2]i32{ @intFromFloat(@floor(self.hum_x / 6.0)), @intFromFloat(@floor(self.hum_z / 6.0)) };
+        if (cell[0] == self.leaf_cell[0] and cell[1] == self.leaf_cell[1]) return false;
+        self.leaf_cell = cell;
+        return true;
+    }
+
     /// Stepping on and stepping off: a crossing is coming off well across from where you came on.
     fn crossings(self: *World) void {
         var on: u8 = 0;
@@ -2680,7 +2692,7 @@ pub const World = struct {
                 const which = ground.hash32(@intFromFloat(@floor(at.x)), @intFromFloat(@floor(at.z)), 11) % 5;
                 self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = garden_hz * 4.0 * ground.five[which], .strength = 0.05, .ring = 0.25 }, .glow));
             },
-            .leaves => if (@floor(self.stride / leaf_every) != @floor(before / leaf_every)) {
+            .leaves => if (self.newLeaf()) {
                 const at = Place{ .x = self.hum_x, .y = 0.2, .z = self.hum_z };
                 const note = ground.leafNote(self.hum_x, self.hum_z);
                 self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = garden_hz * ground.five[note], .strength = 0.3, .ring = 0.7 }, .glow));

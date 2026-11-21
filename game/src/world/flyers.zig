@@ -110,7 +110,9 @@ pub const Bee = struct {
             const hy = 0.5 - me.y;
             const hz = w.hum_z - me.z;
             const far = @max(@sqrt(hx * hx + hy * hy + hz * hz), 0.1);
-            const toward = (self.vel[0] * hx + self.vel[1] * hy + self.vel[2] * hz) / far;
+            // flying, its buzz is bent by how fast it comes or goes (law 6); hovering at a flower
+            // it has fallen into step with it (law 3), and its buzz holds still
+            const toward = if (self.hover_left > 0) 0.0 else (self.vel[0] * hx + self.vel[1] * hy + self.vel[2] * hz) / far;
             const heard = me.hz * world_mod.sound_speed / (world_mod.sound_speed - toward);
             w.tell(.{ .thing = self.thing }, .{
                 .sound = .{ .kind = .hum_on, .voice = 2, .hz = heard, .strength = 0.5, .ring = 0.0 },
