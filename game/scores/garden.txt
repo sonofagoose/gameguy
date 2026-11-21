@@ -52,7 +52,7 @@ spigot 80 -560 tall 10
 # coiled end in the reeds east of where Hum wakes, through these points, so the first evening's walk
 # never has to cross it; its bore, a door's height; and how far back along it from its end it is
 # knotted
-hose 80 -560 / 250 -530 / 450 -420 / 590 -220 / 640 0 / 520 120 / 380 100 / 260 50 / 150 30 / 70 22
+hose 80 -560 / 170 -440 / 330 -470 / 470 -330 / 590 -220 / 640 0 / 520 120 / 380 100 / 260 50 / 150 30 / 70 22
 hose bore 1.8 knot 300
 
 # the rest of the asters, by rule: a grid of cells across the garden from its south edge, each

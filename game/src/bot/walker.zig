@@ -49,6 +49,9 @@ pub const Walker = struct {
     brushed_at: ?u64 = null,
     sprint_marked: bool = false,
     breathed_at: ?u64 = null,
+    fly_from: ?u64 = null,
+    glide_pressed: bool = false,
+    flown: bool = false,
 
     fn next(self: *Walker, step: u64) void {
         self.phase += 1;
@@ -103,6 +106,8 @@ pub const Walker = struct {
         const sy = @sin(w.look_yaw);
         h.lx = @intFromFloat(110.0 * (cy * dx / far + sy * dz / far));
         h.ly = @intFromFloat(110.0 * (-sy * dx / far + cy * dz / far));
+        // the hose across the way: jump it, as a person would
+        if (w.at_hose and !w.airborne and w.step % 2 == 0) h.buttons |= Hands.jump;
         return far;
     }
 
@@ -276,6 +281,23 @@ pub const Walker = struct {
                     return h;
                 }
                 self.in_open = true;
+                // out in the open, once: a jump, the glide opened at its top, and down again
+                if (!self.flown) {
+                    h.ly = -100;
+                    if (self.fly_from == null) {
+                        self.fly_from = step;
+                        h.buttons |= Hands.jump;
+                        self.mark = "jump";
+                        return h;
+                    }
+                    if (w.airborne and !w.gliding and w.hum_vy <= 0.0 and !self.glide_pressed) {
+                        self.glide_pressed = true;
+                        h.buttons |= Hands.jump;
+                        return h;
+                    }
+                    if (!w.airborne and step > self.fly_from.? + 5) self.flown = true;
+                    return h;
+                }
                 // the bee, while the sky is still coming up: if it is working the clover near by,
                 // go and watch it a while, as a person would
                 if (!self.bee_marked and after < 60 * 90 and w.bee.thing != world_mod.no_thing and w.bee.hover_left > 0) {

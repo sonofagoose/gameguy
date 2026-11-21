@@ -50,6 +50,9 @@ CLIPS = [
     ('40-a-sprint', 'sprint', 0.5, 7.5,
      'Hum sprints toward the great aster, the right face held: a soft breath on every half beat of Drip\'s tick, at home\'s note, until it lets go with breath to spare',
      'did the sprint\'s breathing sound like a body running in time, or like a noise to switch off?'),
+    ('41-jump-and-glide', 'jump', 0.5, 4.0,
+     'Hum jumps, a short note a fifth over home as it pushes off; at the top of the jump the glide opens, a soft wind an octave over home while it sails; it lands with a soft thud as hard as the fall',
+     'did the jump and the glide sound light, like something that can fly a little?'),
 ]
 
 

@@ -81,18 +81,20 @@ const Pose = struct {
     x: f32,
     z: f32,
     ground: f32,
+    height: f32,
     yaw: f32,
     tilt: f32,
     face: f32,
 
     fn of(w: *const World) Pose {
-        return .{ .x = w.hum_x, .z = w.hum_z, .ground = w.hum_ground, .yaw = w.look_yaw, .tilt = w.look_tilt, .face = w.hum_face };
+        return .{ .x = w.hum_x, .z = w.hum_z, .ground = w.hum_ground, .height = w.hum_y, .yaw = w.look_yaw, .tilt = w.look_tilt, .face = w.hum_face };
     }
 
     fn put(p: Pose, w: *World) void {
         w.hum_x = p.x;
         w.hum_z = p.z;
         w.hum_ground = p.ground;
+        w.hum_y = p.height;
         w.look_yaw = p.yaw;
         w.look_tilt = p.tilt;
         w.hum_face = p.face;
@@ -112,6 +114,7 @@ const Pose = struct {
             .x = now.x + dx * a,
             .z = now.z + dz * a,
             .ground = now.ground + (now.ground - before.ground) * a,
+            .height = @max(0.0, now.height + (now.height - before.height) * a),
             .yaw = now.yaw + (now.yaw - before.yaw) * a,
             .tilt = now.tilt + (now.tilt - before.tilt) * a,
             .face = now.face + turn * a,
@@ -584,8 +587,8 @@ fn eveningLines(w: *const World, out: []lines.Inst) usize {
             const tall1: f32 = if (s1 > 0.0) 1.7 else 1.0;
             const r0 = 0.2 * narrow0;
             const r1 = 0.2 * narrow1;
-            const y0 = 1.25 + 0.2 * s0 * tall0;
-            const y1 = 1.25 + 0.2 * s1 * tall1;
+            const y0 = 1.25 + w.hum_y + 0.2 * s0 * tall0;
+            const y1 = 1.25 + w.hum_y + 0.2 * s1 * tall1;
             if (n >= out.len) return n;
             out[n] = .{ .a = .{ w.hum_x + rx * r0 * @cos(a0), y0, w.hum_z + rz * r0 * @cos(a0) }, .b = .{ w.hum_x + rx * r1 * @cos(a1), y1, w.hum_z + rz * r1 * @cos(a1) }, .half_width = 1.4, .body = 0.0, .col = tint };
             n += 1;
@@ -792,7 +795,7 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
         // its stride: a small lift each step, as fast as it goes; and its lean into a turn, the top
         // swung toward the inside, as seen from the eye
         const going = std.math.clamp(@sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz) / world_mod.run_speed, 0.0, 1.0);
-        const lift = 0.06 * going * @abs(@sin(w.stride * (std.math.pi / 0.9)));
+        const lift = w.hum_y + (if (w.airborne) 0.0 else 0.06 * going * @abs(@sin(w.stride * (std.math.pi / 0.9))));
         const tip = w.lean_x * rx + w.lean_z * rz;
         for (0..parts) |k| {
             const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, parts));
@@ -805,6 +808,31 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
                 .col = hum_tint,
             };
             n += 1;
+        }
+        // in the air, a faint ring on the ground under it, smaller the higher it is, so its height
+        // can be judged; gliding, its sail: two lines of light out from its sides, up and back
+        if (w.airborne) {
+            const r = 0.55 / (1.0 + w.hum_y * 0.15);
+            for (0..12) |k| {
+                const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 12.0);
+                const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 12.0);
+                out[n] = .{ .a = .{ w.hum_x + r * @cos(a0), 0.05, w.hum_z + r * @sin(a0) }, .b = .{ w.hum_x + r * @cos(a1), 0.05, w.hum_z + r * @sin(a1) }, .half_width = 1.2, .body = 0.0, .col = col8(bone, 0.35) };
+                n += 1;
+            }
+        }
+        if (w.gliding) {
+            const fx = @sin(w.hum_face);
+            const fz = -@cos(w.hum_face);
+            const sx = fz;
+            const sz = -fx;
+            const mid = 0.52 + w.hum_y + 0.2;
+            for ([2]f32{ -1.0, 1.0 }) |side| {
+                const wing = [3]f32{ w.hum_x + sx * side * 1.6 - fx * 0.5, mid + 0.45, w.hum_z + sz * side * 1.6 - fz * 0.5 };
+                out[n] = .{ .a = .{ w.hum_x, mid, w.hum_z }, .b = wing, .half_width = 1.6, .body = 0.0, .col = col8(bone, 0.8) };
+                n += 1;
+                out[n] = .{ .a = wing, .b = .{ w.hum_x - fx * 0.6, mid - 0.1, w.hum_z - fz * 0.6 }, .half_width = 1.2, .body = 0.0, .col = col8(bone, 0.5) };
+                n += 1;
+            }
         }
         // Hum's own light: it flares when Hum calls and holds while it sings. Its breath is its
         // lines: one for each home it holds, lit from the bottom as far as it has; winded, they

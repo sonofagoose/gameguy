@@ -77,7 +77,12 @@ sized before the stage that builds them._
   - `owed` A check over the input table: every pair of things done together names its digits, and
     no digit is named twice (`CLAUDE.md`: "Nothing may need the right stick and a face button at
     once").
-  - `owed` A test: the glide opens on one tap of the bottom face in the air and closes on the next.
+  - `test the bottom face jumps two and a half metres, and in the air opens the glide, which sinks
+    slowly and spends breath` The glide opens on a tap of the bottom face in the air; a tap more, a
+    landing, or the breath running out closes it.
+  - `test the hose is solid: walked at, Hum stops at its side; jumped, Hum goes over` Bottom face:
+    the jump clears the hose, a tube 1.8 m through lying across the garden; walked at, it is a
+    wall. Crossing it at low places is owed with the Garden's ground.
   - `owed` A test: standing still facing a voice for one bar leans in, with no button.
 - **Asks:** Did your hands ever have to do two things with one finger?
 

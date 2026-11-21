@@ -96,6 +96,21 @@ pub const sprint_speed: f32 = sound_speed / 4.0;
 /// A knot this near that is not home threatens, and the right face dodges instead.
 pub const threat_reach: f32 = 60.0;
 
+/// The jump: how high, and how long in the air, which set how hard the ground pulls (a game's pull,
+/// snappier than a real one).
+pub const jump_height: f32 = 2.5;
+pub const jump_air_s: f32 = 0.75;
+pub const fall_pull: f32 = 8.0 * jump_height / (jump_air_s * jump_air_s);
+pub const jump_speed: f32 = 4.0 * jump_height / jump_air_s;
+/// In the air the legs steer only a little.
+pub const air_ease: f32 = 0.06;
+/// The glide: how fast it sinks and how fast it goes, how slowly it turns, and its wind's voice.
+pub const glide_sink: f32 = 2.0;
+pub const glide_speed: f32 = 12.0;
+pub const glide_ease: f32 = 0.04;
+pub const glide_costs: f32 = 1.0;
+pub const glide_voice: u8 = 14;
+
 /// How wide Hum is from its middle, and an aster's stalk at its foot (draw/aster_lines.zig, girth):
 /// Hum goes round a stalk, never through it.
 pub const hum_body: f32 = 0.36;
@@ -589,6 +604,17 @@ pub const World = struct {
     /// Steps since anything last spent breath; and the homes walked in the swell now sung.
     quiet_for: u32 = 0,
     walk_homes: u8 = 0,
+    /// Hum's height above its ground and how fast it is rising, in the air; gliding; and how many
+    /// jumps and glides, and when it last landed.
+    hum_y: f32 = 0.0,
+    hum_vy: f32 = 0.0,
+    airborne: bool = false,
+    gliding: bool = false,
+    jumps: u32 = 0,
+    glides: u32 = 0,
+    landed_at: u64 = 0,
+    /// Hum is against the hose: the scripted player jumps it.
+    at_hose: bool = false,
     /// Sprinting now, how many sprints, how many times the breath ran out and grew.
     sprinting: bool = false,
     sprints: u32 = 0,
@@ -1084,12 +1110,29 @@ pub const World = struct {
         const mx = @as(f32, @floatFromInt(hands.lx)) * (1.0 / 127.0);
         const mz = @as(f32, @floatFromInt(hands.ly)) * (1.0 / 127.0);
         const size = @sqrt(mx * mx + mz * mz);
+        // the bottom face: on the ground a jump; in the air it opens or closes the glide
+        if (pressed & Hands.jump != 0 and self.view == .place and self.stand >= 1.0) {
+            if (!self.airborne) {
+                self.airborne = true;
+                self.hum_vy = jump_speed;
+                self.jumps += 1;
+                // the push off: a short note a fifth over home, and Hum flares
+                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * 1.5, .strength = 0.12, .ring = 0.2 }, .glow));
+            } else if (self.gliding) {
+                self.closeGlide();
+            } else if (!self.winded) {
+                self.gliding = true;
+                self.glides += 1;
+                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .tone, .voice = glide_voice, .family = .open_pipe, .hz = self.home_hz * 2.0, .strength = 0.05, .ring = 0.0 }, .glow));
+            }
+        }
+
         // Hum's legs: the stick says where and how fast, and the body gets there quickly but not at
         // once, turns at a rate, and skids a little when let go
         var want_x: f32 = 0.0;
         var want_z: f32 = 0.0;
         // the sprint: the right face held while walking, if nothing threatens and there is breath
-        const sprint_now = hands.held(Hands.dodge) and size > 0.12 and !self.winded and self.view == .place and self.stand >= 1.0 and !self.threatened();
+        const sprint_now = hands.held(Hands.dodge) and size > 0.12 and !self.winded and !self.airborne and self.view == .place and self.stand >= 1.0 and !self.threatened();
         if (sprint_now and !self.sprinting) self.sprints += 1;
         self.sprinting = sprint_now;
         if (size > 0.12) {
@@ -1116,10 +1159,23 @@ pub const World = struct {
         }
         const was_vx = self.hum_vx;
         const was_vz = self.hum_vz;
-        const ease: f32 = if (size > 0.12) go_ease else stop_ease;
+        var ease: f32 = if (size > 0.12) go_ease else stop_ease;
+        if (self.gliding) {
+            // the sail goes where Hum faces, at its own speed; the stick turns it, slowly
+            want_x = @sin(self.hum_face) * glide_speed;
+            want_z = -@cos(self.hum_face) * glide_speed;
+            ease = glide_ease;
+        } else if (self.airborne) {
+            // the legs steer only a little in the air, and let go it keeps its way
+            if (size <= 0.12) {
+                want_x = self.hum_vx;
+                want_z = self.hum_vz;
+            }
+            ease = air_ease;
+        }
         self.hum_vx += (want_x - self.hum_vx) * ease;
         self.hum_vz += (want_z - self.hum_vz) * ease;
-        if (size <= 0.12 and self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz < 0.0025) {
+        if (!self.airborne and size <= 0.12 and self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz < 0.0025) {
             self.hum_vx = 0.0;
             self.hum_vz = 0.0;
         }
@@ -1146,10 +1202,13 @@ pub const World = struct {
         if (self.view == .place) self.atShore(&go_x, &go_z);
         if (self.view == .place) self.atRim(&go_x, &go_z);
         if (self.view == .place) self.atStalks(&go_x, &go_z);
+        if (self.view == .place) self.atHose(&go_x, &go_z);
+        const height_was = self.hum_ground + self.hum_y;
         self.hum_x += go_x;
         self.hum_z += go_z;
         self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
-        const moved = @sqrt(go_x * go_x + go_z * go_z);
+        if (self.airborne) self.flyStep(height_was);
+        const moved = if (self.airborne) 0.0 else @sqrt(go_x * go_x + go_z * go_z);
         if (moved > 0.0005 and self.view == .place and self.stand >= 1.0) self.underfoot(moved);
         if (self.view == .place and self.pool_count > 0) self.crossings();
         if (self.view == .place) self.cover = ground.underfootAt(self.hum_x, self.hum_z);
@@ -2241,6 +2300,61 @@ pub const World = struct {
         }
     }
 
+    /// In the air: the ground pulls, the glide holds Hum up, and the ground is met.
+    fn flyStep(self: *World, height_was: f32) void {
+        self.hum_vy -= fall_pull * dt;
+        if (self.gliding) self.hum_vy = @max(self.hum_vy, -glide_sink);
+        // its height over the ground under it now, which may have risen or fallen beneath it
+        self.hum_y = height_was + self.hum_vy * dt - self.hum_ground;
+        if (self.hum_y > 0.0) return;
+        // landed: a thud as hard as the fall, where Hum came down, and its light there
+        const fall = -self.hum_vy;
+        self.hum_y = 0.0;
+        self.hum_vy = 0.0;
+        self.airborne = false;
+        if (self.gliding) self.closeGlide();
+        self.landed_at = self.step;
+        const at = Place{ .x = self.hum_x, .y = 0.1, .z = self.hum_z };
+        self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = self.home_hz, .strength = std.math.clamp(fall / 30.0, 0.04, 0.4), .ring = 0.15 }, .glow));
+    }
+
+    /// The glide closes: its wind falls away.
+    fn closeGlide(self: *World) void {
+        self.gliding = false;
+        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .tone, .voice = glide_voice, .family = .open_pipe, .hz = self.home_hz * 2.0, .strength = 0.0, .ring = 0.0 }, .dims));
+    }
+
+    /// The hose is a tube lying on the ground, 1.8 m through: Hum goes round it or over it.
+    fn atHose(self: *World, go_x: *f32, go_z: *f32) void {
+        self.at_hose = false;
+        if (!self.in_garden or self.hose_thing == no_thing) return;
+        if (self.airborne and self.hum_y > land.hose_bore + 0.1) return;
+        const reach = land.hose_bore * 0.5 + hum_body;
+        const tx = self.hum_x + go_x.*;
+        const tz = self.hum_z + go_z.*;
+        const near = hose.nearest(tx, tz);
+        if (near.d >= reach) return;
+        self.at_hose = true;
+        var nx = tx - near.p[0];
+        var nz = tz - near.p[1];
+        var d = @sqrt(nx * nx + nz * nz);
+        if (d < 0.01) {
+            // on its line: out to the side Hum came from
+            nx = self.hum_x - near.p[0];
+            nz = self.hum_z - near.p[1];
+            d = @max(@sqrt(nx * nx + nz * nz), 0.01);
+        }
+        nx /= d;
+        nz /= d;
+        go_x.* = near.p[0] + nx * reach - self.hum_x;
+        go_z.* = near.p[1] + nz * reach - self.hum_z;
+        const v_in = self.hum_vx * nx + self.hum_vz * nz;
+        if (v_in < 0.0) {
+            self.hum_vx -= v_in * nx;
+            self.hum_vz -= v_in * nz;
+        }
+    }
+
     /// Whether something threatens Hum: a knot near that is not home. Then the right face dodges;
     /// otherwise, held while walking, it sprints.
     pub fn threatened(self: *const World) bool {
@@ -2271,6 +2385,10 @@ pub const World = struct {
         if (self.wheel_open) {
             spending = true;
             self.spend(wheel_costs / bar_steps);
+        }
+        if (self.gliding) {
+            spending = true;
+            self.spend(glide_costs / bar_steps);
         }
         if (self.sprinting) {
             spending = true;
@@ -2305,6 +2423,7 @@ pub const World = struct {
         self.winded = true;
         self.breath_outs += 1;
         self.sprinting = false;
+        if (self.gliding) self.closeGlide();
         if (self.wheel_open) {
             self.wheel_open = false;
             self.wheel_point = null;
@@ -2349,9 +2468,8 @@ pub const World = struct {
     }
 
     /// Brushing a stalk rings its bells (spec/shape.md): a knock where Hum touched it, the stalk lit
-    /// from its foot up, and the aster's open fifth rung on its bells (its lowest note, the fifth
-    /// above and the octave), each heard when its sound has come down to Hum. Harder the faster Hum
-    /// came.
+    /// from its foot up, and the aster's own note rung on two of its bells, each heard when its sound
+    /// has come down to Hum. Harder the faster Hum came.
     fn brushStalk(self: *World, t: u16, speed: f32) void {
         self.bumps += 1;
         self.bumped_at = self.step;
@@ -2372,10 +2490,10 @@ pub const World = struct {
             th.lit = @max(th.lit, strength * (1.0 - 0.06 * @as(f32, @floatFromInt(part))));
             part += 1;
         }
-        // and it rings the aster's open fifth: the lowest bell of its own note (the crown's, the
-        // topmost bell), the lowest of its fifth, and the next of its own note up, each heard when
-        // its sound has come down, so they arrive a note at a time. Not its third: a bell's own
-        // third partial on the chord's third rubs on the fifth for seconds
+        // and it rings the aster's own note: the lowest bell of it (the crown's note, the topmost
+        // bell's) and the next of it up, each heard when its sound has come down, so they arrive
+        // one after the other. A bell's partials are a major chord on its own note; any other bell
+        // of the aster's beside them puts a third partial a half step from one of theirs
         var crown: f32 = 0.0;
         var crown_y: f32 = -1.0;
         for (self.things[tw.first .. tw.first + tw.count]) |th| {
@@ -2385,7 +2503,7 @@ pub const World = struct {
             }
         }
         var root_low: f32 = 0.0;
-        for ([3]u8{ 0, 1, 2 }) |which| {
+        for ([2]u8{ 0, 2 }) |which| {
             var pick: ?usize = null;
             for (tw.first..tw.first + tw.count) |i| {
                 const th = self.things[i];
@@ -2548,7 +2666,7 @@ pub const World = struct {
         if (self.drip_met) {
             d.x = self.hum_x;
             d.z = self.hum_z;
-            d.y = 1.25;
+            d.y = 1.25 + self.hum_y;
             d.ground = self.hum_ground;
         }
         const dx = d.x - self.hum_x;
@@ -2774,8 +2892,8 @@ pub const World = struct {
             fov = page_fov + (fov - page_fov) * s;
         }
         // the place stands on the ground: the eye rides with Hum's, as far as the place stands up
-        eye[1] += self.hum_ground * s;
-        at[1] += self.hum_ground * s;
+        eye[1] += (self.hum_ground + self.hum_y * 0.7) * s;
+        at[1] += (self.hum_ground + self.hum_y * 0.7) * s;
         return .{ .eye = eye, .at = at, .fov = fov, .stand = s };
     }
 
@@ -2880,6 +2998,7 @@ pub const World = struct {
         mixIn(&h, self.swell_bars);
         mixIn(&h, @as(u32, @bitCast(self.breath)));
         mixIn(&h, self.breath_most);
+        mixIn(&h, @as(u32, @bitCast(self.hum_y)));
         mixIn(&h, @truncate(self.clock));
         if (self.bee.thing != no_thing) {
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].x)));
@@ -4175,9 +4294,9 @@ test "an aster's stalk is solid: Hum goes round it, and a brush at a run rings i
     }
     // never inside the stalk
     try std.testing.expect(nearest >= stalk_foot + hum_body - 0.001);
-    // one brush, rung once, and its bells heard, each when its sound had come down
+    // one brush, rung once, and two of its bells heard, each when its sound had come down
     try std.testing.expectEqual(@as(u32, 1), w.bumps);
-    try std.testing.expect(heard_bells >= 3);
+    try std.testing.expect(heard_bells >= 2);
     // a gentle walk into it rings nothing
     w.initAsters();
     w.hum_x = tw.x;
@@ -4293,4 +4412,88 @@ test "a walk home that takes the whole breath, landed, grows it by one" {
     _ = w.stepOnce(.{}, &cues);
     try std.testing.expectEqual(@as(u8, 4), w.breath_most);
     try std.testing.expectEqual(@as(u32, 1), w.breath_grew);
+}
+
+test "the bottom face jumps two and a half metres, and in the air opens the glide, which sinks slowly and spends breath" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    // on level ground, so the flight is the jump's own
+    w.in_garden = false;
+    w.hum_ground = 0.0;
+    var cues: [max_cues]sound.Cue = undefined;
+    // a jump standing: up and down in three quarters of a second, its top two and a half metres
+    _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+    try std.testing.expect(w.airborne);
+    var top: f32 = 0.0;
+    var steps: u32 = 1;
+    while (w.airborne and steps < 120) : (steps += 1) {
+        _ = w.stepOnce(.{}, &cues);
+        top = @max(top, w.hum_y);
+    }
+    try std.testing.expect(!w.airborne);
+    try std.testing.expect(@abs(top - jump_height) < 0.15);
+    try std.testing.expect(steps >= 43 and steps <= 47);
+    // jump, and at the top open the glide: it sinks at two metres a second and goes at twelve
+    _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+    steps = 0;
+    while (w.hum_vy > 0.0 and steps < 60) : (steps += 1) _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+    try std.testing.expect(w.gliding);
+    const breath_was = w.breath;
+    steps = 0;
+    while (w.airborne and steps < 600) : (steps += 1) _ = w.stepOnce(.{}, &cues);
+    // down from 2.5 m at 2 m a second: about a second and a quarter in the air, and breath spent
+    try std.testing.expect(steps > 60 and steps < 90);
+    try std.testing.expect(w.breath < breath_was);
+    try std.testing.expect(!w.gliding);
+    try std.testing.expect(@sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz) > glide_speed * 0.5);
+}
+
+test "the hose is solid: walked at, Hum stops at its side; jumped, Hum goes over" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    // stand ten metres from the hose, facing it across, well inside the garden
+    const p = hose.backFromEnd(450.0);
+    const q = hose.backFromEnd(448.0);
+    var ax = q[0] - p[0];
+    var az = q[1] - p[1];
+    const al = @sqrt(ax * ax + az * az);
+    ax /= al;
+    az /= al;
+    // across the hose: a quarter turn from along it
+    const cx = -az;
+    const cz = ax;
+    w.hum_x = p[0] + cx * 10.0;
+    w.hum_z = p[1] + cz * 10.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.look_yaw = std.math.atan2(-cx, cz);
+    var step: u32 = 0;
+    while (step < 180) : (step += 1) _ = w.stepOnce(.{ .ly = -127 }, &cues);
+    // walked at it, it is still on the near side
+    const side = (w.hum_x - p[0]) * cx + (w.hum_z - p[1]) * cz;
+    try std.testing.expect(side > 0.0);
+    try std.testing.expect(hose.distance(w.hum_x, w.hum_z) >= land.hose_bore * 0.5 + hum_body - 0.01);
+    // a run and a jump: over
+    w.hum_x = p[0] + cx * 10.0;
+    w.hum_z = p[1] + cz * 10.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.hum_vx = 0.0;
+    w.hum_vz = 0.0;
+    w.look_yaw = std.math.atan2(-cx, cz);
+    step = 0;
+    var jumped = false;
+    while (step < 180) : (step += 1) {
+        var h = Hands{ .ly = -127 };
+        if (!jumped and hose.distance(w.hum_x, w.hum_z) < 4.0) {
+            h.buttons = Hands.jump;
+            jumped = true;
+        }
+        _ = w.stepOnce(h, &cues);
+    }
+    const after = (w.hum_x - p[0]) * cx + (w.hum_z - p[1]) * cz;
+    try std.testing.expect(after < 0.0);
 }
