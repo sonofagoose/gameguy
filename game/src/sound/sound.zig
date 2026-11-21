@@ -124,6 +124,9 @@ const Tone = struct {
 /// floor, and it stays hollow.
 pub const Held = struct { mult: [6]f32 = @splat(0.0), gain: [6]f32 = @splat(0.0), n: usize = 0 };
 
+/// How much softer a pipe moved two octaves up for the speaker is made: ten decibels.
+const pipe_up_softer: f32 = 0.316;
+
 pub fn heldParts(family: Family, hz: f32, speaker: bool) Held {
     var h = Held{};
     switch (family) {
@@ -156,8 +159,10 @@ pub fn heldParts(family: Family, hz: f32, speaker: bool) Held {
     // highest odd overtones, out of tune with everything near
     const pipe = family == .stopped_pipe or family == .open_pipe;
     if (pipe and hz < speaker_floor * 0.5) {
+        // and as soft as it was heard down there: a note two octaves under the floor sounds about
+        // ten decibels softer than the same level two octaves up, so moved up it is that much softer
         for (0..h.n) |k| h.mult[k] *= 4.0;
-        for (0..h.n) |k| h.gain[k] *= underFloor(hz * h.mult[k]);
+        for (0..h.n) |k| h.gain[k] *= underFloor(hz * h.mult[k]) * pipe_up_softer;
         return h;
     }
     if (family == .stopped_pipe) {

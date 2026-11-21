@@ -113,6 +113,9 @@ pub fn heightAt(x: f32, z: f32) f32 {
     for (pads) |pad| {
         const dx = x - pad[0];
         const dz = z - pad[1];
+        // clear of the pad by its blend along either axis, it adds exactly nothing: skip the root
+        const clear = pad[2] + pad_blend;
+        if (@abs(dx) >= clear or @abs(dz) >= clear) continue;
         const k = 1.0 - smooth01((@sqrt(dx * dx + dz * dz) - pad[2]) / pad_blend);
         h += (pad[3] - h) * k;
     }

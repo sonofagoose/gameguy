@@ -308,6 +308,9 @@ pub const Renderer = struct {
     /// Where each tile's details start in the index, and how many corners each draws.
     ground_detail: [ground_tiles_side * ground_tiles_side][ground_details][2]u32 = undefined,
     ground_side: u32 = 1,
+    /// For measuring: leave out the trail's pass, or the ground's light.
+    without_trail: bool = false,
+    without_ground: bool = false,
     decay_prog: c.GLuint = 0,
     decay_u_src: c.GLint = -1,
     decay_u_cur: c.GLint = -1,
@@ -822,7 +825,7 @@ pub const Renderer = struct {
         gl.Uniform1f(self.decay_u_floor, if (self.half_float) 0.0008 else 1.5 / 255.0);
         gl.Uniform2f(self.decay_u_texel, 1.0 / @as(f32, @floatFromInt(self.half_w)), 1.0 / @as(f32, @floatFromInt(self.half_h)));
         gl.Uniform1f(self.decay_u_spread, std.math.clamp(self.bloom, 0.0, 1.0));
-        self.fullScreen(self.fbo[next], self.half_w, self.half_h);
+        if (!self.without_trail) self.fullScreen(self.fbo[next], self.half_w, self.half_h);
 
         // 3. the screen: the two together, the black shapes again, then what is only lit
         self.seed += 17.0;
@@ -844,7 +847,7 @@ pub const Renderer = struct {
         self.fullScreen(0, self.fb_w, self.fb_h);
         gl.ActiveTexture(c.GL_TEXTURE0);
         self.drawOcc(vp);
-        self.drawGround(vp);
+        if (!self.without_ground) self.drawGround(vp);
         self.drawLines(vp, self.line_vbo, self.sounding, self.lit);
 
         self.ping = next;

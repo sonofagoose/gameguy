@@ -104,10 +104,23 @@ pub const fall_pull: f32 = 8.0 * jump_height / (jump_air_s * jump_air_s);
 pub const jump_speed: f32 = 4.0 * jump_height / jump_air_s;
 /// In the air the legs steer only a little.
 pub const air_ease: f32 = 0.06;
-/// The glide: how fast it sinks and how fast it goes, how slowly it turns, and its wind's voice.
+/// The glide is a sail (spec/sky.md, "Sailing the air"): it holds Hum up, sinking this fast; the
+/// air takes this much of Hum's going a step, so what it carries is mostly its own run; the left
+/// thumb turns it this fast; and the wind takes hold of it by law 2 (spec/world.md, "Sailing").
 pub const glide_sink: f32 = 2.0;
-pub const glide_speed: f32 = 12.0;
-pub const glide_ease: f32 = 0.04;
+pub const glide_keeps: f32 = 0.004;
+pub const glide_turn: f32 = 0.9;
+/// The wind (spec/sky.md, "The law"): its speed is the day's note folded into one octave, a fifth
+/// higher half again as fast, slowest on C. The Garden after the storm is nearly still.
+pub const wind_on_c: f32 = 1.5;
+/// How strongly the wind takes hold of the sail, by how far home stands from the wind's note on the
+/// wheel: on it, not at all (you sit still); a fifth off, wholly (you run); straight across, wholly
+/// the other way (you are thrown back). Between, a cosine through those three.
+pub fn sailDrive(wedges_off: i32) f32 {
+    const d: f32 = @floatFromInt(@abs(wedges_off));
+    if (d <= 1.0) return d;
+    return @cos(std.math.pi * (d - 1.0) / 5.0);
+}
 pub const glide_costs: f32 = 1.0;
 pub const glide_voice: u8 = 14;
 
@@ -118,7 +131,7 @@ pub const stalk_foot: f32 = 0.54;
 /// Going into a stalk faster than this rings it; at a full run it rings as hard as a brush can.
 pub const bump_least: f32 = 1.5;
 /// How much of an aster's bells' strength a brush at a full run gives them, and its knock.
-pub const brush_rings: f32 = 0.6;
+pub const brush_rings: f32 = 0.4;
 
 /// How much of the way to the speed the stick asks for Hum's legs go each step, pushed and let go:
 /// nine tenths of the way in a sixth of a second, and a skid of about 0.4 m from a run.
@@ -613,8 +626,10 @@ pub const World = struct {
     jumps: u32 = 0,
     glides: u32 = 0,
     landed_at: u64 = 0,
-    /// Hum is against the hose: the scripted player jumps it.
+    /// Hum is against the hose (the scripted player jumps it), and was the step before: a touch
+    /// sounds only as it begins.
     at_hose: bool = false,
+    was_at_hose: bool = false,
     /// Sprinting now, how many sprints, how many times the breath ran out and grew.
     sprinting: bool = false,
     sprints: u32 = 0,
@@ -1161,10 +1176,33 @@ pub const World = struct {
         const was_vz = self.hum_vz;
         var ease: f32 = if (size > 0.12) go_ease else stop_ease;
         if (self.gliding) {
-            // the sail goes where Hum faces, at its own speed; the stick turns it, slowly
-            want_x = @sin(self.hum_face) * glide_speed;
-            want_z = -@cos(self.hum_face) * glide_speed;
-            ease = glide_ease;
+            // the sail: the stick turns Hum's going, slowly; the air takes a little of it; and the
+            // wind takes hold by how far home stands from its note
+            var vx = self.hum_vx;
+            var vz = self.hum_vz;
+            if (size > 0.12) {
+                const sp = @sqrt(vx * vx + vz * vz);
+                if (sp > 0.1) {
+                    var turn = std.math.atan2(want_x, -want_z) - std.math.atan2(vx, -vz);
+                    if (turn > std.math.pi) turn -= 2.0 * std.math.pi;
+                    if (turn < -std.math.pi) turn += 2.0 * std.math.pi;
+                    const by = std.math.clamp(turn, -glide_turn * dt, glide_turn * dt);
+                    const c_ = @cos(by);
+                    const s_ = @sin(by);
+                    // turning by `by` toward the stick, as the facing angle counts it
+                    const nx = vx * c_ - vz * s_;
+                    const nz = vx * s_ + vz * c_;
+                    vx = nx;
+                    vz = nz;
+                }
+            }
+            const drive = sailDrive(@as(i32, self.home_k) - @as(i32, self.windWedge()));
+            const w = self.windNow();
+            want_x = w[0] * drive;
+            want_z = w[1] * drive;
+            self.hum_vx = vx;
+            self.hum_vz = vz;
+            ease = glide_keeps;
         } else if (self.airborne) {
             // the legs steer only a little in the air, and let go it keeps its way
             if (size <= 0.12) {
@@ -1175,6 +1213,8 @@ pub const World = struct {
         }
         self.hum_vx += (want_x - self.hum_vx) * ease;
         self.hum_vz += (want_z - self.hum_vz) * ease;
+        // sailing, Hum faces where it is carried
+        if (self.gliding and self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz > 0.25) self.hum_face = std.math.atan2(self.hum_vx, -self.hum_vz);
         if (!self.airborne and size <= 0.12 and self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz < 0.0025) {
             self.hum_vx = 0.0;
             self.hum_vz = 0.0;
@@ -2318,6 +2358,24 @@ pub const World = struct {
         self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = self.home_hz, .strength = std.math.clamp(fall / 30.0, 0.04, 0.4), .ring = 0.15 }, .glow));
     }
 
+    /// The wind where Hum is, in metres a second (spec/sky.md, "The law"): it blows from the day's
+    /// land out over the water, as fast as the day's note folded into one octave says.
+    pub fn windNow(self: *const World) [2]f32 {
+        var f = self.day_hz;
+        while (f >= garden_hz * 2.0) f *= 0.5;
+        while (f < garden_hz) f *= 2.0;
+        const speed = wind_on_c * f / garden_hz;
+        const dx = lake_x - land.pool[0];
+        const dz = lake_z - land.pool[1];
+        const far = @sqrt(dx * dx + dz * dz);
+        return .{ dx / far * speed, dz / far * speed };
+    }
+
+    /// The wedge the wind's note stands on: the day's own.
+    pub fn windWedge(self: *const World) i8 {
+        return wedgeOfHz(self.day_hz, self.day_hz);
+    }
+
     /// The glide closes: its wind falls away.
     fn closeGlide(self: *World) void {
         self.gliding = false;
@@ -2326,6 +2384,7 @@ pub const World = struct {
 
     /// The hose is a tube lying on the ground, 1.8 m through: Hum goes round it or over it.
     fn atHose(self: *World, go_x: *f32, go_z: *f32) void {
+        self.was_at_hose = self.at_hose;
         self.at_hose = false;
         if (!self.in_garden or self.hose_thing == no_thing) return;
         if (self.airborne and self.hum_y > land.hose_bore + 0.1) return;
@@ -2352,6 +2411,8 @@ pub const World = struct {
         if (v_in < 0.0) {
             self.hum_vx -= v_in * nx;
             self.hum_vz -= v_in * nz;
+            // run into, the hose sounds, in its own voice
+            if (-v_in > bump_least and !self.was_at_hose) self.touch(self.hose_thing, -v_in, .{ .x = near.p[0], .y = land.hose_bore * 0.5, .z = near.p[1] });
         }
     }
 
@@ -2467,76 +2528,44 @@ pub const World = struct {
         }
     }
 
-    /// Brushing a stalk rings its bells (spec/shape.md): a knock where Hum touched it, the stalk lit
-    /// from its foot up, and the aster's own note rung on two of its bells, each heard when its sound
-    /// has come down to Hum. Harder the faster Hum came.
-    fn brushStalk(self: *World, t: u16, speed: f32) void {
+    /// Touching a thing strikes it (SPEC.md 7: every thing has a tune, and what you do to the thing
+    /// you do to the tune): a short knock where Hum touched it, at the thing's own note brought into
+    /// what the speaker says; the thing struck in its own voice, harder the faster Hum came; and law
+    /// 1 carries it on, so whatever shares its overtones answers when the sound reaches it.
+    fn touch(self: *World, index: u32, speed: f32, at: Place) void {
         self.bumps += 1;
         self.bumped_at = self.step;
+        const th = &self.things[index];
+        const hard = std.math.clamp((speed - bump_least) / (run_speed - bump_least), 0.0, 1.0);
+        const strength = brush_rings * (0.25 + 0.75 * hard);
+        var knock = th.hz;
+        while (knock > 600.0) knock *= 0.5;
+        while (knock < 300.0) knock *= 2.0;
+        self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = knock, .strength = strength * 0.6, .ring = 0.25 }, .glow));
+        self.tell(.{ .thing = index }, cues_mod.Cue.of(.{ .kind = .strike, .family = th.family, .hz = th.hz, .strength = strength, .ring = th.ring }, .glow));
+        th.rung_at = @truncate(self.step);
+        th.lit = @max(th.lit, strength);
+        if (self.cascades(index)) self.passOn(@intCast(index), strength, false);
+    }
+
+    /// Brushing a stalk (spec/shape.md, "Brushing a stalk rings its bells"): the shake runs up it,
+    /// lit from the foot, to its crown, and the touch is the crown's bell's: its kin answer by law 1.
+    fn brushStalk(self: *World, t: u16, speed: f32) void {
         self.bumped_tower = t;
         const tw = self.towers[t];
         const hard = std.math.clamp((speed - bump_least) / (run_speed - bump_least), 0.0, 1.0);
-        const strength = brush_rings * (0.25 + 0.75 * hard);
-        var lowest: f32 = 0.0;
-        for (self.things[tw.first .. tw.first + tw.count]) |th| {
-            if (!th.sounds) continue;
-            if (lowest == 0.0 or th.hz < lowest) lowest = th.hz;
-        }
-        // the shake runs up it, the foot brightest
         var part: u32 = 0;
+        var crown: ?u32 = null;
         for (tw.first..tw.first + tw.count) |i| {
             const th = &self.things[i];
-            if (th.sounds) continue;
-            th.lit = @max(th.lit, strength * (1.0 - 0.06 * @as(f32, @floatFromInt(part))));
-            part += 1;
-        }
-        // and it rings the aster's own note: the lowest bell of it (the crown's note, the topmost
-        // bell's) and the next of it up, each heard when its sound has come down, so they arrive
-        // one after the other. A bell's partials are a major chord on its own note; any other bell
-        // of the aster's beside them puts a third partial a half step from one of theirs
-        var crown: f32 = 0.0;
-        var crown_y: f32 = -1.0;
-        for (self.things[tw.first .. tw.first + tw.count]) |th| {
-            if (th.sounds and th.y > crown_y) {
-                crown_y = th.y;
-                crown = th.hz;
+            if (!th.sounds) {
+                th.lit = @max(th.lit, brush_rings * (0.25 + 0.75 * hard) * (1.0 - 0.06 * @as(f32, @floatFromInt(part))));
+                part += 1;
+                continue;
             }
+            if (crown == null or th.y > self.things[crown.?].y) crown = @intCast(i);
         }
-        var root_low: f32 = 0.0;
-        for ([2]u8{ 0, 2 }) |which| {
-            var pick: ?usize = null;
-            for (tw.first..tw.first + tw.count) |i| {
-                const th = self.things[i];
-                if (!th.sounds) continue;
-                // the bell's note against the crown's, brought into one octave
-                var r = th.hz / crown;
-                while (r >= 1.99) r *= 0.5;
-                while (r < 0.995) r *= 2.0;
-                const fits = switch (which) {
-                    0 => @abs(r - 1.0) < 0.01,
-                    1 => @abs(r - 1.5) < 0.015,
-                    else => @abs(r - 1.0) < 0.01 and th.hz > root_low * 1.5,
-                };
-                if (!fits) continue;
-                if (pick == null or th.hz < self.things[pick.?].hz) pick = i;
-            }
-            if (which == 0) {
-                if (pick) |pk| root_low = self.things[pk].hz;
-            }
-            const i = pick orelse continue;
-            const th = &self.things[i];
-            self.tell(.{ .thing = @intCast(i) }, cues_mod.Cue.of(.{ .kind = .strike, .family = th.family, .hz = th.hz, .strength = strength, .ring = th.ring }, .glow));
-            th.rung_at = @truncate(self.step);
-        }
-        // the knock, where Hum touched it: the aster's lowest note, by octaves into what the
-        // speaker can say (300 to 600 Hz), short and wooden
-        if (lowest > 0.0) {
-            var knock = lowest;
-            while (knock > 600.0) knock *= 0.5;
-            while (knock < 300.0) knock *= 2.0;
-            const at = Place{ .x = self.hum_x, .y = 0.5, .z = self.hum_z };
-            self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = knock, .strength = strength * 0.6, .ring = 0.25 }, .glow));
-        }
+        if (crown) |c| self.touch(c, speed, .{ .x = self.hum_x, .y = 0.5, .z = self.hum_z });
     }
 
     /// The bowl's rim is a wall of brick, the raised beds behind it: Hum stops at its foot, and a step
@@ -4434,21 +4463,56 @@ test "the bottom face jumps two and a half metres, and in the air opens the glid
     try std.testing.expect(!w.airborne);
     try std.testing.expect(@abs(top - jump_height) < 0.15);
     try std.testing.expect(steps >= 43 and steps <= 47);
-    // jump, and at the top open the glide: it sinks at two metres a second and goes at twelve
-    _ = w.stepOnce(.{}, &cues);
-    _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+    // a run, a jump, and at the top the glide: it sinks at two metres a second and keeps the run
+    var step: u32 = 0;
+    while (step < 60) : (step += 1) _ = w.stepOnce(.{ .ly = -127 }, &cues);
+    _ = w.stepOnce(.{ .ly = -127, .buttons = Hands.jump }, &cues);
     steps = 0;
     while (w.hum_vy > 0.0 and steps < 60) : (steps += 1) _ = w.stepOnce(.{}, &cues);
     _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
     try std.testing.expect(w.gliding);
     const breath_was = w.breath;
     steps = 0;
-    while (w.airborne and steps < 600) : (steps += 1) _ = w.stepOnce(.{}, &cues);
-    // down from 2.5 m at 2 m a second: about a second and a quarter in the air, and breath spent
+    var slowest: f32 = 1e9;
+    while (w.airborne and steps < 600) : (steps += 1) {
+        _ = w.stepOnce(.{}, &cues);
+        slowest = @min(slowest, @sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz));
+    }
+    // down from 2.5 m at 2 m a second: about a second and a quarter in the air, breath spent, and
+    // the run carried nearly whole
     try std.testing.expect(steps > 60 and steps < 90);
     try std.testing.expect(w.breath < breath_was);
     try std.testing.expect(!w.gliding);
-    try std.testing.expect(@sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz) > glide_speed * 0.5);
+    try std.testing.expect(slowest > run_speed * 0.6);
+}
+
+test "the sail takes the wind by law 2: on its note Hum sits still, a fifth off it runs, straight across it is thrown back" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    for ([3]i8{ 0, 1, 6 }) |off| {
+        afterTheLock(w);
+        w.in_garden = false;
+        w.hum_ground = 0.0;
+        w.awake = 0xff;
+        w.breath = 60.0;
+        w.home_k = off;
+        w.home_hz = wedgeHz(w.day_hz, off);
+        // high in the air, the sail open, still
+        w.airborne = true;
+        w.hum_y = 80.0;
+        w.gliding = true;
+        var step: u32 = 0;
+        while (step < 60 * 25 and w.airborne) : (step += 1) _ = w.stepOnce(.{}, &cues);
+        const wind = w.windNow();
+        const ws = @sqrt(wind[0] * wind[0] + wind[1] * wind[1]);
+        const along = (w.hum_vx * wind[0] + w.hum_vz * wind[1]) / ws;
+        switch (off) {
+            0 => try std.testing.expect(@abs(along) < 0.05 * ws),
+            1 => try std.testing.expect(along > 0.9 * ws),
+            else => try std.testing.expect(along < -0.9 * ws),
+        }
+    }
 }
 
 test "the hose is solid: walked at, Hum stops at its side; jumped, Hum goes over" {

@@ -132,7 +132,7 @@ pub const heave_m: f32 = 5.0;
 pub const heave_octaves: f32 = 256.0;
 
 pub const max_motes = 420;
-const radial_steps = 128;
+pub const radial_steps = 128;
 
 /// One shape standing in a pool, with its radial part worked out once when it starts.
 pub const Figure = struct {

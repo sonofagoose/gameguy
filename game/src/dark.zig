@@ -987,6 +987,11 @@ pub const Options = struct {
     /// Draw each frame. A check of the world alone (a take played back, a save opened) needs no
     /// picture, and is twenty times quicker without one.
     picture: bool = true,
+    /// To measure what a part of the picture costs: draw without the trail, without the ground's
+    /// light, or with half the land's lines.
+    without_trail: bool = false,
+    without_ground: bool = false,
+    half_land: bool = false,
     headless: bool = false,
     frames: u32 = 0,
     dump: ?[*:0]const u8 = null,
@@ -1347,6 +1352,15 @@ pub fn run(window: plat.Window, options: Options) bool {
     var worst_why: []const u8 = "";
     var repicked = false;
     var parts: [5]f64 = @splat(0.0);
+    // each part of a frame summed over the run, and the wait for the screen, for their averages
+    var part_sums: [6]f64 = @splat(0.0);
+    var part_frames: u32 = 0;
+    // how the work of a frame is spread: under 8, 12, 16 ms and over; and in frames over 14 ms,
+    // which part took the most
+    var maker_ms: [8]f64 = @splat(0.0);
+    var moving_most: usize = 0;
+    var work_spread: [4]u32 = @splat(0);
+    var long_by: [5]u32 = @splat(0);
     var worst_parts: [6]f64 = @splat(0.0);
     var ring_dumped = false;
     var done_at: ?u32 = null;
@@ -1563,7 +1577,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                     lines.liftPoints(static_occ[occ_from..picked.occ], &world_mod.ground.heightAt);
                 }
                 spreadLight(static_lines[0..picked.lines]);
-                renderer.setLand(static_lines[0..picked.lines], static_lines[0..0], static_occ[0..picked.occ]);
+                renderer.setLand(static_lines[0..if (options.half_land) picked.lines / 2 else picked.lines], static_lines[0..0], static_occ[0..picked.occ]);
                 picked_x = eye[0];
                 picked_z = eye[2];
                 repicked = true;
@@ -1572,31 +1586,53 @@ pub fn run(window: plat.Window, options: Options) bool {
         parts[1] = (plat.now() - began) * 1000.0;
         var moving_n: usize = 0;
         if (options.scene != .dark) {
+            // each maker of moving lines, timed, so the one that runs long can be named
+            const makers = .{ "the sun", "the stars", "the dawn's edge", "halos", "the evening", "sparks", "the bee", "pools", "the wheel", "the swell", "knots", "ghosts", "the clap", "the hose's hum", "water", "the figure" };
+            _ = makers;
+            var t0 = plat.now();
             moving_n = aster_lines.sun(&world, eye, &moving);
             moving_n += aster_lines.stars(&world, eye, moving[moving_n..]);
             moving_n += aster_lines.dawnEdge(&world, moving[moving_n..]);
+            maker_ms[0] += plat.now() - t0;
+            t0 = plat.now();
             if (world.stand > 0.6) moving_n += aster_lines.halos(&world, eye, moving[moving_n..]);
+            maker_ms[1] += plat.now() - t0;
+            t0 = plat.now();
             moving_n += eveningLines(&world, moving[moving_n..]);
             moving_n += aster_lines.sparks(&world, moving[moving_n..]);
             moving_n += aster_lines.beeLines(&world, moving[moving_n..]);
+            maker_ms[2] += plat.now() - t0;
+            t0 = plat.now();
             moving_n += aster_lines.poolLines(&world, eye, moving[moving_n..]);
+            maker_ms[3] += plat.now() - t0;
+            t0 = plat.now();
             moving_n += aster_lines.wheelLines(&world, moving[moving_n..]);
             moving_n += aster_lines.swellLines(&world, moving[moving_n..]);
             moving_n += aster_lines.knotLines(&world, eye, moving[moving_n..]);
             moving_n += aster_lines.ghostLines(&world, moving[moving_n..]);
             moving_n += aster_lines.clapLines(&world, moving[moving_n..]);
+            maker_ms[4] += plat.now() - t0;
+            t0 = plat.now();
             moving_n += garden_lines.humLines(&world, moving[moving_n..]);
             moving_n += garden_lines.waterLines(&world, moving[moving_n..]);
             moving_n += garden_lines.figureLines(&world, moving[moving_n..]);
+            maker_ms[5] += plat.now() - t0;
         }
+        var t1 = plat.now();
         moving_n += movingLines(&world, eye, moving[moving_n..]);
+        maker_ms[6] += plat.now() - t1;
+        t1 = plat.now();
         if (world.in_garden) lines.lift(moving[0..moving_n], &world_mod.ground.heightAt);
+        maker_ms[7] += plat.now() - t1;
+        moving_most = @max(moving_most, moving_n);
         most_lines = @max(most_lines, picked.lines + moving_n);
         parts[2] = (plat.now() - began) * 1000.0;
         renderer.setDynamic(moving[0..moving_n]);
         if (options.scene != .dark) sendGround();
         const vp = m.mul(proj, view);
         parts[3] = (plat.now() - began) * 1000.0;
+        renderer.without_trail = options.without_trail;
+        renderer.without_ground = options.without_ground;
         renderer.frame(&vp, &loud);
         if (options.scene == .evening and world.step >= world.stand_from and world.step < world.stand_from + 330) {
             // the first words anyone says in it, as the page stands up: the one line of text
@@ -1613,6 +1649,23 @@ pub fn run(window: plat.Window, options: Options) bool {
         if (!options.headless) backlight.follow(if (options.scene == .dark) brightest else world.dawn * 0.38 + (0.25 + 0.37 * world.dawn) * brightest);
         const work = (plat.now() - began) * 1000.0;
         work_sum += work;
+        if (frame > 30) {
+            part_sums[0] += parts[0];
+            for (1..5) |i| part_sums[i] += parts[i] - parts[i - 1];
+            part_frames += 1;
+            work_spread[if (work < 8.0) 0 else if (work < 12.0) 1 else if (work < 16.0) 2 else 3] += 1;
+            if (work > 14.0) {
+                var most: usize = 0;
+                var most_ms: f64 = parts[0];
+                for (1..5) |i| {
+                    if (parts[i] - parts[i - 1] > most_ms) {
+                        most_ms = parts[i] - parts[i - 1];
+                        most = i;
+                    }
+                }
+                long_by[most] += 1;
+            }
+        }
         if (frame > 30 and work > work_worst) {
             work_worst = work;
             worst_at = frame;
@@ -1636,8 +1689,10 @@ pub fn run(window: plat.Window, options: Options) bool {
                 }
             }
         }
+        const swap_from = plat.now();
         sdl.GL_SwapWindow(window.handle);
         const swapped = plat.now();
+        if (frame > 30) part_sums[5] += (swapped - swap_from) * 1000.0;
         if (frame > 30 and (swapped - last_swap) * 1000.0 > 25.0) late += 1;
         if (frame == 30) first_swap = swapped;
         last_swap = swapped;
@@ -1678,6 +1733,12 @@ pub fn run(window: plat.Window, options: Options) bool {
         log("the hands: {d} presses of R1 and R2 and claps ({d} of them claps) started Hum's own sound on the buffer after them, the latest {d:.2} ms after the kernel saw the press; {d} strikes timed by the hands started there too; the world found {d} of them already sounding; {d} calls choked by a clap just after; {d} strikes timed and {d} placed in all", .{ @atomicLoad(u32, &hands_started, .monotonic), @atomicLoad(u32, &hands_claps, .monotonic), @as(f64, @floatFromInt(@atomicLoad(u32, &hands_most_us, .monotonic))) / 1000.0, @atomicLoad(u32, &hands_strikes, .monotonic), snd.own_met, snd.choked, world.timed_strikes, world.placed_strikes });
     }
     if (frame > 90 and !options.headless) log("the screen: a frame shown every {d:.2} ms on average", .{(last_swap - first_swap) * 1000.0 / @as(f64, @floatFromInt(frame - 31))});
+    if (part_frames > 0) {
+        const pf: f64 = @floatFromInt(part_frames);
+        log("a frame's work: under 8 ms {d}, under 12 {d}, under 16 {d}, over 16 {d}; of those over 14 ms the most was the steps in {d}, the land {d}, the moving lines {d}, sending {d}, drawing {d}", .{ work_spread[0], work_spread[1], work_spread[2], work_spread[3], long_by[0], long_by[1], long_by[2], long_by[3], long_by[4] });
+        log("the moving lines on average: the sky {d:.2} ms, halos {d:.2}, Drip and sparks and the bee {d:.2}, pools {d:.2}, the wheel and the fight {d:.2}, the hose's water {d:.2}, rings and Hum {d:.2}, lifting them onto the ground {d:.2}; at most {d} lines", .{ maker_ms[0] * 1000.0 / pf, maker_ms[1] * 1000.0 / pf, maker_ms[2] * 1000.0 / pf, maker_ms[3] * 1000.0 / pf, maker_ms[4] * 1000.0 / pf, maker_ms[5] * 1000.0 / pf, maker_ms[6] * 1000.0 / pf, maker_ms[7] * 1000.0 / pf, moving_most });
+        log("a frame's parts on average: the steps {d:.2} ms, the land {d:.2}, the moving lines {d:.2}, sent to the GPU {d:.2}, drawn {d:.2}, waiting for the screen {d:.2}", .{ part_sums[0] / pf, part_sums[1] / pf, part_sums[2] / pf, part_sums[3] / pf, part_sums[4] / pf, part_sums[5] / pf });
+    }
     if (steady.n > 0) log("the picture between steps: while Hum walked it moved {d:.1} cm a frame, varying by {d:.1} cm as shown, and by {d:.1} cm as it would have been by whole steps ({d} frames)", .{ steady.mean() * 100.0, steady.spread(.shown) * 100.0, steady.spread(.stepped) * 100.0, steady.n });
     log("the slowest frame was {d} (step {d}): steps done by {d:.2} ms, the land by {d:.2}, the moving lines by {d:.2}, sent to the GPU by {d:.2}, drawn by {d:.2}, the backlight set by {d:.2}; {s}", .{ worst_at, worst_step, worst_parts[0], worst_parts[1], worst_parts[2], worst_parts[3], worst_parts[4], worst_parts[5], worst_why });
     for (world_mod.witness.names, 0..) |promise, i| {

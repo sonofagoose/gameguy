@@ -912,6 +912,20 @@ pub fn beeLines(w: *const world_mod.World, out: []Inst) usize {
 /// them the water heaves, drawn as a net of lines on the surface rising and falling at the note
 /// eight octaves down and lit as much as it moves; and the pollen floating on it, thrown onto the
 /// still lines, draws the figure again in gold and keeps it when the water stills.
+/// The ninety-six angles round a pool's heaving net, worked out once.
+const round_cos: [96]f32 = blk: {
+    @setEvalBranchQuota(100_000);
+    var out: [96]f32 = undefined;
+    for (0..96) |i| out[i] = @cos(@as(f32, @floatFromInt(i)) * (6.2831853 / 96.0));
+    break :blk out;
+};
+const round_sin: [96]f32 = blk: {
+    @setEvalBranchQuota(100_000);
+    var out: [96]f32 = undefined;
+    for (0..96) |i| out[i] = @sin(@as(f32, @floatFromInt(i)) * (6.2831853 / 96.0));
+    break :blk out;
+};
+
 pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
     const pools = world_mod.pools;
     var n: usize = 0;
@@ -928,9 +942,8 @@ pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
         const rim_n: usize = 96;
         for (0..rim_n) |k| {
             if (n >= out.len) return n;
-            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, @floatFromInt(rim_n)));
-            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, @floatFromInt(rim_n)));
-            out[n] = .{ .a = .{ p.x + p.r * @cos(a0), 0.06, p.z + p.r * @sin(a0) }, .b = .{ p.x + p.r * @cos(a1), 0.06, p.z + p.r * @sin(a1) }, .half_width = 1.3, .body = body, .col = col8(water, 0.45) };
+            const k1 = (k + 1) % rim_n;
+            out[n] = .{ .a = .{ p.x + p.r * round_cos[k], 0.06, p.z + p.r * round_sin[k] }, .b = .{ p.x + p.r * round_cos[k1], 0.06, p.z + p.r * round_sin[k1] }, .half_width = 1.3, .body = body, .col = col8(water, 0.45) };
             n += 1;
         }
         // where each figure is in its heave, as a sine of its slowed note
@@ -966,9 +979,8 @@ pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
                 const rr = p.r * pools.zeros[md.m][i] / md.j;
                 for (0..96) |s| {
                     if (n >= out.len) return n;
-                    const a0 = @as(f32, @floatFromInt(s)) * (6.2831853 / 96.0);
-                    const a1 = @as(f32, @floatFromInt(s + 1)) * (6.2831853 / 96.0);
-                    out[n] = .{ .a = .{ p.x + rr * @cos(a0), 0.15, p.z + rr * @sin(a0) }, .b = .{ p.x + rr * @cos(a1), 0.15, p.z + rr * @sin(a1) }, .half_width = 2.0, .body = 0.0, .col = tint };
+                    const s1 = (s + 1) % 96;
+                    out[n] = .{ .a = .{ p.x + rr * round_cos[s], 0.15, p.z + rr * round_sin[s] }, .b = .{ p.x + rr * round_cos[s1], 0.15, p.z + rr * round_sin[s1] }, .half_width = 2.0, .body = 0.0, .col = tint };
                     n += 1;
                 }
             }
@@ -982,24 +994,56 @@ pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
             var moves: [rings_n + 1][around]f32 = undefined;
             var px: [rings_n + 1][around]f32 = undefined;
             var pz: [rings_n + 1][around]f32 = undefined;
+            // a figure is its radial part times the cosine of m times its angle, so each is worked
+            // out once a ring and once an angle, not at every crossing
+            var across: [2][rings_n + 1]f32 = undefined;
+            var round: [2][around]f32 = undefined;
+            for (p.figs, 0..) |f, k| {
+                if (f.loud <= 0.0) continue;
+                const m = pools.modes[f.mode].m;
+                for (0..rings_n + 1) |ri| {
+                    if (ri == rings_n or (ri == 0 and m != 0)) {
+                        across[k][ri] = 0.0;
+                        continue;
+                    }
+                    const pos = @as(f32, @floatFromInt(ri)) / @as(f32, rings_n) * @as(f32, pools.radial_steps);
+                    const i: usize = @intFromFloat(@floor(pos));
+                    const fr = pos - @floor(pos);
+                    across[k][ri] = (f.radial[i] + (f.radial[i + 1] - f.radial[i]) * fr) * f.loud;
+                }
+                for (0..around) |ai| {
+                    if (m == 0) {
+                        round[k][ai] = 1.0;
+                        continue;
+                    }
+                    const cx = round_cos[ai] * f.turn_c + round_sin[ai] * f.turn_s;
+                    const sx = round_sin[ai] * f.turn_c - round_cos[ai] * f.turn_s;
+                    var pc: f32 = 1.0;
+                    var ps: f32 = 0.0;
+                    var j: u8 = 0;
+                    while (j < m) : (j += 1) {
+                        const nc = pc * cx - ps * sx;
+                        ps = pc * sx + ps * cx;
+                        pc = nc;
+                    }
+                    round[k][ai] = pc;
+                }
+            }
             for (0..rings_n + 1) |ri| {
                 const rr = p.r * @as(f32, @floatFromInt(ri)) / @as(f32, rings_n);
                 for (0..around) |ai| {
-                    const ang = @as(f32, @floatFromInt(ai)) * (6.2831853 / @as(f32, around));
-                    const dx = rr * @cos(ang);
-                    const dz = rr * @sin(ang);
                     var h: f32 = 0.0;
                     var e: f32 = 0.0;
                     for (p.figs, 0..) |f, k| {
                         if (f.loud <= 0.0) continue;
-                        const s = f.shape(dx, dz, p.r) * f.loud;
+                        const s = across[k][ri] * round[k][ai];
                         h += s * swing[k];
                         e += s * s;
                     }
                     heave[ri][ai] = h * pools.heave_m;
                     moves[ri][ai] = @sqrt(e);
-                    px[ri][ai] = p.x + dx;
-                    pz[ri][ai] = p.z + dz;
+                    px[ri][ai] = p.x + rr * round_cos[ai];
+                    pz[ri][ai] = p.z + rr * round_sin[ai];
                 }
             }
             // a lobe on its way up catches the light and one on its way down goes dark, so the
