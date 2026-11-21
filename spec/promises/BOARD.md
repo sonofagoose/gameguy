@@ -40,7 +40,7 @@ nobody types one in. What the words mean is in `../promises.md`. Every claim is 
 | rung | promises |
 |---|---|
 | sized: its moment, its cheat, its full size and its question written | 139 of 139 |
-| proven: every measure passes today and nothing is owed | 2 |
+| proven: every measure passes today and nothing is owed | 4 |
 | reached: the scripted player met it by playing | 8 |
 | felt: Morgan, holding the handheld, answered yes | 0 |
 | graded full by a fresh reader | 0 |
@@ -84,29 +84,29 @@ asks its question.
 | `card.light` Why nothing on the card was a picture | 2 | 5 | no | - | - | no | no | 1 owed |
 | `card.no-copies` Nothing is a copy | 2 | 5 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `card.kept` Nothing is forgotten | 2 | 8 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `card.years` A card is a number of years | 2 | 14 | no | - | - | no | no | 2 owed; same_take.identical == 1  (is 0) |
+| `card.years` A card is a number of years | 2 | 14 | no | - | - | no | no | 2 owed |
 | `card.carried` The handheld can carry it | 2 | 2 | no | - | no | no | no | 1 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
-| `fight.beat` On the beat | 2 | 3 | no | - | no | no | no | frame evening-pocket: it has changed since it was looked at (by 10.0 of 255 a channel); ears.strike_placed_octave_db <= -30  (is -29.2); no yes from Morgan yet |
-| `fight.looper` The looper in a fight | 2 | 2 | no | - | no | no | no | 1 owed; frame evening-afterimage: it has changed since it was looked at (by 8.9 of 255 a channel); frame evening-clap: it has changed since it was looked at (by 10.5 of 255 a channel); no yes from Morgan yet |
-| `fight.transform` Nothing dies in a fight | 2 | 2 | no | - | no | no | no | frame evening-swell: it has changed since it was looked at (by 11.7 of 255 a channel); frame evening-grey: it has changed since it was looked at (by 9.4 of 255 a channel); no yes from Morgan yet |
-| `fight.kinds` Wolves, knots and greys | 2 | 3 | no | - | no | no | no | 1 owed; frame evening-knots: it has changed since it was looked at (by 8.3 of 255 a channel); no yes from Morgan yet |
+| `fight.beat` On the beat | 2 | 3 | no | - | no | no | no | ears.strike_placed_octave_db <= -30  (is -29.2); no yes from Morgan yet |
+| `fight.looper` The looper in a fight | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
+| `fight.transform` Nothing dies in a fight | 2 | 2 | yes | - | no | no | no | no yes from Morgan yet; not graded |
+| `fight.kinds` Wolves, knots and greys | 2 | 3 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `fight.bosses` Bosses are pieces of music | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `fight.gentle` Gentle or Fierce | 2 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `evening.black` Black, and a drip | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.call` You call, and you are answered | 2 | 2 | no | yes | no | no | no | 3 owed; handheld.evening.late == 0  (is 359); no yes from Morgan yet |
-| `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | yes | no | no | no | 2 owed; frame evening-locked: it has changed since it was looked at (by 2.2 of 255 a channel); no yes from Morgan yet |
-| `evening.in` "Oh. You're in." | 2 | 5 | no | - | no | no | no | 2 owed; frame evening-far: it has changed since it was looked at (by 3.7 of 255 a channel); no yes from Morgan yet |
+| `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | yes | no | no | no | 2 owed; no yes from Morgan yet |
+| `evening.in` "Oh. You're in." | 2 | 5 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.instrument` Everything is an instrument | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `evening.knot` The knot, and the first fight | 2 | 10 | no | - | no | no | no | 2 owed; frame evening-open: it has changed since it was looked at (by 10.4 of 255 a channel); frame evening-edge: it has changed since it was looked at (by 16.4 of 255 a channel); no yes from Morgan yet |
+| `evening.knot` The knot, and the first fight | 2 | 10 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.dusk` The river sings your day back | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `garden.land` The Garden, home | 2 | 14 | no | - | no | no | no | 7 owed; no yes from Morgan yet |
-| `garden.ground` What the Garden's ground wears | 2 | 6 | no | - | no | no | no | 4 owed; frame evening-far: it has changed since it was looked at (by 3.7 of 255 a channel); frame evening-foot: it has changed since it was looked at (by 2.8 of 255 a channel); no yes from Morgan yet |
-| `garden.asters` Asters as tall as cathedrals | 2 | 1 | no | yes | no | no | no | 3 owed; frame evening-far: it has changed since it was looked at (by 3.7 of 255 a channel); frame evening-foot: it has changed since it was looked at (by 2.8 of 255 a channel); no yes from Morgan yet |
+| `garden.ground` What the Garden's ground wears | 2 | 6 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
+| `garden.asters` Asters as tall as cathedrals | 2 | 1 | no | yes | no | no | no | 3 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
 | `garden.great` The Hose | 2 | 6 | no | - | no | no | no | 6 owed; no yes from Morgan yet |
 | `garden.w01` The answering field | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w02` The seed that follows | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w03` The parade | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `garden.w04` The puddle bridge | 2 | 1 | no | yes | no | no | no | 4 owed; frame evening-bridge: it has changed since it was looked at (by 3.2 of 255 a channel); no yes from Morgan yet |
+| `garden.w04` The puddle bridge | 2 | 1 | no | yes | no | no | no | 4 owed; no yes from Morgan yet |
 | `garden.w05` The quiet ball | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w06` The far shore, late | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `garden.w07` The swing | 2 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
@@ -134,7 +134,7 @@ asks its question.
 | `laws.in-step` Law 3: falling into step | 2 | 10 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `laws.cancelling` Law 5: cancelling and beating | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `laws.travel` Law 6: travel | 2 | 14 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `laws.sound-and-light` The table of sound and light | 2 | 11 | no | - | no | no | no | 2 owed; frame evening-bridge: it has changed since it was looked at (by 3.2 of 255 a channel); no yes from Morgan yet |
+| `laws.sound-and-light` The table of sound and light | 2 | 11 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `laws.home` Home over the laws | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `laws.tuning` Tuning | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `laws.ears` Limits for the ears | 2 | 7 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
@@ -146,7 +146,7 @@ asks its question.
 | `loop.book` A page a day | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `loop.card` A card is a number of years | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `loop.mornings` Days are mornings played | 2 | 1 | yes | - | - | no | no | not graded |
-| `card.ground` The ground remembers | 2 | 7 | no | - | no | no | no | 6 owed; frame evening-ground: it has changed since it was looked at (by 3.5 of 255 a channel); handheld.asters.late == 0  (is 2); no yes from Morgan yet |
+| `card.ground` The ground remembers | 2 | 7 | no | - | no | no | no | 6 owed; handheld.asters.late == 0  (is 2); no yes from Morgan yet |
 | `people.rounds` Each life keeps its own time | 2 | 5 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `people.helping` Helping is the day's five steps | 2 | 7 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `people.sung` Nobody is explained | 2 | 2 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
@@ -174,27 +174,27 @@ asks its question.
 | `rules.morgans-layer` Morgan's layer stays his | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `scale.one-to-a-hundred` One to a hundred | 2 | 28 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `scale.ring` The ring round the lake | 2 | 13 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `sky.dawn` The first dawn | 2 | 7 | no | yes | no | no | no | 5 owed; frame evening-far: it has changed since it was looked at (by 3.7 of 255 a channel); frame evening-horn: it has changed since it was looked at (by 5.0 of 255 a channel); no yes from Morgan yet |
-| `sky.bee` The bee | 2 | 3 | no | yes | no | no | no | 3 owed; frame evening-bee: it has changed since it was looked at (by 10.2 of 255 a channel); no yes from Morgan yet |
+| `sky.dawn` The first dawn | 2 | 7 | no | yes | no | no | no | 5 owed; no yes from Morgan yet |
+| `sky.bee` The bee | 2 | 3 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
 | `texture.frame` What makes a frame beautiful | 2 | 4 | no | - | no | no | no | 4 owed; beauty.page_black_least >= 0.8  (is 0.7874); no yes from Morgan yet |
 | `texture.light` Light is loudness | 2 | 3 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `texture.one-rule` How a thing looks is how it sounds | 2 | 10 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `texture.at-rest` A line at rest | 2 | 5 | no | - | no | no | no | 2 owed; frame evening-climb: nobody has looked at it yet; no yes from Morgan yet |
-| `texture.sounding` A line that sounds | 2 | 20 | no | - | no | no | no | 2 owed; frame evening-bridge: it has changed since it was looked at (by 3.2 of 255 a channel); no yes from Morgan yet |
+| `texture.sounding` A line that sounds | 2 | 20 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `texture.tuning-seen` Tuning, seen | 2 | 4 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `texture.silence` Silence, seen | 2 | 4 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `texture.surfaces` Surfaces, when there are only lines | 2 | 8 | no | - | no | no | no | 2 owed; frame evening-foot: it has changed since it was looked at (by 2.8 of 255 a channel); frame evening-far: it has changed since it was looked at (by 3.7 of 255 a channel); no yes from Morgan yet |
+| `texture.surfaces` Surfaces, when there are only lines | 2 | 8 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `texture.sound-grain` The texture of the sound | 2 | 8 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `texture.across-time` Across time | 2 | 6 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `texture.beautiful` A beautiful frame, checked | 2 | 15 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `wheel.home` The wheel decides where home is | 2 | 3 | no | - | no | no | no | 2 owed; frame evening-wheel: it has changed since it was looked at (by 3.7 of 255 a channel); no yes from Morgan yet |
+| `wheel.home` The wheel decides where home is | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `wheel.groove` Each mood is a groove | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `wheel.borrow` The dark wedges | 3 | 2 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `voices.five` Five voices | 2 | 4 | no | - | no | no | no | 4 owed; no yes from Morgan yet |
 | `swell.walk` The swell walks home | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `swell.touch` Push hard for bright | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `swell.lean` The lean | 3 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `hands.told-apart` R1 and R2 told apart | 2 | 7 | no | - | no | no | no | 2 owed; frame evening-wheel: it has changed since it was looked at (by 3.7 of 255 a channel); frame evening-swell: it has changed since it was looked at (by 11.7 of 255 a channel); no yes from Morgan yet |
+| `hands.told-apart` R1 and R2 told apart | 2 | 7 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `breath.one` One breath | 2 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.scale` One to a hundred | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.true` Literally true | 1 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
@@ -206,7 +206,7 @@ asks its question.
 | `whole.law6` Travel | 1 | 1 | no | yes | no | no | no | 1 owed; no yes from Morgan yet |
 | `whole.law7` Building up | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.twice` Every cue twice | 1 | 3 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `whole.same` A take is its inputs | 1 | 1 | no | - | - | no | no | same_take.identical == 1  (is 0) |
+| `whole.same` A take is its inputs | 1 | 1 | yes | - | - | no | no | not graded |
 | `whole.alone` Whole alone, more together | 6 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.endless` The mornings never repeat | 5 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.lights` Every land's lights across the water | 3 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |

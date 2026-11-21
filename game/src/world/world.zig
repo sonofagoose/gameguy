@@ -2980,7 +2980,8 @@ pub const World = struct {
         }
         self.wheel_view += ((if (self.wheel_open) @as(f32, 1.0) else 0.0) - self.wheel_view) * 0.08;
         if (self.wheel_view < 0.0005) self.wheel_view = 0.0;
-        if (self.wheel_open) over_pool = 0.0;
+        // not while the wheel is open, nor in a fight: the view stays on what threatens
+        if (self.wheel_open or self.threatened()) over_pool = 0.0;
         self.pool_view += (over_pool - self.pool_view) * 0.012;
         if (self.pool_view < 0.0005) self.pool_view = 0.0;
         // out on standing water the view lifts behind Hum and looks down, so the line ahead and

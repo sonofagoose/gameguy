@@ -68,5 +68,5 @@ fact asters.great_climb_s 2.867
 fact asters.walk_s 52.483
 fact asters.top_out_of_frame 1.000
 fact asters.leaned_fov 13.000
-fact asters.leaned_bell_px 37.791
+fact asters.leaned_bell_px 37.790
 fact asters.hum_px_walking 22.729
