@@ -133,6 +133,8 @@ var started_tail: u32 = 0;
 var ready_cover: u8 = 0;
 /// Home's note, as the main thread last saw it, for the hands' early start of Hum's own sounds.
 var ready_home: u32 = @bitCast(world_mod.garden_hz);
+/// Hum is out of breath: the hands start no note on the sound's thread.
+var ready_winded: u8 = 0;
 var hands_most_us: u32 = 0;
 /// The clap's rule, kept where the presses are stamped (keys_mod.Clap), and how many claps the
 /// hands started.
@@ -244,7 +246,7 @@ fn handsNow() void {
                 }
                 break :blk snd.sample;
             },
-            .sing_down => snd.ownNow(.{ .at = 0, .kind = .hum_on, .own = sound_mod.own_hands, .hz = home, .gain = world_mod.voice_level }),
+            .sing_down => if (@atomicLoad(u8, &ready_winded, .monotonic) != 0) snd.sample else snd.ownNow(.{ .at = 0, .kind = .hum_on, .own = sound_mod.own_hands, .hz = home, .gain = world_mod.voice_level }),
             // the left face: inside the beat's window it is a strike timed by the hands, fuller and at
             // once; outside it the world places it on the next beat
             .strike_down => blk: {
@@ -804,10 +806,15 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
             };
             n += 1;
         }
-        // Hum's own light: it flares when Hum calls and holds while it sings
-        const fill = col8(bone, 0.40 + 0.60 * w.hum_light);
-        for (1..8) |k| {
-            const f = @as(f32, @floatFromInt(k)) / 8.0 * 2.0 - 1.0;
+        // Hum's own light: it flares when Hum calls and holds while it sings. Its breath is its
+        // lines: one for each home it holds, lit from the bottom as far as it has; winded, they
+        // pant
+        const most: usize = w.breath_most;
+        const pant: f32 = if (w.winded) 0.6 + 0.4 * @abs(@sin(@as(f32, @floatFromInt(w.step)) * (std.math.pi / 40.0))) else 1.0;
+        for (0..most) |k| {
+            const f = (@as(f32, @floatFromInt(k)) + 0.5) / @as(f32, @floatFromInt(most)) * 1.7 - 0.85;
+            const lit = std.math.clamp(w.breath - @as(f32, @floatFromInt(k)), 0.0, 1.0);
+            const fill = col8(bone, (0.40 + 0.60 * w.hum_light) * (0.18 + 0.82 * lit) * pant);
             const across = wide * @sqrt(1.0 - f * f);
             const sway = tip * (1.0 + f);
             out[n] = .{
@@ -1363,6 +1370,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             takeEdges();
             @atomicStore(u8, &ready_cover, @intFromEnum(world.cover), .monotonic);
             @atomicStore(u32, &ready_home, @bitCast(world.home_hz), .monotonic);
+            @atomicStore(u8, &ready_winded, @intFromBool(world.winded), .monotonic);
             var ran: u32 = 0;
             while (world.step < due and ran < 3) : (ran += 1) {
                 pose_before = Pose.of(&world);

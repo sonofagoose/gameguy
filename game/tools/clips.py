@@ -47,6 +47,9 @@ CLIPS = [
     ('39-a-stalk-brushed', 'brush', 0.5, 6.5,
      'Hum runs at the great aster and brushes its stalk: a short low knock where it touched, and the aster\'s bells ringing softly far overhead, each arriving when its sound has come down',
      'did brushing the stalk sound like touching something that belongs to the bells?'),
+    ('40-a-sprint', 'sprint', 0.5, 7.5,
+     'Hum sprints toward the great aster, the right face held: a soft breath on every half beat of Drip\'s tick, at home\'s note, until it lets go with breath to spare',
+     'did the sprint\'s breathing sound like a body running in time, or like a noise to switch off?'),
 ]
 
 

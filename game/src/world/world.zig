@@ -78,6 +78,24 @@ pub const timed_takes: f32 = 1.25;
 pub const gentle_widens: f64 = 1.5;
 /// Hum's run, with the stick pushed all the way (Morgan: "probably faster movement overall").
 pub const run_speed: f32 = 9.0;
+/// One breath (SPEC.md 9): how many homes it holds at first and at most (the ferry makes one
+/// more), what each thing costs of it, and how it comes back. A home is what one step home in the
+/// swell costs; a bar is four of Drip's ticks.
+pub const breath_first: u8 = 3;
+pub const breath_grows_to: u8 = 7;
+pub const bar_steps: f32 = 4.0 * @as(f32, @floatFromInt(tick_every));
+pub const hold_free_bars: u8 = 2;
+pub const hold_costs: f32 = 1.0 / 8.0;
+pub const step_costs: f32 = 1.0;
+pub const wheel_costs: f32 = 1.0 / 8.0;
+pub const sprint_costs: f32 = 1.0;
+pub const breath_in_after: u32 = tick_every / 2;
+pub const breath_in: f32 = 1.0 / @as(f32, @floatFromInt(tick_every));
+/// The sprint: the right face held while Hum walks, a quarter of the speed of sound.
+pub const sprint_speed: f32 = sound_speed / 4.0;
+/// A knot this near that is not home threatens, and the right face dodges instead.
+pub const threat_reach: f32 = 60.0;
+
 /// How wide Hum is from its middle, and an aster's stalk at its foot (draw/aster_lines.zig, girth):
 /// Hum goes round a stalk, never through it.
 pub const hum_body: f32 = 0.36;
@@ -563,6 +581,19 @@ pub const World = struct {
     looked_ago: u32 = 1000,
     /// How far Hum has walked, in metres: its stride, and what the ground does underfoot.
     stride: f32 = 0.0,
+    /// Hum's breath, in homes (SPEC.md 9): what it holds now, and the most it can hold.
+    breath: f32 = @floatFromInt(breath_first),
+    breath_most: u8 = breath_first,
+    /// Out of breath: nothing that spends it starts again until it is full.
+    winded: bool = false,
+    /// Steps since anything last spent breath; and the homes walked in the swell now sung.
+    quiet_for: u32 = 0,
+    walk_homes: u8 = 0,
+    /// Sprinting now, how many sprints, how many times the breath ran out and grew.
+    sprinting: bool = false,
+    sprints: u32 = 0,
+    breath_outs: u32 = 0,
+    breath_grew: u32 = 0,
     /// How many times Hum has brushed a stalk hard enough to ring it, and the step and aster of the
     /// last, so one brush rings once.
     bumps: u32 = 0,
@@ -1057,8 +1088,12 @@ pub const World = struct {
         // once, turns at a rate, and skids a little when let go
         var want_x: f32 = 0.0;
         var want_z: f32 = 0.0;
+        // the sprint: the right face held while walking, if nothing threatens and there is breath
+        const sprint_now = hands.held(Hands.dodge) and size > 0.12 and !self.winded and self.view == .place and self.stand >= 1.0 and !self.threatened();
+        if (sprint_now and !self.sprinting) self.sprints += 1;
+        self.sprinting = sprint_now;
         if (size > 0.12) {
-            const scale = @min(size, 1.0) / size * run_speed;
+            const scale = @min(size, 1.0) / size * (if (self.sprinting) sprint_speed else run_speed);
             var wx = mx;
             var wz = mz;
             if (self.view == .place) {
@@ -1144,7 +1179,7 @@ pub const World = struct {
         if (pressed & Hands.clap != 0) self.clap();
 
         // the right face dodges: a quick step aside, and on the beat a lunge lands on, the pocket
-        if (self.view == .place and self.stand >= 1.0 and pressed & Hands.dodge != 0) self.dodge();
+        if (self.view == .place and self.stand >= 1.0 and pressed & Hands.dodge != 0 and self.threatened()) self.dodge();
 
         // the left face strikes with Hum's fork (SPEC.md 10)
         // the left face strikes: timed by the hands near the beat, at once and fuller; otherwise the
@@ -1176,7 +1211,14 @@ pub const World = struct {
         // singing: Hum's one note for as long as R2 is held, and Hum swelling for as long. Beside
         // Drip, it hums with you. While a lock holds, both notes hold by themselves.
         const holding = self.step < self.hold_until;
-        if (pressed & Hands.sing != 0 and !holding) {
+        if (pressed & Hands.sing != 0 and !holding and self.winded) {
+            // winded: no note. The hands may already have started one on the sound's own thread
+            self.own_now = sound.own_hands;
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = self.home_hz, .strength = 0.0, .ring = 0.0 }, .dims));
+            self.own_now = sound.own_world;
+        }
+        if (pressed & Hands.sing != 0 and !holding and !self.winded) {
+            self.walk_homes = 0;
             self.swell_from = self.home_k;
             self.swell_bars = 0;
             self.swell_steered = false;
@@ -1236,6 +1278,7 @@ pub const World = struct {
             self.stand_from = self.step + 40;
         }
         if (self.singing and self.locked_at != never and self.step >= self.hold_until) self.swellStep(hands);
+        self.breathStep();
         if (self.drip != no_thing) self.dripStep();
         if (self.rung_first != no_thing) self.skyStep();
         if (self.clock_part + self.tempo >= 1.0) {
@@ -1446,6 +1489,8 @@ pub const World = struct {
                 const from = self.home_k;
                 const to: i8 = self.home_k + (if (rx > 0.0) @as(i8, 1) else -1);
                 if (self.moveHome(to)) {
+                    self.walk_homes +|= 1;
+                    self.spend(step_costs);
                     // walking home the long way: a grey creature whose full close home stood on comes
                     // home in passing as home walks on to the left (design/the-wheel.md, "A pack at dusk")
                     if (to < from) {
@@ -1480,6 +1525,14 @@ pub const World = struct {
         }
         self.startRing(self.hum_x, self.hum_z, self.home_hz, true, fullness);
         self.swell_bars = 0;
+        // a walk home that took the whole breath, landed: the breath grows by one (SPEC.md 9),
+        // and a new line lights on Hum with a high clear note
+        if (self.walk_homes >= self.breath_most and self.breath_most < breath_grows_to) {
+            self.breath_most += 1;
+            self.breath_grew += 1;
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .bell, .hz = self.home_hz * 2.0, .strength = 0.35, .ring = 2.0 }, .glow));
+        }
+        self.walk_homes = 0;
         // each grey creature near meets the door where home stands against its root; on Fierce only
         // the full close is a door, and the rest are plain endings
         for (self.knots[0..self.knot_count]) |*kn| {
@@ -2188,6 +2241,86 @@ pub const World = struct {
         }
     }
 
+    /// Whether something threatens Hum: a knot near that is not home. Then the right face dodges;
+    /// otherwise, held while walking, it sprints.
+    pub fn threatened(self: *const World) bool {
+        for (self.knots[0..self.knot_count]) |kn| {
+            if (kn.home) continue;
+            const dx = kn.x - self.hum_x;
+            const dz = kn.z - self.hum_z;
+            if (dx * dx + dz * dz <= threat_reach * threat_reach) return true;
+        }
+        return false;
+    }
+
+    /// Spend breath. Run out, and what was spending it stops.
+    fn spend(self: *World, homes: f32) void {
+        self.breath -= homes;
+        self.quiet_for = 0;
+        if (self.breath < -0.0001) self.outOfBreath();
+    }
+
+    /// One step of breath: singing (past its free bars), the wheel and the sprint spend it; silence
+    /// gives it back.
+    fn breathStep(self: *World) void {
+        var spending = false;
+        if (self.singing and self.step >= self.hold_until) {
+            spending = true;
+            if (self.walk_homes == 0 and self.swell_bars >= hold_free_bars) self.spend(hold_costs / bar_steps);
+        }
+        if (self.wheel_open) {
+            spending = true;
+            self.spend(wheel_costs / bar_steps);
+        }
+        if (self.sprinting) {
+            spending = true;
+            // a body that runs breathes: on every half beat of Drip's tick, a soft breath at home's
+            // note, and Hum's lines flare with it
+            if (self.clock % (tick_every / 2) == 0) {
+                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .stopped_pipe, .hz = self.home_hz, .strength = 0.05, .ring = 0.18 }, .glow));
+            }
+            self.spend(sprint_costs / bar_steps);
+        }
+        if (spending) {
+            self.quiet_for = 0;
+            return;
+        }
+        self.quiet_for +|= 1;
+        if (self.quiet_for <= breath_in_after) return;
+        const most: f32 = @floatFromInt(self.breath_most);
+        if (self.breath < most) {
+            self.breath = @min(most, self.breath + breath_in);
+            if (self.breath >= most and self.winded) {
+                // full again: a small breath in, Hum's lines lit
+                self.winded = false;
+                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.home_hz * 2.0, .strength = 0.08, .ring = 0.3 }, .glow));
+            }
+        }
+    }
+
+    /// Out of breath: the note thins away, the sprint drops to a run, the wheel closes where it was,
+    /// and a soft sigh. Hum is winded until its breath is full.
+    fn outOfBreath(self: *World) void {
+        self.breath = 0.0;
+        self.winded = true;
+        self.breath_outs += 1;
+        self.sprinting = false;
+        if (self.wheel_open) {
+            self.wheel_open = false;
+            self.wheel_point = null;
+        }
+        if (self.singing) {
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = self.home_hz, .strength = 0.0, .ring = 0.0 }, .dims));
+            if (self.drip_humming) {
+                self.drip_humming = false;
+                self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_off, .voice = 1, .hz = self.dripHz(), .strength = 0.0, .ring = 0.0 }, .dims));
+            }
+            self.swell_bars = 0;
+            self.walk_homes = 0;
+        }
+        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .stopped_pipe, .hz = self.home_hz, .strength = 0.12, .ring = 0.5 }, .dims));
+    }
+
     /// An aster's stalk is solid: a step into it goes round it instead, and a step that comes at it
     /// fast enough brushes it, and it rings.
     fn atStalks(self: *World, go_x: *f32, go_z: *f32) void {
@@ -2216,8 +2349,9 @@ pub const World = struct {
     }
 
     /// Brushing a stalk rings its bells (spec/shape.md): a knock where Hum touched it, the stalk lit
-    /// from its foot up, and every bell on it struck softly, each heard when its sound has come down
-    /// to Hum. Harder the faster Hum came.
+    /// from its foot up, and the aster's open fifth rung on its bells (its lowest note, the fifth
+    /// above and the octave), each heard when its sound has come down to Hum. Harder the faster Hum
+    /// came.
     fn brushStalk(self: *World, t: u16, speed: f32) void {
         self.bumps += 1;
         self.bumped_at = self.step;
@@ -2225,25 +2359,55 @@ pub const World = struct {
         const tw = self.towers[t];
         const hard = std.math.clamp((speed - bump_least) / (run_speed - bump_least), 0.0, 1.0);
         const strength = brush_rings * (0.25 + 0.75 * hard);
-        var bells: u32 = 0;
         var lowest: f32 = 0.0;
         for (self.things[tw.first .. tw.first + tw.count]) |th| {
             if (!th.sounds) continue;
-            bells += 1;
             if (lowest == 0.0 or th.hz < lowest) lowest = th.hz;
         }
-        // a stalk's many bells share one brush: together as loud as a few
-        const each = strength * 2.0 / @sqrt(@as(f32, @floatFromInt(@max(bells, 4))));
+        // the shake runs up it, the foot brightest
         var part: u32 = 0;
         for (tw.first..tw.first + tw.count) |i| {
             const th = &self.things[i];
-            if (!th.sounds) {
-                // the shake runs up it: the foot brightest
-                th.lit = @max(th.lit, strength * (1.0 - 0.06 * @as(f32, @floatFromInt(part))));
-                part += 1;
-                continue;
+            if (th.sounds) continue;
+            th.lit = @max(th.lit, strength * (1.0 - 0.06 * @as(f32, @floatFromInt(part))));
+            part += 1;
+        }
+        // and it rings the aster's open fifth: the lowest bell of its own note (the crown's, the
+        // topmost bell), the lowest of its fifth, and the next of its own note up, each heard when
+        // its sound has come down, so they arrive a note at a time. Not its third: a bell's own
+        // third partial on the chord's third rubs on the fifth for seconds
+        var crown: f32 = 0.0;
+        var crown_y: f32 = -1.0;
+        for (self.things[tw.first .. tw.first + tw.count]) |th| {
+            if (th.sounds and th.y > crown_y) {
+                crown_y = th.y;
+                crown = th.hz;
             }
-            self.tell(.{ .thing = @intCast(i) }, cues_mod.Cue.of(.{ .kind = .strike, .family = th.family, .hz = th.hz, .strength = each, .ring = th.ring }, .glow));
+        }
+        var root_low: f32 = 0.0;
+        for ([3]u8{ 0, 1, 2 }) |which| {
+            var pick: ?usize = null;
+            for (tw.first..tw.first + tw.count) |i| {
+                const th = self.things[i];
+                if (!th.sounds) continue;
+                // the bell's note against the crown's, brought into one octave
+                var r = th.hz / crown;
+                while (r >= 1.99) r *= 0.5;
+                while (r < 0.995) r *= 2.0;
+                const fits = switch (which) {
+                    0 => @abs(r - 1.0) < 0.01,
+                    1 => @abs(r - 1.5) < 0.015,
+                    else => @abs(r - 1.0) < 0.01 and th.hz > root_low * 1.5,
+                };
+                if (!fits) continue;
+                if (pick == null or th.hz < self.things[pick.?].hz) pick = i;
+            }
+            if (which == 0) {
+                if (pick) |pk| root_low = self.things[pk].hz;
+            }
+            const i = pick orelse continue;
+            const th = &self.things[i];
+            self.tell(.{ .thing = @intCast(i) }, cues_mod.Cue.of(.{ .kind = .strike, .family = th.family, .hz = th.hz, .strength = strength, .ring = th.ring }, .glow));
             th.rung_at = @truncate(self.step);
         }
         // the knock, where Hum touched it: the aster's lowest note, by octaves into what the
@@ -2421,7 +2585,7 @@ pub const World = struct {
     fn wheelStep(self: *World, hands: Hands) void {
         const stood = self.stand_from != never and self.step >= self.stand_from + 60 and self.locked_at != never and self.step >= self.hold_until;
         if (!self.wheel_open) {
-            if (stood and self.call_held >= wheel_after and !self.singing) {
+            if (stood and self.call_held >= wheel_after and !self.singing and !self.winded) {
                 self.wheel_open = true;
                 self.wheel_opens += 1;
                 self.wheel_point = null;
@@ -2437,7 +2601,10 @@ pub const World = struct {
             return;
         }
         // let go: home goes where the stick pointed, if that mood is awake
-        if (self.wheel_point) |k| _ = self.moveHome(k);
+        if (self.wheel_point) |k| {
+            const was = self.home_k;
+            if (self.moveHome(k) and k != was) self.spend(step_costs);
+        }
         self.wheel_open = false;
         self.wheel_point = null;
     }
@@ -2530,7 +2697,7 @@ pub const World = struct {
         const fx = @sin(self.look_yaw);
         const fz = -@cos(self.look_yaw);
         const wv = self.water_view * self.water_view * (3.0 - 2.0 * self.water_view);
-        const run = std.math.clamp(@sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz) / run_speed, 0.0, 1.0);
+        const run = std.math.clamp(@sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz) / run_speed, 0.0, sprint_speed / run_speed);
         const back = cam_back + self.lean * (lean_back - cam_back) + wv * (water_back - cam_back) + run * run_back;
         const up = cam_up + self.lean * (lean_up - cam_up) + wv * (water_up - cam_up) + run * run_up;
         var eye = [3]f32{ self.hum_x - fx * back, up, self.hum_z - fz * back };
@@ -2711,6 +2878,8 @@ pub const World = struct {
         mixIn(&h, self.knocked);
         for (self.knots[0..self.knot_count]) |kn| mixIn(&h, @as(u32, @bitCast(kn.colour)));
         mixIn(&h, self.swell_bars);
+        mixIn(&h, @as(u32, @bitCast(self.breath)));
+        mixIn(&h, self.breath_most);
         mixIn(&h, @truncate(self.clock));
         if (self.bee.thing != no_thing) {
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].x)));
@@ -4017,4 +4186,111 @@ test "an aster's stalk is solid: Hum goes round it, and a brush at a run rings i
     step = 0;
     while (step < 240) : (step += 1) _ = w.stepOnce(.{ .ly = -20 }, &cues);
     try std.testing.expectEqual(@as(u32, 0), w.bumps);
+}
+
+/// The Garden stood up after the lock, beside nothing, for the breath's tests.
+fn afterTheLock(w: *World) void {
+    w.initAsters();
+    w.hum_x = 300.0;
+    w.hum_z = -300.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.knot_count = 0;
+}
+
+test "one breath: holding a note is free at first, then slow; silence refills it; dodging costs nothing" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    try std.testing.expectEqual(@as(f32, 3.0), w.breath);
+    // begun just after a downbeat: two bars of a held note cost nothing
+    while (w.clock % (4 * tick_every) != 5) _ = w.stepOnce(.{}, &cues);
+    var step: u32 = 0;
+    while (step < 2 * 200 - 20) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expectEqual(@as(f32, 3.0), w.breath);
+    // then an eighth of a home a bar: eight more bars, about one home
+    step = 0;
+    while (step < 8 * 200) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expect(w.breath < 2.2 and w.breath > 1.8);
+    // nothing refills while the note is held
+    const held = w.breath;
+    step = 0;
+    while (step < 100) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expect(w.breath <= held);
+    // silence: full again in a few beats
+    step = 0;
+    while (step < 4 * tick_every) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(f32, 3.0), w.breath);
+    // with nothing threatening, the right face does not dodge, and standing it spends nothing
+    const dodged_was = w.dodged_at;
+    _ = w.stepOnce(.{ .buttons = Hands.dodge }, &cues);
+    try std.testing.expectEqual(@as(f32, 3.0), w.breath);
+    try std.testing.expectEqual(dodged_was, w.dodged_at);
+}
+
+test "the sprint: the right face held while walking runs at a quarter of the speed of sound, a home a bar" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    var step: u32 = 0;
+    var fastest: f32 = 0.0;
+    while (step < 200) : (step += 1) {
+        _ = w.stepOnce(.{ .lx = 127, .buttons = Hands.dodge }, &cues);
+        fastest = @max(fastest, @sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz));
+    }
+    try std.testing.expect(w.sprinting);
+    try std.testing.expect(fastest > sprint_speed * 0.95 and fastest <= sprint_speed + 0.001);
+    try std.testing.expect(w.breath < 2.05 and w.breath > 1.95);
+    // held on, it runs out after three bars in all: the sprint drops to a run, and Hum is winded
+    step = 0;
+    while (step < 2 * 200 + 10) : (step += 1) _ = w.stepOnce(.{ .lx = 127, .buttons = Hands.dodge }, &cues);
+    try std.testing.expect(!w.sprinting);
+    try std.testing.expect(w.winded);
+    try std.testing.expectEqual(@as(u32, 1), w.breath_outs);
+    step = 0;
+    while (step < 60) : (step += 1) _ = w.stepOnce(.{ .lx = 127, .buttons = Hands.dodge }, &cues);
+    try std.testing.expect(@sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz) <= run_speed + 0.001);
+    // winded, R2 sings nothing
+    _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expect(!w.singing);
+    // silent, the breath comes back; full, Hum is no longer winded
+    step = 0;
+    while (step < 5 * tick_every) : (step += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(!w.winded);
+}
+
+test "a walk home that takes the whole breath, landed, grows it by one" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    w.awake = 0xff;
+    var cues: [max_cues]sound.Cue = undefined;
+    // start the swell just after a downbeat
+    while (w.clock % (4 * tick_every) != 5) _ = w.stepOnce(.{}, &cues);
+    w.home_k = -2;
+    w.home_hz = wedgeHz(w.day_hz, -2);
+    var walked: u32 = 0;
+    var step: u32 = 0;
+    var pushed = false;
+    while (step < 5 * 200 and walked < 3) : (step += 1) {
+        // a nudge to the right on each downbeat, let back between
+        var h = Hands{ .buttons = Hands.sing };
+        const at_one = w.clock % (4 * tick_every) == 0;
+        if (at_one and !pushed) {
+            h.rx = 127;
+            pushed = true;
+        } else if (!at_one) pushed = false;
+        const was = w.home_k;
+        _ = w.stepOnce(h, &cues);
+        if (w.home_k != was) walked += 1;
+    }
+    try std.testing.expectEqual(@as(u32, 3), walked);
+    try std.testing.expect(!w.winded);
+    try std.testing.expect(w.breath < 0.01);
+    // hold to the next downbeat and let go on it: the walk lands, and the breath grows
+    while (w.clock % (4 * tick_every) != 0) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(u8, 4), w.breath_most);
+    try std.testing.expectEqual(@as(u32, 1), w.breath_grew);
 }

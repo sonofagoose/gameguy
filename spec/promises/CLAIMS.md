@@ -424,7 +424,7 @@ _Every sentence of the specification that promises a player something, read by
 ## `spec/laws.md` / The laws / Law 6: travel
 
 - spoken for by `laws.travel`: Sound moves at a speed you can see.
-- spoken for by `laws.travel`: Speed. About ten times Hum's run (to tune).
+- spoken for by `laws.travel`: Speed. About seven times Hum's run (to tune).
 - spoken for by `laws.travel`: A call's ring crosses a clearing in a breath and the lake in about a minute (62 seconds, size.md).
 - spoken for by `laws.travel`: Late arrivals. What happens far away is heard late, and seen when the sound arrives.
 - spoken for by `laws.travel`: Echoes. A wall sends a sound back after twice its distance.

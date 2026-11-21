@@ -45,6 +45,9 @@ sized before the stage that builds them._
   - `test a knot lunges to arrive on its one; a dodge on that beat opens the pocket, and a lunge not
     dodged knocks Hum back`
     Right face: dodge, and on the beat the pocket.
+  - `test the sprint: the right face held while walking runs at a quarter of the speed of sound, a
+    home a bar` Right face held: sprint, when nothing threatens; with a knot near, the press is a
+    dodge.
   - `test a strike timed within an eighth of a beat lands at once with its octave; off the beat the
     game places it on the next beat, plain`
     Left face: strike with the fork, timed by you or placed by the game.

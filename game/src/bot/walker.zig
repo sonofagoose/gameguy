@@ -47,6 +47,8 @@ pub const Walker = struct {
     /// How many stalks had been brushed before the run at the great aster, and when it rang.
     bumps_before: u32 = 0,
     brushed_at: ?u64 = null,
+    sprint_marked: bool = false,
+    breathed_at: ?u64 = null,
 
     fn next(self: *Walker, step: u64) void {
         self.phase += 1;
@@ -205,6 +207,14 @@ pub const Walker = struct {
                 const far = toward(w, &probe, tower.x, tower.z);
                 if (far > 9.0) {
                     h = probe;
+                    // a long way to go and breath to spare: sprint, and stop with some left
+                    if (far > 40.0 and w.breath > 1.5 and !w.winded) {
+                        h.buttons |= Hands.dodge;
+                        if (!self.sprint_marked and w.sprinting) {
+                            self.sprint_marked = true;
+                            self.mark = "sprint";
+                        }
+                    }
                 } else {
                     self.arrived_at = step;
                     self.next(step);
@@ -379,19 +389,28 @@ pub const Walker = struct {
                 if (w.crossed > 0 or far < 2.0 or after > 60 * 60) self.next(step);
             },
             13 => {
+                // first a breath: stand silent until it is full, for the wheel's jump costs a home
+                if (self.breathed_at == null) {
+                    if (w.winded or w.breath < @as(f32, @floatFromInt(w.breath_most))) {
+                        if (after > 60 * 20) self.breathed_at = after;
+                        return h;
+                    }
+                    self.breathed_at = after;
+                }
+                const from = self.breathed_at.?;
                 // stand still, hold R1: the wheel opens; point a twelfth of a turn left, at wonder,
                 // and let go there
-                if (after < 15) return h;
-                if (after < 95) {
+                if (after < from + 15) return h;
+                if (after < from + 95) {
                     h.buttons |= Hands.call;
-                    if (after >= 40) {
+                    if (after >= from + 40) {
                         h.rx = -63;
                         h.ry = -110;
                     }
-                    if (after == 80) self.mark = "wheel";
+                    if (after == from + 80) self.mark = "wheel";
                     return h;
                 }
-                if (after > 110) self.next(step);
+                if (after > from + 110) self.next(step);
             },
             14 => {
                 // home is wonder now: to the puddle sized for it
@@ -558,8 +577,8 @@ test "the scripted player walks to the great aster and hears its bells from its 
     }
     const mark = w.seen.get(.garden_asters);
     try std.testing.expect(mark.met);
-    // it is a real walk: 150 m at 6 m a second
-    try std.testing.expect(bot.arrived_at > 60 * 20);
+    // it is a real walk: the 141 m to its foot, no quicker than a sprint can cover it
+    try std.testing.expect(@as(f32, @floatFromInt(bot.arrived_at)) > 141.0 / world_mod.sprint_speed * 60.0);
     // and the bells came down late by the height: more than four seconds after the call
     try std.testing.expect(mark.first > bot.arrived_at + 215 + 240);
     try std.testing.expect(mark.held > 60);

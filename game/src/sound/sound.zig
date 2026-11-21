@@ -119,8 +119,9 @@ const Tone = struct {
 /// A held note's overtones, as the speaker or headphones are given them: which multiples of the
 /// note and how strong each is. A pure note is one; a stopped pipe its odd overtones, each the
 /// weaker for being higher; an open pipe all of them. Under the speaker's floor a partial is softer
-/// and its octave and twelfth carry what it lost; a stopped pipe has no octaves, so its twelfths
-/// carry it all and it stays hollow.
+/// and its octave carries what it lost (the fundamental's twelfth a share too); a stopped pipe has
+/// no octaves, so its fifth partial carries what the speaker could have said of the ones under the
+/// floor, and it stays hollow.
 pub const Held = struct { mult: [6]f32 = @splat(0.0), gain: [6]f32 = @splat(0.0), n: usize = 0 };
 
 pub fn heldParts(family: Family, hz: f32, speaker: bool) Held {
@@ -149,15 +150,45 @@ pub fn heldParts(family: Family, hz: f32, speaker: bool) Held {
         },
     }
     if (!speaker) return h;
-    const stopped = family == .stopped_pipe;
+    // a pipe too low for the speaker to say at all (the hose's, two octaves under the garden) is
+    // heard there two octaves up, whole: its note keeps its name and its shape, and stopped or open
+    // it stays an octave from itself. Its own partials, so far under the floor, would leave only its
+    // highest odd overtones, out of tune with everything near
+    const pipe = family == .stopped_pipe or family == .open_pipe;
+    if (pipe and hz < speaker_floor * 0.5) {
+        for (0..h.n) |k| h.mult[k] *= 4.0;
+        for (0..h.n) |k| h.gain[k] *= underFloor(hz * h.mult[k]);
+        return h;
+    }
+    if (family == .stopped_pipe) {
+        // hollow it stays, and in its own key, and no louder than it would be heard: a partial far
+        // under the floor is heard far softer than its energy says, so it hands up only as much
+        // as the speaker could have said of it, and to the fifth partial, the lowest the speaker
+        // says that sounds with the pipe's own note (its major third, two octaves up). Passed up
+        // twelfth by twelfth it piled onto the ninth partial, a whole step above the pipe's note,
+        // louder than everything else in the garden
+        var given: f32 = 0.0;
+        for (0..h.n) |k| {
+            const w = underFloor(hz * h.mult[k]);
+            if (w >= 1.0) continue;
+            given += h.gain[k] * h.gain[k] * (1.0 - w * w) * w;
+            h.gain[k] *= w;
+        }
+        for (0..h.n) |k| {
+            if (h.mult[k] == 5.0) h.gain[k] = @sqrt(h.gain[k] * h.gain[k] + given);
+        }
+        return h;
+    }
     var k: usize = 0;
     while (k < h.n) : (k += 1) {
         const w = underFloor(hz * h.mult[k]);
         if (w >= 1.0) continue;
         const lost = h.gain[k] * h.gain[k] * (1.0 - w * w);
         h.gain[k] *= w;
+        // up the octave, which keeps the note's name; and from the fundamental, its twelfth, the fifth
+        const from_root = h.mult[k] <= 1.01;
         const ups = [2]f32{ 2.0, 3.0 };
-        const shares = [2]f32{ if (stopped) 0.0 else to_octave, if (stopped) 1.0 else to_twelfth };
+        const shares = if (from_root) [2]f32{ to_octave, to_twelfth } else [2]f32{ 1.0, 0.0 };
         for (ups, shares) |up, share| {
             if (share == 0.0) continue;
             for (0..h.n) |j| {
@@ -208,8 +239,9 @@ const cut_a1: f32 = 2.0 * (cut_k * cut_k - 1.0) * cut_norm;
 const cut_a2: f32 = (1.0 - std.math.sqrt2 * cut_k + cut_k * cut_k) * cut_norm;
 
 /// A family's partials for a note, as the speaker is given them: each under the floor softer, and
-/// what it loses added to the partial an octave above it and the one a twelfth above it, or to new
-/// partials there in the slots the family leaves empty. The energy is kept.
+/// what it loses added to the partial an octave above it, and for the fundamental to the one a
+/// twelfth above it too, or to new partials there in the slots the family leaves empty. The energy
+/// is kept wherever there is a slot for it.
 pub fn forSpeaker(rec: Recipe, hz: f32) Recipe {
     var out = rec;
     for (0..8) |i| {
@@ -219,9 +251,15 @@ pub fn forSpeaker(rec: Recipe, hz: f32) Recipe {
         if (w >= 1.0) continue;
         const lost = rec.gain[i] * rec.gain[i] * (1.0 - w * w);
         out.gain[i] = rec.gain[i] * w;
+        // an octave never changes what a note is called, and the fundamental's twelfth is its
+        // fifth; a higher partial's twelfth would be a new note (the third partial's is the ninth,
+        // a whole step above the note's own name), so above the fundamental all of it goes up the
+        // octave
         const ups = [2]f32{ 2.0, 3.0 };
-        const shares = [2]f32{ to_octave, to_twelfth };
+        const from_root = rec.mult[i] <= 1.01;
+        const shares = if (from_root) [2]f32{ to_octave, to_twelfth } else [2]f32{ 1.0, 0.0 };
         for (ups, shares) |up, share| {
+            if (share == 0.0) continue;
             const want = rec.mult[i] * up;
             var at: ?usize = null;
             for (0..8) |j| {
@@ -992,5 +1030,36 @@ test "a pipe stopped at one end sounds only its odd overtones, an octave under t
     try std.testing.expect(at(span2, f0) < 0.01);
     // and on the speaker the stopped pipe stays hollow: its octaves are not made up for it
     const sp = heldParts(.stopped_pipe, f0, true);
-    for (0..sp.n) |k| try std.testing.expect(@mod(sp.mult[k], 2.0) == 1.0);
+    for (0..sp.n) |k| try std.testing.expect(@mod(sp.mult[k] / sp.mult[0], 2.0) == 1.0);
+}
+
+test "on the speaker a pipe too low to be heard sounds two octaves up, whole, and stays an octave from itself opened" {
+    const hz: f32 = 261.63 / 4.0;
+    const stopped = heldParts(.stopped_pipe, hz, true);
+    const open = heldParts(.open_pipe, hz * 2.0, true);
+    // the stopped hose: hollow, its lowest partial the garden's own C, two octaves up
+    for (0..stopped.n) |k| try std.testing.expectEqual(@as(f32, @floatFromInt(4 * (2 * k + 1))), stopped.mult[k]);
+    // opened: an octave above that, with every overtone
+    try std.testing.expectEqual(2.0 * hz * stopped.mult[0], hz * 2.0 * open.mult[0]);
+    for (0..open.n) |k| try std.testing.expectEqual(@as(f32, @floatFromInt(4 * (k + 1))), open.mult[k]);
+    // and no partial louder than the pipe has it
+    const plain = heldParts(.stopped_pipe, hz, false);
+    for (0..stopped.n) |k| try std.testing.expect(stopped.gain[k] <= plain.gain[k]);
+}
+
+test "on the speaker a stopped pipe it can nearly say stays hollow and in its own key: no partial piles up" {
+    // A under the garden's C
+    const hz: f32 = 220.0;
+    const h = heldParts(.stopped_pipe, hz, true);
+    const plain = heldParts(.stopped_pipe, hz, false);
+    var energy_in: f32 = 0.0;
+    var energy_out: f32 = 0.0;
+    for (0..plain.n) |k| energy_in += plain.gain[k] * plain.gain[k];
+    for (0..h.n) |k| energy_out += h.gain[k] * h.gain[k];
+    // no louder than the pipe, as a partial under the floor is heard softer than its energy says
+    try std.testing.expect(energy_out <= energy_in);
+    // odd partials only; what the floor took goes to the fifth partial, and nothing above it rises
+    for (0..h.n) |k| try std.testing.expectEqual(@as(f32, @floatFromInt(2 * k + 1)), h.mult[k]);
+    try std.testing.expect(h.gain[2] > plain.gain[2]);
+    for (3..h.n) |k| try std.testing.expectEqual(plain.gain[k], h.gain[k]);
 }

@@ -199,10 +199,19 @@ actionable differentiation"._
   of seven homes in one breath, and the breath grows.
 - **A cheat would be:** a stamina bar that refills on its own while you keep singing.
 - **Full size:**
-  - `owed` A test: Singing, the wheels, sprint and glide spend one breath and silence refills it.
-  - `owed` A test: Dodging and guarding cost nothing.
-  - `owed` A test: A breath holds three homes and grows by one with each longer walk landed, to
-    seven. And
-    the ferry makes eight.
-  - `owed` The breath is shown on Hum, never as a bar (`texture.md`).
+  - `test one breath: holding a note is free at first, then slow; silence refills it; dodging costs
+    nothing` A home of breath is what one step home in the swell costs. A held note is free for
+    two bars, then an eighth of a home a bar; nothing refills while it is held; silence gives a
+    home back each beat; the right face, with nothing threatening, spends nothing standing.
+  - `test the sprint: the right face held while walking runs at a quarter of the speed of sound, a
+    home a bar` Sprint spends a home a bar and, run out, drops to a run with Hum winded: no note
+    until the breath is full again.
+  - `test a walk home that takes the whole breath, landed, grows it by one` Three steps home on a
+    breath of three, landed on the downbeat: the breath holds four.
+  - `owed` A test: the wheels spend an eighth of a home a bar and the mood wheel's jump a home
+    (built in `game/src/world/world.zig`); the glide when it is built; guarding when it is built.
+  - `owed` The ferry makes eight.
+  - `owed` A frame: the breath shown on Hum as its lines, one for each home it holds, lit from the
+    bottom as far as it has, panting while winded (built in `game/src/dark.zig`), never as a bar
+    (`texture.md`).
 - **Asks:** Did running out of breath feel like a body, or like a meter?
