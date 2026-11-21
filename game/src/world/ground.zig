@@ -52,6 +52,7 @@ pub fn leafNote(x: f32, z: f32) usize {
 
 const pools = @import("pools.zig");
 const world = @import("world.zig");
+const std = @import("std");
 
 /// Whether a place is under a puddle's water (pools.zig): nothing grows there, and nothing lies
 /// there but what floats.
@@ -67,6 +68,55 @@ pub fn wet(x: f32, z: f32) bool {
         if (dx * dx + dz * dz < r * r) return true;
     }
     return false;
+}
+
+fn smooth01(t: f32) f32 {
+    const c = std.math.clamp(t, 0.0, 1.0);
+    return c * c * (3.0 - 2.0 * c);
+}
+
+/// The bowl's own ground, before the puddles level it (spec/shape.md, "The Garden: a bowl"): the
+/// Mirror Pool's still water at nought, the lowest point; from its shore the ground rises gently,
+/// eased at both ends, to the rim; behind the rim's wall the raised beds stand higher; and the
+/// spigot's rise at the back is the highest ground of all. Only sums and a square root: the same
+/// on every machine.
+pub fn bowlAt(x: f32, z: f32) f32 {
+    const L = world.land;
+    const dx = x - L.pool[0];
+    const dz = z - L.pool[1];
+    const r = @sqrt(dx * dx + dz * dz);
+    var h: f32 = if (r < L.pool[2]) 0.0 else if (r < L.rim[2]) L.bowl_depth * smooth01((r - L.pool[2]) / (L.rim[2] - L.pool[2])) else L.bowl_depth + L.bowl_beds;
+    const sx = x - L.rise[0];
+    const sz = z - L.rise[1];
+    const d = @sqrt(sx * sx + sz * sz);
+    if (d < L.rise[3]) {
+        const q = 1.0 - (d / L.rise[3]) * (d / L.rise[3]);
+        h += L.rise[2] * q * q;
+    }
+    return h;
+}
+
+/// How far round a puddle the ground eases from the slope to the water's level.
+pub const pad_blend: f32 = 30.0;
+
+/// Each puddle's place, radius and level (the bowl's height at its middle): water lies flat.
+pub const pads: [pools.garden.len][4]f32 = blk: {
+    @setEvalBranchQuota(100_000);
+    var out: [pools.garden.len][4]f32 = undefined;
+    for (pools.garden, 0..) |p, i| out[i] = .{ p.x, p.z, pools.radiusFor(p.shape, world.garden_hz * p.note), bowlAt(p.x, p.z) };
+    break :blk out;
+};
+
+/// The ground's height: the bowl's, levelled under each puddle.
+pub fn heightAt(x: f32, z: f32) f32 {
+    var h = bowlAt(x, z);
+    for (pads) |pad| {
+        const dx = x - pad[0];
+        const dz = z - pad[1];
+        const k = 1.0 - smooth01((@sqrt(dx * dx + dz * dz) - pad[2]) / pad_blend);
+        h += (pad[3] - h) * k;
+    }
+    return h;
 }
 
 /// What is underfoot: water where a puddle is, and the ground's cover everywhere else.

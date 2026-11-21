@@ -65,6 +65,12 @@ def read(path):
         elif what in ('pool', 'rim'):
             n = named(rest[2:], line_no)
             land[what] = (number(rest[0], line_no), number(rest[1], line_no), number(n['radius'][0], line_no), number(n['reeds'][0], line_no) if 'reeds' in n else '0.0')
+        elif what == 'bowl':
+            n = named(rest, line_no)
+            land['bowl'] = (number(n['depth'][0], line_no), number(n['beds'][0], line_no))
+        elif what == 'rise':
+            n = named(rest[2:], line_no)
+            land['rise'] = (number(rest[0], line_no), number(rest[1], line_no), number(n['height'][0], line_no), number(n['across'][0], line_no))
         elif what == 'spigot':
             land['spigot'] = (number(rest[0], line_no), number(rest[1], line_no), number(named(rest[2:], line_no)['tall'][0], line_no))
         elif what == 'hose' and rest and rest[0][0].isalpha():
@@ -124,7 +130,7 @@ def read(path):
             land['knot_strands'] = strands
         else:
             fail(line_no, f'nothing in a score is called {what}')
-    for need in ('note', 'wake', 'great', 'clear', 'lake', 'asters', 'knot_root', 'pool', 'rim', 'spigot', 'hose', 'hose_bore'):
+    for need in ('note', 'wake', 'great', 'clear', 'lake', 'asters', 'knot_root', 'pool', 'rim', 'spigot', 'hose', 'hose_bore', 'bowl', 'rise'):
         if need not in land:
             sys.exit(f'score: {path} says nothing of its {need}')
     for need in ('wake', 'great', 'clear', 'puddle', 'pool', 'hose', 'spigot'):
@@ -164,6 +170,11 @@ def write(land, src, out):
         f'pub const pool = [4]f32{{ {", ".join(land["pool"])} }};',
         '/// The bowl\'s rim: its middle and radius.',
         f'pub const rim = [3]f32{{ {", ".join(land["rim"][:3])} }};',
+        '/// The bowl\'s ground: how far it rises from the pool to the rim, and the beds above that.',
+        f'pub const bowl_depth: f32 = {land["bowl"][0]};',
+        f'pub const bowl_beds: f32 = {land["bowl"][1]};',
+        '/// The spigot\'s rise: where, how high above the rim, how far across.',
+        f'pub const rise = [4]f32{{ {", ".join(land["rise"])} }};',
         '/// The spigot: where, and how tall.',
         f'pub const spigot = [3]f32{{ {", ".join(land["spigot"])} }};',
         '/// The hose: the points its curve passes through, from the spigot to its end; its bore; how far',

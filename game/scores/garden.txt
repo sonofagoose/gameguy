@@ -36,6 +36,15 @@ pool 0 175 radius 150 reeds 45
 # the bowl's rim: no aster stands past it
 rim 0 175 radius 740
 
+# the bowl's ground (spec/shape.md, "The Garden: a bowl"): from the pool's still water, its lowest
+# point, it rises gently this far to the rim, and the raised beds behind the rim's brick wall stand
+# this much higher again. Height is the octave, a hundred metres to it (spec/shape.md, "Height")
+bowl depth 0 beds 0
+
+# the spigot's rise, the highest ground in the garden, at the back: where, how high above the rim,
+# and how far across
+rise 80 -560 height 0 across 130
+
 # the spigot, on the highest rise at the back: ten metres of brass
 spigot 80 -560 tall 10
 

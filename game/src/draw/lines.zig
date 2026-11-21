@@ -61,13 +61,34 @@ const line_vs =
     \\uniform float u_clear;
     \\out vec2 v_uv;
     \\out vec3 v_col;
+    \\uniform vec4 u_bowl;
+    \\uniform vec4 u_bowl2;
+    \\uniform vec4 u_rise;
+    \\uniform vec4 u_pads[6];
+    \\// the land's ground under a place (world/ground.zig, heightAt): the same sums
+    \\float smooth01(float t) { t = clamp(t, 0.0, 1.0); return t * t * (3.0 - 2.0 * t); }
+    \\float groundAt(vec2 p) {
+    \\    float r = length(p - u_bowl.xy);
+    \\    float h = r < u_bowl.z ? 0.0 : (r < u_bowl.w ? u_bowl2.x * smooth01((r - u_bowl.z) / (u_bowl.w - u_bowl.z)) : u_bowl2.x + u_bowl2.y);
+    \\    float d = length(p - u_rise.xy);
+    \\    if (d < u_rise.w) { float q = 1.0 - (d / u_rise.w) * (d / u_rise.w); h += u_rise.z * q * q; }
+    \\    for (int i = 0; i < 6; i++) {
+    \\        vec4 pad = u_pads[i];
+    \\        if (pad.z > 0.0) { float k = 1.0 - smooth01((length(p - pad.xy) - pad.z) / 30.0); h += (pad.w - h) * k; }
+    \\    }
+    \\    return h;
+    \\}
     \\void main() {
     \\    int id = gl_VertexID;
     \\    float e = (id >= 2) ? 1.0 : 0.0;
     \\    float s = ((id & 1) == 1) ? 1.0 : -1.0;
     \\    // the hinge: on the page everything lies flat, and it stands up from where it lies
-    \\    vec4 pa = u_vp * vec4(a_a.x, a_a.y * u_stand, a_a.z, 1.0);
-    \\    vec4 pb = u_vp * vec4(a_b.x, a_b.y * u_stand, a_b.z, 1.0);
+    \\    // the sky's lines, given with a width below nought, stand on no ground
+    \\    bool sky = a_wb.x < 0.0;
+    \\    float ga = sky ? 0.0 : groundAt(a_a.xz);
+    \\    float gb = sky ? 0.0 : groundAt(a_b.xz);
+    \\    vec4 pa = u_vp * vec4(a_a.x, (a_a.y + ga) * u_stand, a_a.z, 1.0);
+    \\    vec4 pb = u_vp * vec4(a_b.x, (a_b.y + gb) * u_stand, a_b.z, 1.0);
     \\    const float nr = 0.05;
     \\    if (pa.w < nr && pb.w < nr) {
     \\        gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
@@ -86,7 +107,6 @@ const line_vs =
     \\    vec4 p = e > 0.5 ? pb : pa;
     \\    // Far parts of a figure are fainter and thinner; the sky's lines, given with a width below
     \\    // nought, are not.
-    \\    bool sky = a_wb.x < 0.0;
     \\    float nearness = sky ? 1.0 : clamp(u_fade / p.w, u_far.x, 1.0);
     \\    float hw = abs(a_wb.x) * (0.55 + (0.45 + u_far.y) * nearness);
     \\    vec2 px = (e > 0.5 ? sb : sa) + nrm * (s * hw) + dir * ((e * 2.0 - 1.0) * hw * 0.5);
@@ -120,8 +140,25 @@ const occ_vs =
     \\uniform mat4 u_vp;
     \\uniform float u_stand;
     \\out float v_w;
+    \\uniform vec4 u_bowl;
+    \\uniform vec4 u_bowl2;
+    \\uniform vec4 u_rise;
+    \\uniform vec4 u_pads[6];
+    \\// the land's ground under a place (world/ground.zig, heightAt): the same sums
+    \\float smooth01(float t) { t = clamp(t, 0.0, 1.0); return t * t * (3.0 - 2.0 * t); }
+    \\float groundAt(vec2 p) {
+    \\    float r = length(p - u_bowl.xy);
+    \\    float h = r < u_bowl.z ? 0.0 : (r < u_bowl.w ? u_bowl2.x * smooth01((r - u_bowl.z) / (u_bowl.w - u_bowl.z)) : u_bowl2.x + u_bowl2.y);
+    \\    float d = length(p - u_rise.xy);
+    \\    if (d < u_rise.w) { float q = 1.0 - (d / u_rise.w) * (d / u_rise.w); h += u_rise.z * q * q; }
+    \\    for (int i = 0; i < 6; i++) {
+    \\        vec4 pad = u_pads[i];
+    \\        if (pad.z > 0.0) { float k = 1.0 - smooth01((length(p - pad.xy) - pad.z) / 30.0); h += (pad.w - h) * k; }
+    \\    }
+    \\    return h;
+    \\}
     \\void main() {
-    \\    gl_Position = u_vp * vec4(a_pos.x, a_pos.y * u_stand, a_pos.z, 1.0);
+    \\    gl_Position = u_vp * vec4(a_pos.x, (a_pos.y + groundAt(a_pos.xz)) * u_stand, a_pos.z, 1.0);
     \\    v_w = gl_Position.w;
     \\}
 ;
@@ -144,12 +181,37 @@ const ground_vs =
     \\uniform mat4 u_vp;
     \\uniform vec2 u_from;
     \\uniform vec2 u_to;
+    \\uniform float u_stand;
     \\out vec2 v_uv;
     \\out float v_w;
+    \\uniform vec4 u_bowl;
+    \\uniform vec4 u_bowl2;
+    \\uniform vec4 u_rise;
+    \\uniform vec4 u_pads[6];
+    \\// the land's ground under a place (world/ground.zig, heightAt): the same sums
+    \\float smooth01(float t) { t = clamp(t, 0.0, 1.0); return t * t * (3.0 - 2.0 * t); }
+    \\float groundAt(vec2 p) {
+    \\    float r = length(p - u_bowl.xy);
+    \\    float h = r < u_bowl.z ? 0.0 : (r < u_bowl.w ? u_bowl2.x * smooth01((r - u_bowl.z) / (u_bowl.w - u_bowl.z)) : u_bowl2.x + u_bowl2.y);
+    \\    float d = length(p - u_rise.xy);
+    \\    if (d < u_rise.w) { float q = 1.0 - (d / u_rise.w) * (d / u_rise.w); h += u_rise.z * q * q; }
+    \\    for (int i = 0; i < 6; i++) {
+    \\        vec4 pad = u_pads[i];
+    \\        if (pad.z > 0.0) { float k = 1.0 - smooth01((length(p - pad.xy) - pad.z) / 30.0); h += (pad.w - h) * k; }
+    \\    }
+    \\    return h;
+    \\}
+    \\const int cells = 16;
     \\void main() {
-    \\    vec2 q = vec2(float(gl_VertexID & 1), float(gl_VertexID >> 1));
+    \\    // a tile is cells by cells squares, two triangles each, so it lies on the ground's curve
+    \\    int cell = gl_VertexID / 6;
+    \\    int k = gl_VertexID - cell * 6;
+    \\    ivec2 c = ivec2(cell % cells, cell / cells);
+    \\    ivec2 o = k == 0 ? ivec2(0, 0) : k == 1 ? ivec2(1, 0) : k == 2 ? ivec2(0, 1) : k == 3 ? ivec2(1, 0) : k == 4 ? ivec2(1, 1) : ivec2(0, 1);
+    \\    vec2 q = vec2(c + o) / float(cells);
     \\    v_uv = q;
-    \\    gl_Position = u_vp * vec4(mix(u_from.x, u_to.x, q.x), 0.02, mix(u_from.y, u_to.y, q.y), 1.0);
+    \\    vec2 xz = mix(u_from, u_to, q);
+    \\    gl_Position = u_vp * vec4(xz.x, (0.02 + groundAt(xz)) * u_stand, xz.y, 1.0);
     \\    v_w = gl_Position.w;
     \\}
 ;
@@ -279,6 +341,11 @@ pub const Renderer = struct {
     dawn: [2]f32 = .{ 0.5, 0.0 },
     occ_prog: c.GLuint = 0,
     occ_u_vp: c.GLint = -1,
+    /// The land's ground, for the shaders (world/ground.zig): the bowl, its beds, the spigot's rise
+    /// and the puddles' levels; and where each program takes them.
+    shape: [9][4]f32 = @splat(@splat(0.0)),
+    shape_u: [3][4]c.GLint = @splat(@splat(-1)),
+    ground_u_stand: c.GLint = -1,
     decay_prog: c.GLuint = 0,
     decay_u_src: c.GLint = -1,
     decay_u_cur: c.GLint = -1,
@@ -381,6 +448,10 @@ pub const Renderer = struct {
         self.occ_u_clear = gl.GetUniformLocation(self.occ_prog, "u_clear");
         self.ground_prog = plat.linkProgram(ground_vs, ground_fs, "the ground") orelse return false;
         self.ground_u_vp = gl.GetUniformLocation(self.ground_prog, "u_vp");
+        self.ground_u_stand = gl.GetUniformLocation(self.ground_prog, "u_stand");
+        for ([3]c.GLuint{ self.line_prog, self.occ_prog, self.ground_prog }, 0..) |prog, k| {
+            self.shape_u[k] = .{ gl.GetUniformLocation(prog, "u_bowl"), gl.GetUniformLocation(prog, "u_bowl2"), gl.GetUniformLocation(prog, "u_rise"), gl.GetUniformLocation(prog, "u_pads") };
+        }
         self.ground_u_from = gl.GetUniformLocation(self.ground_prog, "u_from");
         self.ground_u_to = gl.GetUniformLocation(self.ground_prog, "u_to");
         self.ground_u_tex = gl.GetUniformLocation(self.ground_prog, "u_ground");
@@ -565,6 +636,8 @@ pub const Renderer = struct {
         gl.Uniform1i(self.ground_u_tex, 0);
         gl.Uniform1f(self.ground_u_gain, self.ground_gain);
         gl.Uniform1f(self.ground_u_fade, self.fade);
+        gl.Uniform1f(self.ground_u_stand, self.stand);
+        self.sendShape(2);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_FALSE);
@@ -595,7 +668,7 @@ pub const Renderer = struct {
             gl.Uniform2f(self.ground_u_from, x0, z0);
             gl.Uniform2f(self.ground_u_to, x0 + step_x, z0 + step_z);
             gl.BindTexture(c.GL_TEXTURE_2D, self.ground_tiles[i]);
-            gl.DrawArrays(c.GL_TRIANGLE_STRIP, 0, 4);
+            gl.DrawArrays(c.GL_TRIANGLES, 0, 6 * 16 * 16);
         }
         self.ground_frames +|= 1;
         gl.BindVertexArray(0);
@@ -613,11 +686,30 @@ pub const Renderer = struct {
         gl.BindBuffer(c.GL_ARRAY_BUFFER, 0);
     }
 
+    /// The land's ground (world/ground.zig): the pool's middle, its radius and the rim's; the bowl's
+    /// depth and the beds'; the spigot's rise; and up to six puddles' place, radius and level.
+    pub fn setShape(self: *Renderer, bowl: [4]f32, bowl2: [4]f32, rise: [4]f32, pads: []const [4]f32) void {
+        self.shape = @splat(@splat(0.0));
+        self.shape[0] = bowl;
+        self.shape[1] = bowl2;
+        self.shape[2] = rise;
+        for (pads[0..@min(pads.len, 6)], 0..) |p, i| self.shape[3 + i] = p;
+    }
+
+    fn sendShape(self: *const Renderer, k: usize) void {
+        const u = self.shape_u[k];
+        gl.Uniform4f(u[0], self.shape[0][0], self.shape[0][1], self.shape[0][2], self.shape[0][3]);
+        gl.Uniform4f(u[1], self.shape[1][0], self.shape[1][1], self.shape[1][2], self.shape[1][3]);
+        gl.Uniform4f(u[2], self.shape[2][0], self.shape[2][1], self.shape[2][2], self.shape[2][3]);
+        gl.Uniform4fv(u[3], 6, &self.shape[3][0]);
+    }
+
     fn drawOcc(self: *Renderer, vp: *const m.M4) void {
         if (self.occ_verts == 0) return;
         gl.UseProgram(self.occ_prog);
         gl.UniformMatrix4fv(self.occ_u_vp, 1, c.GL_FALSE, vp);
         gl.Uniform1f(self.occ_u_stand, self.stand);
+        self.sendShape(1);
         gl.Uniform1f(self.occ_u_clear, self.clear);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
@@ -642,6 +734,7 @@ pub const Renderer = struct {
         gl.Uniform1f(self.line_u_fade, self.fade);
         gl.Uniform2f(self.line_u_far, self.far_floor, self.heft);
         gl.Uniform1f(self.line_u_stand, self.stand);
+        self.sendShape(0);
         gl.Uniform1f(self.line_u_emit, self.emit);
         gl.Uniform1f(self.line_u_clear, self.clear);
         gl.Enable(c.GL_DEPTH_TEST);

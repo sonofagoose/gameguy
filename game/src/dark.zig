@@ -767,11 +767,11 @@ const Backlight = struct {
 // for the whole field, 62 cm to a dot, where the specification asks for one for each piece of
 // land at 25 cm. It is kept in a file between sessions, so the ground still holds yesterday.
 const ground_size = 2048;
-const ground_from = [2]f32{ -640.0, -1090.0 };
-const ground_span: f32 = 1280.0;
+const ground_from = [2]f32{ -760.0, -585.0 };
+const ground_span: f32 = 1520.0;
 const ground_block = 64;
 const ground_blocks = ground_size / ground_block;
-const ground_file = "keep/asters-ground.rgb";
+const ground_file = "keep/garden-ground.rgb";
 const ground_most: f32 = 150.0;
 var ground: [ground_size * ground_size * 3]u8 = undefined;
 var ground_dirty: [ground_blocks * ground_blocks]bool = @splat(false);
@@ -1078,6 +1078,9 @@ pub fn run(window: plat.Window, options: Options) bool {
             // to the picture is not the first time this GPU is asked to change one
             ground_dirty[((0 - @as(i32, @intFromFloat(ground_from[1]))) * ground_size / @as(i32, @intFromFloat(ground_span)) / ground_block) * ground_blocks + ((0 - @as(i32, @intFromFloat(ground_from[0]))) * ground_size / @as(i32, @intFromFloat(ground_span)) / ground_block)] = true;
             renderer.setGround(ground_size, ground_from, .{ ground_from[0] + ground_span, ground_from[1] + ground_span }, &ground);
+            // the land's ground, for the lines to stand on
+            const L = world_mod.land;
+            renderer.setShape(.{ L.pool[0], L.pool[1], L.pool[2], L.rim[2] }, .{ L.bowl_depth, L.bowl_beds, 0.0, 0.0 }, L.rise, &world_mod.ground.pads);
             log("the ground: {s}", .{if (remembered) "as it was left" else "black: nothing has been sung on it yet"});
             log("the {s}: {d} asters, {d} things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave", .{ name, world.tower_count, world.thing_count });
         },

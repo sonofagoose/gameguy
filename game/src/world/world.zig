@@ -651,6 +651,9 @@ pub const World = struct {
     /// Built from the Garden's score (scores/garden.txt), with its Mirror Pool; a world made for a
     /// test of one thing has none.
     in_garden: bool = false,
+    /// The ground's height where Hum stands (world/ground.zig): a thing's y is its height above its
+    /// own ground, and the ground's height is added where height is seen or heard.
+    hum_ground: f32 = 0.0,
     /// The hose (world/hose.zig): its thing, which sounds and shines as the drone from its nearest
     /// stretch; whether its knot has sprung open; when the water set out from the knot and when it
     /// reached the pool; when the figure sat on the pool's edge.
@@ -772,6 +775,7 @@ pub const World = struct {
         self.in_garden = true;
         self.hum_x = land.wake[0];
         self.hum_z = land.wake[1];
+        self.hum_ground = ground.heightAt(self.hum_x, self.hum_z);
         self.view = .place;
         self.ring_reach = 900.0;
         var plans: [asters.max_towers]asters.Plan = undefined;
@@ -909,7 +913,8 @@ pub const World = struct {
                 const hx = thing.x - self.hum_x;
                 const hz = thing.z - self.hum_z;
                 const flat = @max(0.0, @sqrt(hx * hx + hz * hz) - thing.spread);
-                const far = @sqrt(flat * flat + thing.y * thing.y);
+                const up = thing.y + self.groundAt(thing.x, thing.z) - self.hum_ground;
+                const far = @sqrt(flat * flat + up * up);
                 const delay: u64 = @intFromFloat(far / sound_speed * sound.rate);
                 const level: f32 = if (what.sound.kind == .strike) answer_level else voice_level;
                 const kept = 1.0 / (1.0 + (far / thing.carry) * (far / thing.carry));
@@ -930,7 +935,8 @@ pub const World = struct {
                 self.next_spark +%= 1;
                 const hx = place.x - self.hum_x;
                 const hz = place.z - self.hum_z;
-                const far = @sqrt(hx * hx + hz * hz + place.y * place.y);
+                const up = place.y + self.groundAt(place.x, place.z) - self.hum_ground;
+                const far = @sqrt(hx * hx + hz * hz + up * up);
                 const delay: u64 = @intFromFloat(far / sound_speed * sound.rate);
                 const kept = 1.0 / (1.0 + (far / small_carry) * (far / small_carry));
                 self.send(now_sample + lead + delay, .{ .at = 0, .kind = what.sound.kind, .family = what.sound.family, .hz = what.sound.hz, .gain = what.sound.strength * answer_level * kept, .ring = what.sound.ring, .dull = far / (small_carry * 4.0) }, no_thing, what.light);
@@ -1022,6 +1028,7 @@ pub const World = struct {
         if (self.view == .place) self.atShore(&go_x, &go_z);
         self.hum_x += go_x;
         self.hum_z += go_z;
+        self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
         if (size > 0.12 and self.view == .place and self.stand >= 1.0) self.underfoot();
         if (self.view == .place and self.pool_count > 0) self.crossings();
         if (self.view == .place) self.cover = ground.underfootAt(self.hum_x, self.hum_z);
@@ -1181,7 +1188,8 @@ pub const World = struct {
                 for (self.things[0..self.thing_count]) |*thing| {
                     const dx = thing.x - ring.x;
                     const dz = thing.z - ring.z;
-                    const far = @sqrt(dx * dx + dz * dz + thing.y * thing.y);
+                    const up = thing.y + self.groundAt(thing.x, thing.z) - self.groundAt(ring.x, ring.z);
+                    const far = @sqrt(dx * dx + dz * dz + up * up);
                     if (far > before and far <= reach) thing.lit = @max(thing.lit, 0.6);
                 }
                 continue;
@@ -1189,7 +1197,8 @@ pub const World = struct {
             for (self.things[0..self.thing_count], 0..) |*thing, index| {
                 const dx = thing.x - ring.x;
                 const dz = thing.z - ring.z;
-                const far = @sqrt(dx * dx + dz * dz + thing.y * thing.y);
+                const up = thing.y + self.groundAt(thing.x, thing.z) - self.groundAt(ring.x, ring.z);
+                const far = @sqrt(dx * dx + dz * dz + up * up);
                 if (far <= before or far > reach) continue;
                 thing.lit = 1.0;
                 if (!thing.sounds) continue;
@@ -1930,7 +1939,8 @@ pub const World = struct {
             const d = self.things[self.drip];
             const dx = d.x - self.hum_x;
             const dz = d.z - self.hum_z;
-            delay += @intFromFloat(@sqrt(dx * dx + dz * dz + d.y * d.y) / sound_speed * sound.rate);
+            const up = d.y + self.groundAt(d.x, d.z) - self.hum_ground;
+            delay += @intFromFloat(@sqrt(dx * dx + dz * dz + up * up) / sound_speed * sound.rate);
         }
         const step = if (sample > delay) (sample - delay) / samples_per_step else 0;
         const k = step / tick_every;
@@ -2035,6 +2045,11 @@ pub const World = struct {
     /// or down off a belly, is free; walking up into a belly is turned along the line, and a belly
     /// throws Hum back toward the line, harder the louder it is. Still water gives no grip: a step
     /// on it is a fifth of one, and it floats Hum back to the nearest shore.
+    /// The ground's height at a place, in the Garden; nought in a world made for a test.
+    pub fn groundAt(self: *const World, x: f32, z: f32) f32 {
+        return if (self.in_garden) ground.heightAt(x, z) else 0.0;
+    }
+
     /// The Mirror Pool is still and deep: Hum stops at its edge, and a step that would go in slides
     /// along the shore instead.
     fn atShore(self: *World, go_x: *f32, go_z: *f32) void {
@@ -2358,6 +2373,9 @@ pub const World = struct {
             }
             fov = page_fov + (fov - page_fov) * s;
         }
+        // the place stands on the ground: the eye rides with Hum's, as far as the place stands up
+        eye[1] += self.hum_ground * s;
+        at[1] += self.hum_ground * s;
         return .{ .eye = eye, .at = at, .fov = fov, .stand = s };
     }
 
