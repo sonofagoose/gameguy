@@ -1724,6 +1724,8 @@ pub fn run(window: plat.Window, options: Options) bool {
         }
         parts[1] = (plat.now() - began) * 1000.0;
         var moving_n: usize = 0;
+        var pools_from: usize = 0;
+        var pools_to: usize = 0;
         if (options.scene != .dark) {
             // each maker of moving lines, timed, so the one that runs long can be named
             const makers = .{ "the sun", "the stars", "the dawn's edge", "halos", "the evening", "sparks", "the bee", "pools", "the wheel", "the swell", "knots", "ghosts", "the clap", "the hose's hum", "water", "the figure" };
@@ -1742,7 +1744,9 @@ pub fn run(window: plat.Window, options: Options) bool {
             moving_n += aster_lines.beeLines(&world, moving[moving_n..]);
             maker_ms[2] += plat.now() - t0;
             t0 = plat.now();
+            pools_from = moving_n;
             moving_n += aster_lines.poolLines(&world, eye, moving[moving_n..]);
+            pools_to = moving_n;
             maker_ms[3] += plat.now() - t0;
             t0 = plat.now();
             moving_n += aster_lines.wheelLines(&world, moving[moving_n..]);
@@ -1761,7 +1765,11 @@ pub fn run(window: plat.Window, options: Options) bool {
         moving_n += movingLines(&world, eye, moving[moving_n..]);
         maker_ms[6] += plat.now() - t1;
         t1 = plat.now();
-        if (world.in_garden) lines.lift(moving[0..moving_n], &world_mod.ground.heightAt);
+        // the puddles' lines stand at their own water's level already
+        if (world.in_garden) {
+            lines.lift(moving[0..pools_from], &world_mod.ground.heightAt);
+            lines.lift(moving[pools_to..moving_n], &world_mod.ground.heightAt);
+        }
         maker_ms[7] += plat.now() - t1;
         moving_most = @max(moving_most, moving_n);
         most_lines = @max(most_lines, picked.lines + moving_n);

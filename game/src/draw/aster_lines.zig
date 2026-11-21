@@ -933,11 +933,25 @@ pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
     const pollen = [3]f32{ 1.0, 0.82, 0.38 };
     // the water heaves on the world's beat, slower while time is thick
     const seconds: f64 = (@as(f64, @floatFromInt(w.clock)) + @as(f64, w.clock_part)) * (1.0 / 60.0);
+    // walking, with the view level, a puddle wholly behind the eye is not seen: nothing is made for it
+    const looking_level = w.stand >= 1.0 and w.wheel_view < 0.01 and w.pool_view < 0.01;
+    const fx = @sin(w.look_yaw);
+    const fz = -@cos(w.look_yaw);
     for (w.pools[0..w.pool_count]) |*p| {
         const body: f32 = @floatFromInt(thing_body + p.thing);
         const ex = eye[0] - p.x;
         const ez = eye[2] - p.z;
         const eye_far = @sqrt(ex * ex + ez * ez);
+        if (looking_level and (-ex) * fx + (-ez) * fz < -p.r - 20.0) continue;
+        const first = n;
+        defer {
+            // its water lies level: every line of it stands at the puddle's own level
+            const level = w.groundAt(p.x, p.z);
+            for (out[first..n]) |*l| {
+                l.a[1] += level;
+                l.b[1] += level;
+            }
+        }
         // the water's edge, a still line of its own
         const rim_n: usize = 96;
         for (0..rim_n) |k| {
@@ -1049,9 +1063,14 @@ pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
             // a lobe on its way up catches the light and one on its way down goes dark, so the
             // heaving is seen even in a single frame: lit and dark lobes, changing places
             const lift = 1.0 / pools.heave_m;
-            for (1..rings_n) |ri| {
-                for (0..around) |ai| {
-                    const bi = (ai + 1) % around;
+            // far off, every second ring and spoke: a quarter of the lines, the same water
+            const coarse: usize = if (eye_far > p.r + 200.0) 2 else 1;
+            var ri: usize = coarse;
+            while (ri < rings_n) : (ri += coarse) {
+                var ai0: usize = 0;
+                while (ai0 < around) : (ai0 += coarse) {
+                    const ai = ai0;
+                    const bi = (ai + coarse) % around;
                     const m = @max(moves[ri][ai], moves[ri][bi]);
                     if (m < 0.04) continue;
                     if (n >= out.len) return n;
@@ -1061,13 +1080,15 @@ pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
                 }
             }
             var ai: usize = 0;
-            while (ai < around) : (ai += 2) {
-                for (0..rings_n) |ri| {
-                    const m = @max(moves[ri][ai], moves[ri + 1][ai]);
+            while (ai < around) : (ai += 2 * coarse) {
+                var r0: usize = 0;
+                while (r0 + coarse <= rings_n) : (r0 += coarse) {
+                    const r1 = r0 + coarse;
+                    const m = @max(moves[r0][ai], moves[r1][ai]);
                     if (m < 0.04) continue;
                     if (n >= out.len) return n;
-                    const up = @max(0.0, (heave[ri][ai] + heave[ri + 1][ai]) * 0.5 * lift);
-                    out[n] = .{ .a = .{ px[ri][ai], 0.1 + heave[ri][ai], pz[ri][ai] }, .b = .{ px[ri + 1][ai], 0.1 + heave[ri + 1][ai], pz[ri + 1][ai] }, .half_width = 1.0, .body = 0.0, .col = col8(water, 0.04 + 0.16 * m + 0.62 * up) };
+                    const up = @max(0.0, (heave[r0][ai] + heave[r1][ai]) * 0.5 * lift);
+                    out[n] = .{ .a = .{ px[r0][ai], 0.1 + heave[r0][ai], pz[r0][ai] }, .b = .{ px[r1][ai], 0.1 + heave[r1][ai], pz[r1][ai] }, .half_width = 1.0, .body = 0.0, .col = col8(water, 0.04 + 0.16 * m + 0.62 * up) };
                     n += 1;
                 }
             }
