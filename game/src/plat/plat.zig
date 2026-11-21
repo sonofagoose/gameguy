@@ -12,6 +12,7 @@ fn SdlFn(comptime name: []const u8) type {
 /// The SDL2 functions the toy calls. Each is `SDL_<name>`, filled in by `loadSdl`.
 pub const sdl = struct {
     pub var Init: SdlFn("Init") = undefined;
+    pub var SetHint: SdlFn("SetHint") = undefined;
     pub var Quit: SdlFn("Quit") = undefined;
     pub var GetError: SdlFn("GetError") = undefined;
     pub var GL_SetAttribute: SdlFn("GL_SetAttribute") = undefined;
@@ -28,6 +29,7 @@ pub const sdl = struct {
     pub var GetDesktopDisplayMode: SdlFn("GetDesktopDisplayMode") = undefined;
     pub var ShowCursor: SdlFn("ShowCursor") = undefined;
     pub var PollEvent: SdlFn("PollEvent") = undefined;
+    pub var GetKeyboardState: SdlFn("GetKeyboardState") = undefined;
     pub var OpenAudioDevice: SdlFn("OpenAudioDevice") = undefined;
     pub var PauseAudioDevice: SdlFn("PauseAudioDevice") = undefined;
     pub var CloseAudioDevice: SdlFn("CloseAudioDevice") = undefined;
@@ -37,6 +39,7 @@ pub const sdl = struct {
     pub var IsGameController: SdlFn("IsGameController") = undefined;
     pub var GameControllerOpen: SdlFn("GameControllerOpen") = undefined;
     pub var GameControllerClose: SdlFn("GameControllerClose") = undefined;
+    pub var GameControllerGetAttached: SdlFn("GameControllerGetAttached") = undefined;
     pub var GameControllerName: SdlFn("GameControllerName") = undefined;
     pub var GameControllerGetButton: SdlFn("GameControllerGetButton") = undefined;
     pub var GameControllerGetAxis: SdlFn("GameControllerGetAxis") = undefined;
@@ -232,6 +235,8 @@ pub fn checkGl(where: []const u8) bool {
 pub const WindowOptions = struct {
     /// A 640x480 window instead of the whole screen.
     windowed: bool = false,
+    /// The window that many times the handheld's screen, for playing on a laptop.
+    scale: u8 = 1,
     /// Depth buffer bits (0: none).
     depth_bits: u8 = 0,
     /// Multisampling (0 or 1: none). Falls back to none if the driver refuses.
@@ -254,8 +259,8 @@ fn openWindowWith(options: WindowOptions) ?Window {
     const windowed = options.windowed;
     var desktop: c.SDL_DisplayMode = undefined;
     const have_desktop = sdl.GetDesktopDisplayMode(0, &desktop) == 0;
-    const width: c_int = if (!windowed and have_desktop and desktop.w > 0) desktop.w else 640;
-    const height: c_int = if (!windowed and have_desktop and desktop.h > 0) desktop.h else 480;
+    const width: c_int = if (!windowed and have_desktop and desktop.w > 0) desktop.w else 640 * @as(c_int, options.scale);
+    const height: c_int = if (!windowed and have_desktop and desktop.h > 0) desktop.h else 480 * @as(c_int, options.scale);
 
     sdl.GL_ResetAttributes();
     _ = sdl.GL_SetAttribute(c.SDL_GL_CONTEXT_PROFILE_MASK, c.SDL_GL_CONTEXT_PROFILE_ES);

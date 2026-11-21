@@ -1250,6 +1250,53 @@ fn dumpSongbook(dir: [*:0]const u8) void {
     }
 }
 
+/// The keyboard as a handheld, for playing on a laptop: the left stick on W A S D (Ctrl held, half
+/// way), the right stick on the arrows; R1 E, R2 R, L1 Q, L2 Z; the bottom face Space, the right face
+/// Shift, the left face F, the top face G; Start Tab, Select Backspace; Esc held is Select and Start
+/// together, which leaves. A pad's own hands come through as they are.
+fn withKeys(pad_hands: Hands) Hands {
+    var numkeys: c_int = 0;
+    const raw = sdl.GetKeyboardState(&numkeys) orelse return pad_hands;
+    const keys = raw[0..@intCast(numkeys)];
+    const down = struct {
+        fn f(k: []const u8, code: c_int) bool {
+            const i: usize = @intCast(code);
+            return i < k.len and k[i] != 0;
+        }
+    }.f;
+    var h = pad_hands;
+    const ax = @as(f32, @floatFromInt(@intFromBool(down(keys, c.SDL_SCANCODE_D)))) - @as(f32, @floatFromInt(@intFromBool(down(keys, c.SDL_SCANCODE_A))));
+    const az = @as(f32, @floatFromInt(@intFromBool(down(keys, c.SDL_SCANCODE_S)))) - @as(f32, @floatFromInt(@intFromBool(down(keys, c.SDL_SCANCODE_W))));
+    if (ax != 0.0 or az != 0.0) {
+        const len = @sqrt(ax * ax + az * az);
+        const push: f32 = if (down(keys, c.SDL_SCANCODE_LCTRL) or down(keys, c.SDL_SCANCODE_RCTRL)) 63.0 else 127.0;
+        h.lx = @intFromFloat(ax / len * push);
+        h.ly = @intFromFloat(az / len * push);
+    }
+    const lx = @as(f32, @floatFromInt(@intFromBool(down(keys, c.SDL_SCANCODE_RIGHT)))) - @as(f32, @floatFromInt(@intFromBool(down(keys, c.SDL_SCANCODE_LEFT))));
+    const lz = @as(f32, @floatFromInt(@intFromBool(down(keys, c.SDL_SCANCODE_DOWN)))) - @as(f32, @floatFromInt(@intFromBool(down(keys, c.SDL_SCANCODE_UP))));
+    if (lx != 0.0) h.rx = @intFromFloat(lx * 110.0);
+    if (lz != 0.0) h.ry = @intFromFloat(lz * 110.0);
+    const map = [_]struct { code: c_int, bit: u16 }{
+        .{ .code = c.SDL_SCANCODE_E, .bit = Hands.call },
+        .{ .code = c.SDL_SCANCODE_R, .bit = Hands.sing },
+        .{ .code = c.SDL_SCANCODE_Q, .bit = Hands.voice },
+        .{ .code = c.SDL_SCANCODE_Z, .bit = Hands.guard },
+        .{ .code = c.SDL_SCANCODE_SPACE, .bit = Hands.jump },
+        .{ .code = c.SDL_SCANCODE_LSHIFT, .bit = Hands.dodge },
+        .{ .code = c.SDL_SCANCODE_RSHIFT, .bit = Hands.dodge },
+        .{ .code = c.SDL_SCANCODE_F, .bit = Hands.strike },
+        .{ .code = c.SDL_SCANCODE_G, .bit = Hands.grab },
+        .{ .code = c.SDL_SCANCODE_TAB, .bit = Hands.start },
+        .{ .code = c.SDL_SCANCODE_BACKSPACE, .bit = Hands.select },
+        .{ .code = c.SDL_SCANCODE_ESCAPE, .bit = Hands.select | Hands.start },
+    };
+    for (map) |m_| {
+        if (down(keys, m_.code)) h.buttons |= m_.bit;
+    }
+    return h;
+}
+
 fn flatGround(x: f32, z: f32) f32 {
     _ = x;
     _ = z;
@@ -1417,7 +1464,7 @@ pub fn run(window: plat.Window, options: Options) bool {
     const device: c.SDL_AudioDeviceID = if (options.headless) 0 else openAudio();
     defer if (device != 0) sdl.CloseAudioDevice(device);
     var wav: ?Wav = if (options.wav) |path| Wav.open(path) else null;
-    const pad = if (options.headless) Pad{} else Pad.open();
+    var pad = if (options.headless) Pad{} else Pad.open();
     var replay: ?take.Player = null;
     if (options.replay) |path| {
         replay = loadTake(path);
@@ -1489,6 +1536,17 @@ pub fn run(window: plat.Window, options: Options) bool {
         var event: c.SDL_Event = undefined;
         while (sdl.PollEvent(&event) != 0) {
             if (event.type == c.SDL_QUIT) running = false;
+            // a pad plugged in while playing (on a laptop) is taken up; one pulled out is let go
+            if (event.type == c.SDL_CONTROLLERDEVICEADDED and pad.handle == null and !options.headless) pad = Pad.open();
+            if (event.type == c.SDL_CONTROLLERDEVICEREMOVED) {
+                if (pad.handle) |handle| {
+                    if (sdl.GameControllerGetAttached(handle) == c.SDL_FALSE) {
+                        sdl.GameControllerClose(handle);
+                        pad = .{};
+                        log("controls: the controller was unplugged; the keyboard plays", .{});
+                    }
+                }
+            }
         }
 
         // the steps that are due
@@ -1515,7 +1573,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             if (wav) |*w| w.write(&buf);
             steps_run += 1;
         } else {
-            const held = pad.read();
+            const held = withKeys(pad.read());
             if (held.held(Hands.select) and held.held(Hands.start)) leaving += 1 else leaving = 0;
             if (leaving > 30) running = false;
             // Start let go, Select not pressed with it: the songbook opens, and the world waits; Start

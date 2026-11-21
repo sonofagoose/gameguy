@@ -18,6 +18,7 @@ const log = plat.log;
 const Args = struct {
     headless: bool = false,
     windowed: bool = false,
+    scale: u8 = 1,
     bench_lines: bool = false,
     frames: u32 = 0,
     dump: ?[*:0]const u8 = null,
@@ -52,6 +53,10 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
             args.headless = true;
         } else if (std.mem.eql(u8, a, "--windowed")) {
             args.windowed = true;
+        } else if (std.mem.eql(u8, a, "--scale") and i + 1 < n) {
+            // a window this many times the handheld's screen
+            i += 1;
+            args.scale = std.fmt.parseInt(u8, std.mem.span(argv[i]), 10) catch 1;
         } else if (std.mem.eql(u8, a, "--lines")) {
             args.bench_lines = true;
         } else if (std.mem.eql(u8, a, "--controls")) {
@@ -380,13 +385,16 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     const args = parseArgs(argc, argv);
     if (args.log_path) |path| plat.log_file = c.fopen(path, "w");
     if (!plat.loadSdl()) return 1;
+    // a pad's face buttons are read by where they are, never by the letters printed on them
+    // (SPEC.md, 10): a Nintendo-style pad otherwise swaps them by label
+    _ = sdl.SetHint("SDL_GAMECONTROLLER_USE_BUTTON_LABELS", "0");
     if (args.controls) return controls();
     if (sdl.Init(c.SDL_INIT_VIDEO | c.SDL_INIT_AUDIO | c.SDL_INIT_GAMECONTROLLER) != 0) {
         log("SDL did not start: {s}", .{std.mem.span(sdl.GetError())});
         return 1;
     }
     defer sdl.Quit();
-    const window = plat.openWindow(.{ .windowed = args.windowed or args.headless, .depth_bits = 16 }) orelse return 1;
+    const window = plat.openWindow(.{ .windowed = args.windowed or args.headless, .scale = if (args.headless) 1 else @max(args.scale, 1), .depth_bits = 16 }) orelse return 1;
 
     var ok = true;
     if (args.room) |dir| {
