@@ -1,0 +1,24 @@
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+room: 46 items (the ear check, 10 promises to walk, 3 checks for the hands, 31 clips for the ears)
+room: held by jj
+room: promise evening.black: going there (dark)
+lines: light 640x480, trail 320x240 in half floats
+the dark: R1 calls, R2 hums, the left stick walks; Select and Start together leave
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+the dark: 1578 frames, 0 late, 2.22 ms of work a frame (worst 4.05); 1616 steps, 80 frames ran two; 7 calls, 182 answers; cues late 0, refused 0; slowest sound buffer 0.32 ms; real-time sound yes; most lines in a frame 139
+the slowest frame was 103 (step 104): steps done by 0.21 ms, the land by 0.22, the moving lines by 0.22, drawn by 4.05; nothing was picked
+witness evening.call first=199 held=755
+witness whole.law1 first=199 held=0
+witness whole.law6 first=199 held=0
+room: promise evening.black: going there (dark)
+the dark: R1 calls, R2 hums, the left stick walks; Select and Start together leave
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad
+the dark: 477 frames, 0 late, 2.29 ms of work a frame (worst 3.12); 487 steps, 18 frames ran two; 1 calls, 26 answers; cues late 0, refused 0; slowest sound buffer 0.21 ms; real-time sound yes; most lines in a frame 75
+the slowest frame was 99 (step 101): steps done by 0.32 ms, the land by 0.33, the moving lines by 0.33, drawn by 3.12; nothing was picked
+witness evening.call first=130 held=291
+witness whole.law1 first=130 held=0
+witness whole.law6 first=130 held=0
+room: promise evening.black no by jj; visit: met -, stayed 0.0 s, calls 1, 8 s there, went 2
+room: left after 2 of 46 items were answered

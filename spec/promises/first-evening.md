@@ -89,8 +89,15 @@ twenty minutes anyone has with the game, so each one is held to its largest read
   - `frame evening-figure` Hum and the drip on the page with the figure between them, turning.
   - `frame evening-locked` The same, still.
   - `fact evening.breaths_to_lock == 4`
-  - `owed` A player with poor timing takes longer and still gets there, and nothing ever tells them
-    they missed.
+  - `test a newcomer who copies Drip, letting go a reaction late, gets in within eight breaths` A
+    player with poor timing takes longer and still gets there, and nothing ever tells them they
+    missed: each breath let go outside the window lets the next be 50 ms later, up to 200 ms more.
+    Morgan's first evening let go 220 to 360 ms after the tick, as people do.
+  - `test a newcomer pressing R2 at random, nothing to do with the ticks, still gets in`
+  - `test beside a silent Hum Drip shows its breath: it hums from a downbeat and lets go on a tick`
+    Nothing shows the breath but Drip: beside a silent Hum it hums three beats and lets go on the
+    tick, then rests a bar; half a beat before each tick a softer note and its light gathering; the
+    figure, their beating, only while both sound.
   - `fact ears.breath1_beats >= 1.6` Read back from the sound itself: on the first breath the two
     notes beat almost twice a second.
   - `fact ears.breath4_beats <= 0.6` By the fourth they beat less than once in two seconds.

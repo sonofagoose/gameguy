@@ -1,0 +1,27 @@
+clocks as started: cpu performance, gpu performance, memory performance
+clocks now: cpu performance, gpu performance, memory performance
+priority: nice 0, real-time limit 40; storage interrupts on core(s) 3 ; run with: taskset -c 0-2
+backlight as started: 200
+Failed to create secure directory (/run/user/1000//pulse): No such file or directory
+display: switched from its 59 Hz mode to its 60 Hz mode
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2553 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+the take: written as it is played, into keep/takes/evening-00001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+the take: closed, 5397 changes of the hands over 21897 steps
+the evening: 19728 frames, 359 late, 8.56 ms of work a frame (worst 29.56); 21897 steps, 2254 frames ran two; 49 calls, 7687 answers; cues late 618, refused 0; slowest sound buffer 1.27 ms; real-time sound yes; most lines in a frame 28876
+the hands: 62 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.24 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 62 of them already sounding; 0 calls choked by a clap just after; 0 strikes timed and 0 placed in all
+the screen: a frame shown every 18.48 ms on average
+a frame's work: under 8 ms 8749, under 12 8735, under 16 1860, over 16 353; of those over 14 ms the most was the steps in 336, the land 61, the moving lines 423, sending 2, drawing 1
+the moving lines on average: the sky 0.00 ms, halos 0.00, Drip and sparks and the bee 0.02, pools 1.72, the wheel and the fight 0.16, the hose's water 0.06, rings and Hum 0.06, lifting them onto the ground 1.57; at most 10098 lines
+a frame's parts on average: the steps 2.02 ms, the land 0.40, the moving lines 3.59, sent to the GPU 0.41, drawn 2.08, waiting for the screen 9.90
+the picture between steps: while Hum walked it moved 15.1 cm a frame, varying by 2.3 cm as shown, and by 4.7 cm as it would have been by whole steps (5693 frames)
+the slowest frame was 1697 (step 1791): steps done by 4.02 ms, the land by 15.02, the moving lines by 20.44, sent to the GPU by 22.89, drawn by 29.56, the backlight set by 29.56; the land was picked again
+witness evening.call first=1685 held=8754
+witness whole.law1 first=1262 held=0
+witness whole.law6 first=1262 held=0
+exit code 0

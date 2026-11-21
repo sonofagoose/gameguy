@@ -278,6 +278,12 @@ pub const tick_swing: u32 = 4;
 pub const drip_flat: f32 = -4.0;
 /// Letting go within this many steps of a tick is breathing with it.
 pub const breath_window: u32 = 8;
+/// People let go of a note when they hear the tick, a reaction later (Morgan's first evening: 220 to
+/// 360 ms after it). Each breath let go outside the window lets the next be this much later, up to
+/// this much in all: a player with poor timing takes longer and still gets there, and is never told
+/// of a miss.
+pub const breath_slack_step: u64 = 2400;
+pub const breath_slack_most: u64 = 9600;
 pub const breaths_to_lock: u32 = 4;
 /// How near Hum must be for the two to breathe together.
 pub const beside: f32 = 5.0;
@@ -644,6 +650,32 @@ pub const World = struct {
     bumps: u32 = 0,
     bumped_at: u64 = 0,
     bumped_tower: u16 = no_tower,
+    /// Drip breathing on its own beside a silent Hum, to show how (it hums from a downbeat for three
+    /// beats and lets go on the fourth tick), and how many times it has.
+    drip_showing: bool = false,
+    drip_shows: u32 = 0,
+    /// After showing, Drip rests a bar before it shows again.
+    drip_rest_until: u64 = 0,
+    /// How much later than the window a breath may be let go and still count: grown by misses.
+    breath_slack: u64 = 0,
+    /// Where a player was held up, for the session's log: when Hum first came beside Drip, when the
+    /// view leaned in, when Hum first hummed there; how many breaths were tried and how far the
+    /// first sixteen were let go from the tick, in milliseconds (after it is above nought); presses
+    /// with no verb yet; knocks before the place stood.
+    beside_first_at: u64 = never,
+    leaned_first_at: u64 = never,
+    hummed_beside_at: u64 = never,
+    breaths_tried: u32 = 0,
+    breath_offsets: [16]i16 = @splat(0),
+    dark_presses: u32 = 0,
+    knocked_in_dark: u32 = 0,
+    first_jump_at: u64 = never,
+    first_sprint_at: u64 = never,
+    first_glide_at: u64 = never,
+    first_strike_at: u64 = never,
+    first_wheel_at: u64 = never,
+    /// The step of Drip's last upbeat.
+    upbeat_at: u64 = never,
     /// The stalk Hum is against now, if any: a brush rings only as it begins.
     touching: u16 = no_tower,
     /// The sideways pull of Hum's turning, eased: it leans into a turn.
@@ -1103,7 +1135,15 @@ pub const World = struct {
         return @abs(3.0 * garden_hz - 2.0 * self.dripHz());
     }
 
-    fn besideDrip(self: *const World) bool {
+    /// How brightly the figure between Hum and Drip is drawn: it is their two notes beating (law 5),
+    /// so it is there only while both sound, and still once they have locked.
+    pub fn figureLight(self: *const World) f32 {
+        if (self.locked_at != never) return 1.0;
+        if (self.drip_humming or self.step < self.hold_until) return 0.85;
+        return 0.0;
+    }
+
+    pub fn besideDrip(self: *const World) bool {
         if (self.drip == no_thing or self.drip_met) return false;
         const d = self.things[self.drip];
         const dx = d.x - self.hum_x;
@@ -1137,12 +1177,21 @@ pub const World = struct {
         const mx = @as(f32, @floatFromInt(hands.lx)) * (1.0 / 127.0);
         const mz = @as(f32, @floatFromInt(hands.ly)) * (1.0 / 127.0);
         const size = @sqrt(mx * mx + mz * mz);
+        // on the page the face buttons have no verb yet; a press is still answered, softly, so a
+        // hand finding its buttons in the dark is never met with nothing
+        if (self.stand < 1.0 and self.view == .place and pressed & (Hands.jump | Hands.dodge | Hands.strike | Hands.grab) != 0) {
+            self.dark_presses +|= 1;
+            const at = Place{ .x = self.hum_x, .y = 0.3, .z = self.hum_z };
+            self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = self.home_hz * 2.0, .strength = 0.05, .ring = 0.12 }, .glow));
+            self.hum_light = @max(self.hum_light, 0.35);
+        }
         // the bottom face: on the ground a jump; in the air it opens or closes the glide
         if (pressed & Hands.jump != 0 and self.view == .place and self.stand >= 1.0) {
             if (!self.airborne) {
                 self.airborne = true;
                 self.hum_vy = jump_speed;
                 self.jumps += 1;
+                if (self.first_jump_at == never) self.first_jump_at = self.step;
                 // the push off: a short note a fifth over home, and Hum flares
                 self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * 1.5, .strength = 0.12, .ring = 0.2 }, .glow));
             } else if (self.gliding) {
@@ -1150,6 +1199,7 @@ pub const World = struct {
             } else if (!self.winded) {
                 self.gliding = true;
                 self.glides += 1;
+                if (self.first_glide_at == never) self.first_glide_at = self.step;
                 self.tell(.hum, cues_mod.Cue.of(.{ .kind = .tone, .voice = glide_voice, .family = .open_pipe, .hz = self.home_hz * 2.0, .strength = 0.05, .ring = 0.0 }, .glow));
             }
         }
@@ -1160,7 +1210,10 @@ pub const World = struct {
         var want_z: f32 = 0.0;
         // the sprint: the right face held while walking, if nothing threatens and there is breath
         const sprint_now = hands.held(Hands.dodge) and size > 0.12 and !self.winded and !self.airborne and self.view == .place and self.stand >= 1.0 and !self.threatened();
-        if (sprint_now and !self.sprinting) self.sprints += 1;
+        if (sprint_now and !self.sprinting) {
+            self.sprints += 1;
+            if (self.first_sprint_at == never) self.first_sprint_at = self.step;
+        }
         self.sprinting = sprint_now;
         if (size > 0.12) {
             const scale = @min(size, 1.0) / size * (if (self.sprinting) sprint_speed else run_speed);
@@ -1339,6 +1392,7 @@ pub const World = struct {
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .hz = self.home_hz, .strength = 1.0, .ring = 0.0 }, .swell));
             self.own_now = sound.own_world;
             if (self.besideDrip()) {
+                if (self.hummed_beside_at == never) self.hummed_beside_at = self.step;
                 self.drip_humming = true;
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.7, .ring = 0.0 }, .swell));
             }
@@ -1348,9 +1402,17 @@ pub const World = struct {
             if (self.drip_humming) {
                 // letting go on its tick is a breath together, and each one brings its note truer.
                 // Letting go off the tick is nothing: no penalty, and nobody says so.
-                if (@as(f64, @floatFromInt(self.fromHeardTick(self.own_at))) <= self.widen(@floatFromInt(breath_window * samples_per_step)) and self.breaths < breaths_to_lock) {
+                const off = self.afterHeardTick(self.own_at);
+                const early = self.widen(@floatFromInt(breath_window * samples_per_step));
+                const late = early + @as(f64, @floatFromInt(self.breath_slack));
+                const on_it = @as(f64, @floatFromInt(off)) >= -early and @as(f64, @floatFromInt(off)) <= late;
+                if (self.breaths_tried < self.breath_offsets.len) self.breath_offsets[self.breaths_tried] = @intCast(std.math.clamp(@divTrunc(off, 48), -32000, 32000));
+                self.breaths_tried +|= 1;
+                if (on_it and self.breaths < breaths_to_lock) {
                     self.breaths += 1;
                     locking = self.breaths == breaths_to_lock;
+                } else if (!on_it) {
+                    self.breath_slack = @min(self.breath_slack + breath_slack_step, breath_slack_most);
                 }
             }
             if (locking) {
@@ -1989,6 +2051,7 @@ pub const World = struct {
         self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
         self.hum_light = 0.0;
         self.knocked += 1;
+        if (self.stand < 1.0) self.knocked_in_dark += 1;
         for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.6, .ring = 0.4 }, .glow));
     }
 
@@ -1996,6 +2059,8 @@ pub const World = struct {
     /// the knot's cycle, which is a bar stretched by home's pitch against the knot's root. Their
     /// pulses are heard and seen once for each step of the world's beat.
     fn knotStep(self: *World) void {
+        // while the world is a page the knots lie still: nothing comes at Hum before it can answer
+        if (self.stand < 1.0) return;
         const bar: f64 = @floatFromInt(4 * tick_every);
         const beat_moves = self.clock_part + self.tempo >= 1.0;
         for (self.knots[0..self.knot_count], 0..) |*kn, ki| {
@@ -2195,6 +2260,29 @@ pub const World = struct {
     /// How many samples from `sample` to the nearest of Drip's ticks as Hum hears it: told on its
     /// step, a lead later, and late by the way from Drip to Hum. A breath is judged against what
     /// is heard, to the sample.
+    /// How far a sample is from the nearest of Drip's ticks as Hum hears it, in samples: after it
+    /// above nought, before it below.
+    pub fn afterHeardTick(self: *const World, sample: u64) i64 {
+        var delay: u64 = lead;
+        if (self.drip != no_thing) {
+            const d = self.things[self.drip];
+            const dx = d.x - self.hum_x;
+            const dz = d.z - self.hum_z;
+            const up = d.y + self.groundAt(d.x, d.z) - self.hum_ground;
+            delay += @intFromFloat(@sqrt(dx * dx + dz * dz + up * up) / sound_speed * sound.rate);
+        }
+        const step = if (sample > delay) (sample - delay) / samples_per_step else 0;
+        const k = step / tick_every;
+        var best: i64 = std.math.maxInt(i64);
+        var i: u64 = if (k > 0) k - 1 else 0;
+        while (i <= k + 1) : (i += 1) {
+            const heard_at: i64 = @intCast(tickStep(i) * samples_per_step + delay);
+            const off = @as(i64, @intCast(sample)) - heard_at;
+            if (@abs(off) < @abs(best)) best = off;
+        }
+        return best;
+    }
+
     pub fn fromHeardTick(self: *const World, sample: u64) u64 {
         var delay: u64 = lead;
         if (self.drip != no_thing) {
@@ -2748,13 +2836,47 @@ pub const World = struct {
         const dx = d.x - self.hum_x;
         const dz = d.z - self.hum_z;
         const far = @sqrt(dx * dx + dz * dz);
+        // close by, before the two have locked: the time to learn its breath
+        const teaching = !self.drip_met and self.locked_at == never and far <= beside * 1.6;
+        if (teaching and self.beside_first_at == never) self.beside_first_at = self.step;
+        if (teaching and self.near_in > 0.9 and self.leaned_first_at == never) self.leaned_first_at = self.step;
+        // its upbeat: half a beat before each tick a softer note a step lower, and its light
+        // gathering into the tick, so the moment to let go is seen and heard coming
+        if (teaching and untilTick(self.clock) == tick_every / 2 and self.upbeat_at != self.clock) {
+            self.upbeat_at = self.clock;
+            self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = self.dripHz(), .strength = 0.14, .ring = 0.1 }, .glow));
+        }
+        if (teaching) {
+            const coming = 1.0 - @as(f32, @floatFromInt(@min(untilTick(self.clock), tick_every / 2))) / @as(f32, @floatFromInt(tick_every / 2));
+            d.loud = @max(d.loud, 0.5 * coming * coming);
+        }
         // its tick: a plink and a flash, softer and dimmer the farther off it is
         if (self.ticked_at != self.clock and fromTick(self.clock) == 0 and untilTick(self.clock) == 0) {
             self.ticked_at = self.clock;
             self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = self.dripHz() * 2.0, .strength = 0.55, .ring = 0.16 }, .glow));
+            // beside a silent Hum, with the view leaned in, it breathes on its own to show how: it
+            // hums from a downbeat for three beats and lets go on the fourth tick, then rests
+            const k = self.clock / tick_every;
+            const showing = teaching and far <= beside and self.near_in > 0.6 and !self.singing and !self.drip_humming;
+            if (showing and k % 4 == 0 and !self.drip_showing and self.clock >= self.drip_rest_until) {
+                self.drip_showing = true;
+                self.drip_shows += 1;
+                self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.6, .ring = 0.0 }, .swell));
+            } else if (self.drip_showing and k % 4 == 3) {
+                self.drip_showing = false;
+                self.drip_rest_until = self.clock + 4 * tick_every;
+                self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_off, .voice = 1, .hz = self.dripHz(), .strength = 0.0, .ring = 0.0 }, .dims));
+            }
+            // a silent Hum beside it answers its tick in light: Hum's own note is its kin (law 1)
+            if (teaching and far <= beside and !self.singing) self.hum_light = @max(self.hum_light, 0.3);
+        }
+        // Hum began to hum, or went: Drip stops showing (if Hum hums, it hums with Hum instead)
+        if (self.drip_showing and (self.singing or self.drip_humming or far > beside * 1.6)) {
+            self.drip_showing = false;
+            if (!self.drip_humming) self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_off, .voice = 1, .hz = self.dripHz(), .strength = 0.0, .ring = 0.0 }, .dims));
         }
         // while it hums with Hum, or holds, it shines
-        if (self.drip_humming or self.step < self.hold_until) d.loud = @max(d.loud, 0.85);
+        if (self.drip_humming or self.drip_showing or self.step < self.hold_until) d.loud = @max(d.loud, 0.85);
         // the figure between the two voices turns as fast as they beat. Once they are true it
         // turns no more, and it falls into step (law 3): it settles on the nearer of the two
         // places where its three lobes and its two stand open and even.
@@ -2782,6 +2904,7 @@ pub const World = struct {
             if (stood and self.call_held >= wheel_after and !self.singing and !self.winded) {
                 self.wheel_open = true;
                 self.wheel_opens += 1;
+                if (self.first_wheel_at == never) self.first_wheel_at = self.step;
                 self.wheel_point = null;
             }
             return;

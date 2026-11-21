@@ -5,6 +5,7 @@ pub const sound = @import("sound/sound.zig");
 pub const m = @import("m.zig");
 pub const script = @import("bot/script.zig");
 pub const walker = @import("bot/walker.zig");
+pub const newcomer = @import("bot/newcomer.zig");
 pub const colour = @import("draw/colour.zig");
 pub const take = @import("keep/take.zig");
 pub const save = @import("keep/save.zig");
@@ -20,6 +21,7 @@ test {
     _ = sound;
     _ = m;
     _ = walker;
+    _ = newcomer;
     _ = colour;
     _ = take;
     _ = save;

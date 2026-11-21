@@ -1,0 +1,9 @@
+clocks as started: cpu performance, gpu performance, memory performance
+clocks now: cpu performance, gpu performance, memory performance
+priority: nice -19, real-time limit 40; storage interrupts on core(s) 3 ; run with: taskset -c 0-2
+backlight as started: 200
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+room: 45 items (the ear check, 9 promises to walk, 3 checks for the hands, 31 clips for the ears)
+room: left after 0 of 45 items were answered
+ALSA lib pcm.c:8772:(snd_pcm_recover) underrun occurred
+exit code 0

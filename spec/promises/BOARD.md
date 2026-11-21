@@ -92,8 +92,8 @@ asks its question.
 | `fight.bosses` Bosses are pieces of music | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `fight.gentle` Gentle or Fierce | 2 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `evening.black` Black, and a drip | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `evening.call` You call, and you are answered | 2 | 2 | no | yes | no | no | no | 3 owed; handheld.evening.late == 0  (is not reported); no yes from Morgan yet |
-| `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | yes | no | no | no | 3 owed; no yes from Morgan yet |
+| `evening.call` You call, and you are answered | 2 | 2 | no | yes | no | no | no | 3 owed; handheld.evening.late == 0  (is 359); no yes from Morgan yet |
+| `evening.breathe` You breathe with it, and it locks | 2 | 5 | no | yes | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.in` "Oh. You're in." | 2 | 5 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.instrument` Everything is an instrument | 2 | 2 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `evening.knot` The knot, and the first fight | 2 | 10 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
@@ -105,7 +105,7 @@ asks its question.
 | `garden.w01` The answering field | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w02` The seed that follows | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w03` The parade | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
-| `garden.w04` The puddle bridge | 2 | 1 | no | yes | no | no | no | 4 owed; ears.pool_adds_db >= 3  (is 0.465); no yes from Morgan yet |
+| `garden.w04` The puddle bridge | 2 | 1 | no | yes | no | no | no | 4 owed; ears.pool_adds_db >= 3  (is 0.472); no yes from Morgan yet |
 | `garden.w05` The quiet ball | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `garden.w06` The far shore, late | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `garden.w07` The swing | 2 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
@@ -135,7 +135,7 @@ asks its question.
 | `laws.sound-and-light` The table of sound and light | 2 | 11 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `laws.home` Home over the laws | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `laws.tuning` Tuning | 2 | 15 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `laws.ears` Limits for the ears | 2 | 7 | no | - | no | no | no | 2 owed; ears.rough_longest_s <= 2  (is 2.65); no yes from Morgan yet |
+| `laws.ears` Limits for the ears | 2 | 7 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `loop.river` The river sings your day back | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `loop.echoes` Echoes | 2 | 4 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `loop.release` What you let go becomes the place | 2 | 3 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
@@ -208,7 +208,7 @@ asks its question.
 | `whole.alone` Whole alone, more together | 6 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.endless` The mornings never repeat | 5 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
 | `whole.lights` Every land's lights across the water | 3 | 1 | no | - | no | no | no | 3 owed; no yes from Morgan yet |
-| `whole.good` It sounds good | 2 | 1 | no | - | no | no | no | 1 owed; ears.rough_longest_s <= 2  (is 2.65); no yes from Morgan yet |
+| `whole.good` It sounds good | 2 | 1 | no | - | no | no | no | 1 owed; no yes from Morgan yet |
 | `whole.hands` Nothing asks the hands for the impossible | 2 | 1 | no | - | no | no | no | 2 owed; no yes from Morgan yet |
 | `whole.ear` The ear, before and after | 2 | 1 | no | - | - | no | no | 3 owed |
 | `hands.voice-in-a-buffer` Your voice, at once | 1 | 1 | no | - | no | no | no | 2 owed; handheld.hands.most_ms <= 3  (is not reported); no yes from Morgan yet |

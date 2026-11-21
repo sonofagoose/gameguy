@@ -624,12 +624,12 @@ fn eveningLines(w: *const World, out: []lines.Inst) usize {
     }
     // the figure between the two voices: three lobes by two, because their notes are as three
     // to two, turning as fast as they beat. It lies on the ground between them.
-    if (far < world_mod.beside * 2.0) {
-        const held = w.drip_humming or w.step < w.hold_until;
+    // it is their beating, so it is there only while both sound (World.figureLight)
+    if (far < world_mod.beside * 2.0 and w.figureLight() > 0.0) {
         const locked = w.locked_at != world_mod.never;
         const k_true = @as(f32, @floatFromInt(w.breaths)) / @as(f32, world_mod.breaths_to_lock);
         const tint3 = [3]f32{ teal[0] + (bone[0] - teal[0]) * k_true, teal[1] + (bone[1] - teal[1]) * k_true, teal[2] + (bone[2] - teal[2]) * k_true };
-        const shown: f32 = if (locked) 1.0 else if (held) 0.85 else 0.30;
+        const shown: f32 = w.figureLight();
         const tint = col8(tint3, shown);
         const cx = (drip.x + w.hum_x) * 0.5;
         const cz = (drip.z + w.hum_z) * 0.5;
@@ -738,6 +738,17 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
 
     // on moss Hum is dim: moss swallows light as it swallows sound (spec/shape.md)
     const hum_tint = col8(bone, if (w.cover == .moss) 0.55 else 1.0);
+    if (w.view == .place and w.stand < 0.5 and !w.singing and w.hum_light > 0.01) {
+        // silent on the page, Hum answers in light what reaches it: Drip's ticks, a press: a
+        // second ring round it, in Drip's colour, as bright as Hum's own light
+        const r = 1.05 + 0.25 * w.hum_light;
+        for (0..14) |k| {
+            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 14.0);
+            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 14.0);
+            out[n] = .{ .a = .{ w.hum_x + r * @cos(a0), 0.05, w.hum_z + r * @sin(a0) }, .b = .{ w.hum_x + r * @cos(a1), 0.05, w.hum_z + r * @sin(a1) }, .half_width = 1.3, .body = 0.0, .col = col8(teal, 0.8 * w.hum_light) };
+            n += 1;
+        }
+    }
     if (w.view == .place and w.stand < 0.5) {
         // on the page Hum is a mark like any other: a small ring, and a tick for where it faces
         for (0..10) |k| {
@@ -1156,6 +1167,25 @@ const Steady = struct {
         return @sqrt(@max(q / n - m_ * m_, 0.0));
     }
 };
+
+/// Where a player was held up in the first evening (the plan: the game teaches itself): read from
+/// any session's log, a fresh player's above all.
+fn logTeaching(w: *const World) void {
+    const s = struct {
+        fn at(step: u64) f64 {
+            return if (step == world_mod.never) -1.0 else @as(f64, @floatFromInt(step)) / 60.0;
+        }
+    };
+    log("teaching: beside Drip first at {d:.0} s, the view leaned in at {d:.0} s, first hummed beside it at {d:.0} s, Drip showed its breath {d} times; breaths tried {d}, on the tick {d}, locked at {d:.0} s; presses with no verb yet {d}; knocked before the place stood {d} (-1 s: never)", .{ s.at(w.beside_first_at), s.at(w.leaned_first_at), s.at(w.hummed_beside_at), w.drip_shows, w.breaths_tried, w.breaths, s.at(w.locked_at), w.dark_presses, w.knocked_in_dark });
+    var buf: [256]u8 = undefined;
+    var len: usize = 0;
+    for (w.breath_offsets[0..@min(w.breaths_tried, w.breath_offsets.len)]) |off| {
+        const piece = std.fmt.bufPrint(buf[len..], " {d}", .{off}) catch break;
+        len += piece.len;
+    }
+    log("teaching: each breath let go from the tick, in ms (after it above nought):{s}", .{buf[0..len]});
+    log("teaching: first jump at {d:.0} s, first sprint at {d:.0} s, first glide at {d:.0} s, the wheel first opened at {d:.0} s, the place stood at {d:.0} s", .{ s.at(w.first_jump_at), s.at(w.first_sprint_at), s.at(w.first_glide_at), s.at(w.first_wheel_at), s.at(w.stand_from) });
+}
 
 fn flatGround(x: f32, z: f32) f32 {
     _ = x;
@@ -1733,6 +1763,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         log("the hands: {d} presses of R1 and R2 and claps ({d} of them claps) started Hum's own sound on the buffer after them, the latest {d:.2} ms after the kernel saw the press; {d} strikes timed by the hands started there too; the world found {d} of them already sounding; {d} calls choked by a clap just after; {d} strikes timed and {d} placed in all", .{ @atomicLoad(u32, &hands_started, .monotonic), @atomicLoad(u32, &hands_claps, .monotonic), @as(f64, @floatFromInt(@atomicLoad(u32, &hands_most_us, .monotonic))) / 1000.0, @atomicLoad(u32, &hands_strikes, .monotonic), snd.own_met, snd.choked, world.timed_strikes, world.placed_strikes });
     }
     if (frame > 90 and !options.headless) log("the screen: a frame shown every {d:.2} ms on average", .{(last_swap - first_swap) * 1000.0 / @as(f64, @floatFromInt(frame - 31))});
+    if (options.scene == .evening) logTeaching(&world);
     if (part_frames > 0) {
         const pf: f64 = @floatFromInt(part_frames);
         log("a frame's work: under 8 ms {d}, under 12 {d}, under 16 {d}, over 16 {d}; of those over 14 ms the most was the steps in {d}, the land {d}, the moving lines {d}, sending {d}, drawing {d}", .{ work_spread[0], work_spread[1], work_spread[2], work_spread[3], long_by[0], long_by[1], long_by[2], long_by[3], long_by[4] });
