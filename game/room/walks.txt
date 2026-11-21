@@ -41,12 +41,12 @@ ask|sky.bee|When it flew past you, did its note drop, the way a passing car's do
 walk|the-tangles|knots-come|The tangles|Three tangles of light are coming at you, jerking out of step. Hold R1: time slows and a ring of slices lies on the ground round you, with lines from the tangles to one slice. Point the right stick at that slice and rest there a moment, then let go of R1.
 ask|wheel.home|With R1 held, could you see which slice to point at, and hear it, before you let go?
 ask|fight.knots|After you let go, did the tangles fall into step with you?
-walk|striking|knots-in-step|Striking|The tangles now pulse with you. Press Y on the deep tick that starts every four to hit them. When one jumps at you, tap A just as it lands.
+walk|striking|knots-in-step|Striking|The tangles now pulse with you. Press Y on the higher tick that starts every four to hit them. When one jumps at you, tap A just as it lands.
 ask|evening.knot|Did a hit you timed yourself feel stronger than one you didn't?
 ask|fight.looper|Did the copies of your hits that kept landing feel like your own band? (X if none appeared.)
-walk|singing-them-in|grey-rest|Singing them in|The tangles have gone grey. Hold R2 and keep holding: a ring of colour grows round you with each four ticks, and the deep tick is the one that counts. Let go of R2 right on a deep tick.
+walk|singing-them-in|grey-rest|Singing them in|The tangles have gone grey. Hold R2 and keep holding: a ring of colour grows round you with each four ticks, and the higher tick is the one that counts. Let go of R2 right on a higher tick.
 ask|hands.told-apart|Could you tell holding R1 from holding R2 by what you saw and what your hands did?
-ask|fight.transform|Did letting go on the deep tick feel like landing somewhere?
+ask|fight.transform|Did letting go on the higher tick feel like landing somewhere?
 ask|fight.kinder|Did bringing them in feel kinder than beating them?
 walk|after-the-hose|hose-open|After the hose|The long green hose is open and the water has run. Walk along it, slowly, and look at the ground and listen to the hose.
 ask|card.ground|Walking back, could you see on the ground where you had been?

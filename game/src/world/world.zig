@@ -230,14 +230,15 @@ pub fn heardAs(s: cues_mod.Sound, own: u8) sound.Cue {
 }
 pub const drip_along: f32 = 0.5;
 /// Drip's tick: mellow, a fork's nearly pure tone an octave over its note; and the one of each bar
-/// told apart from the other three, an octave lower, fuller and longer, with its flash the
-/// brighter for it. Morgan, 2026-11-21: "the metronome could be a bit more mellow and maybe
+/// told apart from the other three as a metronome does it (Morgan: "Ableton does their metronome
+/// like the 1 is a higher note and the rest are lower and a bit out of the way"): the one an octave
+/// higher and brighter, the other three lower and softer, all on Drip's own note. Morgan, 2026-11-21: "the metronome could be a bit more mellow and maybe
 /// slightly easier to differentiate the 1 from the rest of beats" (it was a struck bar, the same
 /// on all four).
-pub const tick_strength: f32 = 0.42;
-pub const tick_ring: f32 = 0.12;
-pub const tick_one_strength: f32 = 0.62;
-pub const tick_one_ring: f32 = 0.4;
+pub const tick_strength: f32 = 0.3;
+pub const tick_ring: f32 = 0.1;
+pub const tick_one_strength: f32 = 0.45;
+pub const tick_one_ring: f32 = 0.2;
 
 // ------------------------------------------------------------------ the sky (spec/sky.md)
 
@@ -1245,9 +1246,12 @@ pub const World = struct {
             };
             at += 1;
         }
-        // the bee: 1.3 m long, humming the garden's note
+        // the bee: 1.3 m long, humming the garden's note an octave up, as a small thing does. There
+        // it is over the speaker's floor and heard whole: under it, the speaker would add its twelfth,
+        // the G of Drip's tick, and every time the bee flew past, its bent twelfth would rub against
+        // the tick for seconds (spec/laws.md, For the ears)
         const bee_thing = at;
-        self.things[at] = .{ .y = flyers.Bee.over_clover, .tall = 0.65, .hz = garden_hz, .family = .skin, .ring = 0.4, .carry = flyers.Bee.carry };
+        self.things[at] = .{ .y = flyers.Bee.over_clover, .tall = 0.65, .hz = garden_hz * 2.0, .family = .skin, .ring = 0.4, .carry = flyers.Bee.carry };
         at += 1;
         // the puddles from the storm (pools.zig), each a skin of water sized so the garden's note
         // stands in it as a figure of its own
@@ -3435,12 +3439,12 @@ pub const World = struct {
             d.loud = @max(d.loud, 0.5 * coming * coming);
         }
         // its tick: a soft tone and a flash, softer and dimmer the farther off it is; on the one of
-        // each bar, lower, fuller and longer
+        // each bar, an octave higher and brighter
         if (self.ticked_at != self.clock and fromTick(self.clock) == 0 and untilTick(self.clock) == 0) {
             self.ticked_at = self.clock;
             const k = self.clock / tick_every;
             const tick: cues_mod.Sound = if (k % 4 == 0)
-                .{ .kind = .strike, .family = .fork_octave, .hz = self.dripHz(), .strength = tick_one_strength, .ring = tick_one_ring }
+                .{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 4.0, .strength = tick_one_strength, .ring = tick_one_ring }
             else
                 .{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 2.0, .strength = tick_strength, .ring = tick_ring };
             self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(tick, .glow));

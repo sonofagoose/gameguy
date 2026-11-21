@@ -302,7 +302,7 @@ Face buttons are named by position.
   - **R2 held, the swell, steps home only to a neighbour, on the one, in time.** Nothing is drawn
     on the ground but Hum's ring. Hum itself swells and takes a band each bar, in the colour of the
     note that bar adds to its chord. The outer band closes in through the bar's last beat, so the
-    one is seen coming, and Drip's tick on the one is deeper and longer than the other three. The
+    one is seen coming, and Drip's tick on the one is an octave higher than the other three, which are softer. The
     awake neighbours lie on Hum's ring, flatward on the left and sharpward on the right. The view
     stays at Hum's height.
 - **Home is always shown,** as a ring of light at Hum's feet in home's colour, and moving home is

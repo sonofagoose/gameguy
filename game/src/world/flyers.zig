@@ -113,11 +113,16 @@ pub const Bee = struct {
             // flying, its buzz is bent by how fast it comes or goes (law 6); hovering at a flower
             // it has fallen into step with it (law 3), and its buzz holds still
             const toward = if (self.hover_left > 0) 0.0 else (self.vel[0] * hx + self.vel[1] * hy + self.vel[2] * hz) / far;
-            const heard = me.hz * world_mod.sound_speed / (world_mod.sound_speed - toward);
+            const bent = me.hz * world_mod.sound_speed / (world_mod.sound_speed - toward);
+            // bent by its going (law 6), its buzz falls into step on the nearest note of the
+            // garden's own chord (law 3): it rises as it comes and falls as it goes, in steps that
+            // agree with everything held, instead of sliding through them (spec/laws.md, For the ears)
+            const heard = inChord(bent);
+            const buzz: f32 = 0.5;
             w.tell(.{ .thing = self.thing }, .{
-                .sound = .{ .kind = .hum_on, .voice = 2, .hz = heard, .strength = 0.5, .ring = 0.0 },
+                .sound = .{ .kind = .hum_on, .voice = 2, .hz = heard, .strength = buzz, .ring = 0.0 },
                 // its light is at the bee and in the bee's own note
-                .light = .{ .hz = me.hz, .brightness = @sqrt(@as(f32, 0.5)), .fades = 0.3, .shape = .glow },
+                .light = .{ .hz = me.hz, .brightness = @sqrt(buzz), .fades = 0.3, .shape = .glow },
             });
         }
     }
@@ -140,3 +145,30 @@ pub const Bee = struct {
         }
     }
 };
+
+/// The nearest note of the garden's chord (its note, third, fifth and sixth, in any octave) to a pitch:
+/// coming, a bee is heard a third up, and going, a sixth under, a pure fifth between them.
+pub fn inChord(hz: f32) f32 {
+    const root = world_mod.garden_hz;
+    var octave: f32 = 1.0;
+    var f = hz;
+    while (f >= root * 2.0) {
+        f *= 0.5;
+        octave *= 2.0;
+    }
+    while (f < root) {
+        f *= 2.0;
+        octave *= 0.5;
+    }
+    const r = f / root;
+    var best: f32 = 1.0;
+    var best_off: f32 = 1e9;
+    for ([_]f32{ 1.0, 1.25, 1.5, 5.0 / 3.0, 2.0 }) |n| {
+        const off = @max(r / n, n / r);
+        if (off < best_off) {
+            best_off = off;
+            best = n;
+        }
+    }
+    return root * best * octave;
+}

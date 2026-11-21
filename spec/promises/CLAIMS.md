@@ -200,7 +200,7 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `hands.told-apart`: What you hear stretches into a held chord.
 - spoken for by `hands.told-apart`: R2 held, the swell, steps home only to a neighbour, on the one, in time. Nothing is drawn on the ground but Hum's ring.
 - spoken for by `hands.told-apart`: Hum itself swells and takes a band each bar, in the colour of the note that bar adds to its chord.
-- spoken for by `hands.told-apart`: The outer band closes in through the bar's last beat, so the one is seen coming, and Drip's tick on the one is deeper and longer than the other three.
+- spoken for by `hands.told-apart`: The outer band closes in through the bar's last beat, so the one is seen coming, and Drip's tick on the one is an octave higher than the other three, which are softer.
 - spoken for by `hands.told-apart`: The awake neighbours lie on Hum's ring, flatward on the left and sharpward on the right.
 - spoken for by `hands.told-apart`: The view stays at Hum's height.
 - spoken for by `hands.told-apart`: Home is always shown, as a ring of light at Hum's feet in home's colour, and moving home is told, whichever hand moved it: Hum sings the new note.
