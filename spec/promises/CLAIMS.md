@@ -164,6 +164,10 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `hands.thumbs`: Gliding: a tap opens it and a tap closes it.
 - spoken for by `whole.hands`: Nothing ever needs the right stick and a face button at once.
 - spoken for by `hands.thumbs`: Leaning in also happens by stopping: stand still facing a voice for one bar.
+- spoken for by `hands.songbook`: The songbook teaches without words. Start opens it, and the world waits.
+- spoken for by `hands.songbook`: Each page is one thing Hum can do, drawn in light: the moment it belongs to, and the handheld with the control's place lit, moving in the rhythm the thing wants.
+- spoken for by `hands.songbook`: A page is whole once Hum has done its thing, and the page the moment asks for lies on top, half drawn.
+- spoken for by `hands.songbook`: The world shows each thing first: Drip breathes before you do.
 - spoken for by `hands.voice-in-a-buffer`: Your own voice answers within one sound buffer. Hands are stamped with the time of the sound card's clock, and Hum's breath starts on the next buffer (section 19).
 - spoken for by `hands.no-fn`: FN is never needed. Not every firmware delivers it.
 

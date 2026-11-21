@@ -2488,12 +2488,21 @@ pub const World = struct {
         self.was_at_hose = self.at_hose;
         self.at_hose = false;
         if (!self.in_garden or self.hose_thing == no_thing) return;
-        if (self.airborne and self.hum_y > land.hose_bore + 0.1) return;
+        // on the page the hose is a drawn line, walked over; stood up, it is a tube
+        if (self.stand < 1.0) return;
         const reach = land.hose_bore * 0.5 + hum_body;
         const tx = self.hum_x + go_x.*;
         const tz = self.hum_z + go_z.*;
         const near = hose.nearest(tx, tz);
         if (near.d >= reach) return;
+        // in the air it is a round tube: over its side Hum need only be half its height up, over its
+        // top all of it
+        if (self.airborne) {
+            const r = land.hose_bore * 0.5;
+            const across = @max(near.d - hum_body, 0.0);
+            const top = r + @sqrt(@max(r * r - across * across, 0.0));
+            if (self.hum_y >= top) return;
+        }
         self.at_hose = true;
         var nx = tx - near.p[0];
         var nz = tz - near.p[1];
@@ -4732,4 +4741,41 @@ test "the hose is solid: walked at, Hum stops at its side; jumped, Hum goes over
     }
     const after = (w.hum_x - p[0]) * cx + (w.hum_z - p[1]) * cz;
     try std.testing.expect(after < 0.0);
+}
+
+test "the hose's coil round Drip's clearing: walked over on the page, a wall once stood, cleared by a jump" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    const cx = land.clear[0];
+    const cz = land.clear[1];
+    // on the page: from outside the coil, west of it, Hum walks east into the clearing over its line
+    w.initEvening();
+    w.hum_x = cx - 25.0;
+    w.hum_z = cz;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    var step: u32 = 0;
+    while (step < 60 * 4 and @abs(w.hum_x - cx) > 3.0) : (step += 1) _ = w.stepOnce(.{ .lx = 127 }, &cues);
+    try std.testing.expect(@abs(w.hum_x - cx) <= 3.0);
+    // stood up, inside it: walked west, the coil holds Hum in
+    w.initAsters();
+    w.knot_count = 0;
+    w.hum_x = cx - 4.0;
+    w.hum_z = cz;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    // the view behind Hum, looking west, and the stick pushed forward
+    w.look_yaw = -0.5 * std.math.pi;
+    step = 0;
+    while (step < 60 * 4) : (step += 1) _ = w.stepOnce(.{ .ly = -127 }, &cues);
+    const inside = struct {
+        fn far(world: *const World, x: f32, z: f32) f32 {
+            return @sqrt((world.hum_x - x) * (world.hum_x - x) + (world.hum_z - z) * (world.hum_z - z));
+        }
+    }.far;
+    try std.testing.expect(inside(w, cx, cz) < 10.5);
+    // a jump, walking on: over, and out of the ring
+    _ = w.stepOnce(.{ .ly = -127, .buttons = Hands.jump }, &cues);
+    step = 0;
+    while (step < 60 * 3) : (step += 1) _ = w.stepOnce(.{ .ly = -127 }, &cues);
+    try std.testing.expect(inside(w, cx, cz) > 14.0);
 }

@@ -49,10 +49,12 @@ rise 80 -560 height 40 across 130
 spigot 80 -560 tall 10
 
 # the hose, from the spigot down the east of the garden and back along the pool's north shore to its
-# coiled end in the reeds east of where Hum wakes, through these points, so the first evening's walk
-# never has to cross it; its bore, a door's height; and how far back along it from its end it is
-# knotted
-hose 80 -560 / 170 -440 / 330 -470 / 470 -330 / 590 -220 / 640 0 / 520 120 / 380 100 / 260 50 / 150 30 / 70 22
+# coiled end in the reeds east of where Hum wakes: a coil round Drip's clearing, about twenty metres
+# across, its mouth at the clearing. On the page it is a drawn line Hum walks over to reach Drip;
+# once the place has stood up it is a tube, and the first walk out of the clearing asks for a jump
+# (Morgan, 2026-11-21: the jump first needed by the hose). Its bore, a door's height; and how far
+# back along it from its end it is knotted
+hose 80 -560 / 170 -440 / 330 -470 / 470 -330 / 590 -220 / 640 0 / 520 120 / 380 100 / 260 50 / 150 30 / 110 26 / 82 22 / 75.8 32.1 / 64.3 31.9 / 58.9 22 / 64.6 12.6 / 75.2 12.9 / 80.3 22 / 70 22
 hose bore 1.8 knot 300
 
 # the rest of the asters, by rule: a grid of cells across the garden from its south edge, each

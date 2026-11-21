@@ -86,6 +86,27 @@ sized before the stage that builds them._
   - `owed` A test: standing still facing a voice for one bar leans in, with no button.
 - **Asks:** Did your hands ever have to do two things with one finger?
 
+### `hands.songbook` The songbook teaches without words
+
+- **Said:** `SPEC.md` "Start opens it, and the world waits." "Each page is one thing Hum can do,
+  drawn in light: the moment it belongs to, and the handheld with the control's place lit, moving in
+  the rhythm the thing wants." "A page is whole once Hum has done its thing, and the page the moment
+  asks for lies on top, half drawn." "The world shows each thing first: Drip breathes before you
+  do."
+- **Stage:** 2
+- **Scene:** evening
+- **The moment:** Beside the small thing in the dark, not knowing what it wants, you press Start. A
+  page: Hum and the small thing, a figure between them, ticks running underneath; on a drawn
+  handheld the far right shoulder glows while three ticks pass and goes dark on the fourth. You
+  close it, hold that shoulder, and let go on the tick.
+- **A cheat would be:** a letter on a button; a written instruction; a page that names what to do
+  instead of showing it; a hint that appears by itself on the play screen.
+- **Full size:**
+  - `test the page a moment needs: the call first, then the breath, then the hose's jump`
+  - `owed` A frame of each page looked at (`--songbook DIR` draws them all).
+  - `owed` Morgan opens it when lost, and says whether it showed him what to do.
+- **Asks:** When you were lost, did the songbook show you what to do without telling you?
+
 ### `hands.no-fn` FN is never needed
 
 - **Said:** `SPEC.md` "FN is never needed. Not every firmware delivers it."

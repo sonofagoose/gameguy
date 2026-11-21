@@ -1,2 +1,3 @@
+checkpoint.dark|evening|New: the first evening shows itself. From the black, find the small thing that answers your call and stand by it: watch it breathe. Lost anywhere? Press Start for the songbook.|Did you always know what to try next, without being told?
 checkpoint.moving|asters|New: moving. Run with the left stick and let go to skid. Hold the right face to sprint. The bottom face jumps; press it again in the air to open the glide. Run into a stalk to brush it.|Did moving feel good: quick, with weight, fast enough, and the view where you wanted it?
 checkpoint.breath|asters|New: one breath. Sprint, or hold R2 long, until it runs out: Hum's lines go dark and pant until you are silent a moment.|Did running out of breath feel like a body, or like a meter?

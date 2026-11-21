@@ -29,6 +29,7 @@ const presses_mod = @import("plat/presses.zig");
 const keys_mod = @import("plat/keys.zig");
 const jack_mod = @import("plat/jack.zig");
 const Type = @import("room.zig").Type;
+const songbook = @import("draw/songbook.zig");
 const c = plat.c;
 const sdl = plat.sdl;
 const gl = plat.gl;
@@ -138,6 +139,9 @@ var ready_cover: u8 = 0;
 var ready_home: u32 = @bitCast(world_mod.garden_hz);
 /// Hum is out of breath: the hands start no note on the sound's thread.
 var ready_winded: u8 = 0;
+/// The songbook is open and the world waits: the hands start nothing on the sound's thread.
+var ready_paused: u8 = 0;
+var sketch: songbook.Sketch = undefined;
 var hands_most_us: u32 = 0;
 /// The clap's rule, kept where the presses are stamped (keys_mod.Clap), and how many claps the
 /// hands started.
@@ -225,6 +229,8 @@ fn handsNow() void {
     var edges: [16]presses_mod.Edge = undefined;
     const n = presses.poll(&edges);
     if (n == 0) return;
+    // the songbook open: the world waits, and what the hands press starts nothing
+    if (@atomicLoad(u8, &ready_paused, .monotonic) != 0) return;
     const now_s = plat.now();
     const home: f32 = @bitCast(@atomicLoad(u32, &ready_home, .monotonic));
     for (edges[0..n], 0..) |e, i| {
@@ -1001,6 +1007,8 @@ pub const Options = struct {
     /// To measure what a part of the picture costs: draw without the trail, without the ground's
     /// light, or with half the land's lines.
     without_trail: bool = false,
+    /// Draw every page of the songbook into this folder and stop, to look at them.
+    songbook_dump: ?[*:0]const u8 = null,
     without_ground: bool = false,
     half_land: bool = false,
     headless: bool = false,
@@ -1187,6 +1195,42 @@ fn logTeaching(w: *const World) void {
     log("teaching: first jump at {d:.0} s, first sprint at {d:.0} s, first glide at {d:.0} s, the wheel first opened at {d:.0} s, the place stood at {d:.0} s", .{ s.at(w.first_jump_at), s.at(w.first_sprint_at), s.at(w.first_glide_at), s.at(w.first_wheel_at), s.at(w.stand_from) });
 }
 
+/// The page the songbook opens on when the moment asks for none: the last thing learned.
+fn lastLearned(w: *const World) songbook.Page {
+    var last: songbook.Page = .call;
+    for (songbook.pages) |p| {
+        if (songbook.learned(w, p)) last = p;
+    }
+    return last;
+}
+
+/// The next page to turn to, forward or back: the pages learned, and the one the moment asks for.
+fn nextPage(w: *const World, from: songbook.Page, forward: bool) songbook.Page {
+    const n = songbook.pages.len;
+    var i: usize = @intFromEnum(from);
+    for (0..n) |_| {
+        i = if (forward) (i + 1) % n else (i + n - 1) % n;
+        const p: songbook.Page = @enumFromInt(i);
+        if (songbook.learned(w, p) or songbook.needed(w) == p) return p;
+    }
+    return from;
+}
+
+/// Every page of the songbook drawn into `dir`, whole and half drawn, to be looked at.
+fn dumpSongbook(dir: [*:0]const u8) void {
+    for (songbook.pages) |p| {
+        for ([2]f32{ 1.0, 0.55 }) |whole| {
+            gl.BindFramebuffer(c.GL_FRAMEBUFFER, 0);
+            gl.Viewport(0, 0, renderer.fb_w, renderer.fb_h);
+            gl.ClearColor(0.0, 0.0, 0.0, 1.0);
+            gl.Clear(c.GL_COLOR_BUFFER_BIT);
+            songbook.draw(&sketch, p, 1.3, whole);
+            sketch.flush();
+            dumpNamed(dir, "songbook-{s}-{s}", .{ @tagName(p), if (whole >= 1.0) "learned" else "asked" });
+        }
+    }
+}
+
 fn flatGround(x: f32, z: f32) f32 {
     _ = x;
     _ = z;
@@ -1231,6 +1275,14 @@ pub fn run(window: plat.Window, options: Options) bool {
     if (!renderer_ready) {
         if (!renderer.init(window.width, window.height)) return false;
         if (!words.init(window.width, window.height)) return false;
+        if (!sketch.init(window.width, window.height)) return false;
+        if (options.songbook_dump) |dir| {
+            const n0: usize = @intCast(window.width * window.height * 4);
+            const p0: [*]u8 = @ptrCast(c.malloc(n0) orelse return false);
+            pixels = p0[0..n0];
+            dumpSongbook(dir);
+            return true;
+        }
         const n: usize = @intCast(window.width * window.height * 4);
         const p: [*]u8 = @ptrCast(c.malloc(n) orelse return false);
         pixels = p[0..n];
@@ -1402,6 +1454,15 @@ pub fn run(window: plat.Window, options: Options) bool {
     var shown_last: ?[2]f32 = null;
     var stepped_last: ?[2]f32 = null;
     var steady = Steady{};
+    // the songbook (SPEC.md 8): open, which page, since when; Start's edge; the world's wait
+    var book_open = false;
+    var book_page: songbook.Page = .call;
+    var book_from: f64 = 0.0;
+    var start_was = false;
+    var select_seen = false;
+    var flip_ready = true;
+    var paused_from: u64 = 0;
+    var paused_total: u64 = 0;
 
     while (running) : (frame += 1) {
         const began = plat.now();
@@ -1437,7 +1498,37 @@ pub fn run(window: plat.Window, options: Options) bool {
             const held = pad.read();
             if (held.held(Hands.select) and held.held(Hands.start)) leaving += 1 else leaving = 0;
             if (leaving > 30) running = false;
-            const due = snd.played() / world_mod.samples_per_step;
+            // Start let go, Select not pressed with it: the songbook opens, and the world waits; Start
+            // again closes it, and the world goes on from where it waited
+            const start_now = held.held(Hands.start);
+            if (start_now and held.held(Hands.select)) select_seen = true;
+            if (start_was and !start_now) {
+                if (!select_seen and !scripted and replay == null) {
+                    if (!book_open and !world.singing) {
+                        book_open = true;
+                        book_from = plat.now();
+                        paused_from = snd.played();
+                        book_page = songbook.needed(&world) orelse lastLearned(&world);
+                        @atomicStore(u8, &ready_paused, 1, .monotonic);
+                        log("the songbook opened at step {d} on its page for {s}", .{ world.step, @tagName(book_page) });
+                    } else if (book_open) {
+                        book_open = false;
+                        paused_total += snd.played() - paused_from;
+                        @atomicStore(u8, &ready_paused, 0, .monotonic);
+                    }
+                }
+                select_seen = false;
+            }
+            start_was = start_now;
+            if (book_open) {
+                // the left stick turns the pages: those learned, and the one the moment asks for
+                if (flip_ready and (held.lx > 80 or held.lx < -80)) {
+                    book_page = nextPage(&world, book_page, held.lx > 0);
+                    flip_ready = false;
+                }
+                if (held.lx < 30 and held.lx > -30) flip_ready = true;
+            }
+            const due = if (book_open) world.step else (snd.played() - paused_total) / world_mod.samples_per_step;
             // what the hands started, read after the count: every edge before it is here
             takeEdges();
             @atomicStore(u8, &ready_cover, @intFromEnum(world.cover), .monotonic);
@@ -1673,6 +1764,11 @@ pub fn run(window: plat.Window, options: Options) bool {
             const wide = @as(f32, @floatFromInt(line.len)) * 9.6 * scale;
             words.line((@as(f32, @floatFromInt(window.width)) - wide) * 0.5, @as(f32, @floatFromInt(window.height)) * 0.17, scale, .{ 0.886 * shown, 0.839 * shown, 0.784 * shown, shown }, line);
             words.flush();
+        }
+        if (book_open) {
+            const whole: f32 = if (songbook.learned(&world, book_page)) 1.0 else 0.55;
+            songbook.draw(&sketch, book_page, @floatCast(plat.now() - book_from), whole);
+            sketch.flush();
         }
         parts[4] = (plat.now() - began) * 1000.0;
         // the backlight is the sun: down in the dark, where only what sounds is lit, and up with the day

@@ -252,6 +252,11 @@ Face buttons are named by position.
   both index fingers. Gliding: a tap opens it and a tap closes it. Nothing ever needs the right
   stick and a face button at once.
 - **Leaning in also happens by stopping:** stand still facing a voice for one bar.
+- **The songbook teaches without words.** Start opens it, and the world waits. Each page is one
+  thing Hum can do, drawn in light: the moment it belongs to, and the handheld with the control's
+  place lit, moving in the rhythm the thing wants. A page is whole once Hum has done its thing, and
+  the page the moment asks for lies on top, half drawn. The world shows each thing first: Drip
+  breathes before you do.
 - **Your own voice answers within one sound buffer.** Hands are stamped with the time of the sound
   card's clock, and Hum's breath starts on the next buffer (section 19).
 - **FN is never needed.** Not every firmware delivers it.
