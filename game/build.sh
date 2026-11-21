@@ -85,6 +85,8 @@ ls build/frames | grep '^promise-' | tr '\n' ' ' | sed 's/^/   /'; echo
 phase "no screen: the room opens with its walk and its clips"
 rm -rf build/room && mkdir -p build/room && ln -s ../../../design/listen build/room/clips
 $PROMISES --room build/room/promises.txt
+# the checkpoints come first: what is new to try, each with its question
+cat room/checkpoints.txt build/room/promises.txt > build/room/promises.next && mv build/room/promises.next build/room/promises.txt
 python3 -I - > build/room/clips.txt <<'PY'
 import re
 rows = []
