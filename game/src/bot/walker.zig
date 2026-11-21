@@ -65,9 +65,11 @@ pub const Walker = struct {
         while (turn > std.math.pi) turn -= 2.0 * std.math.pi;
         while (turn < -std.math.pi) turn += 2.0 * std.math.pi;
         if (@abs(turn) > 0.04) {
-            // never inside the stick's dead middle, or the view would stop just short
-            const push = std.math.clamp(turn * 300.0, -110.0, 110.0);
-            h.rx = @intFromFloat(if (push > 0.0) @max(push, 24.0) else @min(push, -24.0));
+            // as fast as a hand turning by the gap, never so slow that the view stops just short
+            const rate = std.math.clamp(turn * 300.0, -110.0, 110.0) / 127.0 * 2.2 / world_mod.yaw_most;
+            const least = 0.4 / world_mod.yaw_most;
+            const push = world_mod.pushFor(if (rate > 0.0) @max(rate, least) else @min(rate, -least));
+            h.rx = @intFromFloat(push * 127.0);
             return false;
         }
         return true;
@@ -102,8 +104,9 @@ pub const Walker = struct {
         const dz = z - w.hum_z;
         const far = @sqrt(dx * dx + dz * dz);
         if (far < 0.01) return far;
-        const cy = @cos(w.look_yaw);
-        const sy = @sin(w.look_yaw);
+        // the stick's directions, as the world reads them (World.stick_yaw)
+        const cy = @cos(w.stick_yaw);
+        const sy = @sin(w.stick_yaw);
         h.lx = @intFromFloat(110.0 * (cy * dx / far + sy * dz / far));
         h.ly = @intFromFloat(110.0 * (-sy * dx / far + cy * dz / far));
         // the hose across the way: jump it, as a person would
@@ -262,7 +265,8 @@ pub const Walker = struct {
                 const dx = w.hum_x - tower.x;
                 const dz = w.hum_z - tower.z;
                 const far = @sqrt(dx * dx + dz * dz);
-                if (after < 40) h.ry = 110;
+                // a third of the way up the dial: the ground ahead seen from over Hum
+                if (after < 16) h.ry = 110;
                 if (far < 62.0) {
                     _ = toward(w, &h, w.hum_x + dx, w.hum_z + dz);
                 } else {
@@ -317,8 +321,8 @@ pub const Walker = struct {
                 var turn = want - w.look_yaw;
                 while (turn > std.math.pi) turn -= 2.0 * std.math.pi;
                 while (turn < -std.math.pi) turn += 2.0 * std.math.pi;
-                if (@abs(turn) > 0.03) h.rx = @intFromFloat(std.math.clamp(turn * 300.0, -110.0, 110.0));
-                if (w.look_tilt < -0.02) h.ry = -110 else if (w.look_tilt > 0.02) h.ry = 110;
+                if (@abs(turn) > 0.03) h.rx = @intFromFloat(world_mod.pushFor(std.math.clamp(turn * 300.0, -110.0, 110.0) / 127.0 * 2.2 / world_mod.yaw_most) * 127.0);
+                if (@abs(w.orbit) > 0.02) h.ry = @intFromFloat(world_mod.pushFor(std.math.clamp(-w.orbit * 4.0, -0.7, 0.7)) * 127.0);
                 const six = @as(u32, 1) << 6;
                 if (w.rung_lit & six != 0 and self.six_at == null) self.six_at = step;
                 if (self.six_at) |at| {

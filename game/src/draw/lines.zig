@@ -79,9 +79,11 @@ const line_vs =
     \\uniform vec2 u_far;
     \\uniform float u_stand;
     \\uniform float u_emit;
-    \\uniform float u_clear;
+    \\uniform vec3 u_eye;
+    \\uniform float u_cone;
     \\out vec2 v_uv;
     \\out vec3 v_col;
+    \\out highp vec3 v_rel;
     \\void main() {
     \\    int id = gl_VertexID;
     \\    float e = (id >= 2) ? 1.0 : 0.0;
@@ -117,8 +119,11 @@ const line_vs =
     \\    // its own sound, spread over its lines; and the light that falls on it, given back
     \\    float shine = t.r * t.b * u_emit + t.g * t.a;
     \\    v_uv = vec2(e, s);
-    \\    // nothing nearer the eye than Hum may hide Hum: it fades out
-    \\    float clear = sky ? 1.0 : smoothstep(u_clear * 0.55, u_clear, p.w);
+    \\    // where it is from the eye, for the cone (line_fs); and within a few metres of the eye
+    \\    // everything fades
+    \\    vec3 q = e > 0.5 ? a_b : a_a;
+    \\    v_rel = sky ? vec3(0.0, 1.0e6, 0.0) : vec3(q.x, q.y * u_stand, q.z) - u_eye;
+    \\    float clear = sky ? 1.0 : 1.0 - u_cone * (1.0 - smoothstep(3.0, 6.0, length(v_rel)));
     \\    v_col = a_col.rgb * (a_col.a * shine * nearness * clear);
     \\}
 ;
@@ -128,9 +133,24 @@ const line_fs =
     \\precision mediump float;
     \\in vec2 v_uv;
     \\in vec3 v_col;
+    \\in highp vec3 v_rel;
+    \\uniform highp vec3 u_cdir;
+    \\uniform highp float u_clen;
+    \\uniform highp float u_cone;
+    \\// what stands between the eye and Hum (spec/engine.md): inside a cone round the line from the
+    \\// eye to Hum's middle, 1.5 m across at Hum and widening toward the eye, everything is
+    \\// see-through, but not Hum itself nor anything beyond it; 1 inside, 0 outside
+    \\float inCone(highp vec3 v) {
+    \\    highp float t = dot(v, u_cdir);
+    \\    highp float rho = length(v - u_cdir * t);
+    \\    highp float s = u_clen - t;
+    \\    highp float r = 0.75 + 0.175 * s;
+    \\    return (1.0 - smoothstep(0.6 * r, r, rho)) * smoothstep(0.6, 1.6, s) * step(0.0, t);
+    \\}
     \\out vec4 o;
     \\void main() {
     \\    float a = 1.0 - smoothstep(0.30, 1.0, abs(v_uv.y));
+    \\    a *= 1.0 - u_cone * inCone(v_rel);
     \\    o = vec4(v_col * a, 0.0);
     \\}
 ;
@@ -140,21 +160,35 @@ const occ_vs =
     \\layout(location = 0) in vec3 a_pos;
     \\uniform mat4 u_vp;
     \\uniform float u_stand;
-    \\out float v_w;
+    \\uniform vec3 u_eye;
+    \\out highp vec3 v_rel;
     \\void main() {
     \\    gl_Position = u_vp * vec4(a_pos.x, a_pos.y * u_stand, a_pos.z, 1.0);
-    \\    v_w = gl_Position.w;
+    \\    v_rel = vec3(a_pos.x, a_pos.y * u_stand, a_pos.z) - u_eye;
     \\}
 ;
 
 const occ_fs =
     \\#version 300 es
     \\precision highp float;
-    \\in float v_w;
-    \\uniform float u_clear;
+    \\in vec3 v_rel;
+    \\uniform vec3 u_cdir;
+    \\uniform float u_clen;
+    \\uniform float u_cone;
+    \\// what stands between the eye and Hum (spec/engine.md): inside a cone round the line from the
+    \\// eye to Hum's middle, 1.5 m across at Hum and widening toward the eye, everything is
+    \\// see-through, but not Hum itself nor anything beyond it; 1 inside, 0 outside
+    \\float inCone(vec3 v) {
+    \\    float t = dot(v, u_cdir);
+    \\    float rho = length(v - u_cdir * t);
+    \\    float s = u_clen - t;
+    \\    float r = 0.75 + 0.175 * s;
+    \\    return (1.0 - smoothstep(0.6 * r, r, rho)) * smoothstep(0.6, 1.6, s) * step(0.0, t);
+    \\}
     \\out vec4 o;
     \\void main() {
-    \\    if (v_w < u_clear) discard;
+    \\    // what stands between the eye and Hum hides nothing
+    \\    if (u_cone * max(inCone(v_rel), 1.0 - smoothstep(3.0, 6.0, length(v_rel))) > 0.5) discard;
     \\    o = vec4(0.0, 0.0, 0.0, 1.0);
     \\}
 ;
@@ -285,10 +319,20 @@ pub const Renderer = struct {
     sky_u_sky: c.GLint = -1,
     sky_u_dawn: c.GLint = -1,
     line_u_emit: c.GLint = -1,
-    line_u_clear: c.GLint = -1,
-    occ_u_clear: c.GLint = -1,
-    /// How far from the eye things are see-through, so nothing between the eye and Hum hides it.
-    clear: f32 = 0.0,
+    line_u_eye: c.GLint = -1,
+    line_u_cone: c.GLint = -1,
+    line_u_cdir: c.GLint = -1,
+    line_u_clen: c.GLint = -1,
+    occ_u_eye: c.GLint = -1,
+    occ_u_cdir: c.GLint = -1,
+    occ_u_clen: c.GLint = -1,
+    occ_u_cone: c.GLint = -1,
+    /// The cone round the line from the eye to Hum inside which everything is see-through
+    /// (setCone): the eye, the way to Hum, how far, and how much (0 on the page).
+    cone_eye: [3]f32 = .{ 0.0, 0.0, 0.0 },
+    cone_dir: [3]f32 = .{ 0.0, 0.0, 1.0 },
+    cone_len: f32 = 0.0,
+    cone_on: f32 = 0.0,
     /// How bright a thing's own sound makes it, against the light that falls on it.
     emit: f32 = 1.3,
     /// How faint a line may get with distance, and how much heavier a near line is drawn.
@@ -407,8 +451,14 @@ pub const Renderer = struct {
         self.sky_u_sky = gl.GetUniformLocation(self.sky_prog, "u_sky");
         self.sky_u_dawn = gl.GetUniformLocation(self.sky_prog, "u_dawn");
         self.line_u_emit = gl.GetUniformLocation(self.line_prog, "u_emit");
-        self.line_u_clear = gl.GetUniformLocation(self.line_prog, "u_clear");
-        self.occ_u_clear = gl.GetUniformLocation(self.occ_prog, "u_clear");
+        self.line_u_eye = gl.GetUniformLocation(self.line_prog, "u_eye");
+        self.line_u_cone = gl.GetUniformLocation(self.line_prog, "u_cone");
+        self.line_u_cdir = gl.GetUniformLocation(self.line_prog, "u_cdir");
+        self.line_u_clen = gl.GetUniformLocation(self.line_prog, "u_clen");
+        self.occ_u_eye = gl.GetUniformLocation(self.occ_prog, "u_eye");
+        self.occ_u_cdir = gl.GetUniformLocation(self.occ_prog, "u_cdir");
+        self.occ_u_clen = gl.GetUniformLocation(self.occ_prog, "u_clen");
+        self.occ_u_cone = gl.GetUniformLocation(self.occ_prog, "u_cone");
         self.ground_prog = plat.linkProgram(ground_vs, ground_fs, "the ground") orelse return false;
         self.ground_u_vp = gl.GetUniformLocation(self.ground_prog, "u_vp");
         self.ground_u_stand = gl.GetUniformLocation(self.ground_prog, "u_stand");
@@ -713,12 +763,26 @@ pub const Renderer = struct {
         gl.BindBuffer(c.GL_ARRAY_BUFFER, 0);
     }
 
+    /// The cone of see-through round the line from the eye to Hum's middle; `on` is how much (the
+    /// hinge: nothing is cleared on the page).
+    pub fn setCone(self: *Renderer, eye: [3]f32, hum: [3]f32, on: f32) void {
+        const d = [3]f32{ hum[0] - eye[0], hum[1] - eye[1], hum[2] - eye[2] };
+        const len = @sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+        self.cone_eye = eye;
+        self.cone_len = len;
+        self.cone_dir = if (len > 0.001) .{ d[0] / len, d[1] / len, d[2] / len } else .{ 0.0, 0.0, 1.0 };
+        self.cone_on = on;
+    }
+
     fn drawOcc(self: *Renderer, vp: *const m.M4) void {
         if (self.occ_verts == 0) return;
         gl.UseProgram(self.occ_prog);
         gl.UniformMatrix4fv(self.occ_u_vp, 1, c.GL_FALSE, vp);
         gl.Uniform1f(self.occ_u_stand, self.stand);
-        gl.Uniform1f(self.occ_u_clear, self.clear);
+        gl.Uniform3f(self.occ_u_eye, self.cone_eye[0], self.cone_eye[1], self.cone_eye[2]);
+        gl.Uniform3f(self.occ_u_cdir, self.cone_dir[0], self.cone_dir[1], self.cone_dir[2]);
+        gl.Uniform1f(self.occ_u_clen, self.cone_len);
+        gl.Uniform1f(self.occ_u_cone, self.cone_on);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_TRUE);
@@ -743,7 +807,10 @@ pub const Renderer = struct {
         gl.Uniform2f(self.line_u_far, self.far_floor, self.heft);
         gl.Uniform1f(self.line_u_stand, self.stand);
         gl.Uniform1f(self.line_u_emit, self.emit);
-        gl.Uniform1f(self.line_u_clear, self.clear);
+        gl.Uniform3f(self.line_u_eye, self.cone_eye[0], self.cone_eye[1], self.cone_eye[2]);
+        gl.Uniform1f(self.line_u_cone, self.cone_on);
+        gl.Uniform3f(self.line_u_cdir, self.cone_dir[0], self.cone_dir[1], self.cone_dir[2]);
+        gl.Uniform1f(self.line_u_clen, self.cone_len);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_FALSE);

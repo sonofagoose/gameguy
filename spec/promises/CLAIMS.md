@@ -142,7 +142,7 @@ _Every sentence of the specification that promises a player something, read by
 
 - spoken for by `hands.by-position`: Face buttons are named by position.
 - spoken for by `hands.map`: left stick, L3 | move; click to hush (stop humming, go dark)
-- spoken for by `hands.map`: right stick, R3 | look; steers a wheel while one is open; click to lean in
+- spoken for by `hands.map`: right stick, R3 | look: round Hum, and from its feet to high above it; steers a wheel while one is open; click to lean in
 - spoken for by `hands.map`: bottom face | jump; in the air, open or close the glide
 - spoken for by `hands.map`: right face | dodge (on the beat: the pocket); talks when nothing threatens | sprint
 - spoken for by `hands.map`: left face | strike with the fork | charge; let go on the beat
@@ -150,8 +150,8 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `hands.map`: L1 | last voice | the voice wheel, on the left stick
 - spoken for by `hands.map`: R1 | call: a ring of light | the mood wheel, on the right stick; the place folds to the page
 - spoken for by `hands.map`: L1 and R1 | the clap | both wheels at once
-- spoken for by `hands.map`: L2 | lock on, next target (it latches) | guard
-- spoken for by `hands.map`: R2 | a short phrase | sing: the swell. A nudge of the right stick on a downbeat walks home one wedge; a half push leans the note
+- spoken for by `hands.map`: L2 | lock on, next target (it latches); with nothing near, the view swings in behind Hum | guard
+- spoken for by `hands.map`: R2 | a short phrase | sing: the swell. A nudge of the right stick on a downbeat walks home one wedge, and the view stays; a half push leans the note
 - spoken for by `hands.map`: D-pad down | sit and listen; seated, the pad is an instrument
 - spoken for by `hands.map`: D-pad up | gather your echoes
 - spoken for by `hands.map`: D-pad left | again: your last bar keeps playing beside you
@@ -162,7 +162,9 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `hands.thumbs`: Wheels: an index finger holds, a thumb steers.
 - spoken for by `hands.thumbs`: The clap: both index fingers.
 - spoken for by `hands.thumbs`: Gliding: a tap opens it and a tap closes it.
+- spoken for by `hands.thumbs`: Sprinting: the right thumb holds the right face and the left thumb steers.
 - spoken for by `whole.hands`: Nothing ever needs the right stick and a face button at once.
+- spoken for by `hands.view`: The view follows. Once the right stick rests, the view swings in behind where Hum is going, and a fight lifts it so the ground round Hum is seen, so play never needs the right stick.
 - spoken for by `hands.thumbs`: Leaning in also happens by stopping: stand still facing a voice for one bar.
 - spoken for by `hands.songbook`: The songbook teaches without words. Start opens it, and the world waits.
 - spoken for by `hands.songbook`: Each page is one thing Hum can do, drawn in light: the moment it belongs to, and the handheld with the control's place lit, moving in the rhythm the thing wants.

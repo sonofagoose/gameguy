@@ -230,7 +230,7 @@ Face buttons are named by position.
 | input | tap | hold |
 |---|---|---|
 | left stick, L3 | move; click to hush (stop humming, go dark) | |
-| right stick, R3 | look; steers a wheel while one is open; click to lean in | |
+| right stick, R3 | look: round Hum, and from its feet to high above it; steers a wheel while one is open; click to lean in | |
 | bottom face | jump; in the air, open or close the glide | |
 | right face | dodge (on the beat: the pocket); talks when nothing threatens | sprint |
 | left face | strike with the fork | charge; let go on the beat |
@@ -238,8 +238,8 @@ Face buttons are named by position.
 | L1 | last voice | the voice wheel, on the left stick |
 | R1 | call: a ring of light | the mood wheel, on the right stick; the place folds to the page |
 | L1 and R1 | the clap | both wheels at once |
-| L2 | lock on, next target (it latches) | guard |
-| R2 | a short phrase | sing: the swell. A nudge of the right stick on a downbeat walks home one wedge; a half push leans the note |
+| L2 | lock on, next target (it latches); with nothing near, the view swings in behind Hum | guard |
+| R2 | a short phrase | sing: the swell. A nudge of the right stick on a downbeat walks home one wedge, and the view stays; a half push leans the note |
 | D-pad down | sit and listen; seated, the pad is an instrument | |
 | D-pad up | gather your echoes | |
 | D-pad left | again: your last bar keeps playing beside you | |
@@ -249,8 +249,11 @@ Face buttons are named by position.
 - **Thumb audit.** Moving and singing: left thumb, right index on R2, right thumb on the wheel.
   Moving and fighting: left thumb, right thumb on the face buttons, lock-on latched so the camera
   needs no thumb, left index free to guard. Wheels: an index finger holds, a thumb steers. The clap:
-  both index fingers. Gliding: a tap opens it and a tap closes it. Nothing ever needs the right
-  stick and a face button at once.
+  both index fingers. Gliding: a tap opens it and a tap closes it. Sprinting: the right thumb holds
+  the right face and the left thumb steers. Nothing ever needs the right stick and a face button
+  at once.
+- **The view follows.** Once the right stick rests, the view swings in behind where Hum is going,
+  and a fight lifts it so the ground round Hum is seen, so play never needs the right stick.
 - **Leaning in also happens by stopping:** stand still facing a voice for one bar.
 - **The songbook teaches without words.** Start opens it, and the world waits. Each page is one
   thing Hum can do, drawn in light: the moment it belongs to, and the handheld with the control's

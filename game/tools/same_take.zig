@@ -315,7 +315,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     world.hum_x = great.x;
     world.hum_z = great.z + 9.0;
     world.look_yaw = 0.0;
-    world.look_tilt = 0.0;
+    world.orbit = 0.0;
     world.near_tower = 0;
     world.near_far = 9.0;
     world.lean = 1.0;

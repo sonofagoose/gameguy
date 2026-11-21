@@ -173,8 +173,18 @@ The thirteen rules in `docs/other-platforms.md` hold. In code they mean:
   light far off, and between; and within 85 m it also shows what is Hum's own size on it
   (`game/src/draw/aster_lines.zig`).
 - **The view of a place** sits well behind Hum and low, so the horizon is low and Hum is small. At
-  the foot of something tall, standing still, it leans back and opens to ninety degrees, so Hum and
-  the top are in one frame.
+  the foot of something tall, standing still, the gaze climbs it at the speed of sound, narrowing
+  as it goes, so the ground is lost and the height is paid for in time.
+- **The view goes round Hum.** The right stick turns it round Hum and moves it along one dial:
+  from low at Hum's feet looking up, through the walking view, to high over Hum looking down on it.
+  Distance, height and width move together on one smooth curve. The view is anchored to the
+  ground under Hum, and to Hum's height only past a jump's, so a jump never moves the picture. Hum
+  is drawn facing the eye, so from above it is still a figure.
+- **What stands between the eye and Hum.** The eye keeps over its own ground, and the line from
+  Hum to it clears the ground: it rises over a slope quickly and comes down slowly, and past a
+  steep rise round Hum it comes in instead. Anything thin inside a narrow cone round the line of
+  sight is see-through; outside the cone, near things are drawn, because the near ground shows
+  speed.
 - **Far lands** are each a few hundred lines and lights, always loaded.
 - **The backlight** is one number written each frame to a file the launcher opens for the game,
   moved smoothly, and put back when the game ends.

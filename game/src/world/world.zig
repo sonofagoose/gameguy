@@ -361,14 +361,131 @@ pub const cam_up: f32 = 2.2;
 pub const walk_pitch: f32 = 0.24;
 pub const place_fov: f32 = 55.0;
 pub const lean_back: f32 = 14.0;
-/// Out on standing water: the view this far behind Hum, this high, and looking this much lower.
-pub const water_back: f32 = 30.0;
-pub const water_up: f32 = 15.0;
-pub const water_down: f32 = 0.55;
 pub const lean_up: f32 = 1.0;
 /// How many metres of the thing the leaned view frames, top to bottom, and how narrow it may go.
 pub const lean_frame: f32 = 30.0;
 pub const lean_fov_least: f32 = 13.0;
+
+/// Hum's middle, above its feet: what the view goes round.
+pub const hum_mid: f32 = 0.5;
+/// The walking view's height round Hum's middle, as seen from it.
+pub const walk_rise: f32 = std.math.atan2(cam_up - hum_mid, cam_back);
+/// The view's dial, the right stick up and down (spec/engine.md, "The view goes round Hum"): from
+/// low at Hum's feet looking up (-1), through the walking view (0, exactly the eye cam_back behind
+/// and cam_up high, looking up walk_pitch), to high over Hum looking down on it (+1). At each key,
+/// as seen from Hum's middle: how high round it the eye stands (radians), how far away it is, how
+/// wide the view is (degrees, top to bottom), and how far above Hum the middle of the frame looks
+/// (radians). Between keys the dial goes on one smooth curve that never turns back.
+pub const orbit_keys = [_][5]f32{
+    .{ -1.0, -0.01396, 19.0, 62.0, 0.4503 },
+    .{ 0.0, walk_rise, @sqrt(cam_back * cam_back + (cam_up - hum_mid) * (cam_up - hum_mid)), place_fov, walk_pitch + walk_rise },
+    .{ 0.4, 0.4712, 30.5, 53.0, 0.2321 },
+    .{ 1.0, 1.1868, 46.0, 50.0, 0.0698 },
+};
+/// The curve's slope at each key, made so that it never overshoots a key (Fritsch and Carlson).
+const orbit_slopes: [orbit_keys.len][5]f32 = blk: {
+    const k = orbit_keys;
+    const n = k.len;
+    var out: [n][5]f32 = @splat(@splat(0.0));
+    for (1..5) |col| {
+        var sec: [n - 1]f32 = undefined;
+        for (0..n - 1) |i| sec[i] = (k[i + 1][col] - k[i][col]) / (k[i + 1][0] - k[i][0]);
+        out[0][col] = sec[0];
+        out[n - 1][col] = sec[n - 2];
+        for (1..n - 1) |i| out[i][col] = if (sec[i - 1] * sec[i] <= 0.0) 0.0 else (sec[i - 1] + sec[i]) * 0.5;
+        for (0..n - 1) |i| {
+            const a = out[i][col] / sec[i];
+            const b = out[i + 1][col] / sec[i];
+            const r = a * a + b * b;
+            if (r > 9.0) {
+                const tau = 3.0 / @sqrt(r);
+                out[i][col] = tau * a * sec[i];
+                out[i + 1][col] = tau * b * sec[i];
+            }
+        }
+    }
+    break :blk out;
+};
+
+/// One of the dial's columns (1 height round, 2 distance, 3 width, 4 the frame's middle above Hum)
+/// at a place on the dial.
+pub fn orbitAt(u: f32, col: usize) f32 {
+    const k = orbit_keys;
+    var i: usize = 0;
+    while (i + 2 < k.len and u > k[i + 1][0]) i += 1;
+    const h = k[i + 1][0] - k[i][0];
+    const s = std.math.clamp((u - k[i][0]) / h, 0.0, 1.0);
+    const s2 = s * s;
+    const s3 = s2 * s;
+    return (2.0 * s3 - 3.0 * s2 + 1.0) * k[i][col] + (s3 - 2.0 * s2 + s) * h * orbit_slopes[i][col] + (3.0 * s2 - 2.0 * s3) * k[i + 1][col] + (s3 - s2) * h * orbit_slopes[i + 1][col];
+}
+
+/// The right stick turns the view this fast at most (radians a second), and moves the dial
+/// across its whole length in 1.2 s; the stick's push is felt as its part past the dead middle,
+/// raised to this power, so a small push is fine and a full one fast. The rate eases to what the
+/// stick asks in about 60 ms, and the dial slows over its last part toward either end.
+pub const yaw_most: f32 = 2.4;
+pub const orbit_most: f32 = 2.0 / 1.2;
+pub const look_dead: f32 = 0.15;
+pub const look_power: f32 = 1.8;
+pub const look_ease: f32 = 0.24;
+pub const orbit_soft: f32 = 0.15;
+
+/// How fast the stick asks the view to go, from nought to one, for a push from -1 to 1.
+pub fn lookRate(push: f32) f32 {
+    const t = std.math.clamp((@abs(push) - look_dead) / (1.0 - look_dead), 0.0, 1.0);
+    if (t <= 0.0) return 0.0;
+    const r = std.math.pow(f32, t, look_power);
+    return if (push < 0.0) -r else r;
+}
+
+/// The push that asks for a rate (from nought to one): the scripted player's way of turning.
+pub fn pushFor(rate: f32) f32 {
+    const r = std.math.clamp(@abs(rate), 0.0, 1.0);
+    const push = look_dead + (1.0 - look_dead) * std.math.pow(f32, r, 1.0 / look_power);
+    return if (rate < 0.0) -push else push;
+}
+
+/// The stick's directions are the view's, taken when the stick is set at least this far and held
+/// while it stays within this angle of where it was set: a straight run stays straight while the
+/// view swings in behind it. A change, a let-go or a look takes the view's directions again.
+pub const latch_least: f32 = 0.5;
+pub const latch_within: f32 = 0.26;
+/// The follow eases in over this many steps after it starts, and turns this fast at a sprint and
+/// while gliding.
+pub const follow_ease_in: f32 = 30.0;
+pub const follow_sprint: f32 = 1.6;
+pub const follow_glide: f32 = 0.9;
+/// The view is anchored to the ground under Hum, and to Hum's height only past this much, so a
+/// jump never moves it; it follows the ground at this part a step.
+pub const base_past: f32 = 3.0;
+pub const base_ease: f32 = 0.25;
+/// What stands between the eye and Hum (spec/engine.md): the eye keeps this far over its own
+/// ground (more over water), and the line from Hum to it clears the ground by this much. It rises
+/// to clear the ground quickly and comes down slowly; past this rise round Hum it comes in
+/// instead, through these parts of its distance, and goes back out at this many metres a second.
+pub const eye_over_ground: f32 = 0.6;
+pub const eye_over_water: f32 = 1.5;
+pub const line_over_ground: f32 = 0.3;
+pub const lift_rise: f32 = 0.25;
+pub const lift_fall: f32 = 0.04;
+pub const lift_most_rise: f32 = 0.87;
+pub const pull_parts = [_]f32{ 1.0, 0.85, 0.7, 0.55, 0.4, 0.25 };
+pub const pull_back_speed: f32 = 3.0;
+/// In a fight the dial is held at least this high, so the ground round Hum is seen; it rises over
+/// a second, and comes down two seconds after the threat has gone, over a second. Out on standing
+/// water it is held this high and this much further back; falling faster than a jump ever lands
+/// (fall_past_jump of its speed), this high, within 0.4 s, so the landing is seen.
+pub const fight_orbit: f32 = 0.4;
+pub const fight_linger: u32 = 120;
+pub const water_orbit: f32 = 0.4;
+pub const water_further: f32 = 3.0;
+pub const fall_orbit: f32 = 0.5;
+pub const fall_past_jump: f32 = 1.05;
+/// L2 tapped with nothing threatening: the view swings in behind Hum in this many steps, the dial
+/// back to walking; past recentre_cut away, it cuts on the next eighth of Drip's tick instead.
+pub const recentre_steps: u8 = 18;
+pub const recentre_cut: f32 = 1.745;
 
 pub const Camera = struct { eye: [3]f32, at: [3]f32, fov: f32, stand: f32 };
 
@@ -684,9 +801,40 @@ pub const World = struct {
     was: u16 = 0,
     singing: bool = false,
     view: View = .page,
-    /// Which way the view looks, round and up, on top of where walking points it.
+    /// Which way the view looks round Hum.
     look_yaw: f32 = 0.0,
-    look_tilt: f32 = 0.0,
+    /// The view's dial (orbit_keys): -1 low at Hum's feet, 0 walking, 1 high over Hum.
+    orbit: f32 = 0.0,
+    /// How fast the right stick is turning the view and moving the dial, eased.
+    yaw_v: f32 = 0.0,
+    orbit_v: f32 = 0.0,
+    /// The height the view is anchored at (base_past), eased.
+    view_base: f32 = 0.0,
+    view_based: bool = false,
+    /// How far the eye has risen over the ground between it and Hum, and how far in it has come
+    /// (1 is not at all).
+    eye_lift: f32 = 0.0,
+    eye_pull: f32 = 1.0,
+    /// The view lifted over a fight and over a long fall, 0 to 1; steps left before the fight's
+    /// lift comes down.
+    fight_view: f32 = 0.0,
+    fight_after: u32 = 0,
+    fall_view: f32 = 0.0,
+    /// The stick's directions (latch_within): the view's way when the stick was set, and where
+    /// the stick was set.
+    stick_yaw: f32 = 0.0,
+    stick_set: f32 = 0.0,
+    stick_latched: bool = false,
+    /// The follow, eased in from its start, 0 to 1.
+    follow_in: f32 = 0.0,
+    /// L2's recentre: steps left of its swing, from where and by how much; or a cut waiting for
+    /// the eighth of Drip's tick after this one.
+    recentre_left: u8 = 0,
+    recentre_from: f32 = 0.0,
+    recentre_by: f32 = 0.0,
+    recentre_orbit: f32 = 0.0,
+    recentre_eighth: u64 = 0,
+    recentre_cutting: bool = false,
     /// How far the view has leaned back at a tall thing's foot, 0 to 1.
     lean: f32 = 0.0,
     /// How high up the tall thing the leaned view is looking, in metres.
@@ -1215,13 +1363,27 @@ pub const World = struct {
             if (self.first_sprint_at == never) self.first_sprint_at = self.step;
         }
         self.sprinting = sprint_now;
+        // the stick's directions: the view's, taken when the stick is set and held while it stays
+        // where it was set (latch_within)
+        {
+            const stick_at = std.math.atan2(mx, -mz);
+            var off = stick_at - self.stick_set;
+            if (off > std.math.pi) off -= 2.0 * std.math.pi;
+            if (off < -std.math.pi) off += 2.0 * std.math.pi;
+            const steady = self.stick_latched and size >= latch_least and @abs(off) < latch_within and self.looked_ago > 0;
+            if (!steady) {
+                self.stick_yaw = self.look_yaw;
+                self.stick_set = stick_at;
+                self.stick_latched = size >= latch_least;
+            }
+        }
         if (size > 0.12) {
             const scale = @min(size, 1.0) / size * (if (self.sprinting) sprint_speed else run_speed);
             var wx = mx;
             var wz = mz;
             if (self.view == .place) {
-                const cy = @cos(self.look_yaw);
-                const sy = @sin(self.look_yaw);
+                const cy = @cos(self.stick_yaw);
+                const sy = @sin(self.stick_yaw);
                 wx = cy * mx - sy * mz;
                 wz = sy * mx + cy * mz;
             }
@@ -1336,7 +1498,7 @@ pub const World = struct {
             } else {
                 self.stand = if (standing) @min(1.0, self.stand + rise_rate) else @max(0.0, self.stand - fold_rate);
             }
-            self.look(hands);
+            self.look(hands, pressed);
         }
 
         // L1 and R1 together: the clap (SPEC.md 8). Wherever Hum is and whatever it is doing, as the
@@ -1451,7 +1613,7 @@ pub const World = struct {
             self.drip_met = true;
             self.stand_from = self.step + 40;
         }
-        if (self.singing and self.locked_at != never and self.step >= self.hold_until) self.swellStep(hands);
+        if (self.swelling()) self.swellStep(hands);
         self.breathStep();
         if (self.drip != no_thing) self.dripStep();
         if (self.rung_first != no_thing) self.skyStep();
@@ -1630,6 +1792,11 @@ pub const World = struct {
             if (@as(f64, @floatFromInt(apart)) <= self.widen(@floatFromInt(downbeat_window))) return true;
         }
         return false;
+    }
+
+    /// R2 held after the lock: the swell, when the right stick nudges home and does not look.
+    pub fn swelling(self: *const World) bool {
+        return self.singing and self.locked_at != never and self.step >= self.hold_until;
     }
 
     /// While R2 is held after the lock: a bar grown at each downbeat, and a nudge of the right stick
@@ -2935,24 +3102,97 @@ pub const World = struct {
         self.wheel_point = null;
     }
 
-    fn look(self: *World, hands: Hands) void {
+    fn look(self: *World, hands: Hands, pressed: u16) void {
         const rx = @as(f32, @floatFromInt(hands.rx)) * (1.0 / 127.0);
         const ry = @as(f32, @floatFromInt(hands.ry)) * (1.0 / 127.0);
-        // while the wheel is open the right stick points at wedges, and the view stays
-        if (!self.wheel_open) {
-            if (@abs(rx) > 0.15) self.look_yaw += rx * 2.2 * dt;
-            if (@abs(ry) > 0.15) self.look_tilt = std.math.clamp(self.look_tilt - ry * 1.4 * dt, -0.35, 0.9);
+        // the right stick goes round Hum and up and down the dial; while the wheel is open it
+        // points at wedges, and in the swell it nudges home: then it does not look
+        const swell_held = self.swelling() or (hands.held(Hands.sing) and self.locked_at != never and self.step >= self.hold_until and !self.winded);
+        const stick_looks = !self.wheel_open and !swell_held;
+        const looking = stick_looks and (@abs(rx) > look_dead or @abs(ry) > look_dead);
+        const want_yaw: f32 = if (stick_looks) lookRate(rx) * yaw_most else 0.0;
+        const want_orbit: f32 = if (stick_looks) lookRate(ry) * orbit_most else 0.0;
+        self.yaw_v += (want_yaw - self.yaw_v) * look_ease;
+        self.orbit_v += (want_orbit - self.orbit_v) * look_ease;
+        // the stick taken for something else lets go of the view at once
+        if (!stick_looks) {
+            self.yaw_v = 0.0;
+            self.orbit_v = 0.0;
         }
-        self.looked_ago = if (@abs(rx) > 0.15 or @abs(ry) > 0.15) 0 else self.looked_ago +| 1;
+        if (want_yaw == 0.0 and @abs(self.yaw_v) < 0.001) self.yaw_v = 0.0;
+        if (want_orbit == 0.0 and @abs(self.orbit_v) < 0.001) self.orbit_v = 0.0;
+        self.look_yaw += self.yaw_v * dt;
+        var ov = self.orbit_v;
+        const room = 1.0 - @abs(self.orbit);
+        if ((ov > 0.0) == (self.orbit > 0.0) and room < orbit_soft) ov *= @max(room / orbit_soft, 0.1);
+        self.orbit = std.math.clamp(self.orbit + ov * dt, -1.0, 1.0);
+        self.looked_ago = if (looking) 0 else self.looked_ago +| 1;
+        // L2 tapped with nothing threatening: the view swings in behind Hum, the dial back to
+        // walking; a look stops it
+        if (pressed & Hands.guard != 0 and self.view == .place and self.stand >= 1.0 and !self.wheel_open and !self.threatened()) {
+            var by = self.hum_face - self.look_yaw;
+            while (by > std.math.pi) by -= 2.0 * std.math.pi;
+            while (by < -std.math.pi) by += 2.0 * std.math.pi;
+            self.recentre_from = self.look_yaw;
+            self.recentre_by = by;
+            self.recentre_orbit = self.orbit;
+            if (@abs(by) < recentre_cut) {
+                self.recentre_left = recentre_steps;
+                self.recentre_cutting = false;
+            } else {
+                self.recentre_left = 0;
+                self.recentre_cutting = true;
+                self.recentre_eighth = (self.clock * 8) / tick_every;
+            }
+        }
+        if (looking) {
+            self.recentre_left = 0;
+            self.recentre_cutting = false;
+        }
+        if (self.recentre_left > 0) {
+            self.recentre_left -= 1;
+            const f = 1.0 - @as(f32, @floatFromInt(self.recentre_left)) / @as(f32, @floatFromInt(recentre_steps));
+            const e = f * f * (3.0 - 2.0 * f);
+            self.look_yaw = self.recentre_from + self.recentre_by * e;
+            self.orbit = self.recentre_orbit * (1.0 - e);
+        }
+        if (self.recentre_cutting and (self.clock * 8) / tick_every > self.recentre_eighth) {
+            self.recentre_cutting = false;
+            self.look_yaw = self.hum_face;
+            self.orbit = 0.0;
+        }
         // once the right stick has rested, the view swings in behind where Hum is going, faster
-        // the faster it goes, so one thumb steers (SPEC.md 8, the thumb audit)
+        // the faster it goes, so one thumb steers (SPEC.md 8, the thumb audit); it eases in
         const going = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
         // (never on the page: a page lies still under Hum, as a page does)
-        if (!self.wheel_open and self.stand >= 1.0 and self.looked_ago > follow_after and going > 0.5 and self.lean < 0.01 and self.water_view < 0.01) {
+        const following = !self.wheel_open and self.stand >= 1.0 and self.looked_ago > follow_after and going > 0.5 and self.lean < 0.01 and self.water_view < 0.01 and self.recentre_left == 0 and !self.recentre_cutting;
+        self.follow_in = if (following) @min(1.0, self.follow_in + 1.0 / follow_ease_in) else 0.0;
+        if (following) {
             var gap = std.math.atan2(self.hum_vx, -self.hum_vz) - self.look_yaw;
             while (gap > std.math.pi) gap -= 2.0 * std.math.pi;
             while (gap < -std.math.pi) gap += 2.0 * std.math.pi;
-            if (@abs(gap) < follow_within) self.look_yaw += gap * follow_rate * dt * @min(going / run_speed, 1.0);
+            const rate: f32 = if (self.gliding) follow_glide else if (self.sprinting) follow_sprint else follow_rate * @min(going / run_speed, 1.0);
+            const e = self.follow_in * self.follow_in * (3.0 - 2.0 * self.follow_in);
+            if (@abs(gap) < follow_within) self.look_yaw += gap * rate * dt * e;
+        }
+        // the dial's floors: a fight, and a long fall
+        if (self.threatened()) {
+            self.fight_after = fight_linger;
+            self.fight_view = @min(1.0, self.fight_view + dt);
+        } else if (self.fight_after > 0) {
+            self.fight_after -= 1;
+        } else {
+            self.fight_view = @max(0.0, self.fight_view - dt);
+        }
+        const falling = self.airborne and !self.gliding and self.hum_vy < -jump_speed * fall_past_jump;
+        self.fall_view = if (falling) @min(1.0, self.fall_view + dt / 0.4) else @max(0.0, self.fall_view - dt);
+        // the anchor: the ground under Hum, and Hum's height only past a jump's
+        const base_want = self.hum_ground + @max(0.0, self.hum_y - base_past);
+        if (!self.view_based or @abs(base_want - self.view_base) > 20.0) {
+            self.view_base = base_want;
+            self.view_based = true;
+        } else {
+            self.view_base += (base_want - self.view_base) * base_ease;
         }
 
         self.near_tower = no_tower;
@@ -3017,6 +3257,83 @@ pub const World = struct {
         } else {
             self.gaze *= 0.90;
         }
+        // what stands between the eye and Hum: the eye rises over the ground between, and past a
+        // steep rise comes in instead
+        if (self.stand > 0.0 and self.view == .place) {
+            const clear = self.clearance();
+            self.eye_lift += (clear[0] - self.eye_lift) * (if (clear[0] > self.eye_lift) lift_rise else lift_fall);
+            if (clear[1] < self.eye_pull) {
+                self.eye_pull += (clear[1] - self.eye_pull) * lift_rise;
+            } else {
+                const o = self.orbitView();
+                const step_part = pull_back_speed * dt / @max(o.back, 1.0);
+                self.eye_pull = @min(clear[1], self.eye_pull + step_part);
+            }
+        } else {
+            self.eye_lift = 0.0;
+            self.eye_pull = 1.0;
+        }
+    }
+
+    pub const OrbitView = struct { back: f32, up: f32, pitch: f32, fov: f32 };
+
+    /// The dial as it is now, with its floors: a fight, standing water, a long fall.
+    pub fn orbitNow(self: *const World) f32 {
+        const sm = struct {
+            fn f(x: f32) f32 {
+                return x * x * (3.0 - 2.0 * x);
+            }
+        }.f;
+        var u = self.orbit;
+        u = @max(u, fight_orbit * sm(self.fight_view));
+        u = @max(u, water_orbit * sm(self.water_view));
+        u = @max(u, fall_orbit * sm(self.fall_view));
+        return u;
+    }
+
+    /// The walking view from the dial, before what stands between: the eye's distance behind
+    /// Hum's middle and its height over it, the pitch the view looks at, and how wide it is. At a
+    /// run it pulls back, rises a little and widens; at a tall thing's foot it comes in and down.
+    pub fn orbitView(self: *const World) OrbitView {
+        const u = self.orbitNow();
+        const phi = orbitAt(u, 1);
+        const wv = self.water_view * self.water_view * (3.0 - 2.0 * self.water_view);
+        const d = orbitAt(u, 2) + wv * water_further;
+        const run = std.math.clamp(@sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz) / run_speed, 0.0, sprint_speed / run_speed);
+        var back = d * @cos(phi) + run * run_back;
+        var up = d * @sin(phi) + run * run_up;
+        back += self.lean * (lean_back - back);
+        up += self.lean * ((lean_up - hum_mid) - up);
+        return .{ .back = back, .up = up, .pitch = orbitAt(u, 4) - phi, .fov = orbitAt(u, 3) + run * run_wider };
+    }
+
+    /// How far the eye must rise over the ground between it and Hum, and how far in it must come.
+    fn clearance(self: *const World) [2]f32 {
+        const o = self.orbitView();
+        const fx = @sin(self.look_yaw);
+        const fz = -@cos(self.look_yaw);
+        const tx = self.hum_x;
+        const ty = self.view_base + hum_mid;
+        const tz = self.hum_z;
+        var best = [2]f32{ 0.0, 1.0 };
+        for (pull_parts) |p| {
+            const bx = -fx * o.back * p;
+            const by = o.up * p;
+            const bz = -fz * o.back * p;
+            const ex = tx + bx;
+            const ez = tz + bz;
+            const over: f32 = if (self.in_garden and ground.wet(ex, ez)) eye_over_water else eye_over_ground;
+            var lift = @max(0.0, self.groundAt(ex, ez) + over - (ty + by));
+            for ([4]f32{ 0.2, 0.4, 0.6, 0.8 }) |f| {
+                const need = self.groundAt(tx + bx * f, tz + bz * f) + line_over_ground - (ty + by * f);
+                lift = @max(lift, need / f);
+            }
+            best = .{ lift, p };
+            if (lift <= 0.0) break;
+            const rise = std.math.atan2(by + lift, o.back * p);
+            if (rise <= @max(lift_most_rise, std.math.atan2(by, o.back * p))) break;
+        }
+        return best;
     }
 
     /// Where the eye is, what it looks at and how wide. The place: behind Hum and a little up,
@@ -3025,15 +3342,17 @@ pub const World = struct {
     pub fn camera(self: *const World) Camera {
         const fx = @sin(self.look_yaw);
         const fz = -@cos(self.look_yaw);
-        const wv = self.water_view * self.water_view * (3.0 - 2.0 * self.water_view);
-        const run = std.math.clamp(@sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz) / run_speed, 0.0, sprint_speed / run_speed);
-        const back = cam_back + self.lean * (lean_back - cam_back) + wv * (water_back - cam_back) + run * run_back;
-        const up = cam_up + self.lean * (lean_up - cam_up) + wv * (water_up - cam_up) + run * run_up;
-        var eye = [3]f32{ self.hum_x - fx * back, up, self.hum_z - fz * back };
-        const pitch = std.math.clamp(walk_pitch + self.look_tilt - wv * water_down, -0.35 - wv * water_down, 1.2);
+        const o = self.orbitView();
+        // what stands between: the eye in, and up over the ground between; risen, the view looks
+        // down as much more, so Hum stays where it was in the frame
+        const back = o.back * self.eye_pull;
+        const up_before = o.up * self.eye_pull;
+        const up = up_before + self.eye_lift;
+        var eye = [3]f32{ self.hum_x - fx * back, hum_mid + up, self.hum_z - fz * back };
+        const pitch = o.pitch - (std.math.atan2(up, back) - std.math.atan2(up_before, back));
         const walking = [3]f32{ fx * @cos(pitch), @sin(pitch), fz * @cos(pitch) };
         var dir = walking;
-        var fov = place_fov + run * run_wider;
+        var fov = o.fov;
         if (self.near_tower != no_tower and self.lean > 0.001) {
             const tower = self.towers[self.near_tower];
             const f = self.gaze / tower.tall;
@@ -3102,9 +3421,10 @@ pub const World = struct {
             }
             fov = page_fov + (fov - page_fov) * s;
         }
-        // the place stands on the ground: the eye rides with Hum's, as far as the place stands up
-        eye[1] += (self.hum_ground + self.hum_y * 0.7) * s;
-        at[1] += (self.hum_ground + self.hum_y * 0.7) * s;
+        // the place stands on the ground: the eye rides with the view's anchor (base_past), as far
+        // as the place stands up
+        eye[1] += self.view_base * s;
+        at[1] += self.view_base * s;
         return .{ .eye = eye, .at = at, .fov = fov, .stand = s };
     }
 
@@ -3167,7 +3487,11 @@ pub const World = struct {
         mixIn(&h, @as(u32, @bitCast(self.hum_z)));
         mixIn(&h, @as(u32, @bitCast(self.hum_face)));
         mixIn(&h, @as(u32, @bitCast(self.look_yaw)));
-        mixIn(&h, @as(u32, @bitCast(self.look_tilt)));
+        mixIn(&h, @as(u32, @bitCast(self.orbit)));
+        mixIn(&h, @as(u32, @bitCast(self.view_base)));
+        mixIn(&h, @as(u32, @bitCast(self.eye_lift)));
+        mixIn(&h, @as(u32, @bitCast(self.eye_pull)));
+        mixIn(&h, @as(u32, @bitCast(self.stick_yaw)));
         mixIn(&h, @as(u32, @bitCast(self.lean)));
         mixIn(&h, @as(u32, @bitCast(self.gaze)));
         mixIn(&h, @as(u32, @bitCast(self.stand)));
@@ -4779,4 +5103,189 @@ test "the hose's coil round Drip's clearing: walked over on the page, a wall onc
     step = 0;
     while (step < 60 * 3) : (step += 1) _ = w.stepOnce(.{ .ly = -127 }, &cues);
     try std.testing.expect(inside(w, cx, cz) > 14.0);
+}
+
+/// Where a point falls on the screen, from -1 to 1 across and up, for a 4:3 frame.
+fn onScreenForTest(cam: Camera, p: [3]f32) [2]f32 {
+    var f = [3]f32{ cam.at[0] - cam.eye[0], cam.at[1] - cam.eye[1], cam.at[2] - cam.eye[2] };
+    const fl = @sqrt(f[0] * f[0] + f[1] * f[1] + f[2] * f[2]);
+    for (&f) |*v| v.* /= fl;
+    // right is forward crossed with up; up again is right crossed with forward
+    var r = [3]f32{ -f[2], 0.0, f[0] };
+    const rl = @sqrt(r[0] * r[0] + r[2] * r[2]);
+    r[0] /= rl;
+    r[2] /= rl;
+    const u = [3]f32{ r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0] };
+    const v = [3]f32{ p[0] - cam.eye[0], p[1] - cam.eye[1], p[2] - cam.eye[2] };
+    const z = v[0] * f[0] + v[1] * f[1] + v[2] * f[2];
+    const x = v[0] * r[0] + v[1] * r[1] + v[2] * r[2];
+    const y = v[0] * u[0] + v[1] * u[1] + v[2] * u[2];
+    const t = @tan(cam.fov * 0.5 * std.math.pi / 180.0);
+    return .{ x / z / (t * 4.0 / 3.0), y / z / t };
+}
+
+test "the view's dial: walking is the old view; up it the eye rises over Hum and looks down; Hum is in the frame all the way; a jump never moves the eye" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    for (0..30) |_| _ = w.stepOnce(.{}, &cues);
+    // the middle of the dial is the walking view as it was: 22 m back, 2.2 m up, looking up
+    const o = w.orbitView();
+    try std.testing.expectApproxEqAbs(cam_back, o.back, 0.001);
+    try std.testing.expectApproxEqAbs(cam_up - hum_mid, o.up, 0.001);
+    try std.testing.expectApproxEqAbs(walk_pitch, o.pitch, 0.0001);
+    try std.testing.expectApproxEqAbs(place_fov, o.fov, 0.001);
+    // the stick held down for two seconds takes the dial to the top: the eye high over Hum,
+    // looking down on it
+    for (0..120) |_| _ = w.stepOnce(.{ .ry = 127 }, &cues);
+    try std.testing.expectApproxEqAbs(@as(f32, 1.0), w.orbit, 0.0001);
+    const high = w.camera();
+    const mid = [3]f32{ w.hum_x, w.hum_ground + hum_mid, w.hum_z };
+    try std.testing.expect(high.eye[1] - mid[1] > 35.0);
+    try std.testing.expect(high.at[1] < high.eye[1]);
+    // all the way along the dial Hum is inside the frame, never at its edge
+    var u: f32 = -1.0;
+    while (u <= 1.0) : (u += 0.1) {
+        w.orbit = u;
+        for (0..40) |_| w.look(.{}, 0);
+        const s = onScreenForTest(w.camera(), mid);
+        try std.testing.expect(@abs(s[0]) < 0.9 and @abs(s[1]) < 0.9);
+    }
+    // the dial is smooth and never turns back: the eye only rises, step by step up it
+    var was: f32 = -1e9;
+    u = -1.0;
+    while (u <= 1.0) : (u += 0.01) {
+        const rise = orbitAt(u, 2) * @sin(orbitAt(u, 1));
+        try std.testing.expect(rise > was);
+        was = rise;
+    }
+    // a jump: the eye stays where it was, to the centimetre (once it has settled from the sweep)
+    w.orbit = 0.0;
+    for (0..600) |_| _ = w.stepOnce(.{}, &cues);
+    const before = w.camera().eye;
+    _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+    var top: f32 = 0.0;
+    var eye_moved: f32 = 0.0;
+    for (0..40) |_| {
+        _ = w.stepOnce(.{}, &cues);
+        top = @max(top, w.hum_y);
+        const e = w.camera().eye;
+        eye_moved = @max(eye_moved, @abs(e[1] - before[1]));
+    }
+    try std.testing.expect(top > 2.0);
+    try std.testing.expect(eye_moved < 0.01);
+}
+
+test "what stands between: the eye keeps over its ground and the line to Hum clears it, on the steep rise and at the rim's wall" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    w.stand = 1.0;
+    var worst_eye: f32 = 1e9;
+    var worst_line: f32 = 1e9;
+    // places on the spigot's rise, its foot, along the inside of the rim, and on the bowl's slope
+    const places = [_][2]f32{
+        .{ land.rise[0], land.rise[1] + 40.0 },  .{ land.rise[0] + 60.0, land.rise[1] + 30.0 },
+        .{ land.rise[0], land.rise[1] + 100.0 }, .{ land.rise[0] - 90.0, land.rise[1] + 70.0 },
+        .{ land.pool[0] + land.rim[2] - 6.0, land.pool[1] },
+        .{ land.pool[0] - land.rim[2] + 6.0, land.pool[1] },
+        .{ land.pool[0], land.pool[1] + land.rim[2] - 6.0 },
+        .{ land.pool[0] + 300.0, land.pool[1] - 200.0 },
+        .{ land.pool[0] - 420.0, land.pool[1] + 150.0 },
+    };
+    for (places) |pl| {
+        var yaw: f32 = 0.0;
+        while (yaw < 6.28) : (yaw += 0.785) {
+            for ([_]f32{ -1.0, 0.0, 0.5, 1.0 }) |u| {
+                w.hum_x = pl[0];
+                w.hum_z = pl[1];
+                w.hum_ground = w.groundAt(pl[0], pl[1]);
+                w.look_yaw = yaw;
+                w.orbit = u;
+                w.view_based = false;
+                w.eye_lift = 0.0;
+                w.eye_pull = 1.0;
+                for (0..90) |_| w.look(.{}, 0);
+                const cam = w.camera();
+                worst_eye = @min(worst_eye, cam.eye[1] - w.groundAt(cam.eye[0], cam.eye[2]));
+                const mid = [3]f32{ w.hum_x, w.view_base + hum_mid, w.hum_z };
+                for ([_]f32{ 0.2, 0.4, 0.6, 0.8 }) |f| {
+                    const x = mid[0] + (cam.eye[0] - mid[0]) * f;
+                    const y = mid[1] + (cam.eye[1] - mid[1]) * f;
+                    const z = mid[2] + (cam.eye[2] - mid[2]) * f;
+                    worst_line = @min(worst_line, y - w.groundAt(x, z));
+                }
+            }
+        }
+    }
+    try std.testing.expect(worst_eye >= eye_over_ground - 0.05);
+    try std.testing.expect(worst_line >= line_over_ground - 0.05);
+}
+
+test "a straight run stays straight while the view swings in behind it" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    for (0..10) |_| _ = w.stepOnce(.{}, &cues);
+    // the stick held ten degrees off straight ahead
+    const lx: i8 = @intFromFloat(127.0 * @sin(@as(f32, 0.1745)));
+    const ly: i8 = @intFromFloat(-127.0 * @cos(@as(f32, 0.1745)));
+    for (0..40) |_| _ = w.stepOnce(.{ .lx = lx, .ly = ly }, &cues);
+    const heading = w.hum_face;
+    for (0..600) |_| _ = w.stepOnce(.{ .lx = lx, .ly = ly }, &cues);
+    var turned = w.hum_face - heading;
+    if (turned > std.math.pi) turned -= 2.0 * std.math.pi;
+    if (turned < -std.math.pi) turned += 2.0 * std.math.pi;
+    try std.testing.expect(@abs(turned) < 0.087);
+    // and the view has come round behind Hum
+    var gap = w.hum_face - w.look_yaw;
+    if (gap > std.math.pi) gap -= 2.0 * std.math.pi;
+    if (gap < -std.math.pi) gap += 2.0 * std.math.pi;
+    try std.testing.expect(@abs(gap) < 0.05);
+}
+
+test "L2 tapped with nothing near swings the view in behind Hum; far round, it cuts on the beat; the swell's nudge never turns the view" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    for (0..10) |_| _ = w.stepOnce(.{}, &cues);
+    w.hum_face = 1.0;
+    w.look_yaw = 0.0;
+    w.orbit = 0.6;
+    _ = w.stepOnce(.{ .buttons = Hands.guard }, &cues);
+    for (0..recentre_steps + 2) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(@abs(w.look_yaw - w.hum_face) < 0.035);
+    try std.testing.expect(@abs(w.orbit) < 0.001);
+    // far round: no swing, a cut within an eighth of Drip's tick
+    w.look_yaw = w.hum_face + 2.6;
+    _ = w.stepOnce(.{ .buttons = Hands.guard }, &cues);
+    var steps: u32 = 0;
+    while (w.look_yaw != w.hum_face and steps < 20) : (steps += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(steps <= tick_every / 8 + 1);
+    // R2 held after the lock, a push of the right stick nudges home and leaves the view
+    const yaw = w.look_yaw;
+    for (0..30) |_| _ = w.stepOnce(.{ .buttons = Hands.sing, .rx = 127 }, &cues);
+    try std.testing.expect(w.swelling());
+    try std.testing.expectEqual(yaw, w.look_yaw);
+}
+
+test "a fight lifts the view so the ground round Hum is seen, and lets it down after" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    w.hum_x = w.knots[0].x;
+    w.hum_z = w.knots[0].z - 30.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    try std.testing.expect(w.threatened());
+    for (0..90) |_| w.look(.{}, 0);
+    try std.testing.expect(w.orbitNow() >= fight_orbit - 0.001);
+    try std.testing.expect(w.orbit == 0.0);
+    // away from it, two seconds on and one more to come down
+    w.hum_x += 400.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    for (0..fight_linger + 70) |_| w.look(.{}, 0);
+    try std.testing.expect(w.orbitNow() < 0.001);
 }

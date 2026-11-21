@@ -23,17 +23,17 @@ sized before the stage that builds them._
 ### `hands.map` Every input does what the table says
 
 - **Said:** `SPEC.md` "left stick, L3 | move; click to hush (stop humming, go dark)" "right stick,
-  R3
-  | look; steers a wheel while one is open; click to lean in" "bottom face | jump; in the air, open
-  or close the glide" "right face | dodge (on the beat: the pocket); talks when nothing threatens |
-  sprint" "left face | strike with the fork | charge; let go on the beat" "top face | grab, talk,
-  plant | carry; leaning in, keep a phrase" "L1 | last voice | the voice wheel, on the left stick"
-  "R1 | call: a ring of light | the mood wheel, on the right stick; the place folds to the page" "L1
-  and R1 | the clap | both wheels at once" "L2 | lock on, next target (it latches) | guard" "R2 | a
-  short phrase | sing: the swell. A nudge of the right stick on a downbeat walks home one wedge; a
-  half push leans the note" "D-pad down | sit and listen; seated, the pad is an instrument" "D-pad
-  up | gather your echoes" "D-pad left | again: your last bar keeps playing beside you" "D-pad right
-  | play a kept song" "Select, Start | the songbook; pause"
+  R3 | look: round Hum, and from its feet to high above it; steers a wheel while one is open; click
+  to lean in" "bottom face | jump; in the air, open or close the glide" "right face | dodge (on the
+  beat: the pocket); talks when nothing threatens | sprint" "left face | strike with the fork |
+  charge; let go on the beat" "top face | grab, talk, plant | carry; leaning in, keep a phrase" "L1
+  | last voice | the voice wheel, on the left stick" "R1 | call: a ring of light | the mood wheel, on
+  the right stick; the place folds to the page" "L1 and R1 | the clap | both wheels at once" "L2 |
+  lock on, next target (it latches); with nothing near, the view swings in behind Hum | guard" "R2
+  | a short phrase | sing: the swell. A nudge of the right stick on a downbeat walks home one wedge,
+  and the view stays; a half push leans the note" "D-pad down | sit and listen; seated, the pad is
+  an instrument" "D-pad up | gather your echoes" "D-pad left | again: your last bar keeps playing
+  beside you" "D-pad right | play a kept song" "Select, Start | the songbook; pause"
 - **Stage:** 2
 - **The moment:** By the end of the first evening your hands know the handheld: call, hum, walk,
   look. By the end of the Garden they know all of it, and nothing on the pad is a menu.
@@ -57,6 +57,12 @@ sized before the stage that builds them._
     is a clap and not a call as well.
   - `owed` A tap and a hold on the same button are told apart by how long it is held, a third of a
     second, the same for every button.
+  - `test the view's dial: walking is the old view; up it the eye rises over Hum and looks down; Hum
+    is in the frame all the way; a jump never moves the eye` Right stick: the view goes round Hum
+    and
+    from its feet to high over it, with Hum in the frame all the way.
+  - `test L2 tapped with nothing near swings the view in behind Hum; far round, it cuts on the beat;
+    the swell's nudge never turns the view` L2 with nothing near, and R2's nudge leaving the view.
 - **Asks:** Was there ever a moment you didn't know which button to press?
 
 ### `hands.thumbs` The thumb audit
@@ -65,8 +71,9 @@ sized before the stage that builds them._
   on
   the wheel." "Moving and fighting: left thumb, right thumb on the face buttons, lock-on latched so
   the camera needs no thumb, left index free to guard." "Wheels: an index finger holds, a thumb
-  steers." "The clap: both index fingers." "Gliding: a tap opens it and a tap closes it." "Leaning
-  in also happens by stopping: stand still facing a voice for one bar."
+  steers." "The clap: both index fingers." "Gliding: a tap opens it and a tap closes it."
+  "Sprinting: the right thumb holds the right face and the left thumb steers." "Leaning in also
+  happens by stopping: stand still facing a voice for one bar."
 - **Stage:** 2
 - **The moment:** In the middle of a fight you are walking, singing and turning home all at once,
   and
@@ -85,6 +92,31 @@ sized before the stage that builds them._
     wall. Crossing it at low places is owed with the Garden's ground.
   - `owed` A test: standing still facing a voice for one bar leans in, with no button.
 - **Asks:** Did your hands ever have to do two things with one finger?
+
+### `hands.view` The view follows, and goes where you want it
+
+- **Said:** `SPEC.md` "The view follows. Once the right stick rests, the view swings in behind where
+  Hum is going, and a fight lifts it so the ground round Hum is seen, so play never needs the right
+  stick."
+- **Stage:** 2
+- **Scene:** evening
+- **The moment:** You run along the hose with your thumb off the right stick and the view comes
+  round
+  behind you by itself, and a run held straight stays straight. When the knots come the view rises
+  until you see them round you on the ground. When you want to see over the garden you pull the
+  stick back and the eye climbs until you look down on Hum.
+- **A cheat would be:** a view that only tilts where it stands; a follow that bends a straight run
+  into a circle; a view that goes into the ground; a fight seen from the height of a blade of grass.
+- **Full size:**
+  - `test a straight run stays straight while the view swings in behind it`
+  - `test a fight lifts the view so the ground round Hum is seen, and lets it down after`
+  - `test what stands between: the eye keeps over its ground and the line to Hum clears it, on the
+    steep rise and at the rim's wall`
+  - `owed` The view measured on the purple: no more late frames than before it, over Morgan's own
+    evening.
+  - `owed` Morgan plays it: whether the stick looks up the way he expects, and whether the walking
+    view should sit a little higher.
+- **Asks:** Could you always see what you wanted to see, without fighting the view?
 
 ### `hands.songbook` The songbook teaches without words
 

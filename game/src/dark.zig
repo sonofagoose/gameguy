@@ -84,11 +84,13 @@ const Pose = struct {
     ground: f32,
     height: f32,
     yaw: f32,
-    tilt: f32,
+    orbit: f32,
+    base: f32,
+    lift: f32,
     face: f32,
 
     fn of(w: *const World) Pose {
-        return .{ .x = w.hum_x, .z = w.hum_z, .ground = w.hum_ground, .height = w.hum_y, .yaw = w.look_yaw, .tilt = w.look_tilt, .face = w.hum_face };
+        return .{ .x = w.hum_x, .z = w.hum_z, .ground = w.hum_ground, .height = w.hum_y, .yaw = w.look_yaw, .orbit = w.orbit, .base = w.view_base, .lift = w.eye_lift, .face = w.hum_face };
     }
 
     fn put(p: Pose, w: *World) void {
@@ -97,7 +99,9 @@ const Pose = struct {
         w.hum_ground = p.ground;
         w.hum_y = p.height;
         w.look_yaw = p.yaw;
-        w.look_tilt = p.tilt;
+        w.orbit = p.orbit;
+        w.view_base = p.base;
+        w.eye_lift = p.lift;
         w.hum_face = p.face;
     }
 
@@ -117,7 +121,9 @@ const Pose = struct {
             .ground = now.ground + (now.ground - before.ground) * a,
             .height = @max(0.0, now.height + (now.height - before.height) * a),
             .yaw = now.yaw + (now.yaw - before.yaw) * a,
-            .tilt = now.tilt + (now.tilt - before.tilt) * a,
+            .orbit = now.orbit + (now.orbit - before.orbit) * a,
+            .base = now.base + (now.base - before.base) * a,
+            .lift = now.lift + (now.lift - before.lift) * a,
             .face = now.face + turn * a,
         };
     }
@@ -827,6 +833,17 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
         const rz = @sin(w.look_yaw);
         const wide = 0.36 * swell;
         const high = 0.5 * swell;
+        // it stands facing the eye: seen from above, its upright leans away from the eye as much
+        // as the eye looks down on it, so it stays a figure and never a sliver
+        const ex = w.hum_x - eye[0];
+        const ey = (w.hum_ground + w.hum_y + 0.52) - eye[1];
+        const ez = w.hum_z - eye[2];
+        const el = @max(@sqrt(ex * ex + ey * ey + ez * ez), 0.001);
+        const down = -ey / el;
+        const flat = @max(@sqrt(ex * ex + ez * ez), 0.001);
+        const back_x = ex / flat * down;
+        const back_z = ez / flat * down;
+        const upright = @sqrt(@max(1.0 - down * down, 0.0));
         const parts = 14;
         // its stride: a small lift each step, as fast as it goes; and its lean into a turn, the top
         // swung toward the inside, as seen from the eye
@@ -837,8 +854,8 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
             const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, parts));
             const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, parts));
             out[n] = .{
-                .a = .{ w.hum_x + rx * (wide * @cos(a0) + tip * (1.0 + @sin(a0))), 0.52 + lift + high * @sin(a0), w.hum_z + rz * (wide * @cos(a0) + tip * (1.0 + @sin(a0))) },
-                .b = .{ w.hum_x + rx * (wide * @cos(a1) + tip * (1.0 + @sin(a1))), 0.52 + lift + high * @sin(a1), w.hum_z + rz * (wide * @cos(a1) + tip * (1.0 + @sin(a1))) },
+                .a = .{ w.hum_x + rx * (wide * @cos(a0) + tip * (1.0 + @sin(a0))) + back_x * high * @sin(a0), 0.52 + lift + high * @sin(a0) * upright, w.hum_z + rz * (wide * @cos(a0) + tip * (1.0 + @sin(a0))) + back_z * high * @sin(a0) },
+                .b = .{ w.hum_x + rx * (wide * @cos(a1) + tip * (1.0 + @sin(a1))) + back_x * high * @sin(a1), 0.52 + lift + high * @sin(a1) * upright, w.hum_z + rz * (wide * @cos(a1) + tip * (1.0 + @sin(a1))) + back_z * high * @sin(a1) },
                 .half_width = 1.9,
                 .body = 0.0,
                 .col = hum_tint,
@@ -1732,9 +1749,10 @@ pub fn run(window: plat.Window, options: Options) bool {
             const cam = world.camera();
             renderer.stand = cam.stand;
             eye = cam.eye;
-            // what stands between the eye and Hum is see-through
-            const to_hum = [3]f32{ world.hum_x - cam.eye[0], 0.5 - cam.eye[1], world.hum_z - cam.eye[2] };
-            renderer.clear = @max(0.0, @sqrt(to_hum[0] * to_hum[0] + to_hum[1] * to_hum[1] + to_hum[2] * to_hum[2]) - 5.0) * cam.stand;
+            // what stands between the eye and Hum is see-through: a cone round the line from the
+            // eye to Hum's middle (spec/engine.md, "What stands between the eye and Hum")
+            const hum_at = [3]f32{ world.hum_x, (world.hum_ground + world.hum_y + world_mod.hum_mid) * cam.stand, world.hum_z };
+            renderer.setCone(cam.eye, hum_at, cam.stand);
             view = m.lookAt(cam.eye, cam.at, .{ 0.0, 1.0, 0.0 });
             proj = m.perspective(cam.fov, aspect, 0.4, 9000.0);
             const fx = @sin(world.look_yaw);
