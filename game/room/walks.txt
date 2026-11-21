@@ -1,0 +1,53 @@
+# The room's walks (design/after-the-first-plays.md, part 5). Each starts from this build's own
+# first evening, kept at a moment of rest where the scripted player marked "start:NAME", so a walk is
+# always the game as it is today. Each says in plain words what to do, using only words for what is
+# on the screen, and asks up to four yes-or-no questions, each for a promise in spec/promises/.
+# The face buttons are named by the letters this handheld prints: A on the right, B at the bottom,
+# X at the top, Y on the left.
+#
+# walk|id|start|title|before
+# ask|promise|question
+walk|from-the-black|dark|From the black|The screen will look switched off. It isn't. Try the buttons and listen. If you don't know what to do, press Start for a page of drawings; Start again closes it. Come back once the world has stood up around you.
+ask|evening.black|Before you pressed anything, did the screen look switched off?
+ask|evening.call|When you pressed R1 and something far away called back, did it feel like being answered?
+ask|hands.songbook|When you didn't know what to do, did the page of drawings show you? (X if you never opened it.)
+ask|checkpoint.dark|Did you always have an idea of what to try next?
+walk|breathing-together|beside|Breathing together|You are beside a small light that ticks like a slow clock, and now and then hums. Hold R2 to hum, and let go of R2 right on a tick. Keep doing it, and watch the shape of light between you.
+ask|evening.breathe|When the shape between you stopped turning, did it feel like the two of you had fallen into step?
+ask|hands.voice-in-a-buffer|When you pressed R2, did your voice start the instant you pressed?
+ask|evening.in|When the flat picture stood up into a world around you, did you make a sound out loud? (X if it never stood up.)
+walk|running|stood|Running|Push the left stick to run, and let go to stop. Hold A while running to go faster. B jumps; press B again in the air to glide. Pull the right stick back to look down on yourself from above. Try running into a giant stalk.
+ask|checkpoint.moving|Did you go where you meant, as fast as you wanted?
+ask|hands.view|Could you always see what you wanted to see, without fighting the view?
+ask|hands.map|Did every button do what you expected?
+walk|out-of-breath|stood|Out of breath|Hold A and keep running. After about ten seconds you run out of breath. Watch yourself when it happens. Then let go of everything and stand still.
+ask|breath.one|Could you tell you were out of breath, and when it came back, just by looking at yourself?
+walk|calling|stood|Calling|Everything here is huge and you are tiny. Press R1 to call, and listen to what answers and from how far away. Call as often as you like, and stay as long as you like.
+ask|evening.instrument|Did you start calling just to hear what would answer?
+ask|garden.w01|Did the answers coming from far away make the garden feel big?
+ask|light.hue|Could you guess from their colours which things would answer your call?
+ask|sky.dawn|Did you stop to watch the sky?
+walk|underfoot|stood|Underfoot|Walk across different ground: grass taller than you, fallen leaves as big as rafts, under a low green roof, onto soft moss, between the reeds by the water. Listen to your steps, and bump into things.
+ask|garden.ground|Could you tell what you were walking on by the sound of your steps?
+ask|garden.land|Before you touched something, could you tell whether it would stop you or let you through?
+ask|garden.asters|Is this a place you would be glad to wake up in every morning?
+walk|the-giant-stalk|foot|The giant stalk|You are at the foot of a giant flower's stalk. Stand still and let the view climb it. Then press R1, and watch and listen.
+ask|garden.asters|Did it feel as tall as a cathedral?
+ask|texture.light|Could you tell what was loudest by how brightly it shone?
+walk|the-puddle-bridge|pool-edge|The puddle bridge|In front of you is a black puddle as wide as a stadium. Hold R2 to hum, and keep holding. Watch the water. Then walk out onto it.
+ask|garden.w04|When lines of light came up on the water, did you trust them enough to walk out on them?
+walk|the-bee|stood|The bee|Somewhere near you, low over the clover, a small light is humming. Find it, and let it fly past you.
+ask|sky.bee|When it flew past you, did its note drop, the way a passing car's does?
+walk|the-tangles|knots-come|The tangles|Three tangles of light are coming at you, jerking out of step. Hold R1: time slows and a ring of slices lies on the ground round you, with lines from the tangles to one slice. Point the right stick at that slice and rest there a moment, then let go of R1.
+ask|wheel.home|With R1 held, could you see which slice to point at, and hear it, before you let go?
+ask|fight.knots|After you let go, did the tangles fall into step with you?
+walk|striking|knots-in-step|Striking|The tangles now pulse with you. Press Y on the deep tick that starts every four to hit them. When one jumps at you, tap A just as it lands.
+ask|evening.knot|Did a hit you timed yourself feel stronger than one you didn't?
+ask|fight.looper|Did the copies of your hits that kept landing feel like your own band? (X if none appeared.)
+walk|singing-them-in|grey-rest|Singing them in|The tangles have gone grey. Hold R2 and keep holding: a ring of colour grows round you with each four ticks, and the deep tick is the one that counts. Let go of R2 right on a deep tick.
+ask|hands.told-apart|Could you tell holding R1 from holding R2 by what you saw and what your hands did?
+ask|fight.transform|Did letting go on the deep tick feel like landing somewhere?
+ask|fight.kinder|Did bringing them in feel kinder than beating them?
+walk|after-the-hose|hose-open|After the hose|The long green hose is open and the water has run. Walk along it, slowly, and look at the ground and listen to the hose.
+ask|card.ground|Walking back, could you see on the ground where you had been?
+ask|garden.w08|Did the hose sound like the same pipe, opened?

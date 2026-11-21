@@ -174,8 +174,9 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 
 ### `evening.knot` The knot, and the first fight
 
-- **Said:** `SPEC.md` "The hose is knotted, and the knot is moving." "Three small knots stumble at
-  you." "Hold R1: time thickens, the place folds back to a page" "Point there and let go." "Now they
+- **Said:** `SPEC.md` "The hose is knotted, and the knot is moving." "Once the world has stood up,
+  your call reaches three small knots, and they stumble to you wherever you are." "Hold R1: time
+  thickens, the place folds back to a page" "Point there and let go." "Now they
   dance in three and in five over a one that you are singing." "Strike on the one." "Dodge on the
   beat and time opens into a pocket." "A grey knot leans; hold R2 while the swell builds, and let go
   on the one." "It springs open." "The hose, unstopped, sounds an octave higher and brighter than it
@@ -204,6 +205,8 @@ twenty minutes anyone has with the game, so each one is held to its largest read
     second a figure sits on its edge`
     In the world: the drone is the stopped pipe until every knot is home, then the open one; the
     water runs from the knot to the mouth at its speed and pours into the pool.
+  - `test the knots come to Hum's call once the place has stood, and on their own root they stand
+    still` They come to you, and the dance's stillness is the figure's stillness learned with Drip.
   - `frame evening-open` The hose springing open as the knots settle.
   - `owed` Thumbs: the fight is played without the right stick and a face button together.
   - `frame evening-edge` The blue figure on the pool's edge, for one second, with no face and no

@@ -52,14 +52,7 @@ const stalk = [3]f32{ 0.62, 0.86, 0.66 };
 /// The colour of a note that is not on the wheel (spec/sky.md): no hue.
 const chrome = [3]f32{ 0.72, 0.76, 0.82 };
 
-fn col8(rgb: [3]f32, alpha: f32) [4]u8 {
-    return .{
-        @intFromFloat(std.math.clamp(rgb[0], 0.0, 1.0) * 255.0),
-        @intFromFloat(std.math.clamp(rgb[1], 0.0, 1.0) * 255.0),
-        @intFromFloat(std.math.clamp(rgb[2], 0.0, 1.0) * 255.0),
-        @intFromFloat(std.math.clamp(alpha, 0.0, 1.0) * 255.0),
-    };
-}
+const col8 = colour.col8;
 
 fn add(a: V, b: V) V {
     return .{ a[0] + b[0], a[1] + b[1], a[2] + b[2] };
@@ -345,30 +338,20 @@ pub fn halos(w: *const world_mod.World, eye: V, out: []Inst) usize {
     return n;
 }
 
-fn hash(a: i32, b: i32, k: u32) u32 {
-    var s: u32 = @as(u32, @bitCast(a)) *% 0x9e3779b1 ^ @as(u32, @bitCast(b)) *% 0x85ebca6b ^ (k +% 1) *% 0xc2b2ae35;
-    s ^= s >> 15;
-    s *%= 0x2c1b3c6d;
-    s ^= s >> 12;
-    s *%= 0x297a2d39;
-    s ^= s >> 15;
-    return s;
-}
-
-fn unit01(s: u32) f32 {
-    return @as(f32, @floatFromInt(s >> 8)) * (1.0 / 16777216.0);
-}
+/// One hash for the whole garden, the ground's: what is drawn and what is felt come from the same.
+const hash = world_mod.ground.hash32;
+const unit01 = world_mod.ground.unit01;
+const covers = world_mod.covers;
 
 /// One blade of grass: a real one is 4 to 9 cm, so here it is a tree 4 to 9 m tall and as wide
 /// as a door, and it hides what is behind it.
-fn blade(ix: i32, iz: i32, k: u32, cell: f32, body: f32, out: []Inst, n: *usize, occ: []V, occ_n: *usize) void {
+fn blade(b: covers.Body, body: f32, out: []Inst, n: *usize, occ: []V, occ_n: *usize) void {
     if (n.* + 5 > out.len) return;
     const tint = col8(.{ 0.36, 0.66, 0.46 }, 0.17);
     const vein = col8(.{ 0.36, 0.66, 0.46 }, 0.08);
-    const s = hash(ix, iz, k);
-    const x = (@as(f32, @floatFromInt(ix)) + unit01(s)) * cell;
-    const z = (@as(f32, @floatFromInt(iz)) + unit01(hash(iz, ix, k + 7))) * cell;
-    if (world_mod.ground.wet(x, z)) return;
+    const s = b.s;
+    const x = b.x;
+    const z = b.z;
     const tall = 4.0 + 5.0 * unit01(s *% 2654435761);
     const way = unit01(s *% 40503) * 6.2831853;
     const bend = tall * (0.12 + 0.30 * unit01(s *% 69069));
@@ -442,7 +425,7 @@ fn clover(x: f32, z: f32, s: u32, out: Out) void {
     if (world_mod.ground.wet(x, z)) return;
     const tint = col8(.{ 0.40, 0.72, 0.56 }, 0.22);
     const rib = col8(.{ 0.40, 0.72, 0.56 }, 0.11);
-    const tall = 3.0 + 4.0 * unit01(s *% 2654435761);
+    const tall = covers.cloverTall(s);
     const r = 1.1 + 0.7 * unit01(s *% 40503);
     const turn = unit01(s *% 69069) * 6.2831853;
     const lean = V{ @cos(turn) * tall * 0.12, 0.0, @sin(turn) * tall * 0.12 };
@@ -498,9 +481,9 @@ fn moss(x: f32, z: f32, s: u32, near: bool, out: Out) void {
 fn crumb(x: f32, z: f32, s: u32, out: Out) void {
     if (world_mod.ground.wet(x, z)) return;
     const stone = col8(.{ 0.62, 0.56, 0.50 }, 0.20);
-    const big = unit01(s *% 40503);
-    const r = 0.4 + 2.4 * big * big;
-    const high = r * (0.35 + 0.5 * unit01(s *% 69069));
+    const size = covers.crumb(s);
+    const r = size.r;
+    const high = size.high;
     const sides: usize = 5 + @as(usize, s >> 7) % 3;
     const turn = unit01(s *% 22695477) * 6.2831853;
     const lean = V{ (unit01(s *% 1103515245) - 0.5) * r * 0.5, 0.0, (unit01(s *% 134775813) - 0.5) * r * 0.5 };
@@ -540,16 +523,17 @@ fn pebble(x: f32, z: f32, s: u32, out: Out) void {
 /// A fallen leaf: last year's, 5 to 10 m long at one to a hundred, lying curled with its tips up.
 /// One lies in each six metres square of leaf fall, where the world rings it underfoot.
 fn fallenLeaf(cx: i32, cz: i32, out: Out) void {
-    const s = world_mod.ground.hash32(cx, cz, 41);
-    const x = (@as(f32, @floatFromInt(cx)) + 0.2 + 0.6 * unit01(s)) * 6.0;
-    const z = (@as(f32, @floatFromInt(cz)) + 0.2 + 0.6 * unit01(s *% 2654435761)) * 6.0;
-    if (world_mod.ground.wet(x, z)) return;
-    const len = 2.5 + 2.5 * unit01(s *% 40503);
-    const wide = len * (0.25 + 0.12 * unit01(s *% 69069));
-    const turn = unit01(s *% 22695477) * 6.2831853;
+    // where it lies and how it is made is the world's (covers.leafAt): the leaf drawn is the leaf
+    // that rings when Hum steps on it
+    const leaf = covers.leafAt(cx, cz) orelse return;
+    const x = leaf.x;
+    const z = leaf.z;
+    const len = leaf.len;
+    const wide = leaf.wide;
+    const turn = leaf.turn;
     const along = V{ @cos(turn), 0.0, @sin(turn) };
     const across = V{ -@sin(turn), 0.0, @cos(turn) };
-    const curl = 0.3 + 0.8 * unit01(s *% 1103515245);
+    const curl = leaf.curl;
     const dry = col8(.{ 0.78, 0.66, 0.48 }, 0.17);
     const rib = col8(.{ 0.78, 0.66, 0.48 }, 0.09);
     const c = V{ x, 0.05, z };
@@ -576,53 +560,36 @@ fn fallenLeaf(cx: i32, cz: i32, out: Out) void {
     out.tri(q1, tip1, q2);
 }
 
-/// One cell of ground, wearing whatever cover is at its middle.
+/// One cell of ground, wearing the bodies the world says stand there (world/covers.zig), and on
+/// fallen leaves their own six-metre grid.
 fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
+    var bodies: [covers.most_in_patch]covers.Body = undefined;
+    const n = covers.patch(ix, iz, size, near, salt, &bodies);
+    for (bodies[0..n]) |b| {
+        switch (b.kind) {
+            .blade => blade(b, out.body, out.lines, out.n, out.occ, out.occ_n),
+            .clover => clover(b.x, b.z, b.s, out),
+            .moss => moss(b.x, b.z, b.s, near, out),
+            .crumb => crumb(b.x, b.z, b.s, out),
+            .pebble => pebble(b.x, b.z, b.s, out),
+        }
+    }
     const mid_x = (@as(f32, @floatFromInt(ix)) + 0.5) * size;
     const mid_z = (@as(f32, @floatFromInt(iz)) + 0.5) * size;
-    const many: u32 = if (near) 3 else 2;
-    switch (coverAt(mid_x, mid_z)) {
-        .lawn => {
-            for (0..many) |k| blade(ix, iz, @intCast(k + salt), size, out.body, out.lines, out.n, out.occ, out.occ_n);
-        },
-        .clover => {
-            for (0..many - 1) |k| {
-                const s = hash(ix, iz, @intCast(k + salt + 40));
-                clover((@as(f32, @floatFromInt(ix)) + unit01(s)) * size, (@as(f32, @floatFromInt(iz)) + unit01(s *% 22695477)) * size, s, out);
+    if (coverAt(mid_x, mid_z) == .leaves) {
+        // last year's leaves: one to every six metres square, so close by and coarser far off
+        const cells_per: i32 = if (near) 1 else 2;
+        const span: f32 = size / 6.0;
+        const n_side: i32 = @max(1, @as(i32, @intFromFloat(@ceil(span))));
+        var a: i32 = 0;
+        while (a < n_side) : (a += cells_per) {
+            var b: i32 = 0;
+            while (b < n_side) : (b += cells_per) {
+                const lx = @as(i32, @intFromFloat(@floor(@as(f32, @floatFromInt(ix)) * size / 6.0))) + a;
+                const lz = @as(i32, @intFromFloat(@floor(@as(f32, @floatFromInt(iz)) * size / 6.0))) + b;
+                fallenLeaf(lx, lz, out);
             }
-        },
-        .moss => {
-            for (0..many - 1) |k| {
-                const s = hash(ix, iz, @intCast(k + salt + 60));
-                moss((@as(f32, @floatFromInt(ix)) + unit01(s)) * size, (@as(f32, @floatFromInt(iz)) + unit01(s *% 22695477)) * size, s, near, out);
-            }
-        },
-        .leaves => {
-            // last year's leaves: one to every six metres square, so close by and coarser far off
-            const cells_per: i32 = if (near) 1 else 2;
-            const span: f32 = size / 6.0;
-            const n_side: i32 = @max(1, @as(i32, @intFromFloat(@ceil(span))));
-            var a: i32 = 0;
-            while (a < n_side) : (a += cells_per) {
-                var b: i32 = 0;
-                while (b < n_side) : (b += cells_per) {
-                    const lx = @as(i32, @intFromFloat(@floor(@as(f32, @floatFromInt(ix)) * size / 6.0))) + a;
-                    const lz = @as(i32, @intFromFloat(@floor(@as(f32, @floatFromInt(iz)) * size / 6.0))) + b;
-                    fallenLeaf(lx, lz, out);
-                }
-            }
-        },
-        // a puddle's water is drawn by its own (poolLines): nothing grows in it
-        .water => {},
-        .soil => {
-            // bare ground after the storm: mostly nothing, a few pebbles, and now and then a crumb
-            for (0..many) |k| {
-                const s = hash(ix, iz, @intCast(k + salt + 80));
-                const px = (@as(f32, @floatFromInt(ix)) + unit01(s)) * size;
-                const pz = (@as(f32, @floatFromInt(iz)) + unit01(s *% 22695477)) * size;
-                if (k == 0 and s % 5 == 0) crumb(px, pz, s, out) else pebble(px, pz, s, out);
-            }
-        },
+        }
     }
 }
 
@@ -633,7 +600,7 @@ fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
 pub fn ground(hum_x: f32, hum_z: f32, lines_out: []Inst, occ: []V, occ_n: *usize, grid: *[2]i32) usize {
     var n: usize = 0;
     var out = Out{ .lines = lines_out, .n = &n, .occ = occ, .occ_n = occ_n };
-    const size: f32 = 16.0;
+    const size: f32 = covers.far_size;
     const half: i32 = @divTrunc(cover_side, 2);
     const cx: i32 = @intFromFloat(@floor(hum_x / size));
     const cz: i32 = @intFromFloat(@floor(hum_z / size));
@@ -646,7 +613,7 @@ pub fn ground(hum_x: f32, hum_z: f32, lines_out: []Inst, occ: []V, occ_n: *usize
             patch(ix, iz, size, false, 0, out);
             // close by, four smaller squares in each, thick with whatever grows there
             if (@abs(ix - cx) <= 3 and @abs(iz - cz) <= 3) {
-                for (0..4) |q| patch(ix * 2 + @as(i32, @intCast(q % 2)), iz * 2 + @as(i32, @intCast(q / 2)), size * 0.5, true, 20, out);
+                for (0..4) |q| patch(ix * 2 + @as(i32, @intCast(q % 2)), iz * 2 + @as(i32, @intCast(q / 2)), covers.near_size, true, covers.near_salt, out);
             }
         }
     }
@@ -1115,11 +1082,12 @@ pub fn poolLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
     return n;
 }
 
-/// The wheel, while R1 holds it open (SPEC.md 9; spec/promises/wheel.md): drawn large on the ground
-/// round Hum in the ground's cool light, its top the way the view looks, as the right stick's top
-/// is. Twelve wedges round by fifths: the seven lit ones bright, the awake ones brightest, the five
-/// dark ones faint under the horizon; home marked, and the wedge the stick points at lit up. From
-/// every sounding thing near, a faint thread to the wedge that would make it kin.
+/// The wheel, while R1 holds it open (SPEC.md 9; spec/promises/wheel.md): drawn on the ground round
+/// Hum in the ground's cool light, its top the way the view looks, as the right stick's top is. The
+/// day's seven wedges by fifths: an awake one in its note's colour, an asleep one a hairline with no
+/// colour; home doubled, with a spoke to it from Hum's ring; the pointed wedge brightest, with the
+/// pointer running to it (stopping short on an asleep one). Threads, at most twelve, from the
+/// creatures and the nearest sounding things to the wedge where each would fall into step.
 pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
     if (!w.wheel_open) return 0;
     var n: usize = 0;
@@ -1128,71 +1096,75 @@ pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
     const fz = -@cos(w.look_yaw);
     const rx = -fz;
     const rz = fx;
-    const inner: f32 = 9.0;
-    const outer: f32 = 36.0;
+    // six to twenty-four metres round Hum: near enough that Hum and what is round it stay in sight
+    const inner: f32 = 6.0;
+    const outer: f32 = 24.0;
     const y: f32 = 0.25;
     const cx = w.hum_x;
     const cz = w.hum_z;
-    var k: i8 = -6;
-    while (k <= 5) : (k += 1) {
-        const lit = k >= world_mod.lit_least and k <= world_mod.lit_most;
-        const awake = lit and (w.awake & (@as(u8, 1) << @intFromEnum(world_mod.moodOf(k)))) != 0;
+    const Line = struct {
+        fn way(f_x: f32, f_z: f32, r_x: f32, r_z: f32, a: f32) [2]f32 {
+            return .{ f_x * @cos(a) + r_x * @sin(a), f_z * @cos(a) + r_z * @sin(a) };
+        }
+    };
+    var k: i8 = world_mod.lit_least;
+    while (k <= world_mod.lit_most) : (k += 1) {
+        // the dark wedges are borrowing, not yet: only the day's seven are drawn
+        const awake = w.isAwake(k);
         const home = k == w.home_k;
         const pointed = if (w.wheel_point) |p| p == k else false;
-        const hz = if (lit) world_mod.wedgeHz(w.day_hz, k) else w.day_hz * std.math.pow(f32, 2.0, @as(f32, @floatFromInt(@mod(@as(i32, k) * 7, 12))) / 12.0);
+        const hz = world_mod.wedgeHz(w.day_hz, k);
         const tint = colour.ofNote(world_mod.garden_hz, hz);
-        const bright: f32 = if (pointed) 1.0 else if (home) 0.85 else if (awake) 0.6 else if (lit) 0.3 else 0.1;
-        const col = col8(if (lit) tint else cool, bright);
         const mid = @as(f32, @floatFromInt(k)) * (std.math.pi / 6.0);
-        // the wedge's two edges, and its arc
         const edges = [2]f32{ mid - std.math.pi / 12.0, mid + std.math.pi / 12.0 };
+        // an asleep wedge is a hairline outline with no colour: it is there, and not yours yet
+        const edge_col = if (awake) col8(cool, 0.25) else col8(cool, 0.08);
         for (edges) |a| {
             if (n >= out.len) return n;
-            const dx = fx * @cos(a) + rx * @sin(a);
-            const dz = fz * @cos(a) + rz * @sin(a);
-            out[n] = .{ .a = .{ cx + dx * inner, y, cz + dz * inner }, .b = .{ cx + dx * outer, y, cz + dz * outer }, .half_width = 1.2, .body = 0.0, .col = col8(cool, 0.25) };
+            const d = Line.way(fx, fz, rx, rz, a);
+            out[n] = .{ .a = .{ cx + d[0] * inner, y, cz + d[1] * inner }, .b = .{ cx + d[0] * outer, y, cz + d[1] * outer }, .half_width = if (awake) 1.2 else 0.8, .body = 0.0, .col = edge_col };
             n += 1;
         }
-        const arcs: u32 = 6;
-        const radii = if (pointed or home) [2]f32{ outer, outer - 2.5 } else [2]f32{ outer, outer };
-        const rings: usize = if (pointed or home) 2 else 1;
+        const bright: f32 = if (pointed) 1.0 else if (home) 0.85 else 0.6;
+        const col = if (awake) col8(tint, bright) else col8(cool, if (pointed) 0.3 else 0.1);
+        const rings: usize = if (awake and (pointed or home)) 2 else 1;
+        const radii = [2]f32{ outer, outer - 1.8 };
         for (radii[0..rings]) |rr| {
             var s: u32 = 0;
-            while (s < arcs) : (s += 1) {
+            while (s < 6) : (s += 1) {
                 if (n >= out.len) return n;
-                const a0 = edges[0] + (edges[1] - edges[0]) * @as(f32, @floatFromInt(s)) / @as(f32, @floatFromInt(arcs));
-                const a1 = edges[0] + (edges[1] - edges[0]) * @as(f32, @floatFromInt(s + 1)) / @as(f32, @floatFromInt(arcs));
-                const d0x = fx * @cos(a0) + rx * @sin(a0);
-                const d0z = fz * @cos(a0) + rz * @sin(a0);
-                const d1x = fx * @cos(a1) + rx * @sin(a1);
-                const d1z = fz * @cos(a1) + rz * @sin(a1);
-                out[n] = .{ .a = .{ cx + d0x * rr, y, cz + d0z * rr }, .b = .{ cx + d1x * rr, y, cz + d1z * rr }, .half_width = if (pointed) 3.0 else 2.0, .body = 0.0, .col = col };
+                const a0 = edges[0] + (edges[1] - edges[0]) * @as(f32, @floatFromInt(s)) / 6.0;
+                const a1 = edges[0] + (edges[1] - edges[0]) * @as(f32, @floatFromInt(s + 1)) / 6.0;
+                const d0 = Line.way(fx, fz, rx, rz, a0);
+                const d1 = Line.way(fx, fz, rx, rz, a1);
+                out[n] = .{ .a = .{ cx + d0[0] * rr, y, cz + d0[1] * rr }, .b = .{ cx + d1[0] * rr, y, cz + d1[1] * rr }, .half_width = if (pointed and awake) 3.0 else if (awake) 2.0 else 0.8, .body = 0.0, .col = col };
                 n += 1;
             }
         }
-    }
-    // threads: every sounding thing near, to the wedge where home would make it kin
-    var threads: usize = 0;
-    for (w.knots[0..w.knot_count]) |kn| {
-        if (kn.home) continue;
-        const kdx = kn.x - cx;
-        const kdz = kn.z - cz;
-        if (kdx * kdx + kdz * kdz > 160.0 * 160.0) continue;
-        // both strands' threads run to the same wedge: the root they are overtones of
-        // grey, its point tips toward the wedge on its left, where the full close would bring it home
-        const rk = world_mod.wedgeOfHz(w.day_hz, kn.root_hz) - (if (kn.colour <= 0.0 and kn.fate != .turn) @as(i8, 1) else 0);
-        const ra = @as(f32, @floatFromInt(rk)) * (std.math.pi / 6.0);
-        const rex = fx * @cos(ra) + rx * @sin(ra);
-        const rez = fz * @cos(ra) + rz * @sin(ra);
-        for (kn.strands) |st| {
-            if (n >= out.len) return n;
-            const thread = if (kn.colour <= 0.0) [3]f32{ 0.62, 0.62, 0.66 } else colour.ofNote(world_mod.garden_hz, st.hz);
-            out[n] = .{ .a = .{ kn.x, 1.5, kn.z }, .b = .{ cx + rex * (outer + 1.0), y, cz + rez * (outer + 1.0) }, .half_width = 1.3, .body = 0.0, .col = col8(thread, 0.6) };
+        // home's spoke: from Hum's ring out to its wedge
+        if (home and n < out.len) {
+            const d = Line.way(fx, fz, rx, rz, mid);
+            out[n] = .{ .a = .{ cx + d[0] * 0.9, y, cz + d[1] * 0.9 }, .b = .{ cx + d[0] * (outer - 1.8), y, cz + d[1] * (outer - 1.8) }, .half_width = 1.4, .body = 0.0, .col = col8(tint, 0.55) };
+            n += 1;
+        }
+        // the pointer: where home would go; on an asleep wedge it stops short, dim
+        if (pointed and !home and n < out.len) {
+            const d = Line.way(fx, fz, rx, rz, mid);
+            const reach: f32 = if (awake) outer - 1.8 else inner;
+            out[n] = .{ .a = .{ cx + d[0] * 0.9, y, cz + d[1] * 0.9 }, .b = .{ cx + d[0] * reach, y, cz + d[1] * reach }, .half_width = if (awake) 1.8 else 1.0, .body = 0.0, .col = if (awake) col8(tint, 0.9) else col8(cool, 0.25) };
             n += 1;
         }
     }
+    // threads: from creatures and the nearest sounding things within 60 m, at most twelve, each to
+    // the wedge where it would fall into step with home: a single note to its own wedge, a knot to
+    // its root, a grey one toward its nearest awake door. A thread pulls bright when its wedge is
+    // pointed at.
+    const most_threads = 12;
+    const within: f32 = 60.0;
+    var picked: [most_threads]struct { i: u32, d2: f32 } = undefined;
+    var picked_n: usize = 0;
     for (w.things[0..w.thing_count], 0..) |t, ti| {
-        if (!t.sounds or threads >= 160) continue;
+        if (!t.sounds) continue;
         var strand = false;
         for (w.knots[0..w.knot_count]) |kn| {
             if (kn.thing[0] == ti or kn.thing[1] == ti) strand = true;
@@ -1200,68 +1172,100 @@ pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
         if (strand) continue;
         const dx = t.x - cx;
         const dz = t.z - cz;
-        if (dx * dx + dz * dz > 160.0 * 160.0) continue;
-        // its pitch class in fifths from the day's note
-        const c = 1200.0 * @log2(t.hz / w.day_hz);
-        const pc = @mod(c, 1200.0);
-        const steps: i32 = @intFromFloat(@round(pc / 100.0));
-        var fifths: i32 = @mod(steps * 7, 12);
-        if (fifths > 5) fifths -= 12;
-        const a = @as(f32, @floatFromInt(fifths)) * (std.math.pi / 6.0);
-        const ex = fx * @cos(a) + rx * @sin(a);
-        const ez = fz * @cos(a) + rz * @sin(a);
+        const d2 = dx * dx + dz * dz;
+        if (d2 > within * within) continue;
+        if (picked_n < most_threads) {
+            picked[picked_n] = .{ .i = @intCast(ti), .d2 = d2 };
+            picked_n += 1;
+        } else {
+            var worst: usize = 0;
+            for (picked[0..picked_n], 0..) |p, pi| {
+                if (p.d2 > picked[worst].d2) worst = pi;
+            }
+            if (d2 < picked[worst].d2) picked[worst] = .{ .i = @intCast(ti), .d2 = d2 };
+        }
+    }
+    var knot_threads: usize = 0;
+    for (w.knots[0..w.knot_count]) |kn| {
+        if (kn.home) continue;
+        const kdx = kn.x - cx;
+        const kdz = kn.z - cz;
+        if (kdx * kdx + kdz * kdz > 160.0 * 160.0) continue;
+        const grey = kn.colour <= 0.0;
+        const rk = world_mod.wedgeOfHz(w.day_hz, kn.root_hz) + (if (grey and kn.fate != .turn) w.doorSide() else 0);
+        const ra = @as(f32, @floatFromInt(rk)) * (std.math.pi / 6.0);
+        const re = Line.way(fx, fz, rx, rz, ra);
+        const lit: f32 = if (w.wheel_point) |p| (if (p == rk) 1.0 else 0.55) else 0.55;
+        for (kn.strands) |st| {
+            if (n >= out.len or knot_threads >= most_threads) return n;
+            const thread = if (grey) [3]f32{ 0.62, 0.62, 0.66 } else colour.ofNote(world_mod.garden_hz, st.hz);
+            out[n] = .{ .a = .{ kn.x, 1.5, kn.z }, .b = .{ cx + re[0] * (outer + 1.0), y, cz + re[1] * (outer + 1.0) }, .half_width = 1.4, .body = 0.0, .col = col8(thread, lit) };
+            n += 1;
+            knot_threads += 1;
+        }
+    }
+    for (picked[0..@min(picked_n, most_threads - @min(knot_threads, most_threads))]) |p| {
         if (n >= out.len) return n;
-        out[n] = .{ .a = .{ t.x, @min(t.y, 6.0), t.z }, .b = .{ cx + ex * (outer + 1.0), y, cz + ez * (outer + 1.0) }, .half_width = 0.9, .body = 0.0, .col = col8(colour.ofNote(world_mod.garden_hz, t.hz), 0.22) };
+        const t = w.things[p.i];
+        const tk = world_mod.wedgeOfHz(w.day_hz, t.hz);
+        const a = @as(f32, @floatFromInt(tk)) * (std.math.pi / 6.0);
+        const e = Line.way(fx, fz, rx, rz, a);
+        const lit: f32 = if (w.wheel_point) |pt| (if (pt == tk) 0.7 else 0.3) else 0.3;
+        out[n] = .{ .a = .{ t.x, @min(t.y, 6.0), t.z }, .b = .{ cx + e[0] * (outer + 1.0), y, cz + e[1] * (outer + 1.0) }, .half_width = 1.0, .body = 0.0, .col = col8(colour.ofNote(world_mod.garden_hz, t.hz), lit) };
         n += 1;
-        threads += 1;
     }
     return n;
 }
 
 /// The swell, while R2 is held after the lock (SPEC.md 9; spec/promises/wheel.md, hands.told-apart):
-/// nothing on the ground. Hum takes a band of home's colour for each bar it has grown, and the two
-/// wedges either side of home show as two small marks either side of Hum, lit on each downbeat, an
-/// asleep one grey.
+/// nothing on the ground but Hum's ring. Each bar Hum takes a band in the colour of the note that
+/// bar added to its chord (home, its fifth, its third, its seventh, its ninth); its outer band
+/// closes in on Hum through the bar's last beat, so the one is seen coming; and the awake wedges
+/// either side of home lie on Hum's ring, flatward to the left and sharpward to the right,
+/// brightening into each one.
 pub fn swellLines(w: *const world_mod.World, out: []Inst) usize {
     if (!w.singing or w.locked_at == world_mod.never or w.step < w.hold_until or w.stand < 0.9) return 0;
     var n: usize = 0;
     const rx = @cos(w.look_yaw);
     const rz = @sin(w.look_yaw);
-    const swell: f32 = 1.2 + 0.05 * @as(f32, @floatFromInt(w.swell_bars));
-    const home_col = colour.ofNote(world_mod.garden_hz, w.home_hz);
+    const swell = w.humSwell();
+    const chord = [_]f32{ 1.0, 1.5, 1.25, 1.875, 1.125, 1.5, 1.25, 1.0 };
+    // through the bar's last beat, the one coming
+    const bar = 4 * world_mod.tick_every;
+    const into = w.clock % bar;
+    const last = bar - world_mod.tick_every;
+    const coming: f32 = if (into >= last) @as(f32, @floatFromInt(into - last)) / @as(f32, @floatFromInt(world_mod.tick_every)) else 0.0;
     var b: u8 = 0;
     while (b < w.swell_bars) : (b += 1) {
-        const grow = 0.13 * @as(f32, @floatFromInt(b + 1));
-        const wide = 0.36 * swell + grow;
-        const high = 0.5 * swell + grow;
-        const alpha = 0.75 - 0.07 * @as(f32, @floatFromInt(b));
+        const outermost = b + 1 == w.swell_bars;
+        var grow = 0.13 * @as(f32, @floatFromInt(b + 1));
+        if (outermost) grow *= 1.0 - 0.7 * coming * coming;
+        const wide = world_mod.hum_body * swell + grow;
+        const high = world_mod.hum_half_high * swell + grow;
+        const tint = colour.ofNote(world_mod.garden_hz, w.home_hz * chord[@min(b, chord.len - 1)]);
+        const alpha = (0.75 - 0.07 * @as(f32, @floatFromInt(b))) * (if (outermost) 0.7 + 0.3 * coming else 1.0);
         for (0..18) |k| {
             if (n >= out.len) return n;
             const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 18.0);
             const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 18.0);
-            out[n] = .{ .a = .{ w.hum_x + rx * wide * @cos(a0), 0.52 + high * @sin(a0), w.hum_z + rz * wide * @cos(a0) }, .b = .{ w.hum_x + rx * wide * @cos(a1), 0.52 + high * @sin(a1), w.hum_z + rz * wide * @cos(a1) }, .half_width = 1.3, .body = 0.0, .col = col8(home_col, alpha) };
+            out[n] = .{ .a = .{ w.hum_x + rx * wide * @cos(a0), world_mod.hum_middle + w.hum_y + high * @sin(a0), w.hum_z + rz * wide * @cos(a0) }, .b = .{ w.hum_x + rx * wide * @cos(a1), world_mod.hum_middle + w.hum_y + high * @sin(a1), w.hum_z + rz * wide * @cos(a1) }, .half_width = 1.3, .body = 0.0, .col = col8(tint, alpha) };
             n += 1;
         }
     }
-    // the two neighbours: where a nudge would walk home, lit on the downbeat
-    const since: f32 = if (w.downbeat_at == world_mod.never or w.step < w.downbeat_at) 99.0 else @floatFromInt(w.step - w.downbeat_at);
-    const pulse = std.math.clamp(1.0 - since / 24.0, 0.0, 1.0);
-    const sides = [2]i8{ -1, 1 };
-    for (sides) |side| {
+    // the neighbours on Hum's ring: arcs where a step on the one would take home, only if awake
+    const ring_r: f32 = 0.9;
+    for ([2]i8{ -1, 1 }) |side| {
         const k = w.home_k + side;
-        const lit = k >= world_mod.lit_least and k <= world_mod.lit_most;
-        const awake = lit and (w.awake & (@as(u8, 1) << @intFromEnum(world_mod.moodOf(k)))) != 0;
-        const tint = if (awake) colour.ofNote(world_mod.garden_hz, world_mod.wedgeHz(w.day_hz, k)) else [3]f32{ 0.5, 0.5, 0.5 };
-        const bright: f32 = if (awake) 0.35 + 0.65 * pulse else 0.15;
-        const off = (0.36 * swell + 0.9) * @as(f32, @floatFromInt(side));
-        const cx = w.hum_x + rx * off;
-        const cz = w.hum_z + rz * off;
-        const cy: f32 = 0.6;
-        const s: f32 = 0.22;
-        const pts = [4][3]f32{ .{ cx, cy + s, cz }, .{ cx + rx * s, cy, cz + rz * s }, .{ cx, cy - s, cz }, .{ cx - rx * s, cy, cz - rz * s } };
-        for (0..4) |i| {
+        if (!w.isAwake(k)) continue;
+        const tint = colour.ofNote(world_mod.garden_hz, world_mod.wedgeHz(w.day_hz, k));
+        const bright: f32 = 0.3 + 0.7 * coming;
+        // screen-left is flatward, screen-right sharpward: round the ring from the side the view sees
+        const centre = std.math.atan2(rz * @as(f32, @floatFromInt(side)), rx * @as(f32, @floatFromInt(side)));
+        for (0..5) |s| {
             if (n >= out.len) return n;
-            out[n] = .{ .a = pts[i], .b = pts[(i + 1) % 4], .half_width = 1.6, .body = 0.0, .col = col8(tint, bright) };
+            const a0 = centre + (@as(f32, @floatFromInt(s)) - 2.5) * 0.18;
+            const a1 = a0 + 0.18;
+            out[n] = .{ .a = .{ w.hum_x + ring_r * @cos(a0), 0.06, w.hum_z + ring_r * @sin(a0) }, .b = .{ w.hum_x + ring_r * @cos(a1), 0.06, w.hum_z + ring_r * @sin(a1) }, .half_width = 2.2, .body = 0.0, .col = col8(tint, bright) };
             n += 1;
         }
     }
@@ -1274,7 +1278,6 @@ pub fn swellLines(w: *const world_mod.World, out: []Inst) usize {
 pub fn knotLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
     var n: usize = 0;
     const grey = [3]f32{ 0.55, 0.55, 0.58 };
-    const turn = @as(f32, @floatFromInt(w.clock % 3600)) * (6.2831853 / 3600.0);
     for (w.knots[0..w.knot_count]) |kn| {
         const ex = kn.x - eye[0];
         const ez = kn.z - eye[2];
@@ -1319,7 +1322,7 @@ pub fn knotLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
             const note = if (kin) home_note else colour.ofNote(world_mod.garden_hz, st.hz);
             const c: f32 = if (kin) 1.0 else kn.colour;
             const tint = col8(.{ note[0] * c + grey[0] * (1.0 - c), note[1] * c + grey[1] * (1.0 - c), note[2] * c + grey[2] * (1.0 - c) }, 0.28 + 0.72 * c);
-            const plane = turn + @as(f32, @floatFromInt(s)) * (std.math.pi / 2.0);
+            const plane = kn.spin + @as(f32, @floatFromInt(s)) * (std.math.pi / 2.0);
             const ux = @cos(plane);
             const uz = @sin(plane);
             const lobes: f32 = @floatFromInt(st.over);

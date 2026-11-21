@@ -78,15 +78,24 @@ grep "^the dark:" build/dark.out | sed 's/^/   /'
 SAME_TAKE=$!
 
 phase "no screen: the first evening and the asters, played by the scripted player, a frame at each standpoint a promise names"
-quiet_run evening build/gameguy-x86_64 --scene evening --headless --dump build/frames --dump-every 100000 --wav build/evening.wav
+rm -rf build/walks
+quiet_run evening build/gameguy-x86_64 --scene evening --headless --dump build/frames --dump-every 100000 --wav build/evening.wav --walk-starts build/walks
 grep "^the evening:" build/evening.out | tail -1 | sed 's/^/   /'
+# the room's listening clips, cut from this evening's own sound
+python3 -I tools/clips.py > build/clips.out 2>&1 || { echo "the clips could not be cut:"; tail -5 build/clips.out; exit 1; }
 ls build/frames | grep '^promise-' | tr '\n' ' ' | sed 's/^/   /'; echo
 
 phase "no screen: the room opens with its walk and its clips"
 rm -rf build/room && mkdir -p build/room && ln -s ../../../design/listen build/room/clips
-$PROMISES --room build/room/promises.txt
-# the checkpoints come first: what is new to try, each with its question
-cat room/checkpoints.txt build/room/promises.txt > build/room/promises.next && mv build/room/promises.next build/room/promises.txt
+# the walks, each from this build's own evening kept at its moment (room/walks.txt): every start a
+# walk names must have been kept
+cp room/walks.txt build/room/walks.txt
+mkdir -p build/room/walks
+cp build/walks/*.save build/room/walks/
+for start in $(grep '^walk|' room/walks.txt | cut -d'|' -f3 | sort -u); do
+  [ -f "build/room/walks/$start.save" ] || { echo "the walk start $start was never reached by the scripted evening"; exit 1; }
+done
+echo "build $(git -C .. describe --always --dirty 2>/dev/null || echo unknown), $(date +%Y-%m-%d)" > build/room/build.txt
 python3 -I - > build/room/clips.txt <<'PY'
 import re
 rows = []
@@ -179,7 +188,9 @@ mkdir -p "$P/gameguy"
 cp build/gameguy-aarch64 build/modes-aarch64 build/speaker-aarch64 build/same-take-aarch64 "$P/gameguy/"
 cp port/Gameguy.sh port/GameguyRoom.sh "$P/"
 mkdir -p "$P/gameguy/room/clips"
-cp build/room/clips.txt build/room/promises.txt "$P/gameguy/room/"
+cp build/room/clips.txt build/room/walks.txt build/room/build.txt "$P/gameguy/room/"
+mkdir -p "$P/gameguy/room/walks"
+cp build/room/walks/*.save "$P/gameguy/room/walks/"
 cp ../design/listen/*.wav "$P/gameguy/room/clips/"
 chmod +x "$P/Gameguy.sh" "$P/GameguyRoom.sh" "$P/gameguy/gameguy-aarch64" "$P/gameguy/modes-aarch64" "$P/gameguy/speaker-aarch64" "$P/gameguy/same-take-aarch64"
 find dist -type f -not -name '*.wav' | sort | sed 's/^/   /'; echo "   and $(ls dist/ports/gameguy/room/clips | wc -l) clips"

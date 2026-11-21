@@ -88,7 +88,17 @@ pub const Knot = struct {
     lunge_from: u64 = never_lunged,
     /// Where its cycle starts, in steps of the world's beat: nought, until a clap sets it to then.
     phase_from: u64 = 0,
+    /// It has heard Hum's call, and comes to where it came from.
+    heard: bool = false,
+    /// How far round it has turned: once for each beat between its cycle and Hum's bar, so on its
+    /// own root, in step, it stands still (law 3; the figure between Hum and Drip that stopped).
+    spin: f32 = 0.0,
 };
+
+/// Once the place has stood, a knot that hears Hum's call comes to it: this fast while far, at its
+/// own pace within this much of Hum.
+pub const come_speed: f32 = 8.0;
+pub const come_near: f32 = 60.0;
 
 pub const never_lunged: u64 = std.math.maxInt(u64);
 /// A lunge lasts this many steps of the world's beat and arrives halfway, on the knot's one; it

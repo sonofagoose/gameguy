@@ -18,6 +18,8 @@ test {
     _ = world.pools;
     _ = world.knots;
     _ = world.hose;
+    _ = world.reeds;
+    _ = world.covers;
     _ = @import("plat/keys.zig");
     _ = sound;
     _ = m;

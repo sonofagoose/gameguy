@@ -118,9 +118,10 @@ the mornings never repeat.
 5. **Everything is an instrument.** Your call rings whatever it passes, and whatever shares your
    note answers across the garden in its own light. A still pool shows lines on its surface when you
    hum its note, and you can walk on them.
-6. **The hose is knotted, and the knot is moving.** Three small knots stumble at you. Hold R1: time
-   thickens, the place folds back to a page, and on the wheel the strands' threads cross on one
-   wedge. Point there and let go. Now they dance in three and in five over a one that you are
+6. **The hose is knotted, and the knot is moving.** Once the world has stood up, your call reaches
+   three small knots, and they stumble to you wherever you are. Hold R1: time thickens, the place
+   folds back to a page, and on the wheel the strands' threads cross on one wedge. Point there and
+   let go. Now they dance in three and in five over a one that you are
    singing. Strike on the one. Dodge on the beat and time opens into a pocket. A grey knot leans;
    hold R2 while the swell builds, and let go on the one. It springs open. Water runs. The hose,
    unstopped, sounds an octave higher and brighter than it did. For a second a blue figure sits on
@@ -292,15 +293,20 @@ Face buttons are named by position.
 - **R1 and R2 are told apart at a glance and in the hands.** Morgan, 2026-11-20, after the wheel
   toy:
   "the two need more visual and actionable differentiation". R1 is the world's; R2 is Hum's own.
-  - **R1 held, the mood wheel, jumps home to any wedge while time thickens.** The place lies back
-    toward the page, and the wheel is drawn large on the ground round Hum in the ground's cool
-    light,
-    with a thread from every thing to the wedge that would bring it home. What you hear stretches
-    into a held chord.
-  - **R2 held, the swell, steps home only to a neighbour, on a downbeat, in time.** Nothing is drawn
-    on the ground. Hum itself swells and takes a band of colour each bar, and the two neighbouring
-    wedges show as two small marks either side of Hum, lit on each downbeat. The view stays at
-    Hum's height.
+  - **R1 held, the mood wheel, jumps home to any awake wedge while time thickens, Hum's legs
+    too.** The place lies back toward the page, and the wheel lies on the ground round Hum in the
+    ground's cool light: an awake wedge in its note's colour, an asleep one a hairline. At most
+    twelve threads run from the creatures and the nearest sounding things to the wedge where each
+    would fall into step. Resting on a wedge, Hum hums its note under its breath, so what home
+    there would do is heard before you let go. What you hear stretches into a held chord.
+  - **R2 held, the swell, steps home only to a neighbour, on the one, in time.** Nothing is drawn
+    on the ground but Hum's ring. Hum itself swells and takes a band each bar, in the colour of the
+    note that bar adds to its chord. The outer band closes in through the bar's last beat, so the
+    one is seen coming, and Drip's tick on the one is deeper and longer than the other three. The
+    awake neighbours lie on Hum's ring, flatward on the left and sharpward on the right. The view
+    stays at Hum's height.
+- **Home is always shown,** as a ring of light at Hum's feet in home's colour, and moving home is
+  told, whichever hand moved it: Hum sings the new note.
 - **One breath** pays for singing, the wheels, sprint and glide, and silence refills it. Dodging and
   guarding are free. A breath holds three homes at first and grows by one each time you land a
   longer walk, up to seven; the ferry makes eight. In the sky, what carries Hum costs breath only to

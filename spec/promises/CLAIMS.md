@@ -55,7 +55,7 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `evening.in`: Now it tilts back and stands up around you: reeds, a spigot, asters as tall as cathedrals, a sky with the day coming up in it, in the key of C.
 - spoken for by `evening.instrument`: Everything is an instrument. Your call rings whatever it passes, and whatever shares your note answers across the garden in its own light.
 - spoken for by `evening.instrument`: A still pool shows lines on its surface when you hum its note, and you can walk on them.
-- spoken for by `evening.knot`: The hose is knotted, and the knot is moving. Three small knots stumble at you.
+- spoken for by `evening.knot`: The hose is knotted, and the knot is moving. Once the world has stood up, your call reaches three small knots, and they stumble to you wherever you are.
 - spoken for by `evening.knot`: Hold R1: time thickens, the place folds back to a page, and on the wheel the strands' threads cross on one wedge.
 - spoken for by `evening.knot`: Point there and let go.
 - spoken for by `evening.knot`: Now they dance in three and in five over a one that you are singing.
@@ -194,11 +194,16 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `swell.lean`: It always resolves when you let go.
 - spoken for by `hands.told-apart`: R1 and R2 are told apart at a glance and in the hands. Morgan, 2026-11-20, after the wheel toy: "the two need more visual and actionable differentiation".
 - spoken for by `hands.told-apart`: R1 is the world's; R2 is Hum's own.
-- spoken for by `hands.told-apart`: R1 held, the mood wheel, jumps home to any wedge while time thickens. The place lies back toward the page, and the wheel is drawn large on the ground round Hum in the ground's cool light, with a thread from every thing to the wedge that would bring it home.
+- spoken for by `hands.told-apart`: R1 held, the mood wheel, jumps home to any awake wedge while time thickens, Hum's legs too. The place lies back toward the page, and the wheel lies on the ground round Hum in the ground's cool light: an awake wedge in its note's colour, an asleep one a hairline.
+- spoken for by `hands.told-apart`: At most twelve threads run from the creatures and the nearest sounding things to the wedge where each would fall into step.
+- spoken for by `hands.told-apart`: Resting on a wedge, Hum hums its note under its breath, so what home there would do is heard before you let go.
 - spoken for by `hands.told-apart`: What you hear stretches into a held chord.
-- spoken for by `hands.told-apart`: R2 held, the swell, steps home only to a neighbour, on a downbeat, in time. Nothing is drawn on the ground.
-- spoken for by `hands.told-apart`: Hum itself swells and takes a band of colour each bar, and the two neighbouring wedges show as two small marks either side of Hum, lit on each downbeat.
+- spoken for by `hands.told-apart`: R2 held, the swell, steps home only to a neighbour, on the one, in time. Nothing is drawn on the ground but Hum's ring.
+- spoken for by `hands.told-apart`: Hum itself swells and takes a band each bar, in the colour of the note that bar adds to its chord.
+- spoken for by `hands.told-apart`: The outer band closes in through the bar's last beat, so the one is seen coming, and Drip's tick on the one is deeper and longer than the other three.
+- spoken for by `hands.told-apart`: The awake neighbours lie on Hum's ring, flatward on the left and sharpward on the right.
 - spoken for by `hands.told-apart`: The view stays at Hum's height.
+- spoken for by `hands.told-apart`: Home is always shown, as a ring of light at Hum's feet in home's colour, and moving home is told, whichever hand moved it: Hum sings the new note.
 - spoken for by `breath.one`: One breath pays for singing, the wheels, sprint and glide, and silence refills it.
 - spoken for by `breath.one`: Dodging and guarding are free.
 - spoken for by `breath.one`: A breath holds three homes at first and grows by one each time you land a longer walk, up to seven; the ferry makes eight.

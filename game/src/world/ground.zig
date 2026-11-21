@@ -45,10 +45,6 @@ pub fn coverAt(x: f32, z: f32) Cover {
 /// The pure garden's five-note scale, for things that are tuned to it: dew, and fallen leaves.
 pub const five = [5]f32{ 1.0, 9.0 / 8.0, 5.0 / 4.0, 3.0 / 2.0, 5.0 / 3.0 };
 
-/// A fallen leaf is a bar with its own note: one leaf to every six metres square of leaf fall.
-pub fn leafNote(x: f32, z: f32) usize {
-    return hash32(@intFromFloat(@floor(x / 6.0)), @intFromFloat(@floor(z / 6.0)), 23) % 5;
-}
 
 const pools = @import("pools.zig");
 const world = @import("world.zig");

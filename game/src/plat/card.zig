@@ -62,6 +62,29 @@ pub const Card = struct {
         return true;
     }
 
+    /// A take written into its own folder under a name, apart from the player's (a room's walk).
+    pub fn beginIn(self: *Card, scene: take.Scene, dir: []const u8, name: []const u8) bool {
+        _ = c.mkdir("results", 0o755);
+        var dir_z: [128]u8 = undefined;
+        const d = std.mem.printSentinel(&dir_z, "{s}", .{dir}, 0) catch return false;
+        _ = c.mkdir(d.ptr, 0o755);
+        var path: [256]u8 = undefined;
+        var number: u32 = 1;
+        var p: [:0]u8 = undefined;
+        while (number < 100_000) : (number += 1) {
+            p = std.mem.printSentinel(&path, "{s}/{s}-{d:0>3}.take", .{ dir, name, number }, 0) catch return false;
+            if (c.access(p.ptr, 0) != 0) break;
+        }
+        const file = c.fopen(p.ptr, "wb") orelse return false;
+        var header: [take.header_size]u8 = undefined;
+        take.openHeader(scene, &header);
+        _ = c.fwrite(&header, 1, header.len, file);
+        _ = c.fflush(file);
+        self.start(file, scene, number, 0);
+        log("the take: written as it is played, into {s}", .{p});
+        return true;
+    }
+
     /// Go on writing a take that was cut off, after its last whole change.
     pub fn reopen(self: *Card, scene: take.Scene, number: u32, count: u32, last: Hands, last_step: u64) bool {
         var path: [96]u8 = undefined;

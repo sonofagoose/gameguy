@@ -11,6 +11,7 @@ const std = @import("std");
 const lines = @import("lines.zig");
 const aster_lines = @import("aster_lines.zig");
 const world_mod = @import("../world/world.zig");
+const colour = @import("colour.zig");
 const land = world_mod.land;
 const hose = world_mod.hose;
 const Inst = lines.Inst;
@@ -53,14 +54,7 @@ const Model = struct {
 var models: [max_models]Model = undefined;
 var model_n: usize = 0;
 
-fn col8(rgb: [3]f32, alpha: f32) [4]u8 {
-    return .{
-        @intFromFloat(std.math.clamp(rgb[0], 0.0, 1.0) * 255.0),
-        @intFromFloat(std.math.clamp(rgb[1], 0.0, 1.0) * 255.0),
-        @intFromFloat(std.math.clamp(rgb[2], 0.0, 1.0) * 255.0),
-        @intFromFloat(std.math.clamp(alpha, 0.0, 1.0) * 255.0),
-    };
-}
+const col8 = colour.col8;
 
 const green = [3]f32{ 0.30, 0.80, 0.42 };
 const brass = [3]f32{ 0.92, 0.72, 0.30 };
@@ -128,28 +122,6 @@ fn buildHose() void {
             }
         }
     }
-    // the coil at its end, in the reeds: two turns lying on the ground beside its mouth
-    const mouth = hose.path[hose.count - 1];
-    const m = newModel(mouth[0] - 6.0, mouth[1] + 4.0);
-    const turns = 2.0;
-    const parts = 40;
-    var k: usize = 0;
-    while (k < parts) : (k += 1) {
-        const t0 = @as(f32, @floatFromInt(k)) / @as(f32, parts);
-        const t1 = @as(f32, @floatFromInt(k + 1)) / @as(f32, parts);
-        const a0 = t0 * turns * 2.0 * std.math.pi;
-        const a1 = t1 * turns * 2.0 * std.math.pi;
-        const r0 = 6.5 - 3.0 * t0;
-        const r1 = 6.5 - 3.0 * t1;
-        const cx = mouth[0] - 7.0;
-        const cz = mouth[1] + 5.0;
-        const a = V{ cx + r0 * @cos(a0), 2.0 * rb, cz + r0 * @sin(a0) };
-        const b = V{ cx + r1 * @cos(a1), 2.0 * rb, cz + r1 * @sin(a1) };
-        m.nearLine(a, b, 1.4, col8(green, 0.85));
-        m.nearLine(.{ a[0], rb * 0.3, a[2] }, .{ b[0], rb * 0.3, b[2] }, 1.1, col8(green, 0.5));
-        m.midLine(a, b, 1.3, col8(green, 0.7));
-        if (k % 4 == 0) m.farLine(a, b, 1.5, col8(green, 0.6));
-    }
 }
 
 /// The spigot: a riser of brass from the ground, its body, a handle like a wheel on top, and a spout
@@ -159,7 +131,7 @@ fn buildSpigot() void {
     const z = land.spigot[1];
     const tall = land.spigot[2];
     const m = newModel(x, z);
-    const rr: f32 = 0.9;
+    const rr: f32 = world_mod.spigot_body;
     const sides = 8;
     // the riser, a pipe
     for (0..sides) |k| {
@@ -212,27 +184,21 @@ fn buildReeds() void {
     const pz = land.pool[1];
     const r0 = land.pool[2];
     const band = land.pool[3];
-    const groups = 24;
-    const each = 11;
+    const groups = world_mod.reeds.groups;
+    const each = world_mod.reeds.each;
     for (0..groups) |g| {
         const ga = (@as(f32, @floatFromInt(g)) + 0.5) * (2.0 * std.math.pi / @as(f32, groups));
         const m = newModel(px + (r0 + band * 0.5) * @cos(ga), pz + (r0 + band * 0.5) * @sin(ga));
         for (0..each) |k| {
-            const s = hash(@intCast(g), @intCast(k));
-            const a = (@as(f32, @floatFromInt(g)) + unit(s)) * (2.0 * std.math.pi / @as(f32, groups));
-            const r = r0 + band * unit(s *% 2654435761);
-            const x = px + r * @cos(a);
-            const z = pz + r * @sin(a);
-            // none where Hum wakes, at Drip's clearing, or on the hose
-            const wx = x - land.wake[0];
-            const wz = z - land.wake[1];
-            const cx = x - land.clear[0];
-            const cz = z - land.clear[1];
-            if (wx * wx + wz * wz < 7.0 * 7.0 or cx * cx + cz * cz < 8.0 * 8.0) continue;
-            if (hose.distance(x, z) < 4.0) continue;
-            const tall = 60.0 + 90.0 * unit(s *% 40503);
-            const lean_a = unit(s *% 69069) * 2.0 * std.math.pi;
-            const lean = tall * (0.03 + 0.06 * unit(s *% 362437));
+            // where it stands and how it is made is the world's (world/reeds.zig): the stem the
+            // world feels is the stem drawn
+            const reed = world_mod.reeds.at(g, k) orelse continue;
+            const s = reed.s;
+            const x = reed.x;
+            const z = reed.z;
+            const tall = reed.tall;
+            const lean_a = reed.lean_a;
+            const lean = reed.lean;
             const top = V{ x + @cos(lean_a) * lean, tall, z + @sin(lean_a) * lean };
             const foot = V{ x, 0.0, z };
             const midp = V{ (foot[0] + top[0]) * 0.5 + @cos(lean_a) * lean * 0.15, tall * 0.5, (foot[2] + top[2]) * 0.5 + @sin(lean_a) * lean * 0.15 };

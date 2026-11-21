@@ -147,6 +147,13 @@ var ready_home: u32 = @bitCast(world_mod.garden_hz);
 var ready_winded: u8 = 0;
 /// The songbook is open and the world waits: the hands start nothing on the sound's thread.
 var ready_paused: u8 = 0;
+/// Whether the world has Hum singing, as the main thread last saw it; and the sample on which the
+/// hands began a hum the world has not yet taken up. A hum the world never takes up (a press it
+/// did not hear) is ended by the sound thread within a tenth of a second: nothing can leave Hum's
+/// voice ringing with no hand on R2.
+var ready_singing: u8 = 0;
+var own_hum_at: u64 = 0;
+pub const own_hum_wait: u64 = 4800;
 var sketch: songbook.Sketch = undefined;
 var hands_most_us: u32 = 0;
 /// The clap's rule, kept where the presses are stamped (keys_mod.Clap), and how many claps the
@@ -232,6 +239,14 @@ var hands_started: u32 = 0;
 /// starts Hum's own call or hum on this buffer's first sample; a let-go is only noted, since the
 /// world decides whether a let-go ends the hum or locks the breath.
 fn handsNow() void {
+    if (own_hum_at != 0) {
+        if (@atomicLoad(u8, &ready_singing, .monotonic) != 0) {
+            own_hum_at = 0;
+        } else if (snd.sample > own_hum_at + own_hum_wait) {
+            _ = snd.ownNow(.{ .at = 0, .kind = .hum_off, .own = sound_mod.own_hands, .hz = 0.0, .gain = 0.0 });
+            own_hum_at = 0;
+        }
+    }
     var edges: [16]presses_mod.Edge = undefined;
     const n = presses.poll(&edges);
     if (n == 0) return;
@@ -252,7 +267,7 @@ fn handsNow() void {
                 for (edges[i + 1 .. n]) |later| {
                     if (later.what == .voice_down and clap_rule.wouldClap(true, later.at_s)) break :blk snd.sample;
                 }
-                break :blk snd.ownNow(.{ .at = 0, .kind = .strike, .family = .string, .own = sound_mod.own_hands, .hz = home, .gain = world_mod.callStrength(@enumFromInt(@atomicLoad(u8, &ready_cover, .monotonic))) * world_mod.voice_level, .ring = 0.35 });
+                break :blk snd.ownNow(world_mod.heardAs(world_mod.callSound(home, @enumFromInt(@atomicLoad(u8, &ready_cover, .monotonic))), sound_mod.own_hands));
             },
             .voice_down => blk: {
                 if (clap_rule.press(true, e.at_s)) {
@@ -261,7 +276,12 @@ fn handsNow() void {
                 }
                 break :blk snd.sample;
             },
-            .sing_down => if (@atomicLoad(u8, &ready_winded, .monotonic) != 0) snd.sample else snd.ownNow(.{ .at = 0, .kind = .hum_on, .own = sound_mod.own_hands, .hz = home, .gain = world_mod.voice_level }),
+            .sing_down => blk: {
+                if (@atomicLoad(u8, &ready_winded, .monotonic) != 0) break :blk snd.sample;
+                const began = snd.ownNow(world_mod.heardAs(world_mod.humSound(home), sound_mod.own_hands));
+                own_hum_at = began;
+                break :blk began;
+            },
             // the left face: inside the beat's window it is a strike timed by the hands, fuller and at
             // once; outside it the world places it on the next beat
             .strike_down => blk: {
@@ -412,6 +432,12 @@ fn forgetPresses() void {
     l1_down = false;
     l2_down = false;
     face_down = @splat(false);
+    // the counts are the scene's own
+    @atomicStore(u32, &hands_started, 0, .monotonic);
+    @atomicStore(u32, &hands_most_us, 0, .monotonic);
+    @atomicStore(u32, &hands_claps, 0, .monotonic);
+    @atomicStore(u32, &hands_strikes, 0, .monotonic);
+    own_hum_at = 0;
 }
 
 fn takeEdges() void {
@@ -580,19 +606,11 @@ fn noteColour(hz: f32) [3]f32 {
     return colour.ofNote(world_mod.garden_hz, hz);
 }
 
-fn col8(rgb: [3]f32, alpha: f32) [4]u8 {
-    return .{
-        @intFromFloat(std.math.clamp(rgb[0], 0.0, 1.0) * 255.0),
-        @intFromFloat(std.math.clamp(rgb[1], 0.0, 1.0) * 255.0),
-        @intFromFloat(std.math.clamp(rgb[2], 0.0, 1.0) * 255.0),
-        @intFromFloat(std.math.clamp(alpha, 0.0, 1.0) * 255.0),
-    };
-}
+const col8 = colour.col8;
 
 const per_thing = 12;
-const bone = [3]f32{ 0.886, 0.839, 0.784 };
-/// Drip's colour (design/look.md).
-const teal = [3]f32{ 0.25, 0.86, 0.80 };
+const bone = colour.bone;
+const teal = colour.teal;
 
 /// What the first evening adds to the picture: Drip, the ripple that shows which way its answer
 /// came from, and the figure between its voice and Hum's.
@@ -828,7 +846,7 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
     } else {
         // stood beside: one metre of bone-white, hatched so it reads as the one solid thing. Singing
         // after the lock it swells a little more each bar (the swell, SPEC.md 9)
-        const swell: f32 = if (w.singing) 1.2 + 0.05 * @as(f32, @floatFromInt(w.swell_bars)) else 1.0;
+        const swell = w.humSwell();
         const rx = @cos(w.look_yaw);
         const rz = @sin(w.look_yaw);
         // landing, it squashes a little and springs back (spec/engine.md, Hum's legs)
@@ -837,8 +855,8 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
             const since = @as(f32, @floatFromInt(w.step - w.landed_at));
             if (since < 6.0) squash = 0.85 else if (since < 15.0) squash = 0.85 + 0.15 * (since - 6.0) / 9.0;
         }
-        const wide = 0.36 * swell * (2.0 - squash);
-        const high = 0.5 * swell * squash;
+        const wide = world_mod.hum_body * swell * (2.0 - squash);
+        const high = world_mod.hum_half_high * swell * squash;
         // it stands facing the eye: seen from above, its upright leans away from the eye as much
         // as the eye looks down on it, so it stays a figure and never a sliver
         const ex = w.hum_x - eye[0];
@@ -860,13 +878,26 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
             const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, parts));
             const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, parts));
             out[n] = .{
-                .a = .{ w.hum_x + rx * (wide * @cos(a0) + tip * (1.0 + @sin(a0))) + back_x * high * @sin(a0), 0.52 + lift + high * @sin(a0) * upright, w.hum_z + rz * (wide * @cos(a0) + tip * (1.0 + @sin(a0))) + back_z * high * @sin(a0) },
-                .b = .{ w.hum_x + rx * (wide * @cos(a1) + tip * (1.0 + @sin(a1))) + back_x * high * @sin(a1), 0.52 + lift + high * @sin(a1) * upright, w.hum_z + rz * (wide * @cos(a1) + tip * (1.0 + @sin(a1))) + back_z * high * @sin(a1) },
+                .a = .{ w.hum_x + rx * (wide * @cos(a0) + tip * (1.0 + @sin(a0))) + back_x * high * @sin(a0), world_mod.hum_middle + lift + high * @sin(a0) * upright, w.hum_z + rz * (wide * @cos(a0) + tip * (1.0 + @sin(a0))) + back_z * high * @sin(a0) },
+                .b = .{ w.hum_x + rx * (wide * @cos(a1) + tip * (1.0 + @sin(a1))) + back_x * high * @sin(a1), world_mod.hum_middle + lift + high * @sin(a1) * upright, w.hum_z + rz * (wide * @cos(a1) + tip * (1.0 + @sin(a1))) + back_z * high * @sin(a1) },
                 .half_width = 1.9,
                 .body = 0.0,
                 .col = hum_tint,
             };
             n += 1;
+        }
+        // home, always shown: a ring of light at Hum's feet in home's colour, faint while Hum is
+        // silent, full while it sings, flaring as it calls (the page draws Hum as a ring too)
+        {
+            const home_col = noteColour(w.home_hz);
+            const glow: f32 = if (w.singing) 0.9 else 0.22 + 0.6 * w.hum_light;
+            const r: f32 = 0.9;
+            for (0..20) |k| {
+                const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 20.0);
+                const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 20.0);
+                out[n] = .{ .a = .{ w.hum_x + r * @cos(a0), 0.06, w.hum_z + r * @sin(a0) }, .b = .{ w.hum_x + r * @cos(a1), 0.06, w.hum_z + r * @sin(a1) }, .half_width = 1.5, .body = 0.0, .col = col8(home_col, std.math.clamp(glow, 0.0, 1.0)) };
+                n += 1;
+            }
         }
         // in the air, a faint ring on the ground under it, smaller the higher it is, so its height
         // can be judged; gliding, its sail: two lines of light out from its sides, up and back
@@ -905,8 +936,8 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
             const across = wide * @sqrt(1.0 - f * f);
             const sway = tip * (1.0 + f);
             out[n] = .{
-                .a = .{ w.hum_x + rx * (sway - across), 0.52 + lift + high * f, w.hum_z + rz * (sway - across) },
-                .b = .{ w.hum_x + rx * (sway + across), 0.52 + lift + high * f, w.hum_z + rz * (sway + across) },
+                .a = .{ w.hum_x + rx * (sway - across), world_mod.hum_middle + lift + high * f, w.hum_z + rz * (sway - across) },
+                .b = .{ w.hum_x + rx * (sway + across), world_mod.hum_middle + lift + high * f, w.hum_z + rz * (sway + across) },
                 .half_width = 2.2,
                 .body = 0.0,
                 .col = fill,
@@ -1066,6 +1097,12 @@ pub const Options = struct {
     replay: ?[*:0]const u8 = null,
     /// A save to open the world from (keep/save.zig): the scene goes on from where it was.
     load: ?[*:0]const u8 = null,
+    /// A walk from the room: the person's own memory is left alone (no going on from a cut-off
+    /// take, no dawns or ground kept), and the take is written into results/walks/ under its name.
+    walk: ?[]const u8 = null,
+    /// Keep the world at each of the scripted player's "start:" marks, into this folder, for the
+    /// room's walks.
+    walk_starts: ?[*:0]const u8 = null,
     /// Keep the take and the dawns' saves on the card even when the hands are scripted, as a
     /// person's session does: for the test that kills the game and starts it again.
     keep: bool = false,
@@ -1145,6 +1182,18 @@ fn keepSave(scene: Scene) void {
     // the card's own thread writes it, after the hands that led to it
     card.keepSave(save_bytes[0..n], p);
     log("the dawn: the world kept as {s}, {d} bytes, at step {d}", .{ p, n, world.step });
+}
+
+/// The world kept at a walk's start, for the room: DIR/NAME.save.
+fn keepStart(dir: [*:0]const u8, name: []const u8) void {
+    _ = c.mkdir(dir, 0o755);
+    var path: [512]u8 = undefined;
+    const p = std.mem.printSentinel(&path, "{s}/{s}.save", .{ std.mem.span(dir), name }, 0) catch return;
+    const n = save.write(&world, &save_bytes);
+    const file = c.fopen(p.ptr, "wb") orelse return;
+    _ = c.fwrite(&save_bytes, 1, n, file);
+    _ = c.fclose(file);
+    log("start {s} at step {d}: the world kept as {s}, {d} bytes; at rest {s}", .{ name, world.step, p, n, if (world.hum_vx * world.hum_vx + world.hum_vz * world.hum_vz < 0.01 and !world.airborne) "yes" else "no" });
 }
 
 /// Open the world from a save. False, with the reason in the log, if it can't be.
@@ -1441,6 +1490,7 @@ pub fn run(window: plat.Window, options: Options) bool {
     // a person's session writes its take as it is played; after a flat battery, it goes on from
     // where the take was cut off
     const keeping = options.keep or !(options.headless or options.bot or options.replay != null);
+    if (keeping and options.walk != null) _ = card.beginIn(sceneOfTake(options.scene), "results/walks", options.walk.?);
     var resumed = false;
     dawns_kept = 0;
     if (keeping and options.load == null and options.replay == null) {
@@ -1579,13 +1629,20 @@ pub fn run(window: plat.Window, options: Options) bool {
             if (replay == null) mark = walker.mark;
             // the scripted player's marks, for the clips cut from the evening's sound (tools/clips.py)
             if (mark) |what| log("mark {s} at step {d}", .{ what, world.step });
+            // a moment a person takes over in the room: the world kept there, so every walk starts
+            // from this build's own evening (game/room/README.md)
+            if (mark) |what| {
+                if (options.walk_starts) |dir| {
+                    if (std.mem.startsWith(u8, what, "start:")) keepStart(dir, what["start:".len..]);
+                }
+            }
             if (replay) |*r| {
                 if (r.done(world.step + 1)) running = false;
             }
             if (keeping) card.note(world.step, hands);
             const calls_before = world.calls;
             const n = world.stepOnce(hands, &cues);
-            if (keeping and world.dawn_from != world_mod.never and world.dawn_from + 1 == world.step) keepSave(options.scene);
+            if (keeping and options.walk == null and world.dawn_from != world_mod.never and world.dawn_from + 1 == world.step) keepSave(options.scene);
             if (options.keep and world.step % 60 == 0) log("at step {d}", .{world.step});
             if (options.scene != .dark) groundStep(&world, world.calls != calls_before);
             for (cues[0..n]) |cue| {
@@ -1613,6 +1670,8 @@ pub fn run(window: plat.Window, options: Options) bool {
                         log("the songbook opened at step {d} on its page for {s}", .{ world.step, @tagName(book_page) });
                     } else if (book_open) {
                         book_open = false;
+                        // the book closed: nothing is held that was let go while it was open
+                        forgetPresses();
                         @atomicStore(u8, &ready_paused, 0, .monotonic);
                     }
                 }
@@ -1633,6 +1692,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             @atomicStore(u8, &ready_cover, @intFromEnum(world.cover), .monotonic);
             @atomicStore(u32, &ready_home, @bitCast(world.home_hz), .monotonic);
             @atomicStore(u8, &ready_winded, @intFromBool(world.winded), .monotonic);
+            @atomicStore(u8, &ready_singing, @intFromBool(world.singing), .monotonic);
             var ran: u32 = 0;
             while (world.step < due and ran < 3) : (ran += 1) {
                 pose_before = Pose.of(&world);
@@ -1646,7 +1706,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                 const calls_before = world.calls;
                 const n = world.stepOnce(hands, &cues);
                 // the day has just begun: keep the world as it is at its dawn
-                if (keeping and world.dawn_from != world_mod.never and world.dawn_from + 1 == world.step) keepSave(options.scene);
+                if (keeping and options.walk == null and world.dawn_from != world_mod.never and world.dawn_from + 1 == world.step) keepSave(options.scene);
                 if (options.scene != .dark) groundStep(&world, world.calls != calls_before);
                 for (cues[0..n]) |cue| {
                     noteStrike(cue);
@@ -1934,7 +1994,7 @@ pub fn run(window: plat.Window, options: Options) bool {
     }
 
     if (wav) |*w| w.close();
-    if (options.scene != .dark and !options.headless and !scripted) saveGround();
+    if (options.scene != .dark and !options.headless and !scripted and options.walk == null) saveGround();
     if (keeping) card.finish(world.step);
     last_visit = .{ .calls = world.calls, .seconds = @as(f32, @floatFromInt(world.step)) / 60.0 };
     if (options.promise) |promise| {

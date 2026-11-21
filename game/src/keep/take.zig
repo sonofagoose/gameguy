@@ -199,9 +199,9 @@ test "a take written down and played back makes the same world, step for step" {
         if (step % 100 == 99) prints[step / 100] = first.fingerprint();
     }
     try std.testing.expectEqual(@as(u32, 0), recorder.lost);
-    // hands that walk in a straight line and call twice change only a handful of times, so the
-    // whole walk is a few dozen bytes
-    try std.testing.expect(recorder.count > 5 and recorder.count < 200);
+    // hands that walk and call twice change only when they steer, round what stands in the way,
+    // so the whole walk is a few kilobytes
+    try std.testing.expect(recorder.count > 5 and recorder.count < 1000);
 
     // written down: ten bytes a change
     const bytes = try allocator.alloc(u8, recorder.size());

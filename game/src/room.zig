@@ -350,14 +350,21 @@ const Item = struct {
     name: []const u8,
     question: []const u8,
     file: []const u8 = "",
-    /// For a promise: its id in the promise book, and the scene the walk puts a person in.
+    /// For a walk: its name, the moment of this build's evening it starts from (room/walks.txt),
+    /// what to do there in plain words, and its questions, each for a promise.
     id: []const u8 = "",
-    scene: []const u8 = "",
-    /// For a promise: whether the person has been there yet.
+    start: []const u8 = "",
+    before: []const u8 = "",
+    asks: [4]Ask = undefined,
+    ask_n: usize = 0,
+    ask_i: usize = 0,
+    /// For a walk: whether the person has been there yet.
     been: bool = false,
     answer: u8 = 0, // 0 none, 'y', 'n'
     plays: u32 = 0,
 };
+
+const Ask = struct { promise: []const u8, question: []const u8 };
 
 const checks = [_]Item{
     .{ .kind = .tone, .name = "a tone", .question = "A plain tone plays for two seconds. Did you hear it clearly through the speaker?" },
@@ -385,19 +392,29 @@ fn loadItems(dir: []const u8) void {
     items[0] = .{ .kind = .who, .name = "who is holding it", .question = "The answers are kept with a name. Who is holding the handheld?" };
     items[1] = .{ .kind = .ear, .name = "the ear, before", .question = "Two pairs of notes. One pair is still and one is turning. Which is STILL? It gets harder until you are guessing: guess. About two minutes." };
     item_count = 2;
-    // the walk: id|scene|title|question
-    var rows = std.mem.splitScalar(u8, readInto(dir, "promises.txt", &promise_list), '\n');
+    // the walks (room/walks.txt): walk|id|start|title|before, then its questions, ask|promise|question
+    var rows = std.mem.splitScalar(u8, readInto(dir, "walks.txt", &promise_list), '\n');
     while (rows.next()) |row| {
         if (item_count >= items.len) break;
         var parts = std.mem.splitScalar(u8, row, '|');
-        const id = parts.next() orelse continue;
-        const scene = parts.next() orelse continue;
-        const title = parts.next() orelse continue;
-        const question = parts.next() orelse continue;
-        if (id.len == 0 or std.meta.stringToEnum(dark.Scene, scene) == null) continue;
-        items[item_count] = .{ .kind = .promise, .name = title, .question = question, .id = id, .scene = scene };
-        item_count += 1;
-        promise_count += 1;
+        const what = parts.next() orelse continue;
+        if (std.mem.eql(u8, what, "walk")) {
+            const id = parts.next() orelse continue;
+            const start = parts.next() orelse continue;
+            const title = parts.next() orelse continue;
+            const before = parts.next() orelse continue;
+            items[item_count] = .{ .kind = .promise, .name = title, .question = "", .id = id, .start = start, .before = before };
+            item_count += 1;
+            promise_count += 1;
+        } else if (std.mem.eql(u8, what, "ask") and item_count > 0 and items[item_count - 1].kind == .promise) {
+            const walk = &items[item_count - 1];
+            const promise = parts.next() orelse continue;
+            const question = parts.next() orelse continue;
+            if (walk.ask_n < walk.asks.len) {
+                walk.asks[walk.ask_n] = .{ .promise = promise, .question = question };
+                walk.ask_n += 1;
+            }
+        }
     }
     for (checks) |check| {
         items[item_count] = check;
@@ -487,9 +504,12 @@ fn openPlay() c.SDL_AudioDeviceID {
 fn visit(window: plat.Window, item: *Item, device: *c.SDL_AudioDeviceID) void {
     stopClip();
     if (device.* != 0) sdl.CloseAudioDevice(device.*);
-    const scene = std.meta.stringToEnum(dark.Scene, item.scene) orelse .dark;
-    log("room: promise {s}: going there ({s})", .{ item.id, item.scene });
-    _ = dark.run(window, .{ .scene = scene, .promise = item.id });
+    // from this build's own evening, kept at the walk's moment
+    var path: [512]u8 = undefined;
+    const save_path = std.mem.printSentinel(&path, "{s}/walks/{s}.save", .{ room_dir, item.start }, 0) catch return;
+    log("room: walk {s}: going there (from {s})", .{ item.id, save_path });
+    const first: ?[]const u8 = if (item.ask_n > 0) item.asks[0].promise else null;
+    _ = dark.run(window, .{ .scene = .evening, .load = save_path.ptr, .walk = item.id, .promise = first });
     item.been = true;
     item.plays += 1;
     device.* = openPlay();
@@ -511,12 +531,22 @@ fn paragraph(words: *Type, text: []const u8, top: f32, col: [4]f32) void {
     }
 }
 
+var room_dir: []const u8 = "room";
+/// Which build this is (build.sh writes it beside the walks): so a person's answers name the game
+/// they were given.
+var build_said: []const u8 = "build: not said";
+var build_text: [256]u8 = undefined;
+
 pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*:0]const u8) bool {
     const dir = std.mem.span(dir_z);
+    room_dir = dir;
+    build_said = std.mem.trim(u8, readInto(dir, "build.txt", &build_text), " \n");
+    if (build_said.len == 0) build_said = "build: not said";
     var type_: Type = undefined;
     if (!type_.init(window.width, window.height)) return false;
     loadItems(dir);
-    log("room: {d} items (the ear check, {d} promises to walk, {d} checks for the hands, {d} clips for the ears)", .{ item_count, promise_count, checks.len, item_count - 2 - promise_count - checks.len });
+    log("room: {d} items (the ear check, {d} walks, {d} checks for the hands, {d} clips for the ears)", .{ item_count, promise_count, checks.len, item_count - 2 - promise_count - checks.len });
+    log("room: {s}", .{build_said});
 
     var device = openPlay();
     defer if (device != 0) sdl.CloseAudioDevice(device);
@@ -536,7 +566,7 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
     }
 
     var current: usize = 0;
-    var was: [7]bool = @splat(false);
+    var was: [8]bool = @splat(false);
     var frame: u32 = 0;
     var move_on_at: ?u32 = null;
     // after a visit both leaving buttons are still down: they must be let go before they count
@@ -551,7 +581,7 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
         while (sdl.PollEvent(&event) != 0) {
             if (event.type == c.SDL_QUIT) running = false;
         }
-        var down: [7]bool = @splat(false);
+        var down: [8]bool = @splat(false);
         if (pad) |handle| {
             // the face buttons by where they are, found by the kernel's codes: on this handheld
             // the right one is printed A (yes), the bottom B (no), the left Y (again)
@@ -565,9 +595,11 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
                 c.SDL_CONTROLLER_BUTTON_START,
             };
             for (others, 3..) |button, i| down[i] = sdl.GameControllerGetButton(handle, button) != 0;
+            // the top one, printed X: "it didn't happen"
+            down[7] = faces.down(handle, .top);
         }
-        var pressed: [7]bool = undefined;
-        for (0..7) |i| pressed[i] = down[i] and !was[i];
+        var pressed: [8]bool = undefined;
+        for (0..8) |i| pressed[i] = down[i] and !was[i];
         was = down;
         if (!down[5] and !down[6]) leave_armed = true;
         if (leave_armed and down[5] and down[6]) running = false;
@@ -602,22 +634,30 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
                 was = @splat(true);
                 backlight_was = -1;
             }
-        } else if (pressed[0] or pressed[1]) {
+        } else if (item.kind == .promise and item.ask_i < item.ask_n and (pressed[0] or pressed[1] or pressed[7])) {
+            // a walk's questions, one at a time: yes, no, or it didn't happen
+            const word: []const u8 = if (pressed[0]) "yes" else if (pressed[1]) "no" else "didn't happen";
+            const v = dark.last_visit;
+            log("room: promise {s} {s} by {s}; walk {s}; visit: met {s}, stayed {d:.1} s, calls {d}, {d:.0} s there, went {d}", .{
+                item.asks[item.ask_i].promise,
+                word,
+                holder,
+                item.id,
+                if (!v.witnessed) "-" else if (v.met) "yes" else "no",
+                v.stayed_s,
+                v.calls,
+                v.seconds,
+                item.plays - 1,
+            });
+            item.ask_i += 1;
+            if (item.ask_i >= item.ask_n) {
+                item.answer = 'y';
+                move_on_at = frame + 25;
+            }
+        } else if (item.kind != .promise and (pressed[0] or pressed[1])) {
             item.answer = if (pressed[0]) 'y' else 'n';
             const word: []const u8 = if (item.answer == 'y') "yes" else "no";
-            if (item.kind == .promise) {
-                const v = dark.last_visit;
-                log("room: promise {s} {s} by {s}; visit: met {s}, stayed {d:.1} s, calls {d}, {d:.0} s there, went {d}", .{
-                    item.id,
-                    word,
-                    holder,
-                    if (!v.witnessed) "-" else if (v.met) "yes" else "no",
-                    v.stayed_s,
-                    v.calls,
-                    v.seconds,
-                    item.plays - 1,
-                });
-            } else {
+            {
                 if (item.kind == .stick and pressed[0]) {
                     if (pad) |handle| {
                         const lx = sdl.GameControllerGetAxis(handle, c.SDL_CONTROLLER_AXIS_LEFTX);
@@ -684,8 +724,19 @@ pub fn run(window: plat.Window, dir_z: [*:0]const u8, max_frames: u32, dump: ?[*
         type_.line(30.0, 70.0, 1.7, bone, shown.name[0..@min(shown.name.len, 28)]);
         if (shown.name.len > 28) type_.line(30.0, 106.0, 1.2, bone, shown.name[28..@min(shown.name.len, 68)]);
         if (shown.kind == .promise and !shown.been) {
-            paragraph(&type_, "A promise from the specification. Press A to go there. When you have had enough, hold Select and Start to come back, and one question follows.", 150.0, dim);
+            paragraph(&type_, shown.before, 120.0, bone);
+            type_.line(30.0, 395.0, 1.0, dim, "Hold Select and Start to come back; questions follow.");
             type_.line(30.0, 420.0, 1.0, dim, "A go there   R1 skip   L1 back");
+        } else if (shown.kind == .promise) {
+            if (shown.ask_i < shown.ask_n) {
+                var count: [48]u8 = undefined;
+                const which: []const u8 = std.mem.printSentinel(&count, "question {d} of {d}", .{ shown.ask_i + 1, shown.ask_n }, 0) catch "";
+                type_.line(30.0, 106.0, 1.0, dim, which);
+                paragraph(&type_, shown.asks[shown.ask_i].question, 150.0, bone);
+            } else {
+                paragraph(&type_, "Thank you.", 150.0, bone);
+            }
+            type_.line(30.0, 420.0, 1.0, dim, "A yes   B no   X didn't happen   Y go again");
         } else {
             paragraph(&type_, shown.question, 150.0, bone);
             const keys: []const u8 = switch (shown.kind) {

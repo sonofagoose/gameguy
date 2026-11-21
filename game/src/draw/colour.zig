@@ -46,3 +46,18 @@ test "a note's colour goes round the wheel by fifths" {
     // an octave is the same colour
     try std.testing.expectEqual(fifthsFrom(home, 392.0), fifthsFrom(home, 784.0));
 }
+
+/// A colour and its strength as the line drawer takes them, four bytes.
+pub fn col8(rgb: [3]f32, alpha: f32) [4]u8 {
+    return .{
+        @intFromFloat(std.math.clamp(rgb[0], 0.0, 1.0) * 255.0),
+        @intFromFloat(std.math.clamp(rgb[1], 0.0, 1.0) * 255.0),
+        @intFromFloat(std.math.clamp(rgb[2], 0.0, 1.0) * 255.0),
+        @intFromFloat(std.math.clamp(alpha, 0.0, 1.0) * 255.0),
+    };
+}
+
+/// Hum's own colour, bone-white, and Drip's teal (design/look.md): named once, for the world's
+/// picture, the songbook and the room alike.
+pub const bone = [3]f32{ 0.886, 0.839, 0.784 };
+pub const teal = [3]f32{ 0.25, 0.86, 0.80 };

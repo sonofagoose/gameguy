@@ -158,20 +158,26 @@ actionable differentiation"._
 ### `hands.told-apart` R1 and R2 told apart
 
 - **Said:** `SPEC.md` "R1 and R2 are told apart at a glance and in the hands." "R1 is the world's;
-  R2
-  is Hum's own." "R1 held, the mood wheel, jumps home to any wedge while time thickens. The place
-  lies back toward the page, and the wheel is drawn large on the ground round Hum in the ground's
-  cool light, with a thread from every thing to the wedge that would bring it home." "What you hear
-  stretches into a held chord." "R2 held, the swell, steps home only to a neighbour, on a downbeat,
-  in time. Nothing is drawn on the ground." "Hum itself swells and takes a band of colour each bar,
-  and the two neighbouring wedges show as two small marks either side of Hum, lit on each downbeat."
-  "The view stays at Hum's height."
+  R2 is Hum's own." "R1 held, the mood wheel, jumps home to any awake wedge while time thickens,
+  Hum's legs too. The place lies back toward the page, and the wheel lies on the ground round Hum
+  in the ground's cool light: an awake wedge in its note's colour, an asleep one a hairline." "At
+  most twelve threads run from the creatures and the nearest sounding things to the wedge where
+  each would fall into step." "Resting on a wedge, Hum hums its note under its breath, so what home
+  there would do is heard before you let go." "What you hear stretches into a held chord." "R2
+  held, the swell, steps home only to a neighbour, on the one, in time. Nothing is drawn on the
+  ground but Hum's ring." "Hum itself swells and takes a band each bar, in the colour of the note
+  that bar adds to its chord." "The outer band closes in through the bar's last beat, so the one is
+  seen coming, and Drip's tick on the one is deeper and longer than the other three." "The awake
+  neighbours lie on Hum's ring, flatward on the left and sharpward on the right." "The view stays
+  at Hum's height." "Home is always shown, as a ring of light at Hum's feet in home's colour, and
+  moving home is told, whichever hand moved it: Hum sings the new note."
 - **Stage:** 2
-- **The moment:** Hold R1 and the world steps back: time thickens, the view lifts, the wheel spreads
-  across the ground in cool light and every sound holds as one chord while you choose. Hold R2 and
-  the world carries on: nothing is drawn on the ground, Hum swells warm in a band of colour each
-  bar, and two small marks either side of it light on each downbeat, where a nudge would go. One is
-  stopping to think; the other is playing. Your hands never mix them up.
+- **The moment:** Hold R1 and the world steps back: time thickens, Hum slows, the view lifts, the
+  wheel spreads across the ground in cool light, and the tangles' lines meet on one slice. Rest the
+  stick there and you hear what home there would be, under Hum's breath, before you choose. Hold R2
+  and the world carries on: Hum swells in bands of colour, the deep tick coming, and the two
+  slices either side of home glow on Hum's own ring. One is stopping to think; the other is
+  playing. Your hands never mix them up.
 - **A cheat would be:** the same wheel drawn for both, in another colour.
 - **Full size:**
   - `test R1 held thickens time: the beat runs at a quarter, and lets go when the wheel closes` The
@@ -181,6 +187,9 @@ actionable differentiation"._
     R1 lets home jump to any awake wedge; the swell's test shows R2 stepping only to a neighbour.
   - `frame evening-wheel` R1 held: the wheel large on the ground from above, threads to it.
   - `frame evening-swell` R2 held: Hum swelling with its marks, nothing on the ground.
+  - `test the wheel told: a call of up to nineteen steps never opens it; entering a wedge clicks;
+    resting on one hums it under Hum's breath; home moving is sung` The wheel opens only on a hold,
+    previews what it would do, and home's move is told.
   - `owed` Measured with `ears`: the amen's chord (clip 36) lands consonant, and Morgan's answer to
     it in the room.
   - `owed` Morgan's call on the proposal in `DECISIONS.md`: the swell's steps on L1 and L2, so the

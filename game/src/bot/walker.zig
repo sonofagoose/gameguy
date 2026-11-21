@@ -53,9 +53,171 @@ pub const Walker = struct {
     glide_pressed: bool = false,
     flown: bool = false,
 
+    /// The fight, taken up wherever the knots reach Hum (SPEC.md 6.1: they come at you): 0 not
+    /// begun; 1 the wheel at them, home onto their root, where their threads meet; 2 strikes on
+    /// the one, dodges, the pocket, the clap; 3 the swell; 4 beside them as they sleep; 5 done.
+    fight: u8 = 0,
+    fight_since: u64 = 0,
+    fight_breathed: ?u64 = null,
+    fight_begun: u64 = 0,
+    wheel_marked: bool = false,
+
     fn next(self: *Walker, step: u64) void {
         self.phase += 1;
         self.since = step;
+    }
+
+    fn fightNext(self: *Walker, step: u64) void {
+        self.fight += 1;
+        self.fight_since = step;
+        self.fight_breathed = null;
+    }
+
+    /// The fight's hands; the walk it broke into waits, and goes on after as if paused.
+    fn fightHands(self: *Walker, w: *const World, step: u64) Hands {
+        var h = Hands{};
+        const after = step - self.fight_since;
+        switch (self.fight) {
+            1 => {
+                // stand, let go of everything, and take a full breath: the wheel's jump costs a home
+                if (after == 12) self.mark = "start:knots-come";
+                if (after < 15) return h;
+                const root = world_mod.wedgeOfHz(w.day_hz, w.knots[0].root_hz);
+                if (self.fight_breathed == null) {
+                    if (w.home_k == root) {
+                        self.fightNext(step);
+                        return h;
+                    }
+                    if ((w.winded or w.breath < @as(f32, @floatFromInt(w.breath_most))) and after < 60 * 20) return h;
+                    self.fight_breathed = after;
+                }
+                const from = self.fight_breathed.?;
+                // hold R1: the wheel opens; point where their threads meet, at their root, and let go
+                if (after < from + 95) {
+                    h.buttons |= Hands.call;
+                    if (after >= from + 40) {
+                        const a = @as(f32, @floatFromInt(root)) * (std.math.pi / 6.0);
+                        h.rx = @intFromFloat(@sin(a) * 120.0);
+                        h.ry = @intFromFloat(-@cos(a) * 120.0);
+                    }
+                    if (after == from + 80 and !self.wheel_marked) {
+                        self.wheel_marked = true;
+                        self.mark = "wheel";
+                    }
+                    return h;
+                }
+                if (after > from + 110) self.fightNext(step);
+            },
+            2 => {
+                if (after == 3) self.mark = "start:knots-in-step";
+                if (after < 6) return h;
+                // home on their root: strike on the downbeats, where both strands meet Hum's one,
+                // until they are grey; dodge a lunge on its beat, and the pocket opens
+                var near = false;
+                var coloured = false;
+                for (w.knots[0..w.knot_count]) |kn| {
+                    if (kn.home) continue;
+                    const dx = kn.x - w.hum_x;
+                    const dz = kn.z - w.hum_z;
+                    if (dx * dx + dz * dz < 9.0 * 9.0) near = true;
+                    if (kn.colour > 0.0) coloured = true;
+                }
+                if (near and !self.knots_marked) {
+                    self.knots_marked = true;
+                    self.knots_from = step;
+                    self.mark = "knots";
+                }
+                var lunge_due = false;
+                for (w.knots[0..w.knot_count]) |kn| {
+                    if (kn.lunge_from != world_mod.knots.never_lunged and w.clock + 2 == kn.lunge_from + world_mod.knots.lunge_steps / 2) lunge_due = true;
+                }
+                if (lunge_due) h.buttons |= Hands.dodge;
+                if (w.pockets == 1 and !self.pocket_marked) {
+                    self.pocket_marked = true;
+                    self.mark = "pocket";
+                }
+                if (w.layer_n >= 1 and w.ghost_strikes >= 1 and !self.afterimage_marked) {
+                    self.afterimage_marked = true;
+                    self.mark = "afterimage";
+                }
+                if (w.layer_n >= 2 and coloured and w.claps == 0 and !lunge_due and w.clock % (4 * world_mod.tick_every) == 100) {
+                    h.buttons |= Hands.voice | Hands.call | Hands.clap;
+                    self.mark = "clap";
+                }
+                if (near and coloured and w.clock % (4 * world_mod.tick_every) == 0 and w.clock > 0) h.buttons |= Hands.strike;
+                if (near and coloured and !self.placed_tried and w.clock % (4 * world_mod.tick_every) == 120) {
+                    self.placed_tried = true;
+                    h.buttons |= Hands.strike;
+                    self.mark = "placed";
+                }
+                if (near and !coloured) self.fightNext(step);
+                if ((self.knots_marked and step > self.knots_from + 60 * 90) or after > 60 * 180) self.fightNext(step);
+            },
+            3 => {
+                if (after == 3) self.mark = "start:grey-rest";
+                if (after < 6) return h;
+                // the swell, Gentle: hold R2 and never touch the stick. After a bar home drifts
+                // beside the grey knots on their amen side; let go on the next downbeat, the amen
+                // lands, and they settle and sleep (SPEC.md 6.1; design/the-wheel.md)
+                h.buttons |= Hands.sing;
+                if (after > 18 and !self.lean_marked) {
+                    self.lean_marked = true;
+                    self.mark = "grey";
+                }
+                if (after > 36 and w.swell_bars >= 2 and !self.swell_marked) {
+                    self.swell_marked = true;
+                    self.mark = "swell";
+                }
+                if (w.leans_for_you > 0 and !self.nudged) {
+                    self.nudged = true;
+                    self.nudged_at = step;
+                }
+                if (self.nudged and w.downbeat_at != world_mod.never and w.downbeat_at + 1 == w.step and w.home_k == 0 and w.step > self.nudged_at + 60) {
+                    h.buttons &= ~Hands.sing;
+                    self.fightNext(step);
+                }
+                if (after > 60 * 40) self.fightNext(step);
+            },
+            4 => {
+                // a while beside them as they sleep; every knot home, the hose springs open
+                if (w.hose_open and !self.open_marked) {
+                    self.open_marked = true;
+                    self.mark = "open";
+                }
+                if (!self.asleep_marked and after > 60 * 3) {
+                    self.asleep_marked = true;
+                    self.mark = "asleep";
+                }
+                if (after == 60 * 3 + 30) self.mark = "start:hose-open";
+                // then to the north shore beside the hose's coil, to see the water arrive and the
+                // figure on the pool's edge, from its side
+                if (after > 60 * 4) {
+                    const view = [2]f32{ 40.0, -15.0 };
+                    const vx = view[0] - w.hum_x;
+                    const vz = view[1] - w.hum_z;
+                    if (vx * vx + vz * vz > 9.0) {
+                        const via = detour(w, view[0], view[1]);
+                        _ = toward(w, &h, via[0], via[1]);
+                    }
+                    _ = face(w, &h, world_mod.figure_at[0], world_mod.figure_at[1]);
+                    if (w.water_at != world_mod.never and !self.water_marked and w.step > w.water_at + 20) {
+                        self.water_marked = true;
+                        self.mark = "water";
+                    }
+                    if (w.figureNow() and !self.edge_marked and w.step > w.figure_from + 25) {
+                        self.edge_marked = true;
+                        self.mark = "edge";
+                    }
+                }
+                if ((self.edge_marked and !w.figureNow()) or after > 60 * 120) {
+                    // the walk it broke into goes on as if it had paused
+                    self.fightNext(step);
+                    self.since += step - self.fight_begun;
+                }
+            },
+            else => {},
+        }
+        return h;
     }
 
     /// Turn the view toward a place with the right stick; true once it is facing it.
@@ -135,10 +297,26 @@ pub const Walker = struct {
             // begun in the place at dawn, with Drip already on Hum's head: straight to the asters
             if (w.drip_met) self.phase = 4;
         }
+        // the knots: once they are near, the fight, wherever Hum is
+        if (self.fight > 0 and self.fight < 5) return self.fightHands(w, step);
+        if (self.fight == 0 and w.stand >= 1.0 and self.phase >= 3) {
+            for (w.knots[0..w.knot_count]) |kn| {
+                if (kn.home) continue;
+                const dx = kn.x - w.hum_x;
+                const dz = kn.z - w.hum_z;
+                if (dx * dx + dz * dz < world_mod.knots.come_near * world_mod.knots.come_near) {
+                    self.fight = 1;
+                    self.fight_since = step;
+                    self.fight_begun = step;
+                    return self.fightHands(w, step);
+                }
+            }
+        }
         const after = step - self.since;
         switch (self.phase) {
             0 => {
                 // the dark: a first call that nobody answers, and a second that somebody does
+                if (step == 10) self.mark = "start:dark";
                 if (step == 20) self.mark = "black";
                 if (step == 40) h.buttons |= Hands.call;
                 if (step == 78) self.mark = "page";
@@ -169,6 +347,7 @@ pub const Walker = struct {
                 // beside it: stand, and the page leans in. Then breathe with it: hum from a little
                 // before each tick and let go on the tick
                 const until = world_mod.untilTick(step);
+                if (after == 45) self.mark = "start:beside";
                 if (after > 50 and !w.drip_met and w.locked_at == world_mod.never) {
                     // a breath is two ticks long: begin just after one, let go on the next but one
                     if (!self.breathing and until == world_mod.tick_every - 6) self.breathing = true;
@@ -196,6 +375,7 @@ pub const Walker = struct {
                 }
                 if (w.stand >= 1.0) {
                     self.settled += 1;
+                    if (self.settled == 60) self.mark = "start:stood";
                     if (self.settled == 130) self.mark = "far";
                     if (self.settled >= 150) {
                         self.phase = 5;
@@ -231,6 +411,7 @@ pub const Walker = struct {
             6 => {
                 // at its foot: stand still, let the gaze climb, then call and ride the call up
                 if (after == 3) self.mark = "foot";
+                if (after == 60) self.mark = "start:foot";
                 // the gaze takes about two and a half seconds to climb to the crown
                 if (after == 205) self.mark = "lean";
                 if (after == 215) h.buttons |= Hands.call;
@@ -350,7 +531,10 @@ pub const Walker = struct {
                     _ = toward(w, &probe, p.x, p.z);
                     h.lx = probe.lx;
                     h.ly = probe.ly;
-                } else self.next(step);
+                } else {
+                    self.mark = "start:pool-edge";
+                    self.next(step);
+                }
             },
             10 => {
                 // hum at its edge, standing still, while the figure comes up, the view rises over
@@ -433,7 +617,10 @@ pub const Walker = struct {
                         h.rx = -63;
                         h.ry = -110;
                     }
-                    if (after == from + 80) self.mark = "wheel";
+                    if (after == from + 80 and !self.wheel_marked) {
+                        self.wheel_marked = true;
+                        self.mark = "wheel";
+                    }
                     return h;
                 }
                 if (after > from + 110) self.next(step);
@@ -481,90 +668,10 @@ pub const Walker = struct {
                 }
                 if (self.waited_from != 0 and step > self.waited_from + 120) self.next(step);
             },
-            17 => {
-                // the first knots come and circle, stumbling. Home is on wonder, their root: strike on
-                // the downbeats, where both strands meet Hum's one, until they are grey
-                var near = false;
-                var coloured = false;
-                for (w.knots[0..w.knot_count]) |kn| {
-                    if (kn.home) continue;
-                    const dx = kn.x - w.hum_x;
-                    const dz = kn.z - w.hum_z;
-                    if (dx * dx + dz * dz < 9.0 * 9.0) near = true;
-                    if (kn.colour > 0.0) coloured = true;
-                }
-                if (near and !self.knots_marked) {
-                    self.knots_marked = true;
-                    self.knots_from = step;
-                    self.mark = "knots";
-                }
-                // a lunge about to arrive: step aside on its beat, and the pocket opens
-                var lunge_due = false;
-                for (w.knots[0..w.knot_count]) |kn| {
-                    if (kn.lunge_from != world_mod.knots.never_lunged and w.clock + 2 == kn.lunge_from + world_mod.knots.lunge_steps / 2) lunge_due = true;
-                }
-                if (lunge_due) h.buttons |= Hands.dodge;
-                if (w.pockets == 1 and !self.pocket_marked) {
-                    self.pocket_marked = true;
-                    self.mark = "pocket";
-                }
-                // the afterimage: a bar in the pocket keeps its strikes, and they land again beside Hum
-                if (w.layer_n >= 1 and w.ghost_strikes >= 1 and !self.afterimage_marked) {
-                    self.afterimage_marked = true;
-                    self.mark = "afterimage";
-                }
-                // with two layers kept and the knots still coloured, clap: L1 and R1 together
-                if (w.layer_n >= 2 and coloured and w.claps == 0 and !lunge_due and w.clock % (4 * world_mod.tick_every) == 100) {
-                    h.buttons |= Hands.voice | Hands.call | Hands.clap;
-                    self.mark = "clap";
-                }
-                if (near and coloured and w.clock % (4 * world_mod.tick_every) == 0 and w.clock > 0) h.buttons |= Hands.strike;
-                // once, before any strike lands, a press well off the beat: the game places it on the
-                // next beat, plain, and the downbeat after is struck on time, fuller
-                if (near and coloured and !self.placed_tried and w.clock % (4 * world_mod.tick_every) == 120) {
-                    self.placed_tried = true;
-                    h.buttons |= Hands.strike;
-                    self.mark = "placed";
-                }
-                if (near and !coloured) self.next(step);
-                // a minute and a half after they came, or three minutes waiting for them
-                if ((self.knots_marked and step > self.knots_from + 60 * 90) or after > 60 * 180) self.next(step);
-            },
-            18 => {
-                // the swell, Gentle: hold R2 and never touch the stick. After a bar home drifts
-                // beside the grey knots on their amen side, sunny home; let go on the next downbeat,
-                // the amen lands, and they settle and sleep (SPEC.md 6.1; design/the-wheel.md)
-                h.buttons |= Hands.sing;
-                // the knots are grey, and each leans toward the wedge on its left
-                if (after > 12 and !self.lean_marked) {
-                    self.lean_marked = true;
-                    self.mark = "grey";
-                }
-                if (after > 30 and w.swell_bars >= 2 and !self.swell_marked) {
-                    self.swell_marked = true;
-                    self.mark = "swell";
-                }
-                if (w.leans_for_you > 0 and !self.nudged) {
-                    self.nudged = true;
-                    self.nudged_at = step;
-                }
-                if (self.nudged and w.downbeat_at != world_mod.never and w.downbeat_at + 1 == w.step and w.home_k == 0 and w.step > self.nudged_at + 60) {
-                    h.buttons &= ~Hands.sing;
-                    self.next(step);
-                }
-                if (after > 60 * 40) self.next(step);
-            },
-            19 => {
-                // a while beside them as they sleep; every knot home, the hose springs open
-                if (w.hose_open and !self.open_marked) {
-                    self.open_marked = true;
-                    self.mark = "open";
-                }
-                if (!self.asleep_marked and after > 60 * 3) {
-                    self.asleep_marked = true;
-                    self.mark = "asleep";
-                }
-                if (after > 60 * 4) self.next(step);
+            17, 18, 19 => {
+                // the fight is taken up wherever the knots reach Hum (fightHands); here, once it is
+                // over, the walk goes on; if they never came, it gives up waiting
+                if (self.fight >= 5 or after > 60 * 240) self.next(step);
             },
             20 => {
                 // to the north shore beside the hose's coil, staying north of the hose, and looking
@@ -583,7 +690,7 @@ pub const Walker = struct {
                     self.mark = "edge";
                 }
                 if (self.edge_marked and !w.figureNow()) self.next(step);
-                if (after > 60 * 60) self.next(step);
+                if (after > 60 * 60 or (self.edge_marked and self.fight >= 5)) self.next(step);
             },
             else => self.done = true,
         }

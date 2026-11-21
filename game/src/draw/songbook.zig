@@ -8,6 +8,7 @@
 //! The way games that teach without words do it (Tunic's manual pages, Outer Wilds' log): a thing
 //! of the world that remembers what you have learned and shows what the moment asks.
 const std = @import("std");
+const colour = @import("colour.zig");
 const plat = @import("../plat/plat.zig");
 const world_mod = @import("../world/world.zig");
 const World = world_mod.World;
@@ -20,8 +21,8 @@ pub const learned = pages_mod.learned;
 pub const needed = pages_mod.needed;
 const pages_mod = @import("../world/pages.zig");
 
-const bone = [3]f32{ 0.886, 0.839, 0.784 };
-const teal = [3]f32{ 0.25, 0.86, 0.80 };
+const bone = colour.bone;
+const teal = colour.teal;
 const green = [3]f32{ 0.55, 0.95, 0.60 };
 const amber = [3]f32{ 1.0, 0.78, 0.40 };
 const lit_col = [3]f32{ 1.0, 0.95, 0.70 };

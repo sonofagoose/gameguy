@@ -19,6 +19,7 @@ const Args = struct {
     headless: bool = false,
     windowed: bool = false,
     scale: u8 = 1,
+    walk_starts: ?[*:0]const u8 = null,
     bench_lines: bool = false,
     frames: u32 = 0,
     dump: ?[*:0]const u8 = null,
@@ -84,6 +85,9 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
         } else if (std.mem.eql(u8, a, "--check-take") and i + 1 < n) {
             i += 1;
             args.check_take = argv[i];
+        } else if (std.mem.eql(u8, a, "--walk-starts") and i + 1 < n) {
+            i += 1;
+            args.walk_starts = argv[i];
         } else if (std.mem.eql(u8, a, "--load") and i + 1 < n) {
             i += 1;
             args.load = argv[i];
@@ -385,6 +389,15 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     const args = parseArgs(argc, argv);
     if (args.log_path) |path| plat.log_file = c.fopen(path, "w");
     if (!plat.loadSdl()) return 1;
+    // which build this is, if the pack says (room/build.txt beside the game)
+    {
+        var said: [128]u8 = undefined;
+        if (c.fopen("room/build.txt", "rb")) |file| {
+            const got = c.fread(&said, 1, said.len, file);
+            _ = c.fclose(file);
+            log("{s}", .{std.mem.trim(u8, said[0..got], " \n")});
+        } else log("build: not said (no room/build.txt here)", .{});
+    }
     // a pad's face buttons are read by where they are, never by the letters printed on them
     // (SPEC.md, 10): a Nintendo-style pad otherwise swaps them by label
     _ = sdl.SetHint("SDL_GAMECONTROLLER_USE_BUTTON_LABELS", "0");
@@ -402,7 +415,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     } else if (args.bench_lines) {
         ok = benchLines(window, args);
     } else {
-        ok = dark.run(window, .{ .scene = args.scene, .replay = args.replay, .load = args.load, .keep = args.keep, .resume_only = args.resume_only, .picture = args.picture, .without_trail = args.without_trail, .without_ground = args.without_ground, .half_land = args.half_land, .songbook_dump = args.songbook, .check_take = args.check_take, .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot });
+        ok = dark.run(window, .{ .scene = args.scene, .replay = args.replay, .load = args.load, .keep = args.keep, .resume_only = args.resume_only, .picture = args.picture, .without_trail = args.without_trail, .without_ground = args.without_ground, .half_land = args.half_land, .songbook_dump = args.songbook, .check_take = args.check_take, .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot, .walk_starts = args.walk_starts });
     }
     if (plat.log_file) |file| _ = c.fclose(file);
     return if (ok) 0 else 1;
