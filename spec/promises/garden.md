@@ -128,6 +128,10 @@ stage 2 begins._
     a shape on the screen and not a spark.
   - `test asters stand as tall as cathedrals, one to a hundred`
   - `test a call climbs a tower, and its bells are heard late by their height`
+  - `test an aster's stalk is solid: Hum goes round it, and a brush at a run rings its bells` A
+    stalk is a thing you can touch: Hum slides round it, and brushing it at a run knocks once
+    where Hum touched and rings its bells softly overhead, each heard when its sound has come
+    down (`shape.md`: "Brushing a stalk rings its bells"). Clip 39 in the room.
   - `take` The scripted player walks to the great aster, stops at its foot, calls, and is still
     standing there when the bells are heard.
   - `frame evening-far` The skyline, from where the page stood up.

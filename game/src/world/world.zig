@@ -78,6 +78,15 @@ pub const timed_takes: f32 = 1.25;
 pub const gentle_widens: f64 = 1.5;
 /// Hum's run, with the stick pushed all the way (Morgan: "probably faster movement overall").
 pub const run_speed: f32 = 9.0;
+/// How wide Hum is from its middle, and an aster's stalk at its foot (draw/aster_lines.zig, girth):
+/// Hum goes round a stalk, never through it.
+pub const hum_body: f32 = 0.36;
+pub const stalk_foot: f32 = 0.54;
+/// Going into a stalk faster than this rings it; at a full run it rings as hard as a brush can.
+pub const bump_least: f32 = 1.5;
+/// How much of an aster's bells' strength a brush at a full run gives them, and its knock.
+pub const brush_rings: f32 = 0.6;
+
 /// How much of the way to the speed the stick asks for Hum's legs go each step, pushed and let go:
 /// nine tenths of the way in a sixth of a second, and a skid of about 0.4 m from a run.
 pub const go_ease: f32 = 0.2;
@@ -554,6 +563,13 @@ pub const World = struct {
     looked_ago: u32 = 1000,
     /// How far Hum has walked, in metres: its stride, and what the ground does underfoot.
     stride: f32 = 0.0,
+    /// How many times Hum has brushed a stalk hard enough to ring it, and the step and aster of the
+    /// last, so one brush rings once.
+    bumps: u32 = 0,
+    bumped_at: u64 = 0,
+    bumped_tower: u16 = no_tower,
+    /// The stalk Hum is against now, if any: a brush rings only as it begins.
+    touching: u16 = no_tower,
     /// The sideways pull of Hum's turning, eased: it leans into a turn.
     lean_x: f32 = 0.0,
     lean_z: f32 = 0.0,
@@ -1094,6 +1110,7 @@ pub const World = struct {
         if (self.view == .place and self.pool_count > 0) self.onWater(&go_x, &go_z);
         if (self.view == .place) self.atShore(&go_x, &go_z);
         if (self.view == .place) self.atRim(&go_x, &go_z);
+        if (self.view == .place) self.atStalks(&go_x, &go_z);
         self.hum_x += go_x;
         self.hum_z += go_z;
         self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
@@ -2168,6 +2185,75 @@ pub const World = struct {
         if (inward < 0.0) {
             go_x.* -= inward * nx;
             go_z.* -= inward * nz;
+        }
+    }
+
+    /// An aster's stalk is solid: a step into it goes round it instead, and a step that comes at it
+    /// fast enough brushes it, and it rings.
+    fn atStalks(self: *World, go_x: *f32, go_z: *f32) void {
+        const reach = stalk_foot + hum_body;
+        var touched: u16 = no_tower;
+        defer self.touching = touched;
+        for (self.towers[0..self.tower_count], 0..) |tw, t| {
+            const px = self.hum_x + go_x.* - tw.x;
+            const pz = self.hum_z + go_z.* - tw.z;
+            const d2 = px * px + pz * pz;
+            if (d2 >= reach * reach) continue;
+            const d = @max(@sqrt(d2), 0.01);
+            const nx = px / d;
+            const nz = pz / d;
+            // where the step would have gone, moved out to the stalk's side: it slides round
+            go_x.* = tw.x + nx * reach - self.hum_x;
+            go_z.* = tw.z + nz * reach - self.hum_z;
+            touched = @intCast(t);
+            const v_in = self.hum_vx * nx + self.hum_vz * nz;
+            if (v_in < 0.0) {
+                self.hum_vx -= v_in * nx;
+                self.hum_vz -= v_in * nz;
+                if (-v_in > bump_least and self.touching != t) self.brushStalk(@intCast(t), -v_in);
+            }
+        }
+    }
+
+    /// Brushing a stalk rings its bells (spec/shape.md): a knock where Hum touched it, the stalk lit
+    /// from its foot up, and every bell on it struck softly, each heard when its sound has come down
+    /// to Hum. Harder the faster Hum came.
+    fn brushStalk(self: *World, t: u16, speed: f32) void {
+        self.bumps += 1;
+        self.bumped_at = self.step;
+        self.bumped_tower = t;
+        const tw = self.towers[t];
+        const hard = std.math.clamp((speed - bump_least) / (run_speed - bump_least), 0.0, 1.0);
+        const strength = brush_rings * (0.25 + 0.75 * hard);
+        var bells: u32 = 0;
+        var lowest: f32 = 0.0;
+        for (self.things[tw.first .. tw.first + tw.count]) |th| {
+            if (!th.sounds) continue;
+            bells += 1;
+            if (lowest == 0.0 or th.hz < lowest) lowest = th.hz;
+        }
+        // a stalk's many bells share one brush: together as loud as a few
+        const each = strength * 2.0 / @sqrt(@as(f32, @floatFromInt(@max(bells, 4))));
+        var part: u32 = 0;
+        for (tw.first..tw.first + tw.count) |i| {
+            const th = &self.things[i];
+            if (!th.sounds) {
+                // the shake runs up it: the foot brightest
+                th.lit = @max(th.lit, strength * (1.0 - 0.06 * @as(f32, @floatFromInt(part))));
+                part += 1;
+                continue;
+            }
+            self.tell(.{ .thing = @intCast(i) }, cues_mod.Cue.of(.{ .kind = .strike, .family = th.family, .hz = th.hz, .strength = each, .ring = th.ring }, .glow));
+            th.rung_at = @truncate(self.step);
+        }
+        // the knock, where Hum touched it: the aster's lowest note, by octaves into what the
+        // speaker can say (300 to 600 Hz), short and wooden
+        if (lowest > 0.0) {
+            var knock = lowest;
+            while (knock > 600.0) knock *= 0.5;
+            while (knock < 300.0) knock *= 2.0;
+            const at = Place{ .x = self.hum_x, .y = 0.5, .z = self.hum_z };
+            self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = knock, .strength = strength * 0.6, .ring = 0.25 }, .glow));
         }
     }
 
@@ -3893,4 +3979,42 @@ test "every knot home, the hose springs open an octave up, the water runs to the
         if (w.figureNow()) seen_for += 1;
     }
     try std.testing.expect(seen_for + 2 >= figure_for and seen_for <= figure_for);
+}
+
+test "an aster's stalk is solid: Hum goes round it, and a brush at a run rings its bells" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    // stand a little south of an aster's foot, facing it, the view behind
+    const tw = w.towers[3];
+    w.hum_x = tw.x;
+    w.hum_z = tw.z + 12.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.look_yaw = 0.0;
+    var nearest: f32 = 1e9;
+    var heard_bells: u32 = 0;
+    var step: u32 = 0;
+    while (step < 240) : (step += 1) {
+        const n = w.stepOnce(.{ .ly = -127 }, &cues);
+        for (cues[0..n]) |cue| {
+            if (cue.kind == .strike and cue.family == .bell) heard_bells += 1;
+        }
+        const dx = w.hum_x - tw.x;
+        const dz = w.hum_z - tw.z;
+        nearest = @min(nearest, @sqrt(dx * dx + dz * dz));
+    }
+    // never inside the stalk
+    try std.testing.expect(nearest >= stalk_foot + hum_body - 0.001);
+    // one brush, rung once, and its bells heard, each when its sound had come down
+    try std.testing.expectEqual(@as(u32, 1), w.bumps);
+    try std.testing.expect(heard_bells >= 3);
+    // a gentle walk into it rings nothing
+    w.initAsters();
+    w.hum_x = tw.x;
+    w.hum_z = tw.z + 4.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    step = 0;
+    while (step < 240) : (step += 1) _ = w.stepOnce(.{ .ly = -20 }, &cues);
+    try std.testing.expectEqual(@as(u32, 0), w.bumps);
 }

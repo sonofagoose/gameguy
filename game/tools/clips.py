@@ -44,6 +44,9 @@ CLIPS = [
     ('38-the-hose-opens', 'open', 6.0, 12.0,
      'the hose stopped by its knot hums low and hollow, odd overtones only, from wherever you are; the knots settle and it springs open: an octave up, every overtone back, and the water runs down it and pours into the pool',
      'did the hose sound like the same pipe, opened?'),
+    ('39-a-stalk-brushed', 'brush', 0.5, 6.5,
+     'Hum runs at the great aster and brushes its stalk: a short low knock where it touched, and the aster\'s bells ringing softly far overhead, each arriving when its sound has come down',
+     'did brushing the stalk sound like touching something that belongs to the bells?'),
 ]
 
 

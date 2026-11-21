@@ -44,6 +44,9 @@ pub const Walker = struct {
     /// The moment this step is, if it is one a promise wants a frame of.
     mark: ?[]const u8 = null,
     done: bool = false,
+    /// How many stalks had been brushed before the run at the great aster, and when it rang.
+    bumps_before: u32 = 0,
+    brushed_at: ?u64 = null,
 
     fn next(self: *Walker, step: u64) void {
         self.phase += 1;
@@ -219,9 +222,23 @@ pub const Walker = struct {
                 if (after == 215 + 185) self.mark = "answer";
                 if (self.heard_at == null and w.seen.get(.garden_asters).met) self.heard_at = step;
                 if (self.heard_at) |at| {
-                    if (step >= at + 240) self.next(step);
+                    // then, as a person would, run at the stalk and brush it: its bells answer
+                    // from high up, each when its sound has come down
+                    if (step >= at + 240 and w.bumps == self.bumps_before) {
+                        const tower = w.towers[0];
+                        _ = toward(w, &h, tower.x, tower.z);
+                        h.lx = @intFromFloat(std.math.clamp(@as(f32, @floatFromInt(h.lx)) * 1.15, -127.0, 127.0));
+                        h.ly = @intFromFloat(std.math.clamp(@as(f32, @floatFromInt(h.ly)) * 1.15, -127.0, 127.0));
+                        if (step > at + 240 + 60 * 8) self.next(step);
+                    } else if (step >= at + 240) {
+                        if (self.brushed_at == null) {
+                            self.brushed_at = step;
+                            self.mark = "brush";
+                        }
+                        if (step >= self.brushed_at.? + 240) self.next(step);
+                    }
                 }
-                if (after > 60 * 40) self.next(step); // it never came: give up, and say so by not having met it
+                if (after > 60 * 50) self.next(step); // it never came: give up, and say so by not having met it
             },
             7 => {
                 // back away from it with the view still on it, looking down at the ground: where
