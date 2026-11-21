@@ -123,6 +123,9 @@ pub const throw_rate: f32 = 2.5;
 pub const throw_most: f32 = 7.0;
 /// How fast still water floats Hum back to the shore, metres a second.
 pub const float_speed: f32 = 2.5;
+/// How fast Hum paddles in water that is not standing, at a full push of the stick: its legs do
+/// little there, whatever its run.
+pub const paddle: f32 = 1.2;
 /// How high the bellies heave, in metres at full loudness, and how slowly they are shown heaving:
 /// at the note eight octaves down, about once a second for middle C.
 pub const heave_m: f32 = 5.0;

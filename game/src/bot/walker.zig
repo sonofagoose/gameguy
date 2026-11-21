@@ -249,6 +249,19 @@ pub const Walker = struct {
                     return h;
                 }
                 self.in_open = true;
+                // the bee, while the sky is still coming up: if it is working the clover near by,
+                // go and watch it a while, as a person would
+                if (!self.bee_marked and after < 60 * 90 and w.bee.thing != world_mod.no_thing and w.bee.hover_left > 0) {
+                    const b = w.things[w.bee.thing];
+                    const bx = b.x - w.hum_x;
+                    const bz = b.z - w.hum_z;
+                    const bfar = @sqrt(bx * bx + bz * bz);
+                    if (bfar < 90.0 and b.y < 20.0) {
+                        if (bfar > 25.0) _ = toward(w, &h, b.x, b.z);
+                        _ = face(w, &h, b.x, b.z);
+                        return h;
+                    }
+                }
                 // then turn to the lake and watch the sky come up: the rungs light as the sun
                 // climbs, and each is heard when its note has crossed the water
                 const want = std.math.atan2(world_mod.lake_x - w.hum_x, -(world_mod.lake_z - w.hum_z));

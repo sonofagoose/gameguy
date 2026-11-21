@@ -76,7 +76,24 @@ pub const timed_takes: f32 = 1.25;
 /// Gentle widens every window of timing by one sum (SPEC.md 10: "Gentle widens the timing and the
 /// ledges"): the strike's, the dodge's, a meeting's, the downbeat's and the breath's.
 pub const gentle_widens: f64 = 1.5;
-pub const run_speed: f32 = 6.0;
+/// Hum's run, with the stick pushed all the way (Morgan: "probably faster movement overall").
+pub const run_speed: f32 = 9.0;
+/// How much of the way to the speed the stick asks for Hum's legs go each step, pushed and let go:
+/// nine tenths of the way in a sixth of a second, and a skid of about 0.4 m from a run.
+pub const go_ease: f32 = 0.2;
+pub const stop_ease: f32 = 0.28;
+/// How far Hum turns in a step at most: a turn about takes a quarter of a second.
+pub const turn_most: f32 = 0.2;
+/// The view swings in behind where Hum is going at this rate (a part of the gap a second, at a
+/// run), once the right stick has rested this many steps, and only while Hum goes no more than
+/// this far round from the way the view looks: running at the screen leaves the view where it is.
+pub const follow_rate: f32 = 1.1;
+pub const follow_after: u32 = 45;
+pub const follow_within: f32 = 2.2;
+/// At a run the view pulls back this far, rises this much and widens this many degrees.
+pub const run_back: f32 = 3.0;
+pub const run_up: f32 = 0.4;
+pub const run_wider: f32 = 3.0;
 /// The garden's note: middle C.
 pub const garden_hz: f32 = land.note;
 /// Every cue is stamped at least this many samples after its step begins, so the sound thread
@@ -267,8 +284,9 @@ pub const small_carry: f32 = 40.0;
 /// Moss swallows sound: a call made on it carries half as far (spec/shape.md, the Garden).
 pub const moss_carries: f32 = 0.5;
 /// Steps of walking between one drop of dew landing in your wake, and between leaves underfoot.
-pub const dew_every: u32 = 9;
-pub const leaf_every: u32 = 14;
+/// Underfoot, by how far Hum has walked: dew shed every 0.9 m of lawn, a leaf rung every 1.4 m.
+pub const dew_every: f32 = 0.9;
+pub const leaf_every: f32 = 1.4;
 
 /// The view of the place. Walking: the eye sits far behind Hum and low, looking up a little, so
 /// the horizon is low in the frame and Hum is small in it. Stopped at a tall thing's foot, the
@@ -529,6 +547,16 @@ pub const World = struct {
     hum_z: f32 = 0.0,
     /// Which way Hum faces, in radians: 0 is toward -z.
     hum_face: f32 = 0.0,
+    /// Hum's own going, in metres a second: what its legs do, before the water has its say.
+    hum_vx: f32 = 0.0,
+    hum_vz: f32 = 0.0,
+    /// Steps since the right stick last moved the view: the view follows Hum only after a rest.
+    looked_ago: u32 = 1000,
+    /// How far Hum has walked, in metres: its stride, and what the ground does underfoot.
+    stride: f32 = 0.0,
+    /// The sideways pull of Hum's turning, eased: it leans into a turn.
+    lean_x: f32 = 0.0,
+    lean_z: f32 = 0.0,
     was: u16 = 0,
     singing: bool = false,
     view: View = .page,
@@ -1009,10 +1037,12 @@ pub const World = struct {
         const mx = @as(f32, @floatFromInt(hands.lx)) * (1.0 / 127.0);
         const mz = @as(f32, @floatFromInt(hands.ly)) * (1.0 / 127.0);
         const size = @sqrt(mx * mx + mz * mz);
-        var go_x: f32 = 0.0;
-        var go_z: f32 = 0.0;
+        // Hum's legs: the stick says where and how fast, and the body gets there quickly but not at
+        // once, turns at a rate, and skids a little when let go
+        var want_x: f32 = 0.0;
+        var want_z: f32 = 0.0;
         if (size > 0.12) {
-            const scale = @min(size, 1.0) / size * run_speed * dt;
+            const scale = @min(size, 1.0) / size * run_speed;
             var wx = mx;
             var wz = mz;
             if (self.view == .place) {
@@ -1021,13 +1051,45 @@ pub const World = struct {
                 wx = cy * mx - sy * mz;
                 wz = sy * mx + cy * mz;
             }
-            go_x = wx * scale;
-            go_z = wz * scale;
-            self.hum_face = std.math.atan2(wx, -wz);
+            want_x = wx * scale;
+            want_z = wz * scale;
+            var turn = std.math.atan2(wx, -wz) - self.hum_face;
+            if (turn > std.math.pi) turn -= 2.0 * std.math.pi;
+            if (turn < -std.math.pi) turn += 2.0 * std.math.pi;
+            self.hum_face += std.math.clamp(turn, -turn_most, turn_most);
+            if (self.hum_face > std.math.pi) self.hum_face -= 2.0 * std.math.pi;
+            if (self.hum_face < -std.math.pi) self.hum_face += 2.0 * std.math.pi;
             self.still = 0;
         } else {
             self.still +|= 1;
         }
+        const was_vx = self.hum_vx;
+        const was_vz = self.hum_vz;
+        const ease: f32 = if (size > 0.12) go_ease else stop_ease;
+        self.hum_vx += (want_x - self.hum_vx) * ease;
+        self.hum_vz += (want_z - self.hum_vz) * ease;
+        if (size <= 0.12 and self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz < 0.0025) {
+            self.hum_vx = 0.0;
+            self.hum_vz = 0.0;
+        }
+        // it leans into a turn: the part of its change of going that is across its way
+        const speed2 = self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz;
+        var pull_x: f32 = 0.0;
+        var pull_z: f32 = 0.0;
+        if (speed2 > 0.25) {
+            const sp = @sqrt(speed2);
+            const ux = self.hum_vx / sp;
+            const uz = self.hum_vz / sp;
+            const ax = (self.hum_vx - was_vx) / dt;
+            const az = (self.hum_vz - was_vz) / dt;
+            const along = ax * ux + az * uz;
+            pull_x = std.math.clamp((ax - along * ux) * 0.006, -0.2, 0.2);
+            pull_z = std.math.clamp((az - along * uz) * 0.006, -0.2, 0.2);
+        }
+        self.lean_x += (pull_x - self.lean_x) * 0.15;
+        self.lean_z += (pull_z - self.lean_z) * 0.15;
+        var go_x = self.hum_vx * dt;
+        var go_z = self.hum_vz * dt;
         // on the water, the water has its say in where a step goes
         if (self.view == .place and self.pool_count > 0) self.onWater(&go_x, &go_z);
         if (self.view == .place) self.atShore(&go_x, &go_z);
@@ -1035,7 +1097,8 @@ pub const World = struct {
         self.hum_x += go_x;
         self.hum_z += go_z;
         self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
-        if (size > 0.12 and self.view == .place and self.stand >= 1.0) self.underfoot();
+        const moved = @sqrt(go_x * go_x + go_z * go_z);
+        if (moved > 0.0005 and self.view == .place and self.stand >= 1.0) self.underfoot(moved);
         if (self.view == .place and self.pool_count > 0) self.crossings();
         if (self.view == .place) self.cover = ground.underfootAt(self.hum_x, self.hum_z);
         if (self.view == .place) {
@@ -2097,6 +2160,11 @@ pub const World = struct {
         const nx = px / r;
         const nz = pz / r;
         const inward = go_x.* * nx + go_z.* * nz;
+        const v_in = self.hum_vx * nx + self.hum_vz * nz;
+        if (v_in < 0.0) {
+            self.hum_vx -= v_in * nx;
+            self.hum_vz -= v_in * nz;
+        }
         if (inward < 0.0) {
             go_x.* -= inward * nx;
             go_z.* -= inward * nz;
@@ -2116,6 +2184,11 @@ pub const World = struct {
         const nx = px / r;
         const nz = pz / r;
         const outward = go_x.* * nx + go_z.* * nz;
+        const v_out = self.hum_vx * nx + self.hum_vz * nz;
+        if (v_out > 0.0) {
+            self.hum_vx -= v_out * nx;
+            self.hum_vz -= v_out * nz;
+        }
         if (outward > 0.0) {
             go_x.* -= outward * nx;
             go_z.* -= outward * nz;
@@ -2133,8 +2206,8 @@ pub const World = struct {
                 const dx = self.hum_x - p.x;
                 const dz = self.hum_z - p.z;
                 const far = @max(@sqrt(dx * dx + dz * dz), 0.01);
-                go_x.* = go_x.* * 0.2 + dx / far * pools.float_speed * dt;
-                go_z.* = go_z.* * 0.2 + dz / far * pools.float_speed * dt;
+                go_x.* = go_x.* * (pools.paddle / run_speed) + dx / far * pools.float_speed * dt;
+                go_z.* = go_z.* * (pools.paddle / run_speed) + dz / far * pools.float_speed * dt;
                 continue;
             }
             const there = p.amp(to_x, to_z);
@@ -2143,6 +2216,8 @@ pub const World = struct {
                     // the water heaves there: it won't take a step
                     go_x.* = 0.0;
                     go_z.* = 0.0;
+                    self.hum_vx = 0.0;
+                    self.hum_vz = 0.0;
                     continue;
                 }
                 const s = p.ampSlope(self.hum_x, self.hum_z);
@@ -2154,6 +2229,11 @@ pub const World = struct {
                     if (up > 0.0) {
                         go_x.* -= up * nx;
                         go_z.* -= up * nz;
+                    }
+                    const v_up = self.hum_vx * nx + self.hum_vz * nz;
+                    if (v_up > 0.0) {
+                        self.hum_vx -= v_up * nx;
+                        self.hum_vz -= v_up * nz;
                     }
                 }
             }
@@ -2190,18 +2270,20 @@ pub const World = struct {
     /// What the ground does under Hum's feet as it walks (spec/shape.md, the Garden). Lawn bends
     /// away and springs back in its wake, shedding dew that lands behind it: your path is heard
     /// just after you. A fallen leaf is a bar with its own note, and rings when it is stepped on.
-    fn underfoot(self: *World) void {
+    fn underfoot(self: *World, moved: f32) void {
         if (ground.wet(self.hum_x, self.hum_z)) return;
         self.walked +%= 1;
+        const before = self.stride;
+        self.stride += moved;
         switch (self.cover) {
-            .lawn => if (self.walked % dew_every == 0) {
+            .lawn => if (@floor(self.stride / dew_every) != @floor(before / dew_every)) {
                 const fx = @sin(self.hum_face);
                 const fz = -@cos(self.hum_face);
                 const at = Place{ .x = self.hum_x - fx * 4.0, .y = 0.1, .z = self.hum_z - fz * 4.0 };
                 const which = ground.hash32(@intFromFloat(@floor(at.x)), @intFromFloat(@floor(at.z)), 11) % 5;
                 self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = garden_hz * 4.0 * ground.five[which], .strength = 0.05, .ring = 0.25 }, .glow));
             },
-            .leaves => if (self.walked % leaf_every == 0) {
+            .leaves => if (@floor(self.stride / leaf_every) != @floor(before / leaf_every)) {
                 const at = Place{ .x = self.hum_x, .y = 0.2, .z = self.hum_z };
                 const note = ground.leafNote(self.hum_x, self.hum_z);
                 self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = garden_hz * ground.five[note], .strength = 0.3, .ring = 0.7 }, .glow));
@@ -2282,6 +2364,16 @@ pub const World = struct {
             if (@abs(rx) > 0.15) self.look_yaw += rx * 2.2 * dt;
             if (@abs(ry) > 0.15) self.look_tilt = std.math.clamp(self.look_tilt - ry * 1.4 * dt, -0.35, 0.9);
         }
+        self.looked_ago = if (@abs(rx) > 0.15 or @abs(ry) > 0.15) 0 else self.looked_ago +| 1;
+        // once the right stick has rested, the view swings in behind where Hum is going, faster
+        // the faster it goes, so one thumb steers (SPEC.md 8, the thumb audit)
+        const going = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
+        if (!self.wheel_open and self.looked_ago > follow_after and going > 0.5 and self.lean < 0.01 and self.water_view < 0.01) {
+            var gap = std.math.atan2(self.hum_vx, -self.hum_vz) - self.look_yaw;
+            while (gap > std.math.pi) gap -= 2.0 * std.math.pi;
+            while (gap < -std.math.pi) gap += 2.0 * std.math.pi;
+            if (@abs(gap) < follow_within) self.look_yaw += gap * follow_rate * dt * @min(going / run_speed, 1.0);
+        }
 
         self.near_tower = no_tower;
         self.near_far = 1e9;
@@ -2352,13 +2444,14 @@ pub const World = struct {
         const fx = @sin(self.look_yaw);
         const fz = -@cos(self.look_yaw);
         const wv = self.water_view * self.water_view * (3.0 - 2.0 * self.water_view);
-        const back = cam_back + self.lean * (lean_back - cam_back) + wv * (water_back - cam_back);
-        const up = cam_up + self.lean * (lean_up - cam_up) + wv * (water_up - cam_up);
+        const run = std.math.clamp(@sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz) / run_speed, 0.0, 1.0);
+        const back = cam_back + self.lean * (lean_back - cam_back) + wv * (water_back - cam_back) + run * run_back;
+        const up = cam_up + self.lean * (lean_up - cam_up) + wv * (water_up - cam_up) + run * run_up;
         var eye = [3]f32{ self.hum_x - fx * back, up, self.hum_z - fz * back };
         const pitch = std.math.clamp(walk_pitch + self.look_tilt - wv * water_down, -0.35 - wv * water_down, 1.2);
         const walking = [3]f32{ fx * @cos(pitch), @sin(pitch), fz * @cos(pitch) };
         var dir = walking;
-        var fov = place_fov;
+        var fov = place_fov + run * run_wider;
         if (self.near_tower != no_tower and self.lean > 0.001) {
             const tower = self.towers[self.near_tower];
             const f = self.gaze / tower.tall;

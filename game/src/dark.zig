@@ -787,12 +787,17 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
         const wide = 0.36 * swell;
         const high = 0.5 * swell;
         const parts = 14;
+        // its stride: a small lift each step, as fast as it goes; and its lean into a turn, the top
+        // swung toward the inside, as seen from the eye
+        const going = std.math.clamp(@sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz) / world_mod.run_speed, 0.0, 1.0);
+        const lift = 0.06 * going * @abs(@sin(w.stride * (std.math.pi / 0.9)));
+        const tip = w.lean_x * rx + w.lean_z * rz;
         for (0..parts) |k| {
             const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, parts));
             const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, parts));
             out[n] = .{
-                .a = .{ w.hum_x + rx * wide * @cos(a0), 0.52 + high * @sin(a0), w.hum_z + rz * wide * @cos(a0) },
-                .b = .{ w.hum_x + rx * wide * @cos(a1), 0.52 + high * @sin(a1), w.hum_z + rz * wide * @cos(a1) },
+                .a = .{ w.hum_x + rx * (wide * @cos(a0) + tip * (1.0 + @sin(a0))), 0.52 + lift + high * @sin(a0), w.hum_z + rz * (wide * @cos(a0) + tip * (1.0 + @sin(a0))) },
+                .b = .{ w.hum_x + rx * (wide * @cos(a1) + tip * (1.0 + @sin(a1))), 0.52 + lift + high * @sin(a1), w.hum_z + rz * (wide * @cos(a1) + tip * (1.0 + @sin(a1))) },
                 .half_width = 1.9,
                 .body = 0.0,
                 .col = hum_tint,
@@ -804,9 +809,10 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
         for (1..8) |k| {
             const f = @as(f32, @floatFromInt(k)) / 8.0 * 2.0 - 1.0;
             const across = wide * @sqrt(1.0 - f * f);
+            const sway = tip * (1.0 + f);
             out[n] = .{
-                .a = .{ w.hum_x - rx * across, 0.52 + high * f, w.hum_z - rz * across },
-                .b = .{ w.hum_x + rx * across, 0.52 + high * f, w.hum_z + rz * across },
+                .a = .{ w.hum_x + rx * (sway - across), 0.52 + lift + high * f, w.hum_z + rz * (sway - across) },
+                .b = .{ w.hum_x + rx * (sway + across), 0.52 + lift + high * f, w.hum_z + rz * (sway + across) },
                 .half_width = 2.2,
                 .body = 0.0,
                 .col = fill,
