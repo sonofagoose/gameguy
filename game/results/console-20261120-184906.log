@@ -1,0 +1,11 @@
+clocks as started: cpu performance, gpu performance, memory performance
+clocks now: cpu performance, gpu performance, memory performance
+priority: nice 0, real-time limit 40; storage interrupts on core(s) 3 ; run with: taskset -c 0-2
+backlight as started: 200
+Failed to create secure directory (/run/user/1000//pulse): No such file or directory
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+room: 62 items (the ear check, 19 promises to walk, 3 checks for the hands, 38 clips for the ears)
+room: controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+room: held by morgan
+room: left after 1 of 62 items were answered
+exit code 0

@@ -26,10 +26,10 @@ pub const pool = [4]f32{ 0.0, 175.0, 150.0, 45.0 };
 /// The bowl's rim: its middle and radius.
 pub const rim = [3]f32{ 0.0, 175.0, 740.0 };
 /// The bowl's ground: how far it rises from the pool to the rim, and the beds above that.
-pub const bowl_depth: f32 = 0.0;
-pub const bowl_beds: f32 = 0.0;
+pub const bowl_depth: f32 = 50.0;
+pub const bowl_beds: f32 = 10.0;
 /// The spigot's rise: where, how high above the rim, how far across.
-pub const rise = [4]f32{ 80.0, -560.0, 0.0, 130.0 };
+pub const rise = [4]f32{ 80.0, -560.0, 40.0, 130.0 };
 /// The spigot: where, and how tall.
 pub const spigot = [3]f32{ 80.0, -560.0, 10.0 };
 /// The hose: the points its curve passes through, from the spigot to its end; its bore; how far

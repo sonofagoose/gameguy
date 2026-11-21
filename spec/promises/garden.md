@@ -80,8 +80,10 @@ stage 2 begins._
   - `owed` A leaf tips like a seesaw when stepped on, and the lawn's blades bend away and spring
     back.
   - `owed` Moss as a place to hide: whatever hunts by pitch loses you there.
-  - `owed` The Garden's own shape: a bowl a kilometre and a half across, with the Mirror Pool at its
-    lowest point (`shape.md`). The proof field is flat.
+  - `test the Garden is a bowl: the pool lowest, rising to the rim, the spigot's rise highest,
+    puddles level` The Garden's own shape (`shape.md`): a bowl 1.5 km across, the Mirror Pool's
+    water its lowest point, the ground rising 50 m to the rim's wall with the beds 10 m above, and
+    the spigot's rise 40 m higher at the back. The proof field is flat.
 - **Asks:** Did the ground under you feel different from one patch to the next?
 
 ### `garden.asters` Asters as tall as cathedrals

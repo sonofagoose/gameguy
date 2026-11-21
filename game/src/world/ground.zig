@@ -123,3 +123,46 @@ pub fn heightAt(x: f32, z: f32) f32 {
 pub fn underfootAt(x: f32, z: f32) Cover {
     return if (wet(x, z)) .water else coverAt(x, z);
 }
+
+test "the Garden is a bowl: the pool lowest, rising to the rim, the spigot's rise highest, puddles level" {
+    const L = world.land;
+    // spec/shape.md, "The Garden: a bowl": the Mirror Pool's still water is the lowest point
+    try std.testing.expectEqual(@as(f32, 0.0), heightAt(L.pool[0], L.pool[1]));
+    var lowest: f32 = 1e9;
+    var highest: f32 = -1e9;
+    var at_high = [2]f32{ 0.0, 0.0 };
+    var x: f32 = -900.0;
+    while (x <= 900.0) : (x += 10.0) {
+        var z: f32 = -800.0;
+        while (z <= 1100.0) : (z += 10.0) {
+            const h = heightAt(x, z);
+            lowest = @min(lowest, h);
+            if (h > highest) {
+                highest = h;
+                at_high = .{ x, z };
+            }
+        }
+    }
+    try std.testing.expect(lowest >= 0.0);
+    // the spigot stands on the highest rise at the back
+    const sx = at_high[0] - L.spigot[0];
+    const sz = at_high[1] - L.spigot[1];
+    try std.testing.expect(@sqrt(sx * sx + sz * sz) < 20.0);
+    // from the pool outward the ground never falls, out to the rim, and the beds stand above it
+    var r: f32 = L.pool[2];
+    var was: f32 = 0.0;
+    while (r < L.rim[2]) : (r += 5.0) {
+        const h = bowlAt(L.pool[0] - r, L.pool[1]);
+        try std.testing.expect(h >= was);
+        was = h;
+    }
+    try std.testing.expect(bowlAt(L.pool[0] - L.rim[2] - 5.0, L.pool[1]) >= was);
+    // each puddle lies level: across its water the ground is within a hand of its middle's height
+    for (pads) |pad| {
+        var a: f32 = 0.0;
+        while (a < 6.28) : (a += 0.5) {
+            const h = heightAt(pad[0] + @cos(a) * pad[2] * 0.95, pad[1] + @sin(a) * pad[2] * 0.95);
+            try std.testing.expect(@abs(h - pad[3]) < 0.25);
+        }
+    }
+}

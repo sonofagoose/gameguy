@@ -1026,6 +1026,7 @@ pub const World = struct {
         // on the water, the water has its say in where a step goes
         if (self.view == .place and self.pool_count > 0) self.onWater(&go_x, &go_z);
         if (self.view == .place) self.atShore(&go_x, &go_z);
+        if (self.view == .place) self.atRim(&go_x, &go_z);
         self.hum_x += go_x;
         self.hum_z += go_z;
         self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
@@ -2066,6 +2067,25 @@ pub const World = struct {
         if (inward < 0.0) {
             go_x.* -= inward * nx;
             go_z.* -= inward * nz;
+        }
+    }
+
+    /// The bowl's rim is a wall of brick, the raised beds behind it: Hum stops at its foot, and a step
+    /// that would go through slides along it.
+    fn atRim(self: *World, go_x: *f32, go_z: *f32) void {
+        if (!self.in_garden) return;
+        const px = self.hum_x + go_x.* - land.rim[0];
+        const pz = self.hum_z + go_z.* - land.rim[1];
+        const edge = land.rim[2] - 1.0;
+        const r2 = px * px + pz * pz;
+        if (r2 <= edge * edge) return;
+        const r = @sqrt(r2);
+        const nx = px / r;
+        const nz = pz / r;
+        const outward = go_x.* * nx + go_z.* * nz;
+        if (outward > 0.0) {
+            go_x.* -= outward * nx;
+            go_z.* -= outward * nz;
         }
     }
 

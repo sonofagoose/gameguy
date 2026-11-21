@@ -1,0 +1,53 @@
+clocks as started: cpu performance, gpu performance, memory performance
+clocks now: cpu performance, gpu performance, memory performance
+priority: nice 0, real-time limit 40; storage interrupts on core(s) 3 ; run with: taskset -c 0-2
+backlight as started: 200
+Failed to create secure directory (/run/user/1000//pulse): No such file or directory
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+room: 62 items (the ear check, 19 promises to walk, 3 checks for the hands, 38 clips for the ears)
+room: controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+room: held by morgan
+room: ear: a still fifth from a turning one: the edge is 9.5 cents by morgan (36 trials, 2 turns)
+room: promise fight.kinds: going there (asters)
+lines: light 640x480, trail 320x240 in half floats
+the ground: black: nothing has been sung on it yet
+the asters: 66 asters, 2446 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+the take: written as it is played, into keep/takes/asters-00001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+the dawn: the world kept as keep/dawns/asters-00001-001.save, 372400 bytes, at step 1
+sound strike-timed at sample 1318400 hz 523.26
+sound strike-timed at sample 1352000 hz 523.26
+sound strike-timed at sample 5288000 hz 697.68
+sound strike-placed at sample 5325200 hz 697.68
+sound strike-placed at sample 5405200 hz 697.68
+the take: closed, 1977 changes of the hands over 8521 steps
+the asters: 7691 frames, 248 late, 7.08 ms of work a frame (worst 21.29); 8521 steps, 1025 frames ran two; 7 calls, 1165 answers; cues late 260, refused 0; slowest sound buffer 1.30 ms; real-time sound yes; most lines in a frame 27884
+the hands: 16 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.66 ms after the kernel saw the press; 3 strikes timed by the hands started there too; the world found 16 of them already sounding; 0 calls choked by a clap just after; 3 strikes timed and 2 placed in all
+the slowest frame was 4881 (step 5081): steps done by 6.35 ms, the land by 6.82, the moving lines by 14.56, sent to the GPU by 15.27, drawn by 21.29, the backlight set by 21.29; nothing was picked
+witness sky.bee first=1672 held=0
+witness whole.law1 first=4520 held=0
+witness whole.law6 first=4520 held=0
+room: promise fight.kinds: going there (asters)
+the ground: as it was left
+the asters: 66 asters, 2446 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+the take: written as it is played, into keep/takes/asters-00002.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+the dawn: the world kept as keep/dawns/asters-00002-001.save, 372400 bytes, at step 1
+sound strike-timed at sample 0 hz 523.26
+sound strike-placed at sample 641600 hz 523.26
+sound strike-placed at sample 1361600 hz 523.26
+sound strike-placed at sample 1401600 hz 523.26
+sound strike-placed at sample 1441600 hz 523.26
+the take: closed, 577 changes of the hands over 3956 steps
+the asters: 3661 frames, 92 late, 6.51 ms of work a frame (worst 23.32); 3956 steps, 401 frames ran two; 4 calls, 860 answers; cues late 138, refused 0; slowest sound buffer 1.46 ms; real-time sound yes; most lines in a frame 29183
+the hands: 23 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.66 ms after the kernel saw the press; 3 strikes timed by the hands started there too; the world found 7 of them already sounding; 0 calls choked by a clap just after; 1 strikes timed and 4 placed in all
+the slowest frame was 3127 (step 3301): steps done by 8.04 ms, the land by 13.02, the moving lines by 20.33, sent to the GPU by 21.00, drawn by 22.95, the backlight set by 23.32; the land was picked again
+witness sky.bee first=1492 held=0
+witness whole.law1 first=2738 held=0
+witness whole.law6 first=2738 held=0
+room: left after 2 of 62 items were answered
+exit code 0
