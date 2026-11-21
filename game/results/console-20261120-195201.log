@@ -1,0 +1,24 @@
+clocks as started: cpu performance, gpu performance, memory performance
+clocks now: cpu performance, gpu performance, memory performance
+priority: nice -19, real-time limit 40; storage interrupts on core(s) 3 ; run with: taskset -c 0-2
+backlight as started: 200
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the ground: as it was left
+the asters: 66 asters, 2446 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+playing back a take: 8521 steps, 1977 changes of the hands
+sound strike-timed at sample 1318400 hz 523.26
+sound strike-timed at sample 1352704 hz 523.26
+sound strike-timed at sample 5288000 hz 697.68
+sound strike-placed at sample 5325200 hz 697.68
+sound strike-placed at sample 5405200 hz 697.68
+the asters: 7390 frames, 918 late, 6.57 ms of work a frame (worst 28.96); 8521 steps, 1245 frames ran two; 7 calls, 1165 answers; cues late 474, refused 0; slowest sound buffer 1.44 ms; real-time sound yes; most lines in a frame 27902
+the hands: 0 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 0.00 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 0 of them already sounding; 0 calls choked by a clap just after; 3 strikes timed and 2 placed in all
+the slowest frame was 6672 (step 7443): steps done by 15.06 ms, the land by 15.53, the moving lines by 25.14, sent to the GPU by 25.71, drawn by 28.65, the backlight set by 28.96; nothing was picked
+witness sky.bee first=1672 held=0
+witness whole.law1 first=4520 held=0
+witness whole.law6 first=4520 held=0
+exit code 0

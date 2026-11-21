@@ -1,0 +1,23 @@
+display: mode 0 is 640x480 at 60 Hz (the desktop's: 640x480 at 59 Hz)
+display: mode 1 is 640x480 at 59 Hz (the desktop's: 640x480 at 59 Hz)
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the ground: black: nothing has been sung on it yet
+the asters: 66 asters, 2446 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+playing back a take: 8521 steps, 1977 changes of the hands
+sound strike-timed at sample 1318400 hz 523.26
+sound strike-timed at sample 1352704 hz 523.26
+sound strike-timed at sample 5288000 hz 697.68
+sound strike-placed at sample 5325200 hz 697.68
+sound strike-placed at sample 5405200 hz 697.68
+the asters: 7000 frames, 1261 late, 8.02 ms of work a frame (worst 34.95); 8521 steps, 1545 frames ran two; 7 calls, 1155 answers; cues late 674, refused 0; slowest sound buffer 1.46 ms; real-time sound yes; most lines in a frame 27808
+the hands: 0 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 0.00 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 0 of them already sounding; 0 calls choked by a clap just after; 3 strikes timed and 2 placed in all
+the screen: a frame shown every 20.30 ms on average
+the picture between steps: while Hum walked it moved 10.1 cm a frame, varying by 1.2 cm as shown, and by 3.0 cm as it would have been by whole steps (4249 frames)
+the slowest frame was 6501 (step 7687): steps done by 13.53 ms, the land by 14.13, the moving lines by 27.23, sent to the GPU by 29.15, drawn by 33.07, the backlight set by 34.95; nothing was picked
+witness sky.bee first=1673 held=0
+witness whole.law1 first=4520 held=0
+witness whole.law6 first=4520 held=0

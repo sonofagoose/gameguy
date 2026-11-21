@@ -1,0 +1,156 @@
+build 925b323-dirty, 2026-11-21
+display: switched from its 59 Hz mode to its 60 Hz mode
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+playing back a take: 26451 steps, 4869 changes of the hands
+sound strike-timed at sample 60300 hz 391.54
+sound strike-timed at sample 220300 hz 391.54
+sound strike-timed at sample 380300 hz 391.54
+sound strike-timed at sample 540300 hz 391.54
+sound strike-timed at sample 699442 hz 391.54
+sound strike-timed at sample 852064 hz 391.54
+sound strike-timed at sample 995448 hz 391.54
+sound strike-timed at sample 1133699 hz 391.54
+sound strike-timed at sample 1288344 hz 391.54
+sound strike-timed at sample 1447877 hz 391.54
+sound strike-timed at sample 1607877 hz 391.54
+sound strike-timed at sample 1767738 hz 391.54
+sound strike-timed at sample 1927738 hz 391.54
+sound strike-timed at sample 2087738 hz 391.54
+sound strike-timed at sample 2247738 hz 391.54
+sound strike-timed at sample 2407738 hz 391.54
+sound strike-timed at sample 2567738 hz 391.54
+sound strike-timed at sample 2725802 hz 391.54
+sound strike-timed at sample 2886505 hz 391.54
+sound strike-timed at sample 3047912 hz 391.54
+sound strike-timed at sample 3219253 hz 391.54
+sound strike-timed at sample 3369483 hz 391.54
+sound strike-timed at sample 3525302 hz 391.54
+sound strike-timed at sample 3698215 hz 391.54
+sound strike-timed at sample 3879661 hz 391.54
+sound strike-timed at sample 4059781 hz 391.54
+sound strike-timed at sample 4210283 hz 391.54
+sound strike-timed at sample 4377363 hz 391.54
+sound strike-timed at sample 4542603 hz 391.54
+sound strike-timed at sample 4713682 hz 391.54
+sound strike-timed at sample 4879897 hz 391.54
+sound strike-timed at sample 5040995 hz 391.54
+sound strike-timed at sample 5216302 hz 391.54
+sound strike-timed at sample 5380522 hz 391.54
+sound strike-timed at sample 5540525 hz 391.54
+sound strike-timed at sample 5703356 hz 391.54
+sound strike-timed at sample 5863594 hz 391.54
+sound strike-timed at sample 6023594 hz 391.54
+sound strike-timed at sample 6183594 hz 391.54
+sound strike-timed at sample 6343594 hz 391.54
+sound strike-timed at sample 6509685 hz 391.54
+sound strike-timed at sample 6673567 hz 391.54
+sound strike-timed at sample 6833567 hz 391.54
+sound strike-timed at sample 6993567 hz 391.54
+sound strike-timed at sample 7153567 hz 391.54
+sound strike-timed at sample 7313567 hz 391.54
+sound strike-timed at sample 7453962 hz 391.54
+sound strike-timed at sample 7596990 hz 391.54
+sound strike-timed at sample 7747390 hz 391.54
+sound strike-timed at sample 7908160 hz 391.54
+sound strike-timed at sample 8075405 hz 391.54
+sound strike-timed at sample 8230904 hz 391.54
+sound strike-timed at sample 8389719 hz 391.54
+sound strike-timed at sample 8552788 hz 391.54
+sound strike-timed at sample 8708310 hz 391.54
+sound strike-timed at sample 8879545 hz 391.54
+sound strike-timed at sample 9059706 hz 391.54
+sound strike-timed at sample 9238428 hz 391.54
+sound strike-timed at sample 9413531 hz 391.54
+sound strike-timed at sample 9580579 hz 391.54
+sound strike-timed at sample 9761886 hz 391.54
+sound strike-timed at sample 9928510 hz 391.54
+sound strike-timed at sample 10106942 hz 391.54
+sound strike-timed at sample 10249560 hz 391.54
+sound strike-timed at sample 10397130 hz 391.54
+sound strike-timed at sample 10571662 hz 391.54
+sound strike-timed at sample 10734256 hz 391.54
+sound strike-timed at sample 10900811 hz 391.54
+sound strike-timed at sample 11069789 hz 391.54
+sound strike-timed at sample 11219780 hz 391.54
+sound strike-timed at sample 11372284 hz 391.54
+sound strike-timed at sample 11529563 hz 391.54
+sound strike-timed at sample 11700792 hz 391.54
+sound strike-timed at sample 11860246 hz 391.54
+sound strike-timed at sample 12023748 hz 391.54
+sound strike-timed at sample 12196333 hz 391.54
+sound strike-timed at sample 12361475 hz 391.54
+sound strike-timed at sample 12521094 hz 391.54
+sound strike-timed at sample 12678717 hz 391.54
+sound strike-timed at sample 12850573 hz 391.54
+sound strike-timed at sample 13003811 hz 391.54
+sound strike-timed at sample 13155094 hz 391.54
+sound strike-timed at sample 13318327 hz 391.54
+sound strike-timed at sample 13485197 hz 391.54
+sound strike-timed at sample 13645259 hz 391.54
+sound strike-timed at sample 13806022 hz 391.54
+sound strike-timed at sample 13980150 hz 391.54
+sound strike-timed at sample 14157324 hz 391.54
+sound strike-timed at sample 14333999 hz 391.54
+sound strike-timed at sample 14512958 hz 391.54
+sound strike-timed at sample 14693367 hz 391.54
+sound strike-timed at sample 14868536 hz 391.54
+sound strike-timed at sample 15042674 hz 391.54
+sound strike-timed at sample 15206534 hz 391.54
+sound strike-timed at sample 15363974 hz 391.54
+sound strike-timed at sample 15519100 hz 391.54
+sound strike-timed at sample 15678753 hz 391.54
+sound strike-timed at sample 15838694 hz 391.54
+sound strike-timed at sample 15990938 hz 391.54
+sound strike-timed at sample 16132549 hz 391.54
+sound strike-timed at sample 16277388 hz 391.54
+sound strike-timed at sample 16417165 hz 391.54
+sound strike-timed at sample 16558653 hz 391.54
+sound strike-timed at sample 16708356 hz 391.54
+sound strike-timed at sample 16863586 hz 391.54
+sound strike-timed at sample 17022331 hz 391.54
+sound strike-timed at sample 17186364 hz 391.54
+sound strike-timed at sample 17350262 hz 391.54
+sound strike-timed at sample 17519291 hz 391.54
+sound strike-timed at sample 17682192 hz 391.54
+sound strike-timed at sample 17851796 hz 391.54
+sound strike-timed at sample 18012346 hz 391.54
+sound strike-timed at sample 18177496 hz 391.54
+sound strike-timed at sample 18357511 hz 391.54
+sound strike-timed at sample 18531994 hz 391.54
+sound strike-timed at sample 18692732 hz 391.54
+sound strike-timed at sample 18852732 hz 391.54
+sound strike-timed at sample 19012732 hz 391.54
+sound strike-timed at sample 19172792 hz 391.54
+sound strike-timed at sample 19346038 hz 391.54
+sound strike-timed at sample 19506047 hz 391.54
+sound strike-timed at sample 19664957 hz 391.54
+sound strike-timed at sample 19803268 hz 391.54
+sound strike-timed at sample 19958804 hz 391.54
+sound strike-timed at sample 20126810 hz 391.54
+sound strike-timed at sample 20286810 hz 391.54
+sound strike-timed at sample 20447685 hz 391.54
+sound strike-timed at sample 20616412 hz 391.54
+sound strike-timed at sample 20786070 hz 391.54
+sound strike-timed at sample 20949424 hz 391.54
+sound strike-timed at sample 21109424 hz 391.54
+the evening: 22663 frames, 3433 late, 6.89 ms of work a frame (worst 20.56); 26451 steps, 4078 frames ran two; 53 calls, 12814 answers; cues late 1880, refused 0; slowest sound buffer 1.23 ms; real-time sound yes; most lines in a frame 26827
+the hands: 0 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 0.00 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 0 of them already sounding; 0 calls choked by a clap just after; 0 strikes timed and 0 placed in all
+the screen: a frame shown every 19.43 ms on average
+teaching: beside Drip first at 29 s, the view leaned in at 30 s, first hummed beside it at -1 s, Drip showed its breath 1 times; breaths tried 0, on the tick 0, locked at -1 s; presses with no verb yet 3; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought):
+teaching: first jump at -1 s, first sprint at -1 s, first glide at -1 s, the wheel first opened at -1 s, the place stood at -1 s
+a frame's work: under 8 ms 17178, under 12 5238, under 16 180, over 16 36; of those over 14 ms the most was the steps in 4, the land 52, the moving lines 0, sending 1, drawing 1
+the moving lines on average: the sky 0.00 ms, halos 0.00, Drip and sparks and the bee 0.01, pools 1.50, the wheel and the fight 0.08, the hose's water 0.10, rings and Hum 0.06, lifting them onto the ground 0.14; at most 8408 lines
+a frame's parts on average: the steps 2.01 ms, the land 0.45, the moving lines 1.89, sent to the GPU 0.41, drawn 2.09, waiting for the screen 12.54
+the picture between steps: while Hum walked it moved 13.8 cm a frame, varying by 2.9 cm as shown, and by 4.2 cm as it would have been by whole steps (10108 frames)
+the slowest frame was 749 (step 779): steps done by 0.40 ms, the land by 0.79, the moving lines by 2.40, sent to the GPU by 17.73, drawn by 20.27, the backlight set by 20.56; nothing was picked
+witness evening.call first=1677 held=9136
+witness garden.asters first=18495 held=0
+witness whole.law1 first=1054 held=0
+witness whole.law6 first=1054 held=0

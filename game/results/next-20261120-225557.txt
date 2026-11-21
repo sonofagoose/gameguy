@@ -1,0 +1,24 @@
+display: switched from its 59 Hz mode to its 60 Hz mode
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the ground: black: nothing has been sung on it yet
+the asters: 68 asters, 2552 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+playing back a take: 8521 steps, 1977 changes of the hands
+sound strike-timed at sample 1318400 hz 523.26
+sound strike-timed at sample 1352704 hz 523.26
+sound strike-timed at sample 5288000 hz 697.68
+sound strike-placed at sample 5325200 hz 697.68
+sound strike-placed at sample 5405200 hz 697.68
+the asters: 7006 frames, 1472 late, 8.90 ms of work a frame (worst 45.35); 8521 steps, 1478 frames ran two; 7 calls, 1154 answers; cues late 670, refused 0; slowest sound buffer 1.50 ms; real-time sound yes; most lines in a frame 28891
+the hands: 0 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 0.00 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 0 of them already sounding; 0 calls choked by a clap just after; 3 strikes timed and 2 placed in all
+the screen: a frame shown every 20.22 ms on average
+a frame's work: under 8 ms 4551, under 12 768, under 16 794, over 16 862; of those over 14 ms the most was the steps in 12, the land 62, the moving lines 1210, sending 1, drawing 0
+a frame's parts on average: the steps 1.49 ms, the land 0.64, the moving lines 4.09, sent to the GPU 0.33, drawn 2.13, waiting for the screen 11.31
+the picture between steps: while Hum walked it moved 14.5 cm a frame, varying by 1.6 cm as shown, and by 3.5 cm as it would have been by whole steps (4132 frames)
+the slowest frame was 5108 (step 5607): steps done by 10.20 ms, the land by 25.87, the moving lines by 41.29, sent to the GPU by 41.69, drawn by 45.02, the backlight set by 45.35; the land was picked again
+witness sky.bee first=1413 held=0
+witness whole.law1 first=4701 held=0
+witness whole.law6 first=4701 held=0

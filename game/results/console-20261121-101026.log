@@ -1,0 +1,533 @@
+clocks as started: cpu performance, gpu performance, memory performance
+clocks now: cpu performance, gpu performance, memory performance
+priority: nice 0, real-time limit 40; storage interrupts on core(s) 3 ; run with: taskset -c 0-2
+backlight as started: 200
+build 09e0366-dirty, 2026-11-21
+Failed to create secure directory (/run/user/1000//pulse): No such file or directory
+display: switched from its 59 Hz mode to its 60 Hz mode
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+room: 59 items (the ear check, 13 walks, 3 checks for the hands, 41 clips for the ears)
+room: build 09e0366-dirty, 2026-11-21
+room: controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+room: held by morgan
+room: ear: a still fifth from a turning one: the edge is 1.2 cents by morgan (36 trials, 4 turns)
+room: walk from-the-black: going there (from room/walks/dark.save)
+lines: light 640x480, trail 320x240 in half floats
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 10: room/walks/dark.save
+the take: written as it is played, into results/walks/from-the-black-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 3164007 hz 784.89
+sound strike-timed at sample 7730400 hz 348.84
+sound strike-timed at sample 9947400 hz 784.89
+sound strike-placed at sample 10658800 hz 697.68
+sound strike-timed at sample 10696000 hz 697.68
+sound strike-placed at sample 10778800 hz 697.68
+sound strike-timed at sample 10778400 hz 697.68
+sound strike-timed at sample 10820000 hz 697.68
+sound strike-placed at sample 10858800 hz 697.68
+sound strike-timed at sample 11183200 hz 697.68
+sound strike-timed at sample 11515200 hz 697.68
+sound strike-timed at sample 11664000 hz 261.63
+sound strike-timed at sample 12514400 hz 348.84
+sound strike-timed at sample 13342400 hz 261.63
+sound strike-timed at sample 18444800 hz 348.84
+sound strike-timed at sample 18970400 hz 261.63
+sound strike-placed at sample 19110800 hz 523.26
+sound strike-timed at sample 19111200 hz 523.26
+sound strike-placed at sample 19190800 hz 523.26
+the songbook opened at step 24044 on its page for swell
+sound strike-timed at sample 20644000 hz 348.84
+the songbook opened at step 27156 on its page for swell
+the take: closed, 4792 changes of the hands over 27237 steps
+the evening: 21997 frames, 3795 late, 8.28 ms of work a frame (worst 29.55); 27227 steps, 6508 frames ran two; 57 calls, 13178 answers; cues late 3203, refused 79; slowest sound buffer 1.48 ms; real-time sound yes; most lines in a frame 29244
+the hands: 0 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 0.00 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 122 of them already sounding; 0 calls choked by a clap just after; 6 strikes timed and 5 placed in all
+the screen: a frame shown every 21.84 ms on average
+teaching: beside Drip first at 33 s, the view leaned in at 34 s, first hummed beside it at 43 s, Drip showed its breath 1 times; breaths tried 5, on the tick 4, locked at 50 s; presses with no verb yet 2; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): 59 -47 -55 319 99
+teaching: first jump at 65 s, first sprint at 207 s, first glide at 204 s, the wheel first opened at 97 s, the place stood at 54 s
+a frame's work: under 8 ms 11253, under 12 8728, under 16 1771, over 16 214; of those over 14 ms the most was the steps in 332, the land 203, the moving lines 9, sending 1, drawing 2
+the moving lines on average: the sky 0.06 ms, halos 0.08, Drip and sparks and the bee 0.02, pools 1.13, the wheel and the fight 0.13, the hose's water 0.30, rings and Hum 0.06, lifting them onto the ground 0.26; at most 9357 lines
+a frame's parts on average: the steps 2.46 ms, the land 0.65, the moving lines 2.04, sent to the GPU 0.42, drawn 2.51, waiting for the screen 13.55
+the picture between steps: while Hum walked it moved 17.5 cm a frame, varying by 5.8 cm as shown, and by 9.2 cm as it would have been by whole steps (2000 frames)
+the slowest frame was 9849 (step 12052): steps done by 7.92 ms, the land by 19.68, the moving lines by 24.39, sent to the GPU by 24.98, drawn by 29.54, the backlight set by 29.55; the land was picked again
+witness evening.call first=1226 held=9885
+witness evening.breathe first=3011 held=412
+witness garden.asters first=16928 held=584
+witness sky.dawn first=20254 held=0
+witness sky.bee first=4721 held=0
+witness whole.law1 first=938 held=0
+witness whole.law6 first=938 held=0
+room: promise evening.black yes by morgan; walk from-the-black; visit: met -, stayed 0.0 s, calls 57, 454 s there, went 1
+room: promise evening.call yes by morgan; walk from-the-black; visit: met -, stayed 0.0 s, calls 57, 454 s there, went 1
+room: promise hands.songbook no by morgan; walk from-the-black; visit: met -, stayed 0.0 s, calls 57, 454 s there, went 1
+room: promise checkpoint.dark no by morgan; walk from-the-black; visit: met -, stayed 0.0 s, calls 57, 454 s there, went 1
+room: walk breathing-together: going there (from room/walks/beside.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 838: room/walks/beside.save
+the take: written as it is played, into results/walks/breathing-together-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 2342374 hz 784.89
+the take: closed, 94 changes of the hands over 3181 steps
+the evening: 2081 frames, 5 late, 5.74 ms of work a frame (worst 18.04); 2343 steps, 320 frames ran two; 2 calls, 550 answers; cues late 30, refused 0; slowest sound buffer 0.92 ms; real-time sound yes; most lines in a frame 22116
+the hands: 4 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 1.42 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 4 of them already sounding; 0 calls choked by a clap just after; 0 strikes timed and 0 placed in all
+the screen: a frame shown every 18.74 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 20 s, Drip showed its breath 2 times; breaths tried 4, on the tick 4, locked at 31 s; presses with no verb yet 5; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -150 -126 -145 -76
+teaching: first jump at 48 s, first sprint at -1 s, first glide at -1 s, the wheel first opened at -1 s, the place stood at 34 s
+a frame's work: under 8 ms 2026, under 12 23, under 16 0, over 16 1; of those over 14 ms the most was the steps in 0, the land 0, the moving lines 0, sending 0, drawing 1
+the moving lines on average: the sky 0.35 ms, halos 0.01, Drip and sparks and the bee 0.03, pools 1.17, the wheel and the fight 0.19, the hose's water 0.10, rings and Hum 0.02, lifting them onto the ground 0.21; at most 3005 lines
+a frame's parts on average: the steps 0.74 ms, the land 0.50, the moving lines 2.05, sent to the GPU 0.16, drawn 2.09, waiting for the screen 13.03
+the picture between steps: while Hum walked it moved 19.1 cm a frame, varying by 5.1 cm as shown, and by 7.9 cm as it would have been by whole steps (30 frames)
+the slowest frame was 1231 (step 2154): steps done by 0.36 ms, the land by 0.98, the moving lines by 3.45, sent to the GPU by 3.54, drawn by 18.04, the backlight set by 18.04; nothing was picked
+witness evening.call first=368 held=2324
+witness evening.breathe first=1854 held=684
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise evening.breathe yes by morgan; walk breathing-together; visit: met yes, stayed 11.4 s, calls 2, 53 s there, went 1
+room: promise hands.voice-in-a-buffer yes by morgan; walk breathing-together; visit: met yes, stayed 11.4 s, calls 2, 53 s there, went 1
+room: promise evening.in yes by morgan; walk breathing-together; visit: met yes, stayed 11.4 s, calls 2, 53 s there, went 1
+room: walk running: going there (from room/walks/stood.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 1746: room/walks/stood.save
+the take: written as it is played, into results/walks/running-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 1646384 hz 784.89
+the take: closed, 584 changes of the hands over 4930 steps
+the evening: 2894 frames, 18 late, 5.68 ms of work a frame (worst 19.68); 3184 steps, 310 frames ran two; 2 calls, 550 answers; cues late 30, refused 0; slowest sound buffer 0.31 ms; real-time sound yes; most lines in a frame 22445
+the hands: 0 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 0.00 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 0 of them already sounding; 0 calls choked by a clap just after; 0 strikes timed and 0 placed in all
+the screen: a frame shown every 18.31 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 33 s, first sprint at 58 s, first glide at -1 s, the wheel first opened at -1 s, the place stood at 24 s
+a frame's work: under 8 ms 2809, under 12 14, under 16 28, over 16 12; of those over 14 ms the most was the steps in 0, the land 11, the moving lines 6, sending 0, drawing 11
+the moving lines on average: the sky 0.29 ms, halos 0.03, Drip and sparks and the bee 0.03, pools 0.72, the wheel and the fight 0.14, the hose's water 0.11, rings and Hum 0.02, lifting them onto the ground 0.19; at most 2605 lines
+a frame's parts on average: the steps 0.66 ms, the land 0.64, the moving lines 1.51, sent to the GPU 0.23, drawn 1.88, waiting for the screen 12.63
+the picture between steps: while Hum walked it moved 20.4 cm a frame, varying by 4.5 cm as shown, and by 6.6 cm as it would have been by whole steps (1234 frames)
+the slowest frame was 286 (step 2107): steps done by 0.67 ms, the land by 1.24, the moving lines by 3.43, sent to the GPU by 3.68, drawn by 5.50, the backlight set by 19.68; nothing was picked
+witness evening.call first=368 held=1927
+witness evening.breathe first=1254 held=562
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise checkpoint.moving no by morgan; walk running; visit: met -, stayed 0.0 s, calls 2, 82 s there, went 1
+room: promise hands.view no by morgan; walk running; visit: met -, stayed 0.0 s, calls 2, 82 s there, went 1
+room: promise hands.map no by morgan; walk running; visit: met -, stayed 0.0 s, calls 2, 82 s there, went 1
+room: walk out-of-breath: going there (from room/walks/stood.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 1746: room/walks/stood.save
+the take: written as it is played, into results/walks/out-of-breath-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+the take: closed, 163 changes of the hands over 3602 steps
+the evening: 1733 frames, 14 late, 5.35 ms of work a frame (worst 21.64); 1856 steps, 238 frames ran two; 2 calls, 550 answers; cues late 16, refused 0; slowest sound buffer 0.20 ms; real-time sound yes; most lines in a frame 23189
+the hands: 0 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 0.00 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 0 of them already sounding; 0 calls choked by a clap just after; 0 strikes timed and 0 placed in all
+the screen: a frame shown every 17.81 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 29 s, first sprint at 35 s, first glide at 29 s, the wheel first opened at -1 s, the place stood at 24 s
+a frame's work: under 8 ms 1680, under 12 5, under 16 9, over 16 8; of those over 14 ms the most was the steps in 0, the land 3, the moving lines 3, sending 0, drawing 5
+the moving lines on average: the sky 0.53 ms, halos 0.04, Drip and sparks and the bee 0.02, pools 0.54, the wheel and the fight 0.19, the hose's water 0.11, rings and Hum 0.02, lifting them onto the ground 0.24; at most 2573 lines
+a frame's parts on average: the steps 0.66 ms, the land 0.61, the moving lines 1.65, sent to the GPU 0.17, drawn 2.00, waiting for the screen 12.47
+the picture between steps: while Hum walked it moved 24.2 cm a frame, varying by 5.1 cm as shown, and by 9.8 cm as it would have been by whole steps (285 frames)
+the slowest frame was 47 (step 1805): steps done by 2.37 ms, the land by 4.05, the moving lines by 13.24, sent to the GPU by 13.53, drawn by 20.39, the backlight set by 21.64; nothing was picked
+witness evening.call first=368 held=2124
+witness evening.breathe first=1254 held=562
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise breath.one no by morgan; walk out-of-breath; visit: met -, stayed 0.0 s, calls 2, 60 s there, went 1
+room: walk calling: going there (from room/walks/stood.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 1746: room/walks/stood.save
+the take: written as it is played, into results/walks/calling-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 1663139 hz 784.89
+sound strike-timed at sample 2740800 hz 348.84
+sound strike-timed at sample 3058400 hz 261.63
+sound strike-timed at sample 3243200 hz 348.84
+sound strike-timed at sample 3450400 hz 261.63
+sound strike-timed at sample 3655200 hz 348.84
+sound strike-placed at sample 4573200 hz 697.68
+sound strike-placed at sample 4613200 hz 697.68
+sound strike-timed at sample 4784000 hz 261.63
+the take: closed, 641 changes of the hands over 6901 steps
+the evening: 3931 frames, 654 late, 10.21 ms of work a frame (worst 24.98); 5155 steps, 1225 frames ran two; 52 calls, 4623 answers; cues late 1033, refused 0; slowest sound buffer 1.34 ms; real-time sound yes; most lines in a frame 25479
+the hands: 70 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.72 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 70 of them already sounding; 0 calls choked by a clap just after; 0 strikes timed and 2 placed in all
+the screen: a frame shown every 21.87 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 29 s, first sprint at 43 s, first glide at 32 s, the wheel first opened at 55 s, the place stood at 24 s
+a frame's work: under 8 ms 777, under 12 2210, under 16 750, over 16 163; of those over 14 ms the most was the steps in 499, the land 45, the moving lines 0, sending 0, drawing 2
+the moving lines on average: the sky 0.22 ms, halos 0.09, Drip and sparks and the bee 0.03, pools 1.64, the wheel and the fight 0.21, the hose's water 0.18, rings and Hum 0.10, lifting them onto the ground 0.40; at most 6542 lines
+a frame's parts on average: the steps 3.49 ms, the land 0.70, the moving lines 2.85, sent to the GPU 0.44, drawn 2.59, waiting for the screen 11.62
+the picture between steps: while Hum walked it moved 17.4 cm a frame, varying by 5.5 cm as shown, and by 8.4 cm as it would have been by whole steps (108 frames)
+the slowest frame was 2205 (step 4553): steps done by 9.65 ms, the land by 17.64, the moving lines by 21.40, sent to the GPU by 22.08, drawn by 24.63, the backlight set by 24.98; the land was picked again
+witness evening.call first=368 held=5374
+witness evening.breathe first=1254 held=562
+witness sky.bee first=4973 held=0
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise evening.instrument yes by morgan; walk calling; visit: met -, stayed 0.0 s, calls 52, 115 s there, went 1
+room: promise garden.w01 yes by morgan; walk calling; visit: met -, stayed 0.0 s, calls 52, 115 s there, went 1
+room: promise light.hue no by morgan; walk calling; visit: met -, stayed 0.0 s, calls 52, 115 s there, went 1
+room: promise sky.dawn no by morgan; walk calling; visit: met -, stayed 0.0 s, calls 52, 115 s there, went 1
+room: walk underfoot: going there (from room/walks/stood.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 1746: room/walks/stood.save
+the take: written as it is played, into results/walks/underfoot-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 2533066 hz 784.89
+sound strike-timed at sample 2918400 hz 348.84
+sound strike-timed at sample 3084800 hz 697.68
+sound strike-timed at sample 3122400 hz 697.68
+sound strike-timed at sample 3236000 hz 697.68
+sound strike-timed at sample 3821600 hz 261.63
+sound strike-placed at sample 3945200 hz 523.26
+sound strike-timed at sample 4045600 hz 348.84
+sound strike-placed at sample 4168600 hz 697.68
+sound strike-timed at sample 4171200 hz 697.68
+sound strike-timed at sample 4212800 hz 697.68
+sound strike-placed at sample 4288600 hz 697.68
+sound strike-timed at sample 4392492 hz 784.89
+sound strike-timed at sample 4545600 hz 261.63
+the take: closed, 788 changes of the hands over 6418 steps
+the evening: 3289 frames, 896 late, 7.96 ms of work a frame (worst 21.78); 4672 steps, 1381 frames ran two; 7 calls, 1812 answers; cues late 494, refused 0; slowest sound buffer 1.37 ms; real-time sound yes; most lines in a frame 28605
+the hands: 21 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.16 ms after the kernel saw the press; 5 strikes timed by the hands started there too; the world found 21 of them already sounding; 0 calls choked by a clap just after; 5 strikes timed and 3 placed in all
+the screen: a frame shown every 23.71 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 29 s, first sprint at -1 s, first glide at 29 s, the wheel first opened at 58 s, the place stood at 24 s
+a frame's work: under 8 ms 1888, under 12 1079, under 16 259, over 16 32; of those over 14 ms the most was the steps in 33, the land 24, the moving lines 5, sending 0, drawing 4
+the moving lines on average: the sky 0.27 ms, halos 0.06, Drip and sparks and the bee 0.03, pools 1.01, the wheel and the fight 0.22, the hose's water 0.24, rings and Hum 0.05, lifting them onto the ground 0.30; at most 5972 lines
+a frame's parts on average: the steps 2.34 ms, the land 0.70, the moving lines 2.14, sent to the GPU 0.37, drawn 2.14, waiting for the screen 15.72
+the picture between steps: while Hum walked it moved 23.3 cm a frame, varying by 0.6 cm as shown, and by 6.9 cm as it would have been by whole steps (184 frames)
+the slowest frame was 2542 (step 5246): steps done by 6.41 ms, the land by 16.25, the moving lines by 18.82, sent to the GPU by 19.34, drawn by 21.44, the backlight set by 21.78; the land was picked again
+witness evening.call first=368 held=3266
+witness evening.breathe first=1254 held=562
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise garden.ground yes by morgan; walk underfoot; visit: met -, stayed 0.0 s, calls 7, 107 s there, went 1
+room: promise garden.land no by morgan; walk underfoot; visit: met -, stayed 0.0 s, calls 7, 107 s there, went 1
+room: promise garden.asters yes by morgan; walk underfoot; visit: met -, stayed 0.0 s, calls 7, 107 s there, went 1
+room: walk the-giant-stalk: going there (from room/walks/foot.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 2545: room/walks/foot.save
+the take: written as it is played, into results/walks/the-giant-stalk-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 5188000 hz 348.84
+the take: closed, 183 changes of the hands over 7138 steps
+the evening: 3272 frames, 891 late, 8.68 ms of work a frame (worst 24.75); 4593 steps, 1315 frames ran two; 43 calls, 5117 answers; cues late 948, refused 33; slowest sound buffer 1.40 ms; real-time sound yes; most lines in a frame 30271
+the hands: 48 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.61 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 48 of them already sounding; 0 calls choked by a clap just after; 0 strikes timed and 0 placed in all
+the screen: a frame shown every 23.47 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 31 s, first sprint at 31 s, first glide at -1 s, the wheel first opened at 99 s, the place stood at 24 s
+a frame's work: under 8 ms 1418, under 12 1525, under 16 280, over 16 18; of those over 14 ms the most was the steps in 15, the land 0, the moving lines 2, sending 0, drawing 3
+the moving lines on average: the sky 0.11 ms, halos 0.11, Drip and sparks and the bee 0.02, pools 1.07, the wheel and the fight 0.20, the hose's water 0.12, rings and Hum 0.08, lifting them onto the ground 0.37; at most 6399 lines
+a frame's parts on average: the steps 3.16 ms, the land 0.59, the moving lines 2.06, sent to the GPU 0.42, drawn 2.03, waiting for the screen 14.76
+the picture between steps: while Hum walked it moved 16.1 cm a frame, varying by 6.5 cm as shown, and by 15.5 cm as it would have been by whole steps (2 frames)
+the slowest frame was 2036 (step 5285): steps done by 5.29 ms, the land by 5.88, the moving lines by 8.04, sent to the GPU by 8.60, drawn by 10.43, the backlight set by 24.75; nothing was picked
+witness evening.call first=368 held=5836
+witness evening.breathe first=1254 held=562
+witness garden.asters first=3071 held=4138
+witness sky.bee first=2140 held=0
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise garden.asters yes by morgan; walk the-giant-stalk; visit: met yes, stayed 69.0 s, calls 43, 119 s there, went 1
+room: promise texture.light yes by morgan; walk the-giant-stalk; visit: met yes, stayed 69.0 s, calls 43, 119 s there, went 1
+room: walk the-puddle-bridge: going there (from room/walks/pool-edge.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 18956: room/walks/pool-edge.save
+the take: written as it is played, into results/walks/the-puddle-bridge-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+the take: closed, 193 changes of the hands over 21300 steps
+the evening: 2118 frames, 26 late, 7.70 ms of work a frame (worst 22.81); 2344 steps, 232 frames ran two; 7 calls, 2606 answers; cues late 188, refused 0; slowest sound buffer 1.19 ms; real-time sound yes; most lines in a frame 24229
+the hands: 10 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.67 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 10 of them already sounding; 0 calls choked by a clap just after; 0 strikes timed and 0 placed in all
+the screen: a frame shown every 18.49 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 31 s, first sprint at 31 s, first glide at 64 s, the wheel first opened at 341 s, the place stood at 24 s
+a frame's work: under 8 ms 1328, under 12 668, under 16 90, over 16 1; of those over 14 ms the most was the steps in 12, the land 1, the moving lines 1, sending 0, drawing 0
+the moving lines on average: the sky 0.02 ms, halos 0.09, Drip and sparks and the bee 0.03, pools 1.46, the wheel and the fight 0.20, the hose's water 0.13, rings and Hum 0.06, lifting them onto the ground 0.31; at most 6046 lines
+a frame's parts on average: the steps 2.16 ms, the land 0.59, the moving lines 2.27, sent to the GPU 0.42, drawn 2.12, waiting for the screen 10.75
+the picture between steps: while Hum walked it moved 9.4 cm a frame, varying by 2.7 cm as shown, and by 3.2 cm as it would have been by whole steps (582 frames)
+the slowest frame was 1750 (step 20831): steps done by 5.18 ms, the land by 5.97, the moving lines by 20.13, sent to the GPU by 20.78, drawn by 22.80, the backlight set by 22.81; nothing was picked
+witness evening.call first=368 held=18158
+witness evening.breathe first=1254 held=562
+witness garden.asters first=2969 held=918
+witness sky.dawn first=18284 held=0
+witness sky.bee first=2140 held=0
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise garden.w04 yes by morgan; walk the-puddle-bridge; visit: met no, stayed 0.0 s, calls 7, 355 s there, went 1
+room: walk the-bee: going there (from room/walks/stood.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 1746: room/walks/stood.save
+the take: written as it is played, into results/walks/the-bee-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 3054400 hz 348.84
+the take: closed, 474 changes of the hands over 5130 steps
+the evening: 2588 frames, 389 late, 6.82 ms of work a frame (worst 21.84); 3384 steps, 800 frames ran two; 5 calls, 1236 answers; cues late 260, refused 0; slowest sound buffer 1.16 ms; real-time sound yes; most lines in a frame 28200
+the hands: 4 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 1.93 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 4 of them already sounding; 0 calls choked by a clap just after; 0 strikes timed and 0 placed in all
+the screen: a frame shown every 21.81 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 30 s, first sprint at 73 s, first glide at -1 s, the wheel first opened at 62 s, the place stood at 24 s
+a frame's work: under 8 ms 2018, under 12 460, under 16 66, over 16 13; of those over 14 ms the most was the steps in 0, the land 25, the moving lines 0, sending 0, drawing 0
+the moving lines on average: the sky 0.33 ms, halos 0.05, Drip and sparks and the bee 0.03, pools 0.84, the wheel and the fight 0.20, the hose's water 0.11, rings and Hum 0.04, lifting them onto the ground 0.26; at most 4328 lines
+a frame's parts on average: the steps 1.86 ms, the land 0.66, the moving lines 1.83, sent to the GPU 0.28, drawn 1.98, waiting for the screen 14.98
+the picture between steps: while Hum walked it moved 20.8 cm a frame, varying by 2.0 cm as shown, and by 6.2 cm as it would have been by whole steps (338 frames)
+the slowest frame was 1976 (step 4293): steps done by 6.30 ms, the land by 16.95, the moving lines by 19.31, sent to the GPU by 19.85, drawn by 21.84, the backlight set by 21.84; the land was picked again
+witness evening.call first=368 held=2957
+witness evening.breathe first=1254 held=562
+witness garden.asters first=3784 held=476
+witness sky.bee first=3149 held=0
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise sky.bee no by morgan; walk the-bee; visit: met yes, stayed 0.0 s, calls 5, 86 s there, went 1
+room: walk the-tangles: going there (from room/walks/knots-come.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 24227: room/walks/knots-come.save
+the take: written as it is played, into results/walks/the-tangles-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 21228800 hz 261.63
+sound strike-timed at sample 21421600 hz 348.84
+sound strike-timed at sample 22375200 hz 697.68
+sound strike-placed at sample 22452520 hz 697.68
+sound strike-timed at sample 22924000 hz 697.68
+sound strike-timed at sample 22965600 hz 697.68
+the take: closed, 612 changes of the hands over 28828 steps
+the evening: 3752 frames, 181 late, 7.47 ms of work a frame (worst 29.77); 4601 steps, 853 frames ran two; 10 calls, 2016 answers; cues late 246, refused 0; slowest sound buffer 1.29 ms; real-time sound yes; most lines in a frame 24585
+the hands: 15 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.33 ms after the kernel saw the press; 3 strikes timed by the hands started there too; the world found 15 of them already sounding; 0 calls choked by a clap just after; 3 strikes timed and 1 placed in all
+the screen: a frame shown every 20.48 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 31 s, first sprint at 31 s, first glide at 64 s, the wheel first opened at 364 s, the place stood at 24 s
+a frame's work: under 8 ms 2724, under 12 877, under 16 65, over 16 55; of those over 14 ms the most was the steps in 69, the land 6, the moving lines 0, sending 0, drawing 0
+the moving lines on average: the sky 0.02 ms, halos 0.06, Drip and sparks and the bee 0.03, pools 1.01, the wheel and the fight 0.26, the hose's water 0.12, rings and Hum 0.05, lifting them onto the ground 0.26; at most 5712 lines
+a frame's parts on average: the steps 2.14 ms, the land 0.60, the moving lines 1.80, sent to the GPU 0.34, drawn 2.25, waiting for the screen 12.98
+the picture between steps: while Hum walked it moved 19.3 cm a frame, varying by 3.3 cm as shown, and by 6.4 cm as it would have been by whole steps (716 frames)
+the slowest frame was 2294 (step 27132): steps done by 3.75 ms, the land by 4.31, the moving lines by 5.92, sent to the GPU by 6.51, drawn by 8.97, the backlight set by 29.77; nothing was picked
+witness evening.call first=368 held=21232
+witness evening.breathe first=1254 held=562
+witness garden.asters first=2969 held=918
+witness garden.w04 first=21669 held=0
+witness sky.dawn first=18284 held=0
+witness sky.bee first=2140 held=0
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise wheel.home yes by morgan; walk the-tangles; visit: met -, stayed 0.0 s, calls 10, 480 s there, went 1
+room: promise fight.knots no by morgan; walk the-tangles; visit: met -, stayed 0.0 s, calls 10, 480 s there, went 1
+room: walk striking: going there (from room/walks/knots-in-step.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 24233: room/walks/knots-in-step.save
+the take: written as it is played, into results/walks/striking-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 19780000 hz 697.68
+sound strike-timed at sample 20029600 hz 697.68
+sound strike-placed at sample 20195200 hz 697.68
+sound strike-timed at sample 20196000 hz 697.68
+sound strike-timed at sample 20356200 hz 523.26
+sound strike-placed at sample 20442719 hz 697.68
+sound strike-timed at sample 20564200 hz 523.26
+sound strike-timed at sample 20724200 hz 523.26
+sound strike-timed at sample 20764000 hz 697.68
+sound strike-placed at sample 20882719 hz 697.68
+sound strike-timed at sample 20884199 hz 523.26
+sound strike-timed at sample 21044200 hz 523.26
+sound strike-timed at sample 21204200 hz 523.26
+sound strike-timed at sample 21364200 hz 523.26
+sound strike-timed at sample 21396000 hz 697.68
+sound strike-timed at sample 21441600 hz 697.68
+sound strike-timed at sample 21480000 hz 697.68
+sound strike-timed at sample 21524200 hz 523.26
+sound strike-placed at sample 21562719 hz 697.68
+sound strike-timed at sample 21560800 hz 697.68
+sound strike-timed at sample 21598400 hz 697.68
+sound strike-timed at sample 21638400 hz 697.68
+sound strike-timed at sample 21684200 hz 523.26
+sound strike-timed at sample 21685600 hz 697.68
+sound strike-timed at sample 21844200 hz 523.26
+sound strike-timed at sample 21876800 hz 697.68
+sound strike-timed at sample 22004200 hz 523.26
+sound strike-timed at sample 22245000 hz 523.26
+sound strike-timed at sample 22279200 hz 697.68
+sound strike-timed at sample 22420000 hz 261.63
+sound strike-timed at sample 22461000 hz 697.68
+sound strike-timed at sample 22621000 hz 697.68
+sound strike-timed at sample 22736000 hz 523.26
+sound strike-timed at sample 22781000 hz 697.68
+sound strike-timed at sample 22850400 hz 523.26
+sound strike-timed at sample 22941000 hz 697.68
+sound strike-placed at sample 23099519 hz 523.26
+sound strike-timed at sample 23101000 hz 697.68
+sound strike-timed at sample 23100000 hz 523.26
+sound strike-timed at sample 23135200 hz 523.26
+sound strike-timed at sample 23176800 hz 523.26
+sound strike-timed at sample 23261000 hz 697.68
+the take: closed, 488 changes of the hands over 29257 steps
+the evening: 4089 frames, 236 late, 6.19 ms of work a frame (worst 19.82); 5024 steps, 938 frames ran two; 7 calls, 1658 answers; cues late 157, refused 0; slowest sound buffer 1.13 ms; real-time sound yes; most lines in a frame 25178
+the hands: 12 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.21 ms after the kernel saw the press; 18 strikes timed by the hands started there too; the world found 12 of them already sounding; 0 calls choked by a clap just after; 18 strikes timed and 5 placed in all
+the screen: a frame shown every 20.52 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 31 s, first sprint at 31 s, first glide at 64 s, the wheel first opened at 364 s, the place stood at 24 s
+a frame's work: under 8 ms 3425, under 12 608, under 16 21, over 16 4; of those over 14 ms the most was the steps in 0, the land 7, the moving lines 0, sending 0, drawing 0
+the moving lines on average: the sky 0.02 ms, halos 0.04, Drip and sparks and the bee 0.03, pools 0.85, the wheel and the fight 0.22, the hose's water 0.14, rings and Hum 0.03, lifting them onto the ground 0.26; at most 4750 lines
+a frame's parts on average: the steps 1.41 ms, the land 0.60, the moving lines 1.59, sent to the GPU 0.21, drawn 2.15, waiting for the screen 14.31
+the picture between steps: while Hum walked it moved 18.6 cm a frame, varying by 4.7 cm as shown, and by 7.1 cm as it would have been by whole steps (297 frames)
+the slowest frame was 1044 (step 25557): steps done by 4.66 ms, the land by 15.76, the moving lines by 17.23, sent to the GPU by 17.48, drawn by 19.82, the backlight set by 19.82; the land was picked again
+witness evening.call first=368 held=22051
+witness evening.breathe first=1254 held=562
+witness garden.asters first=2969 held=918
+witness garden.w04 first=21669 held=0
+witness sky.dawn first=18284 held=0
+witness sky.bee first=2140 held=0
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise evening.knot yes by morgan; walk striking; visit: met -, stayed 0.0 s, calls 7, 488 s there, went 1
+room: promise fight.looper no by morgan; walk striking; visit: met -, stayed 0.0 s, calls 7, 488 s there, went 1
+room: walk singing-them-in: going there (from room/walks/grey-rest.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 26306: room/walks/grey-rest.save
+the take: written as it is played, into results/walks/singing-them-in-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 21255400 hz 523.26
+the take: closed, 40 changes of the hands over 27495 steps
+the evening: 1138 frames, 1 late, 5.57 ms of work a frame (worst 13.21); 1189 steps, 54 frames ran two; 4 calls, 1041 answers; cues late 2, refused 0; slowest sound buffer 0.47 ms; real-time sound yes; most lines in a frame 22257
+the hands: 2 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.31 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 2 of them already sounding; 0 calls choked by a clap just after; 2 strikes timed and 1 placed in all
+the screen: a frame shown every 17.46 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 31 s, first sprint at 31 s, first glide at 64 s, the wheel first opened at 364 s, the place stood at 24 s
+a frame's work: under 8 ms 1090, under 12 16, under 16 1, over 16 0; of those over 14 ms the most was the steps in 0, the land 0, the moving lines 0, sending 0, drawing 0
+the moving lines on average: the sky 0.02 ms, halos 0.05, Drip and sparks and the bee 0.02, pools 0.93, the wheel and the fight 0.23, the hose's water 0.11, rings and Hum 0.03, lifting them onto the ground 0.20; at most 3710 lines
+a frame's parts on average: the steps 1.12 ms, the land 0.56, the moving lines 1.57, sent to the GPU 0.21, drawn 1.89, waiting for the screen 11.86
+the slowest frame was 542 (step 26851): steps done by 0.85 ms, the land by 8.81, the moving lines by 10.70, sent to the GPU by 10.85, drawn by 12.84, the backlight set by 13.21; the land was picked again
+witness evening.call first=368 held=21296
+witness evening.breathe first=1254 held=562
+witness garden.asters first=2969 held=918
+witness garden.w04 first=21669 held=0
+witness sky.dawn first=18284 held=0
+witness sky.bee first=2140 held=0
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise hands.told-apart yes by morgan; walk singing-them-in; visit: met -, stayed 0.0 s, calls 4, 458 s there, went 1
+room: promise fight.transform yes by morgan; walk singing-them-in; visit: met -, stayed 0.0 s, calls 4, 458 s there, went 1
+room: promise fight.kinder yes by morgan; walk singing-them-in; visit: met -, stayed 0.0 s, calls 4, 458 s there, went 1
+room: walk after-the-hose: going there (from room/walks/hose-open.save)
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 27172: room/walks/hose-open.save
+the take: written as it is played, into results/walks/after-the-hose-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 23817600 hz 348.84
+sound strike-timed at sample 24363200 hz 261.63
+sound strike-timed at sample 25259200 hz 348.84
+sound strike-timed at sample 26588000 hz 261.63
+the take: closed, 1379 changes of the hands over 33644 steps
+the evening: 5251 frames, 744 late, 7.46 ms of work a frame (worst 36.75); 6472 steps, 1268 frames ran two; 33 calls, 3839 answers; cues late 707, refused 0; slowest sound buffer 1.40 ms; real-time sound yes; most lines in a frame 26336
+the hands: 45 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.79 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 45 of them already sounding; 0 calls choked by a clap just after; 2 strikes timed and 1 placed in all
+the screen: a frame shown every 20.57 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 31 s, first sprint at 31 s, first glide at 64 s, the wheel first opened at 364 s, the place stood at 24 s
+a frame's work: under 8 ms 3887, under 12 727, under 16 322, over 16 284; of those over 14 ms the most was the steps in 360, the land 62, the moving lines 0, sending 0, drawing 1
+the moving lines on average: the sky 0.02 ms, halos 0.09, Drip and sparks and the bee 0.03, pools 0.43, the wheel and the fight 0.04, the hose's water 0.61, rings and Hum 0.07, lifting them onto the ground 0.21; at most 4316 lines
+a frame's parts on average: the steps 2.18 ms, the land 0.79, the moving lines 1.49, sent to the GPU 0.38, drawn 2.39, waiting for the screen 13.10
+the picture between steps: while Hum walked it moved 18.5 cm a frame, varying by 3.1 cm as shown, and by 5.6 cm as it would have been by whole steps (1823 frames)
+the slowest frame was 3396 (step 31019): steps done by 10.19 ms, the land by 27.40, the moving lines by 31.14, sent to the GPU by 31.64, drawn by 35.20, the backlight set by 36.75; the land was picked again
+witness evening.call first=368 held=21923
+witness evening.breathe first=1254 held=562
+witness garden.asters first=2969 held=918
+witness garden.w04 first=21669 held=0
+witness sky.dawn first=18284 held=0
+witness sky.bee first=2140 held=0
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+room: promise card.ground yes by morgan; walk after-the-hose; visit: met -, stayed 0.0 s, calls 33, 561 s there, went 1
+room: promise garden.w08 no by morgan; walk after-the-hose; visit: met -, stayed 0.0 s, calls 33, 561 s there, went 1
+room: a tone: yes by morgan (played 1)
+room: the backlight: yes by morgan (played 1)
+room: the left stick held up reads x -73, y -32768: as it should (up is -y)
+room: the left stick: yes by morgan (played 1)
+room: 1-echoes-sour: no by morgan (played 1)
+room: 2-echoes-sweet: no by morgan (played 1)
+room: 3-comma-and-swell: yes by morgan (played 1)
+room: 4-seven-moods: yes by morgan (played 1)
+room: 5-piano-then-ring: yes by morgan (played 1)
+room: 6-home-then-longing: yes by morgan (played 1)
+room: 7-the-day-rises: yes by morgan (played 1)
+room: 8-third-voice: yes by morgan (played 1)
+room: 9-land-just: yes by morgan (played 2)
+room: 10-land-fifths: yes by morgan (played 1)
+room: 11-land-sweet-thirds: yes by morgan (played 2)
+room: 12-land-treaty: no by morgan (played 1)
+room: 13-land-well-tempered: yes by morgan (played 1)
+room: 14-land-shimmer: no by morgan (played 1)
+room: 15-land-no-octave: yes by morgan (played 1)
+room: 16-rhythm-becomes-pitch: yes by morgan (played 1)
+room: 17-two-ways-home: yes by morgan (played 1)
+room: 18-home-the-long-way: yes by morgan (played 1)
+room: 19-it-turns: yes by morgan (played 1)
+room: 20-borrowing-home: yes by morgan (played 2)
+room: 21-the-slide: no by morgan (played 1)
+room: 22-stand-where-they-meet: yes by morgan (played 1)
+room: 23-rising-doubled: yes by morgan (played 1)
+room: 24-the-comma-in-time: yes by morgan (played 2)
+room: 25-twelve-mornings: no by morgan (played 1)
+room: 26-one-note-seven-homes: yes by morgan (played 1)
+room: 27-placed-and-true: yes by morgan (played 1)
+room: 28-two-tellings: yes by morgan (played 1)
+room: 29-two-suns: yes by morgan (played 1)
+room: 30-be-the-ground: yes by morgan (played 1)
+room: 31-the-close-that-misses: yes by morgan (played 1)
+room: 32-water-sings-back: no by morgan (played 1)
+ALSA lib pcm.c:8772:(snd_pcm_recover) underrun occurred
+room: 33-the-bee: no by morgan (played 2)
+room: 34-underfoot: no by morgan (played 1)
+room: 35-wonder: yes by morgan (played 1)
+room: 36-the-amen: yes by morgan (played 1)
+room: 37-placed-then-timed: yes by morgan (played 2)
+room: 38-the-hose-opens: no by morgan (played 1)
+room: 39-a-stalk-brushed: no by morgan (played 3)
+room: 40-a-sprint: yes by morgan (played 1)
+room: 41-jump-and-glide: no by morgan (played 2)
+room: left after 59 of 59 items were answered
+exit code 0

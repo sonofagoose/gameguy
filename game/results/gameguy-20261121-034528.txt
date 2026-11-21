@@ -1,0 +1,29 @@
+display: switched from its 59 Hz mode to its 60 Hz mode
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the ground: as it was left
+the evening: 68 asters, 2553 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+the take: written as it is played, into keep/takes/evening-00003.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+the dawn: the world kept as keep/dawns/evening-00003-001.save, 389032 bytes, at step 2703
+the songbook opened at step 22038 on its page for swell
+the take: closed, 4869 changes of the hands over 26451 steps
+the evening: 24080 frames, 704 late, 8.95 ms of work a frame (worst 31.57); 26451 steps, 3368 frames ran two; 53 calls, 9162 answers; cues late 4637, refused 0; slowest sound buffer 1.38 ms; real-time sound yes; most lines in a frame 34485
+the hands: 105 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 1.97 ms after the kernel saw the press; 0 strikes timed by the hands started there too; the world found 86 of them already sounding; 0 calls choked by a clap just after; 0 strikes timed and 0 placed in all
+the screen: a frame shown every 18.79 ms on average
+teaching: beside Drip first at 24 s, the view leaned in at 25 s, first hummed beside it at 38 s, Drip showed its breath 2 times; breaths tried 4, on the tick 4, locked at 45 s; presses with no verb yet 0; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -43 60 74 -67
+teaching: first jump at 69 s, first sprint at -1 s, first glide at 69 s, the wheel first opened at 82 s, the place stood at 49 s
+a frame's work: under 8 ms 9702, under 12 11508, under 16 2451, over 16 388; of those over 14 ms the most was the steps in 455, the land 138, the moving lines 259, sending 1, drawing 10
+the moving lines on average: the sky 0.06 ms, halos 0.07, Drip and sparks and the bee 0.02, pools 1.34, the wheel and the fight 0.13, the hose's water 0.21, rings and Hum 0.06, lifting them onto the ground 1.33; at most 8863 lines
+a frame's parts on average: the steps 2.11 ms, the land 0.56, the moving lines 3.22, sent to the GPU 0.39, drawn 2.21, waiting for the screen 9.83
+the picture between steps: while Hum walked it moved 15.2 cm a frame, varying by 2.5 cm as shown, and by 5.0 cm as it would have been by whole steps (9040 frames)
+the slowest frame was 12388 (step 13958): steps done by 6.15 ms, the land by 6.68, the moving lines by 14.27, sent to the GPU by 16.00, drawn by 18.37, the backlight set by 31.57; nothing was picked
+witness evening.call first=1671 held=9716
+witness evening.breathe first=2702 held=485
+witness sky.dawn first=19431 held=0
+witness sky.bee first=10044 held=0
+witness whole.law1 first=1271 held=0
+witness whole.law6 first=1271 held=0

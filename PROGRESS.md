@@ -3,7 +3,20 @@
 Where the build stands, so a new session can pick it up. Newest first. The plan is in `SPEC.md`,
 section 20, and `spec/stages.md`.
 
-## Now: the planning session's work (2026-11-19)
+## Now: Morgan's first room session, synthesis and actionable vision (2026-11-21)
+
+Morgan played GameguyRoom on the purple (unit 164), answering all 59 items (the ear check, 13
+walks, 3 hand checks, 41 listening clips).
+
+| piece | state |
+|---|---|
+| Morgan's Room results pulled and analyzed (`design/morgans-room-session.md`) | done: 48 yes / 26 no (64.9%); 17 yes / 13 no on walks; ear threshold 1.2 cents |
+| True Actionable Vision synthesized from all 87 md docs (`design/true-actionable-vision.md`) | done: approved by Morgan |
+| Claude's status report reviewed (`design/review-plan.md`) | done: approved by Morgan |
+| Build plan for next session (`design/whats-next.md`) | done: approved by Morgan; incorporates Safe Haven topology, SM64×TotK movement, kill drone, river loop |
+| Open decisions decided (`DECISIONS.md` rows 146-148) | glide cut, D-pad open, creatures unique per land |
+
+## The planning session's work (2026-11-19)
 
 | piece | state |
 |---|---|
