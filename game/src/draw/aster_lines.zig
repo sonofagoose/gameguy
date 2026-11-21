@@ -1309,13 +1309,30 @@ pub fn knotLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
         // wedge on its left, where the full close would bring it home
         const kin = kn.fate == .turn;
         const home_note = colour.ofNote(world_mod.garden_hz, w.home_hz);
-        const lean_k = world_mod.wedgeOfHz(w.day_hz, kn.root_hz) - 1;
+        const lean_k = world_mod.wedgeOfHz(w.day_hz, kn.root_hz) + w.doorSide();
         const la = @as(f32, @floatFromInt(lean_k)) * (std.math.pi / 6.0);
         const vfx = @sin(w.look_yaw);
         const vfz = -@cos(w.look_yaw);
         const lean: f32 = if (kn.colour <= 0.0 and !kin) 0.45 else 0.0;
         const lx = (vfx * @cos(la) - vfz * @sin(la)) * lean;
         const lz = (vfz * @cos(la) + vfx * @sin(la)) * lean;
+        // grey: a thread to Hum, bright when letting go of the swell on the next one would bring it
+        // home through its door, soft while home is elsewhere (the page toy's thread)
+        if (kn.colour <= 0.0 and !kin and n + 8 < out.len) {
+            const door_k = world_mod.wedgeOfHz(w.day_hz, kn.root_hz) + w.doorSide();
+            const ready = w.home_k == door_k and w.swelling();
+            const pulse = 0.5 + 0.5 * @sin(@as(f32, @floatFromInt(w.clock % 50)) * (6.2831853 / 50.0));
+            const bright: f32 = if (ready) 0.55 + 0.4 * pulse else 0.12;
+            const thread = colour.ofNote(world_mod.garden_hz, world_mod.wedgeHz(w.day_hz, door_k));
+            for (0..8) |i| {
+                const f0 = @as(f32, @floatFromInt(i)) / 8.0;
+                const f1 = @as(f32, @floatFromInt(i + 1)) / 8.0;
+                const sag0 = 0.6 * @sin(f0 * std.math.pi);
+                const sag1 = 0.6 * @sin(f1 * std.math.pi);
+                out[n] = .{ .a = .{ kn.x + (w.hum_x - kn.x) * f0, cy + (0.6 - cy) * f0 - sag0, kn.z + (w.hum_z - kn.z) * f0 }, .b = .{ kn.x + (w.hum_x - kn.x) * f1, cy + (0.6 - cy) * f1 - sag1, kn.z + (w.hum_z - kn.z) * f1 }, .half_width = 1.1, .body = 0.0, .col = col8(thread, bright) };
+                n += 1;
+            }
+        }
         for (kn.strands, 0..) |st, s| {
             const since: f32 = if (w.clock >= kn.pulsed[s]) @floatFromInt(w.clock - kn.pulsed[s]) else 99.0;
             const jerk = 1.0 + 0.4 * std.math.clamp(1.0 - since / 8.0, 0.0, 1.0);
@@ -1325,19 +1342,23 @@ pub fn knotLines(w: *const world_mod.World, eye: V, out: []Inst) usize {
             const plane = kn.spin + @as(f32, @floatFromInt(s)) * (std.math.pi / 2.0);
             const ux = @cos(plane);
             const uz = @sin(plane);
-            const lobes: f32 = @floatFromInt(st.over);
-            const parts = 48;
+            // its body is its interval to home (world/home.zig): the figure its pulse and Hum's
+            // draw against each other, as the figure between Hum and Drip is; kin a hoop
+            const p = world_mod.home.pair(world_mod.home.fifthsApart(w, st.hz));
+            const fa: f32 = @floatFromInt(p[0]);
+            const fb: f32 = @floatFromInt(p[1]);
+            const parts = 64;
             for (0..parts) |i| {
                 if (n >= out.len) return n;
                 const a0 = @as(f32, @floatFromInt(i)) * (6.2831853 / @as(f32, parts));
                 const a1 = @as(f32, @floatFromInt(i + 1)) * (6.2831853 / @as(f32, parts));
-                const r0 = 1.0 * jerk * (1.0 + 0.32 * @cos(lobes * a0 + @as(f32, @floatFromInt(s)) * 0.7));
-                const r1 = 1.0 * jerk * (1.0 + 0.32 * @cos(lobes * a1 + @as(f32, @floatFromInt(s)) * 0.7));
-                const h0 = cy + r0 * @sin(a0);
-                const h1 = cy + r1 * @sin(a1);
+                const sx0 = jerk * @sin(fa * a0);
+                const sx1 = jerk * @sin(fa * a1);
+                const h0 = cy + jerk * @sin(fb * a0 + 1.5707963 + @as(f32, @floatFromInt(s)) * 0.7);
+                const h1 = cy + jerk * @sin(fb * a1 + 1.5707963 + @as(f32, @floatFromInt(s)) * 0.7);
                 out[n] = .{
-                    .a = .{ kn.x + ux * r0 * @cos(a0) + lx * h0, h0, kn.z + uz * r0 * @cos(a0) + lz * h0 },
-                    .b = .{ kn.x + ux * r1 * @cos(a1) + lx * h1, h1, kn.z + uz * r1 * @cos(a1) + lz * h1 },
+                    .a = .{ kn.x + ux * sx0 + lx * h0, h0, kn.z + uz * sx0 + lz * h0 },
+                    .b = .{ kn.x + ux * sx1 + lx * h1, h1, kn.z + uz * sx1 + lz * h1 },
                     .half_width = 1.5,
                     .body = 0.0,
                     .col = tint,

@@ -53,9 +53,11 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `evening.in`: "Oh. You're in." The drop falls on your head and stays.
 - spoken for by `evening.in`: That's Drip. Until now the world has been a page seen from above.
 - spoken for by `evening.in`: Now it tilts back and stands up around you: reeds, a spigot, asters as tall as cathedrals, a sky with the day coming up in it, in the key of C.
+- spoken for by `evening.in`: Drip hops off your head over the coiled hose and waits beyond it, ticking, until you jump after it; then, on your head again, it hums toward one next thing at a time, and a ripple of light runs that way.
 - spoken for by `evening.instrument`: Everything is an instrument. Your call rings whatever it passes, and whatever shares your note answers across the garden in its own light.
 - spoken for by `evening.instrument`: A still pool shows lines on its surface when you hum its note, and you can walk on them.
-- spoken for by `evening.knot`: The hose is knotted, and the knot is moving. Once the world has stood up, your call reaches three small knots, and they stumble to you wherever you are.
+- spoken for by `evening.knot`: The hose is knotted, and the knot is moving. Once you have found your way about a little, your call reaches three small knots, and they stumble to you wherever you are.
+- spoken for by `evening.knot`: The first time they come near, time thickens by itself for a bar, and Drip sings where home wants to go.
 - spoken for by `evening.knot`: Hold R1: time thickens, the place folds back to a page, and on the wheel the strands' threads cross on one wedge.
 - spoken for by `evening.knot`: Point there and let go.
 - spoken for by `evening.knot`: Now they dance in three and in five over a one that you are singing.
@@ -144,8 +146,8 @@ _Every sentence of the specification that promises a player something, read by
 - spoken for by `hands.map`: left stick, L3 | move; click to hush (stop humming, go dark)
 - spoken for by `hands.map`: right stick, R3 | look: round Hum, and from its feet to high above it; steers a wheel while one is open; click to lean in
 - spoken for by `hands.map`: bottom face | jump; in the air, open or close the glide
-- spoken for by `hands.map`: right face | dodge (on the beat: the pocket); talks when nothing threatens | sprint
-- spoken for by `hands.map`: left face | strike with the fork | charge; let go on the beat
+- spoken for by `hands.map`: right face | dash; near a creature, dodge (on the beat: the pocket) | sprint
+- spoken for by `hands.map`: left face | strike with the fork; its note carries | charge; let go on the beat
 - spoken for by `hands.map`: top face | grab, talk, plant | carry; leaning in, keep a phrase
 - spoken for by `hands.map`: L1 | last voice | the voice wheel, on the left stick
 - spoken for by `hands.map`: R1 | call: a ring of light | the mood wheel, on the right stick; the place folds to the page
@@ -210,7 +212,8 @@ _Every sentence of the specification that promises a player something, read by
 
 ## `SPEC.md` / gameguy: the specification / 10. Fights
 
-- spoken for by `fight.beat`: On the beat. Every hit rings the enemy at its own note.
+- spoken for by `fight.beat`: On the beat. Every hit rings the enemy at its own note, and its note carries out as a wave, striking what it reaches, the weaker the farther.
+- spoken for by `fight.beat`: A creature's body, how near it keeps and how often its pulse meets yours are all its interval to home, and near ones hold still while you sing.
 - spoken for by `fight.beat`: Dodge on the beat and the pocket opens.
 - spoken for by `fight.beat`: A strike you time yourself rings fuller than one the game placed.
 - spoken for by `fight.looper`: The looper in a fight. Each bar you stay in the pocket, your last bar's strikes keep landing beside you as an afterimage, up to four layers.
@@ -435,7 +438,7 @@ _Every sentence of the specification that promises a player something, read by
 ## `spec/laws.md` / The laws / Law 6: travel
 
 - spoken for by `laws.travel`: Sound moves at a speed you can see.
-- spoken for by `laws.travel`: Speed. About seven times Hum's run (to tune).
+- spoken for by `laws.travel`: Speed. About five times Hum's run (to tune).
 - spoken for by `laws.travel`: A call's ring crosses a clearing in a breath and the lake in about a minute (62 seconds, size.md).
 - spoken for by `laws.travel`: Late arrivals. What happens far away is heard late, and seen when the sound arrives.
 - spoken for by `laws.travel`: Echoes. A wall sends a sound back after twice its distance.

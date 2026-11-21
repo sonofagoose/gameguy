@@ -6,9 +6,11 @@ cadences._
 
 ### `fight.beat` On the beat
 
-- **Said:** `SPEC.md` "On the beat. Every hit rings the enemy at its own note." "Dodge on the beat
-  and
-  the pocket opens." "A strike you time yourself rings fuller than one the game placed."
+- **Said:** `SPEC.md` "On the beat. Every hit rings the enemy at its own note, and its note carries
+  out as a wave, striking what it reaches, the weaker the farther." "A creature's body, how near it
+  keeps and how often its pulse meets yours are all its interval to home, and near ones hold still
+  while you sing." "Dodge on the beat and the pocket opens." "A strike you time yourself rings
+  fuller than one the game placed."
 - **Stage:** 2
 - **The moment:** A knot lunges on its stumbling beat; you dodge on yours and the pocket opens, a
   breath of time where everything is in step. Your strike lands on the one and the knot rings out
@@ -16,6 +18,10 @@ cadences._
 - **A cheat would be:** hit points and a damage number; strikes snapped to the beat with no
   difference for timing them yourself.
 - **Full size:**
+  - `test a strike's note carries: a knot twenty metres off is struck as the wave reaches it, late
+    by
+    its distance`
+  - `test the player's hand wins: in a fight, the stick takes the view below the fight's lift`
   - `test a knot struck on the one with home on its root greys, and a cadence beside its root brings
     it home`
     A strike rings the struck knot at its own strands' notes, as hard as the strike met it.

@@ -619,6 +619,23 @@ fn eveningLines(w: *const World, out: []lines.Inst) usize {
     var n: usize = 0;
     const drip = w.things[w.drip];
     const drip_body: f32 = @floatFromInt(aster_lines.thing_body + w.drip);
+    // Drip's lead: on each bar's one a ripple of light runs out along the ground from Hum toward
+    // the next thing, in Drip's colour, fading as it goes
+    if (w.drip_met and w.lead_step > 0 and w.step >= w.lead_step and w.step - w.lead_step < 60) {
+        const f = @as(f32, @floatFromInt(w.step - w.lead_step)) / 60.0;
+        const way = std.math.atan2(w.lead_z - w.hum_z, w.lead_x - w.hum_x);
+        for (0..3) |wave| {
+            const d = 3.0 + 16.0 * f + @as(f32, @floatFromInt(wave)) * 2.5;
+            const alpha = (1.0 - f) * (0.75 - 0.2 * @as(f32, @floatFromInt(wave)));
+            for (0..6) |k| {
+                if (n >= out.len) return n;
+                const a0 = way + (@as(f32, @floatFromInt(k)) - 3.0) * 0.07;
+                const a1 = a0 + 0.07;
+                out[n] = .{ .a = .{ w.hum_x + d * @cos(a0), 0.08, w.hum_z + d * @sin(a0) }, .b = .{ w.hum_x + d * @cos(a1), 0.08, w.hum_z + d * @sin(a1) }, .half_width = 1.8, .body = 0.0, .col = col8(teal, alpha) };
+                n += 1;
+            }
+        }
+    }
     if (w.drip_met) {
         // riding on Hum's head: a drop 40 cm across, which never finished falling
         const rx = @cos(w.look_yaw);
@@ -636,10 +653,11 @@ fn eveningLines(w: *const World, out: []lines.Inst) usize {
             const tall1: f32 = if (s1 > 0.0) 1.7 else 1.0;
             const r0 = 0.2 * narrow0;
             const r1 = 0.2 * narrow1;
-            const y0 = 1.25 + w.hum_y + 0.2 * s0 * tall0;
-            const y1 = 1.25 + w.hum_y + 0.2 * s1 * tall1;
+            // where Drip is: on Hum's head, or out showing the way (World.drip_out)
+            const y0 = drip.y + 0.2 * s0 * tall0;
+            const y1 = drip.y + 0.2 * s1 * tall1;
             if (n >= out.len) return n;
-            out[n] = .{ .a = .{ w.hum_x + rx * r0 * @cos(a0), y0, w.hum_z + rz * r0 * @cos(a0) }, .b = .{ w.hum_x + rx * r1 * @cos(a1), y1, w.hum_z + rz * r1 * @cos(a1) }, .half_width = 1.4, .body = 0.0, .col = tint };
+            out[n] = .{ .a = .{ drip.x + rx * r0 * @cos(a0), y0, drip.z + rz * r0 * @cos(a0) }, .b = .{ drip.x + rx * r1 * @cos(a1), y1, drip.z + rz * r1 * @cos(a1) }, .half_width = 1.4, .body = 0.0, .col = tint };
             n += 1;
         }
         return n;

@@ -114,12 +114,15 @@ the mornings never repeat.
    singing.
 4. **"Oh. You're in."** The drop falls on your head and stays. That's Drip. Until now the world has
    been a page seen from above. Now it tilts back and stands up around you: reeds, a spigot, asters
-   as tall as cathedrals, a sky with the day coming up in it, in the key of C.
+   as tall as cathedrals, a sky with the day coming up in it, in the key of C. Drip hops off your
+   head over the coiled hose and waits beyond it, ticking, until you jump after it; then, on your
+   head again, it hums toward one next thing at a time, and a ripple of light runs that way.
 5. **Everything is an instrument.** Your call rings whatever it passes, and whatever shares your
    note answers across the garden in its own light. A still pool shows lines on its surface when you
    hum its note, and you can walk on them.
-6. **The hose is knotted, and the knot is moving.** Once the world has stood up, your call reaches
-   three small knots, and they stumble to you wherever you are. Hold R1: time thickens, the place
+6. **The hose is knotted, and the knot is moving.** Once you have found your way about a little,
+   your call reaches three small knots, and they stumble to you wherever you are. The first time
+   they come near, time thickens by itself for a bar, and Drip sings where home wants to go. Hold R1: time thickens, the place
    folds back to a page, and on the wheel the strands' threads cross on one wedge. Point there and
    let go. Now they dance in three and in five over a one that you are
    singing. Strike on the one. Dodge on the beat and time opens into a pocket. A grey knot leans;
@@ -233,8 +236,8 @@ Face buttons are named by position.
 | left stick, L3 | move; click to hush (stop humming, go dark) | |
 | right stick, R3 | look: round Hum, and from its feet to high above it; steers a wheel while one is open; click to lean in | |
 | bottom face | jump; in the air, open or close the glide | |
-| right face | dodge (on the beat: the pocket); talks when nothing threatens | sprint |
-| left face | strike with the fork | charge; let go on the beat |
+| right face | dash; near a creature, dodge (on the beat: the pocket) | sprint |
+| left face | strike with the fork; its note carries | charge; let go on the beat |
 | top face | grab, talk, plant | carry; leaning in, keep a phrase |
 | L1 | last voice | the voice wheel, on the left stick |
 | R1 | call: a ring of light | the mood wheel, on the right stick; the place folds to the page |
@@ -314,7 +317,10 @@ Face buttons are named by position.
 
 ## 10. Fights
 
-- **On the beat.** Every hit rings the enemy at its own note. Dodge on the beat and the pocket
+- **On the beat.** Every hit rings the enemy at its own note, and its note carries out as a wave,
+  striking what it reaches, the weaker the farther. A creature's body, how near it keeps and how
+  often its pulse meets yours are all its interval to home, and near ones hold still while you
+  sing. Dodge on the beat and the pocket
   opens. A strike you time yourself rings fuller than one the game placed.
 - **The looper in a fight.** Each bar you stay in the pocket, your last bar's strikes keep landing
   beside you as an afterimage, up to four layers. The clap cashes them in: everything near resets to

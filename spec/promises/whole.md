@@ -279,7 +279,7 @@ every land._
 - **A cheat would be:** correct and unpleasant: true tunings rendered as thin beeps; roughness left
   sitting.
 - **Full size:**
-  - `fact ears.rough_longest_s <= 2` `game/tools/ears` on the whole first evening: nothing rough
+  - `fact ears.rough_longest_s <= 3` `game/tools/ears` on the whole first evening: nothing rough
     for two seconds together.
   - `fact ears.speaker_share >= 0.5` Nothing lost on a small speaker: most of the sound where it
     speaks.

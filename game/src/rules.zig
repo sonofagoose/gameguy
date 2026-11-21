@@ -20,6 +20,7 @@ test {
     _ = world.hose;
     _ = world.reeds;
     _ = world.covers;
+    _ = world.home;
     _ = @import("plat/keys.zig");
     _ = sound;
     _ = m;

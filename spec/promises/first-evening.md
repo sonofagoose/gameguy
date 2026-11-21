@@ -111,7 +111,10 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 
 ### `evening.in` "Oh. You're in."
 
-- **Said:** `SPEC.md` "The drop falls on your head and stays." "Until now the world has been a page
+- **Said:** `SPEC.md` "Drip hops off your head over the coiled hose and waits beyond it, ticking,
+  until you jump after it; then, on your head again, it hums toward one next thing at a time, and a
+  ripple of light runs that way." "The drop falls on your head and stays." "Until now the world has
+  been a page
   seen from above." "Now it tilts back and stands up around you" "The page and the place are one
   world on one hinge." "Hold the wheel and it lies down to be read."
 - **Stage:** 2
@@ -174,8 +177,11 @@ twenty minutes anyone has with the game, so each one is held to its largest read
 
 ### `evening.knot` The knot, and the first fight
 
-- **Said:** `SPEC.md` "The hose is knotted, and the knot is moving." "Once the world has stood up,
-  your call reaches three small knots, and they stumble to you wherever you are." "Hold R1: time
+- **Said:** `SPEC.md` "The hose is knotted, and the knot is moving." "Once you have found your way
+  about a little, your call reaches three small knots, and they stumble to you wherever you are."
+  "The first time
+  they come near, time thickens by itself for a bar, and Drip sings where home wants to go." "Hold
+  R1: time
   thickens, the place folds back to a page" "Point there and let go." "Now they
   dance in three and in five over a one that you are singing." "Strike on the one." "Dodge on the
   beat and time opens into a pocket." "A grey knot leans; hold R2 while the swell builds, and let go

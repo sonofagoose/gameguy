@@ -24,9 +24,10 @@ sized before the stage that builds them._
 
 - **Said:** `SPEC.md` "left stick, L3 | move; click to hush (stop humming, go dark)" "right stick,
   R3 | look: round Hum, and from its feet to high above it; steers a wheel while one is open; click
-  to lean in" "bottom face | jump; in the air, open or close the glide" "right face | dodge (on the
-  beat: the pocket); talks when nothing threatens | sprint" "left face | strike with the fork |
-  charge; let go on the beat" "top face | grab, talk, plant | carry; leaning in, keep a phrase" "L1
+  to lean in" "bottom face | jump; in the air, open or close the glide" "right face | dash; near a
+  creature, dodge (on the beat: the pocket) | sprint" "left face | strike with the fork; its note
+  carries | charge; let go on the beat" "top face | grab, talk, plant | carry; leaning in, keep a
+  phrase" "L1
   | last voice | the voice wheel, on the left stick" "R1 | call: a ring of light | the mood wheel, on
   the right stick; the place folds to the page" "L1 and R1 | the clap | both wheels at once" "L2 |
   lock on, next target (it latches); with nothing near, the view swings in behind Hum | guard" "R2
@@ -84,7 +85,7 @@ sized before the stage that builds them._
   - `owed` A check over the input table: every pair of things done together names its digits, and
     no digit is named twice (`CLAUDE.md`: "Nothing may need the right stick and a face button at
     once").
-  - `test the bottom face jumps two and a half metres, and in the air opens the glide, which sinks
+  - `test the bottom face jumps five metres, and in the air opens the glide, which sinks
     slowly and spends breath` The glide opens on a tap of the bottom face in the air; a tap more, a
     landing, or the breath running out closes it.
   - `test the hose is solid: walked at, Hum stops at its side; jumped, Hum goes over` Bottom face:

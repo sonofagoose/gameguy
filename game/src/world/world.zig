@@ -25,6 +25,7 @@ pub const land = @import("land.zig");
 pub const hose = @import("hose.zig");
 pub const reeds = @import("reeds.zig");
 pub const covers = @import("covers.zig");
+pub const home = @import("home.zig");
 
 /// The puddles on the ground at once (pools.zig).
 pub const max_pools = pools.garden.len;
@@ -78,8 +79,9 @@ pub const timed_takes: f32 = 1.25;
 /// Gentle widens every window of timing by one sum (SPEC.md 10: "Gentle widens the timing and the
 /// ledges"): the strike's, the dodge's, a meeting's, the downbeat's and the breath's.
 pub const gentle_widens: f64 = 1.5;
-/// Hum's run, with the stick pushed all the way (Morgan: "probably faster movement overall").
-pub const run_speed: f32 = 9.0;
+/// Hum's run, with the stick pushed all the way (Morgan: "probably faster movement overall", then
+/// "I want more speed"): a fifth of the speed of sound.
+pub const run_speed: f32 = sound_speed / 5.0;
 /// One breath (SPEC.md 9): how many homes it holds at first and at most (the ferry makes one
 /// more), what each thing costs of it, and how it comes back. A home is what one step home in the
 /// swell costs; a bar is four of Drip's ticks.
@@ -93,15 +95,26 @@ pub const wheel_costs: f32 = 1.0 / 8.0;
 pub const sprint_costs: f32 = 1.0;
 pub const breath_in_after: u32 = tick_every / 2;
 pub const breath_in: f32 = 1.0 / @as(f32, @floatFromInt(tick_every));
-/// The sprint: the right face held while Hum walks, a quarter of the speed of sound.
-pub const sprint_speed: f32 = sound_speed / 4.0;
+/// The sprint: the right face held while Hum walks, a third of the speed of sound.
+pub const sprint_speed: f32 = sound_speed / 3.0;
+/// The dash: the right face tapped with nothing threatening, this far in this many steps, through
+/// the same move as walking, so whatever is solid stops it (Morgan: "dashes should actually cover
+/// some ground").
+pub const dash_far: f32 = 6.0;
+/// Drip's hop over the coil, in steps.
+pub const drip_hop_steps: f32 = 90.0;
+/// A strike's note carries this far as a wave, striking each knot it reaches as it arrives, the
+/// weaker the farther (Morgan: "is there supposed to be an attack with some range?").
+pub const wave_reach: f32 = 25.0;
+pub const dash_steps: u32 = 9;
 /// A knot this near that is not home threatens, and the right face dodges instead.
 pub const threat_reach: f32 = 60.0;
 
 /// The jump: how high, and how long in the air, which set how hard the ground pulls (a game's pull,
 /// snappier than a real one).
-pub const jump_height: f32 = 2.5;
-pub const jump_air_s: f32 = 0.75;
+/// Morgan: "jumps should jump at least twice as high".
+pub const jump_height: f32 = 5.0;
+pub const jump_air_s: f32 = 1.0;
 pub const fall_pull: f32 = 8.0 * jump_height / (jump_air_s * jump_air_s);
 pub const jump_speed: f32 = 4.0 * jump_height / jump_air_s;
 /// In the air the legs steer only a little.
@@ -150,9 +163,9 @@ pub const stop_ease: f32 = 0.28;
 /// The legs' two stages: the first quick_speed comes at go_ease, nine tenths of it in 0.13 s; the
 /// rest climbs at this many metres a second each second, to a run in another half second, and to a
 /// sprint.
-pub const quick_speed: f32 = 6.0;
-pub const run_climb: f32 = 6.0;
-pub const sprint_climb: f32 = 10.0;
+pub const quick_speed: f32 = 8.0;
+pub const run_climb: f32 = 8.0;
+pub const sprint_climb: f32 = 12.0;
 /// Turning keeps Hum's speed and bends its way: at most this many radians a second while slow,
 /// and a turn this wide at a run and at a sprint, so a body arcs where a cursor would slide.
 pub const turn_slow: f32 = 12.0;
@@ -530,7 +543,7 @@ pub const follow_sprint: f32 = 1.6;
 pub const follow_glide: f32 = 0.9;
 /// The view is anchored to the ground under Hum, and to Hum's height only past this much, so a
 /// jump never moves it; it follows the ground at this part a step.
-pub const base_past: f32 = 3.0;
+pub const base_past: f32 = 6.0;
 pub const base_ease: f32 = 0.25;
 /// What stands between the eye and Hum (spec/engine.md): the eye keeps this far over its own
 /// ground (more over water), and the line from Hum to it clears the ground by this much. It rises
@@ -557,6 +570,8 @@ pub const fall_past_jump: f32 = 1.05;
 /// L2 tapped with nothing threatening: the view swings in behind Hum in this many steps, the dial
 /// back to walking; past recentre_cut away, it cuts on the next eighth of Drip's tick instead.
 pub const recentre_steps: u8 = 18;
+/// The view's own lifts wait this many steps after the player's hand leaves the right stick.
+pub const lifts_after: u32 = 120;
 pub const recentre_cut: f32 = 1.745;
 
 pub const Camera = struct { eye: [3]f32, at: [3]f32, fov: f32, stand: f32 };
@@ -699,6 +714,11 @@ pub const Ring = struct {
     hz: f32 = garden_hz,
     /// Hum's own call, which rings what it passes; or someone else's, which is an answer.
     own: bool = true,
+    /// A strike's note carrying (SPEC.md 10): how much more than a placed strike it takes from
+    /// each knot it reaches past the fork's own reach, or nought if it is a call.
+    wave_more: f32 = 0.0,
+    /// Which knots this wave has struck already, one bit each.
+    wave_hit: u8 = 0,
     /// How strong it set out: less from moss.
     strength: f32 = 1.0,
     /// The ground's height where it set out.
@@ -897,6 +917,24 @@ pub const World = struct {
     burst_x: f32 = 0.0,
     burst_z: f32 = 0.0,
     burst_left: u32 = 0,
+    dashes: u32 = 0,
+    /// Drip out showing the way: 0 on Hum's head, 1 hopping over the coil, 2 waiting beyond it.
+    drip_out: u8 = 0,
+    /// Drip's lead: how many of the next things Hum has found, and the last lead's moment and place.
+    found: u8 = 0,
+    /// The first meeting with the knots: until when time is thick by itself.
+    first_meet_until: u64 = 0,
+    hint_at: u64 = 0,
+    knots_met: bool = false,
+    lead_at: u64 = 0,
+    lead_step: u64 = 0,
+    lead_x: f32 = 0.0,
+    lead_z: f32 = 0.0,
+    drip_shown: bool = false,
+    drip_out_from: u64 = 0,
+    drip_from_x: f32 = 0.0,
+    drip_from_z: f32 = 0.0,
+    wave_hits: u32 = 0,
     /// The sideways pull of Hum's turning, eased: it leans into a turn.
     lean_x: f32 = 0.0,
     lean_z: f32 = 0.0,
@@ -927,6 +965,9 @@ pub const World = struct {
     stick_yaw: f32 = 0.0,
     stick_set: f32 = 0.0,
     stick_latched: bool = false,
+    /// How far the view's own lifts (a fight, standing water, a fall) are on: off while the player
+    /// holds the right stick, back on after it has rested lifts_after steps.
+    lifts_on: f32 = 1.0,
     /// The follow, eased in from its start, 0 to 1.
     follow_in: f32 = 0.0,
     /// L2's recentre: steps left of its swing, from where and by how much; or a cut waiting for
@@ -1166,9 +1207,13 @@ pub const World = struct {
         self.drip_met = true;
         self.breaths = breaths_to_lock;
         self.answered = true;
-        // the two locked before the morning began
+        // the two locked before the morning began, and the place has been met: Drip has shown
+        // the way out and led to what is near
         self.locked_at = 0;
         self.hold_until = 0;
+        self.drip_shown = true;
+        self.found = 2;
+        self.knots_met = true;
     }
 
     /// The first evening, from its first second: the same field, in the dark, as a page. Drip
@@ -1299,7 +1344,7 @@ pub const World = struct {
         for (0..reeds.groups) |rg| {
             for (0..reeds.each) |rk| {
                 const reed = reeds.at(rg, rk) orelse continue;
-                self.things[at] = .{ .x = reed.x, .y = reed.tall * 0.5, .z = reed.z, .tall = reed.tall, .hz = reeds.note(reed.tall, garden_hz), .family = .open_pipe, .ring = 1.2, .carry = 90.0 };
+                self.things[at] = .{ .x = reed.x, .y = reed.tall * 0.5, .z = reed.z, .tall = reed.tall, .hz = reeds.note(reed.tall, garden_hz), .family = .open_pipe, .ring = 0.45, .carry = 90.0 };
                 at += 1;
             }
         }
@@ -1323,7 +1368,7 @@ pub const World = struct {
         switch (from) {
             .hum => {
                 switch (what.light.shape) {
-                    .ring_on_the_ground => self.startRing(self.hum_x, self.hum_z, what.sound.hz, true, if (self.cover == .moss) moss_carries else 1.0),
+                    .ring_on_the_ground => _ = self.startRing(self.hum_x, self.hum_z, what.sound.hz, true, if (self.cover == .moss) moss_carries else 1.0),
                     .swell => self.singing = true,
                     .dims => self.singing = false,
                     .glow => {},
@@ -1335,7 +1380,7 @@ pub const World = struct {
             .thing => |index| {
                 const thing = &self.things[index];
                 thing.loud = @max(thing.loud, what.light.brightness);
-                if (what.light.shape == .ring_on_the_ground) self.startRing(thing.x, thing.z, what.sound.hz, false, 1.0);
+                if (what.light.shape == .ring_on_the_ground) _ = self.startRing(thing.x, thing.z, what.sound.hz, false, 1.0);
                 // heard when it has come back to where Hum is now, softer and duller for the
                 // way it has come; its light is where it is, as bright as it sounds there
                 const hx = thing.x - self.hum_x;
@@ -1373,7 +1418,7 @@ pub const World = struct {
     }
 
     /// A ring of light begins to run out from a place: a call's, or an answer's.
-    fn startRing(self: *World, x: f32, z: f32, hz: f32, own: bool, strength: f32) void {
+    fn startRing(self: *World, x: f32, z: f32, hz: f32, own: bool, strength: f32) usize {
         var oldest: usize = 0;
         for (self.rings, 0..) |r, i| {
             if (!r.live) {
@@ -1383,6 +1428,7 @@ pub const World = struct {
             if (r.born < self.rings[oldest].born) oldest = i;
         }
         self.rings[oldest] = .{ .x = x, .z = z, .born = self.step, .live = true, .hz = hz, .own = own, .strength = strength, .ground = self.groundAt(x, z) };
+        return oldest;
     }
 
     /// Drip's note now: a fifth above Hum's, flat by less with every breath they have taken
@@ -1692,7 +1738,10 @@ pub const World = struct {
             // the hinge: the world is a page until it stands, and holding R1 lays it down again
             self.call_held = if (hands.held(Hands.call)) self.call_held +| 1 else 0;
             self.wheelStep(hands);
-            const pace: f32 = if (self.wheel_open) thick else if (self.step < self.pocket_until) knots.pocket else 1.0;
+            // the first time the knots come close, time thickens by itself for a bar, so there is
+            // a moment to see them and their pulses before anything is asked
+            const meeting = self.step < self.first_meet_until;
+            const pace: f32 = if (self.wheel_open or meeting) thick else if (self.step < self.pocket_until) knots.pocket else 1.0;
             if (pace != self.tempo) {
                 self.tempo = pace;
                 // what is ringing stretches into a held chord while time is thick, and lets go after
@@ -1714,7 +1763,9 @@ pub const World = struct {
         if (pressed & Hands.clap != 0) self.clap();
 
         // the right face dodges: a quick step aside, and on the beat a lunge lands on, the pocket
-        if (self.view == .place and self.stand >= 1.0 and pressed & Hands.dodge != 0 and self.threatened()) self.dodge();
+        if (self.view == .place and self.stand >= 1.0 and pressed & Hands.dodge != 0) {
+            if (self.threatened()) self.dodge() else self.dash();
+        }
 
         // the left face strikes with Hum's fork (SPEC.md 10)
         // the left face strikes: timed by the hands near the beat, at once and fuller; otherwise the
@@ -1833,6 +1884,7 @@ pub const World = struct {
             }
         }
         if (self.pool_count > 0) self.poolStep();
+        self.guideStep();
         if (self.knot_count > 0) self.knotStep();
         if (self.in_garden and self.hose_thing != no_thing) self.hoseStep();
         if (self.clock_part + self.tempo >= 1.0) self.looperStep();
@@ -1853,6 +1905,29 @@ pub const World = struct {
             if (reach > self.ring_reach * ring.strength) {
                 ring.live = false;
                 continue;
+            }
+            // a strike's note carrying: each knot it reaches past the fork's reach is struck as it
+            // arrives, late by its distance and the weaker for it, drained by where its pulse is then
+            if (ring.wave_more > 0.0) {
+                const bar: f64 = @floatFromInt(4 * tick_every);
+                for (self.knots[0..self.knot_count], 0..) |*kn, ki| {
+                    if (kn.home) continue;
+                    const bit = @as(u8, 1) << @intCast(ki);
+                    if (ring.wave_hit & bit != 0) continue;
+                    const kx = kn.x - ring.x;
+                    const kz = kn.z - ring.z;
+                    const d = @sqrt(kx * kx + kz * kz);
+                    if (d > reach) continue;
+                    ring.wave_hit |= bit;
+                    if (d <= knots.strike_reach) continue;
+                    const weaker = 1.0 - 0.6 * std.math.clamp((d - knots.strike_reach) / (wave_reach - knots.strike_reach), 0.0, 1.0);
+                    const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
+                    const at = @as(f64, @floatFromInt(self.clock)) + @as(f64, self.clock_part);
+                    const take = ring.wave_more * weaker * knots.drainAt(kn, @max(0.0, at - @as(f64, @floatFromInt(kn.phase_from))), cycle, self.widen(knots.meet_window));
+                    kn.colour = @max(0.0, kn.colour - take);
+                    self.wave_hits += 1;
+                    for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.25 + take, .ring = 0.6 }, .glow));
+                }
             }
             if (!ring.own) {
                 // an answer on its way: it lights what it passes, and it reaches Hum
@@ -2095,7 +2170,7 @@ pub const World = struct {
             const at = Place{ .x = self.hum_x, .y = 1.2 + 0.4 * @as(f32, @floatFromInt(i)), .z = self.hum_z };
             self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * ratio, .strength = fullness * 0.6, .ring = 1.6 }, .glow));
         }
-        self.startRing(self.hum_x, self.hum_z, self.home_hz, true, fullness);
+        _ = self.startRing(self.hum_x, self.hum_z, self.home_hz, true, fullness);
         self.swell_bars = 0;
         // a walk home that took the whole breath, landed: the breath grows by one (SPEC.md 9),
         // and a new line lights on Hum with a high clear note
@@ -2310,6 +2385,9 @@ pub const World = struct {
             // it rings at its own notes, as hard as the strike met it
             for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.4 + take, .ring = 0.8 }, .glow));
         }
+        // and its note carries: a ring that strikes what it reaches out to wave_reach
+        const r = self.startRing(self.hum_x, self.hum_z, self.home_hz * strike_over, true, wave_reach / self.ring_reach);
+        self.rings[r].wave_more = more;
     }
 
     /// The looper, once for each step of the world's beat. At each downbeat a bar in which the pocket
@@ -2410,6 +2488,20 @@ pub const World = struct {
 
     /// The right face: Hum steps quickly aside; on the beat a lunge lands on, the pocket opens: time
     /// thickens, and the next strikes take more (SPEC.md 10).
+    /// The right face tapped with nothing near: a dash the way Hum goes (or faces), and a soft rush
+    /// of air in its own light.
+    fn dash(self: *World) void {
+        const going = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
+        const dx = if (going > 1.0) self.hum_vx / going else @sin(self.hum_face);
+        const dz = if (going > 1.0) self.hum_vz / going else -@cos(self.hum_face);
+        const speed = dash_far / (@as(f32, @floatFromInt(dash_steps)) * dt);
+        self.burst_x = dx * speed;
+        self.burst_z = dz * speed;
+        self.burst_left = dash_steps;
+        self.dashes += 1;
+        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .open_pipe, .hz = self.home_hz * 2.0, .strength = 0.06, .ring = 0.15 }, .glow));
+    }
+
     fn dodge(self: *World) void {
         self.dodged_at = self.clock;
         // toward where Hum is going, or else to the side, by turns; 2.2 m in a tenth of a second
@@ -2487,7 +2579,9 @@ pub const World = struct {
                 if (kn.spin > 2.0 * std.math.pi) kn.spin -= 2.0 * std.math.pi;
             }
             // Hum's own call, once it has reached the knot, is heard: it comes to where it came from
-            if (!kn.heard) {
+            // they hear Hum only once it has found its way about a little (Drip's lead): nothing
+            // hostile comes before the place has been met
+            if (!kn.heard and (self.found >= 2 or !self.in_garden)) {
                 for (self.rings) |ring| {
                     if (!ring.live or !ring.own) continue;
                     const rx_ = kn.x - ring.x;
@@ -2497,6 +2591,12 @@ pub const World = struct {
                 }
             }
             if (far > knots.notices_within and !kn.heard) continue;
+            // the first time one is near: a bar of thick time, and Drip on the one, to see them by
+            if (!self.knots_met and far < knots.come_near) {
+                self.knots_met = true;
+                self.first_meet_until = self.step + 4 * tick_every * 4;
+                self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork_octave, .hz = self.dripHz() * 2.0, .strength = 0.3, .ring = 0.8 }, .glow));
+            }
             if (far > knots.come_near and kn.heard) {
                 // coming: straight toward Hum, fast while far
                 const stride_far = knots.come_speed * dt * self.tempo;
@@ -2510,9 +2610,12 @@ pub const World = struct {
                 }
                 continue;
             }
-            // to its place on a circle round Hum, at the world's pace
-            const tx = self.hum_x + knots.keeps_off * @cos(kn.around);
-            const tz = self.hum_z + knots.keeps_off * @sin(kn.around);
+            // Hum singing: a near creature holds still and listens
+            if (self.singing and far < 20.0) continue;
+            // to its place on a circle round Hum, as near as its root stands to home on the wheel
+            const keep = home.keepsOff(home.fifthsApart(self, kn.root_hz));
+            const tx = self.hum_x + keep * @cos(kn.around);
+            const tz = self.hum_z + keep * @sin(kn.around);
             const gx = tx - kn.x;
             const gz = tz - kn.z;
             const gap = @sqrt(gx * gx + gz * gz);
@@ -3412,14 +3515,129 @@ pub const World = struct {
         }
     }
 
+    /// Drip shows the way out of the coil (SPEC.md 6.1, 4): once the place has stood up, it hops off
+    /// Hum's head in an arc over the coil and waits beyond it, ticking, until Hum comes to it, then
+    /// hops back on. The world shows the jump before anyone asks for it.
+    fn dripShows(self: *World) void {
+        const d = &self.things[self.drip];
+        const wait = dripWait();
+        switch (self.drip_out) {
+            0 => {
+                if (!self.drip_shown and self.in_garden and self.stand >= 1.0 and self.step >= self.stand_from + 120 and self.locked_at != never) {
+                    self.drip_shown = true;
+                    self.drip_out = 1;
+                    self.drip_out_from = self.step;
+                    self.drip_from_x = self.hum_x;
+                    self.drip_from_z = self.hum_z;
+                    // the push off: its own note, and its light
+                    self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 2.0, .strength = 0.2, .ring = 0.3 }, .glow));
+                }
+            },
+            1 => {
+                // the arc over the coil: a second and a half, eight metres up at its top
+                const f = @min(1.0, @as(f32, @floatFromInt(self.step - self.drip_out_from)) / drip_hop_steps);
+                d.x = self.drip_from_x + (wait[0] - self.drip_from_x) * f;
+                d.z = self.drip_from_z + (wait[1] - self.drip_from_z) * f;
+                d.ground = self.groundAt(d.x, d.z);
+                d.y = 0.3 + (1.25 - 0.3) * (1.0 - f) + 8.0 * 4.0 * f * (1.0 - f);
+                if (f >= 1.0) {
+                    self.drip_out = 2;
+                    self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.dripHz(), .strength = 0.15, .ring = 0.4 }, .glow));
+                }
+            },
+            else => {
+                // waiting beyond the coil until Hum comes, or a minute has gone
+                d.y = 0.3;
+                const dx = self.hum_x - wait[0];
+                const dz = self.hum_z - wait[1];
+                if (dx * dx + dz * dz < 4.0 * 4.0 or self.step > self.drip_out_from + 60 * 60) {
+                    self.drip_out = 0;
+                    self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork_octave, .hz = self.dripHz() * 2.0, .strength = 0.2, .ring = 0.5 }, .glow));
+                }
+            },
+        }
+    }
+
+    /// The next thing Drip leads to, one at a time, in the order the place offers them: out of the
+    /// coil (Drip shows that itself), the great aster, the bridge puddle. Each is found by going
+    /// there; then the knots can hear Hum's call. None of it is a list on the screen: Drip, on
+    /// Hum's head, hums toward the next one on each bar's one, and a ripple of light runs along the
+    /// ground that way, as the second call's answer did.
+    pub fn leadTo(self: *const World) ?[2]f32 {
+        if (!self.in_garden or !self.drip_met or self.drip_out != 0) return null;
+        return switch (self.found) {
+            0 => .{ asters.great_x, asters.great_z },
+            1 => if (self.pool_count > 0) .{ self.pools[0].x, self.pools[0].z } else null,
+            else => null,
+        };
+    }
+
+    fn guideStep(self: *World) void {
+        if (!self.in_garden or !self.drip_met) return;
+        // found by going there
+        switch (self.found) {
+            0 => {
+                const dx = self.hum_x - asters.great_x;
+                const dz = self.hum_z - asters.great_z;
+                if (dx * dx + dz * dz < 40.0 * 40.0) self.found = 1;
+            },
+            1 => if (self.pool_count > 0) {
+                const p = &self.pools[0];
+                const dx = self.hum_x - p.x;
+                const dz = self.hum_z - p.z;
+                if (dx * dx + dz * dz < (p.r + 25.0) * (p.r + 25.0)) self.found = 2;
+            } else {
+                self.found = 2;
+            },
+            else => {},
+        }
+        // in the first fight, before the wheel has been used: on each bar's one Drip sings the
+        // knots' root softly, so where home wants to go is heard before the wheel is opened; and
+        // once a knot is grey, before any cadence, it sings home's amen side, where to let go
+        if (self.threatened() and (self.wheel_opens == 0 or self.cadences == 0)) {
+            const kb = self.clock / tick_every;
+            if (kb % 4 == 0 and tickStep(kb) == self.clock and self.hint_at != self.clock) {
+                self.hint_at = self.clock;
+                var grey = false;
+                for (self.knots[0..self.knot_count]) |kn| {
+                    if (!kn.home and kn.colour <= 0.0) grey = true;
+                }
+                const hz: f32 = if (grey) wedgeHz(self.day_hz, self.home_k + self.doorSide()) else if (self.wheel_opens == 0 and self.knot_count > 0) self.knots[0].root_hz else 0.0;
+                if (hz > 0.0) self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork_octave, .hz = hz * 2.0, .strength = 0.12, .ring = 1.0 }, .glow));
+            }
+        }
+        // on each bar's one, while nothing threatens, Drip leads toward the next
+        const to = self.leadTo() orelse return;
+        if (self.threatened() or self.singing or self.wheel_open) return;
+        const k = self.clock / tick_every;
+        if (k % 4 == 0 and tickStep(k) == self.clock and self.lead_at != self.clock) {
+            self.lead_at = self.clock;
+            self.lead_x = to[0];
+            self.lead_z = to[1];
+            self.lead_step = self.step;
+            self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 3.0, .strength = 0.05, .ring = 0.25 }, .glow));
+        }
+    }
+
+    /// Where Drip waits: beyond the coil round its clearing, on the way to the great aster.
+    pub fn dripWait() [2]f32 {
+        const ax = asters.great_x - drip_x;
+        const az = asters.great_z - drip_z;
+        const far = @max(@sqrt(ax * ax + az * az), 1.0);
+        return .{ drip_x + ax / far * 17.0, drip_z + az / far * 17.0 };
+    }
+
     /// Drip keeps its time, turns the figure, and once it has landed rides on Hum's head.
     fn dripStep(self: *World) void {
         const d = &self.things[self.drip];
         if (self.drip_met) {
-            d.x = self.hum_x;
-            d.z = self.hum_z;
-            d.y = 1.25 + self.hum_y;
-            d.ground = self.hum_ground;
+            self.dripShows();
+            if (self.drip_out == 0) {
+                d.x = self.hum_x;
+                d.z = self.hum_z;
+                d.y = 1.25 + self.hum_y;
+                d.ground = self.hum_ground;
+            }
         }
         const dx = d.x - self.hum_x;
         const dz = d.z - self.hum_z;
@@ -3575,7 +3793,14 @@ pub const World = struct {
         const room = 1.0 - @abs(self.orbit);
         if ((ov > 0.0) == (self.orbit > 0.0) and room < orbit_soft) ov *= @max(room / orbit_soft, 0.1);
         self.orbit = std.math.clamp(self.orbit + ov * dt, -1.0, 1.0);
+        // the player's hand wins (Nesky): taking the stick, the dial starts from where the view is,
+        // and the lifts of a fight, standing water or a fall stay off until it has rested two seconds
+        if (looking and self.lifts_on > 0.0) {
+            self.orbit = self.orbitNow();
+            self.lifts_on = 0.0;
+        }
         self.looked_ago = if (looking) 0 else self.looked_ago +| 1;
+        if (self.looked_ago > lifts_after) self.lifts_on = @min(1.0, self.lifts_on + dt / 0.6);
         // L2 tapped with nothing threatening: the view swings in behind Hum, the dial back to
         // walking; a look stops it
         if (pressed & Hands.guard != 0 and self.view == .place and self.stand >= 1.0 and !self.wheel_open and !self.threatened()) {
@@ -3678,7 +3903,7 @@ pub const World = struct {
         const on_standing = self.on_pool != 0 and self.pools[self.on_pool - 1].standing();
         self.water_view += ((if (on_standing) @as(f32, 1.0) else 0.0) - self.water_view) * 0.02;
         if (self.water_view < 0.0005) self.water_view = 0.0;
-        const leaning = self.still >= 30 and self.near_tower != no_tower and self.near_far < lean_within and self.stand > 0.98 and over_pool == 0.0;
+        const leaning = self.still >= 30 and self.looked_ago > 60 and self.near_tower != no_tower and self.near_far < lean_within and self.stand > 0.98 and over_pool == 0.0;
         const want: f32 = if (leaning) 1.0 else 0.0;
         self.lean += (want - self.lean) * 0.035;
         if (leaning) {
@@ -3734,9 +3959,10 @@ pub const World = struct {
             }
         }.f;
         var u = self.orbit;
-        u = @max(u, fight_orbit * sm(self.fight_view));
-        u = @max(u, water_orbit * sm(self.water_view));
-        u = @max(u, fall_orbit * sm(self.fall_view));
+        const on = sm(self.lifts_on);
+        u = @max(u, fight_orbit * sm(self.fight_view) * on + u * (1.0 - on));
+        u = @max(u, water_orbit * sm(self.water_view) * on + u * (1.0 - on));
+        u = @max(u, fall_orbit * sm(self.fall_view) * on + u * (1.0 - on));
         return u;
     }
 
@@ -4544,7 +4770,8 @@ test "a belly throws Hum back onto the still line, and still water floats Hum to
     try std.testing.expect(w.pools[0].amp(w.hum_x, w.hum_z) <= pools.hold_band + 0.02);
     // let go of the note: the figure dies away, the water stills, and floats Hum ashore
     step = 0;
-    while (step < 60 * 40 and w.pools[0].holds(w.hum_x, w.hum_z)) : (step += 1) _ = w.stepOnce(.{ .ly = 110 }, &cues);
+    // (walking against it at a full paddle, it takes most of a minute)
+    while (step < 60 * 90 and w.pools[0].holds(w.hum_x, w.hum_z)) : (step += 1) _ = w.stepOnce(.{ .ly = 110 }, &cues);
     try std.testing.expect(!w.pools[0].holds(w.hum_x, w.hum_z));
     try std.testing.expect(!w.pools[0].standing());
 }
@@ -5413,7 +5640,7 @@ test "a walk home that takes the whole breath, landed, grows it by one" {
     try std.testing.expectEqual(@as(u32, 1), w.breath_grew);
 }
 
-test "the bottom face jumps two and a half metres, and in the air opens the glide, which sinks slowly and spends breath" {
+test "the bottom face jumps five metres, and in the air opens the glide, which sinks slowly and spends breath" {
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
     afterTheLock(w);
@@ -5421,7 +5648,7 @@ test "the bottom face jumps two and a half metres, and in the air opens the glid
     w.in_garden = false;
     w.hum_ground = 0.0;
     var cues: [max_cues]sound.Cue = undefined;
-    // a jump standing: up and down in three quarters of a second, its top two and a half metres
+    // a jump standing: up and down in a second, its top five metres
     _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
     try std.testing.expect(w.airborne);
     var top: f32 = 0.0;
@@ -5431,8 +5658,8 @@ test "the bottom face jumps two and a half metres, and in the air opens the glid
         top = @max(top, w.hum_y);
     }
     try std.testing.expect(!w.airborne);
-    try std.testing.expect(@abs(top - jump_height) < 0.15);
-    try std.testing.expect(steps >= 43 and steps <= 47);
+    try std.testing.expect(@abs(top - jump_height) < 0.3);
+    try std.testing.expect(@abs(@as(f32, @floatFromInt(steps)) - jump_air_s * 60.0) <= 3.0);
     // a run, a jump, and at the top the glide: it sinks at two metres a second and keeps the run
     var step: u32 = 0;
     while (step < 60) : (step += 1) _ = w.stepOnce(.{ .ly = -127 }, &cues);
@@ -5448,12 +5675,12 @@ test "the bottom face jumps two and a half metres, and in the air opens the glid
         _ = w.stepOnce(.{}, &cues);
         slowest = @min(slowest, @sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz));
     }
-    // down from 2.5 m at 2 m a second: about a second and a quarter in the air, breath spent, and
-    // the run carried nearly whole
-    try std.testing.expect(steps > 60 and steps < 90);
+    // down from the jump's top at the glide's sink, breath spent, and the run carried nearly whole
+    const down_s = jump_height / glide_sink * 60.0;
+    try std.testing.expect(@as(f32, @floatFromInt(steps)) > down_s * 0.8 and @as(f32, @floatFromInt(steps)) < down_s * 1.3);
     try std.testing.expect(w.breath < breath_was);
     try std.testing.expect(!w.gliding);
-    try std.testing.expect(slowest > run_speed * 0.6);
+    try std.testing.expect(slowest > run_speed * 0.4);
 }
 
 test "the sail takes the wind by law 2: on its note Hum sits still, a fifth off it runs, straight across it is thrown back" {
@@ -5758,6 +5985,8 @@ test "Hum's legs: the first six metres a second at once, a run in two thirds of 
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
     afterTheLock(w);
+    // on level ground with nothing standing on it: the legs' own sums
+    w.in_garden = false;
     // on the flat of the Mirror Pool's shore, facing along it
     w.hum_x = land.pool[0] + land.pool[2] + 60.0;
     w.hum_z = land.pool[1];
@@ -5801,12 +6030,22 @@ test "Hum's legs: the first six metres a second at once, a run in two thirds of 
     try std.testing.expect(radius > turn_radius_run * 0.8 and radius < turn_radius_run * 1.4);
     // running on, then the stick right round: a skid, sounded, and then the new way
     for (0..60) |_| _ = w.stepOnce(.{ .lx = 127 }, &cues);
+    // the stick pushed straight against the way Hum goes, read through the view's directions
+    const sp1 = @sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz);
+    const bx_ = -w.hum_vx / sp1;
+    const bz_ = -w.hum_vz / sp1;
+    const cy_ = @cos(w.look_yaw);
+    const sy_ = @sin(w.look_yaw);
+    const back = Hands{ .lx = @intFromFloat((cy_ * bx_ + sy_ * bz_) * 127.0), .ly = @intFromFloat((-sy_ * bx_ + cy_ * bz_) * 127.0) };
     const skids = w.skids;
-    _ = w.stepOnce(.{ .lx = -127 }, &cues);
+    const was_vx = w.hum_vx;
+    const was_vz = w.hum_vz;
+    _ = w.stepOnce(back, &cues);
     try std.testing.expectEqual(skids + 1, w.skids);
-    for (0..40) |_| _ = w.stepOnce(.{ .lx = -127 }, &cues);
+    for (0..40) |_| _ = w.stepOnce(back, &cues);
     try std.testing.expect(!w.skidding);
-    try std.testing.expect(w.hum_vx < -1.0);
+    // going the other way now
+    try std.testing.expect(w.hum_vx * was_vx + w.hum_vz * was_vz < 0.0);
 }
 
 test "the dodge is a burst that whatever is solid stops; a jump pressed just before landing jumps as Hum lands" {
@@ -6012,4 +6251,37 @@ test "the knots come to Hum's call once the place has stood, and on their own ro
     const still = w.knots[0].spin;
     for (0..60) |_| _ = w.stepOnce(.{}, &cues);
     try std.testing.expect(@abs(w.knots[0].spin - still) < 0.01);
+}
+
+test "the player's hand wins: in a fight, the stick takes the view below the fight's lift" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    w.hum_x = w.knots[0].x;
+    w.hum_z = w.knots[0].z - 30.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    for (0..200) |_| w.look(.{}, 0);
+    try std.testing.expect(w.orbitNow() >= fight_orbit - 0.01);
+    // the stick held up: looking up, low, within half a second
+    for (0..30) |_| w.look(.{ .ry = -127 }, 0);
+    try std.testing.expect(w.orbitNow() < 0.0);
+}
+
+test "a strike's note carries: a knot twenty metres off is struck as the wave reaches it, late by its distance" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    w.hum_x = w.knots[0].x - 20.0;
+    w.hum_z = w.knots[0].z;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.knot_count = 1;
+    w.strike(@floatFromInt(w.clock), true);
+    // the fork's own reach is nine metres: nothing yet
+    try std.testing.expectEqual(@as(u32, 0), w.wave_hits);
+    // twenty metres at the speed of sound is a third of a second
+    var steps: u32 = 0;
+    while (w.wave_hits == 0 and steps < 60) : (steps += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(u32, 1), w.wave_hits);
+    try std.testing.expect(steps >= 15 and steps <= 25);
 }

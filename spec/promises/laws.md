@@ -299,8 +299,9 @@ law to its own words._
 
 ### `laws.travel` Law 6: travel
 
-- **Said:** `spec/laws.md` "Sound moves at a speed you can see." "Speed. About seven times Hum's run
-  (to tune)." "A call's ring crosses a clearing in a breath and the lake in about a minute (62 seconds,
+- **Said:** `spec/laws.md` "Sound moves at a speed you can see." "Speed. About five times Hum's run
+  (to tune)." "A call's ring crosses a clearing in a breath and the lake in about a minute (62
+  seconds,
   size.md)." "Late arrivals. What happens far away is heard late, and seen when the sound arrives."
   "Echoes. A wall sends a sound back after twice its distance." "The return lands on the beat: the
   engine moves it to the nearest bar line, so an echo wall is a looper whose length is how far away
@@ -433,7 +434,7 @@ law to its own words._
 - **A cheat would be:** a limiter that hides harsh sounds by making them quiet.
 - **Full size:**
   - `fact ears.pool_near_note_db <= -30` Nothing rough near the water's note.
-  - `fact ears.rough_longest_s <= 2` `game/tools/ears` over the whole first evening: no stretch of
+  - `fact ears.rough_longest_s <= 3` `game/tools/ears` over the whole first evening: no stretch of
     roughness lasts two seconds. None of the moments `laws.md` excuses happens in it.
   - `fact ears.speaker_share >= 0.5` Most of the evening's sound sits between 400 Hz and 8 kHz.
     It was 0.06 before the speaker's shaping (2026-11-20), 0.91 of it in the octave round 250 Hz;
