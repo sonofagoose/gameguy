@@ -278,6 +278,15 @@ pub fn build() void {
     buildReeds();
 }
 
+/// Stand every one of the Garden's own things on the ground (`height` at a place), once, after build.
+pub fn liftModels(height: *const fn (f32, f32) f32) void {
+    for (models[0..model_n]) |*md| {
+        lines.lift(md.near[0..md.near_n], height);
+        lines.lift(md.mid[0..md.mid_n], height);
+        lines.lift(md.far[0..md.far_n], height);
+    }
+}
+
 /// The Garden's own things for where the eye is now, each at the detail its distance asks for.
 /// What stands within the squares of ground round Hum (`grid`, their corner, from
 /// aster_lines.ground) takes that square's body, so a call's ring lights it as it crosses.

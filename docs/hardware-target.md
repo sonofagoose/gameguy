@@ -192,6 +192,35 @@ the toy's work from 1.46 ms to 7.31 ms a frame on the purple, with 216 frames la
   ms, none late, worst frame 20.4 ms.
 - So: keep passes few. A pass is worth its pixels only when there are many of them.
 
+## The picture between steps, and what the ground's height costs (measured 2026-11-20)
+
+Morgan's first walk in the fight scene felt stale. His take, replayed on the purple's screen
+(`game/results/takes-0185052/asters-00001.take`, 142 s), measures why and what helped. A fair run
+starts below 55 °C; every run below peaked at 70 to 72 °C, past the first thermal trip at 70 °C,
+with the GPU at 520 MHz and the CPU at 1.248 GHz throughout.
+
+- **The screen ran at its 58.46 Hz default while the world steps at 60.** By whole steps, a frame
+  now and then showed two steps or none: 1,248 frames of 7,387 ran two. The game now asks for the
+  60.02 Hz mode (`SDL_SetWindowDisplayMode`, the mode nearest 60 of the two SDL lists as 59 and
+  60) and draws Hum and the eye where they are at the frame's own moment, by the sound's clock,
+  between the last two steps. While Hum walked, the distance moved from one frame to the next
+  varied by 0.8 cm a frame, against 2.4 to 2.9 cm by whole steps (10 cm a frame on average).
+- **Fair runs of the same take:** the build before (db408dc) 7,387 frames, 889 late, 7.06 ms of
+  work a frame; with the 60 Hz mode, the picture between steps and the bowl's heights, 7,519
+  frames, 751 late, 8.04 ms. About a tenth of frames still miss the screen: the GPU is the limit
+  with 28,000 lines.
+- **The ground's height in the line shader cost a fifth of the frames** (6,093 against 7,564 on
+  the same take): the Mali worked the bowl's sum twice for every corner of every line. It is now
+  added on the CPU, once when the land's lines are made and each frame for the few thousand
+  moving ones, with the same rule, and the frames came out identical.
+- **The ground's light on a 16 by 16 grid a tile cost 7 % of frames** (6,950 against 7,496 with one
+  square a tile), and sharing the grid's corners through an index did not help (6,997): far off,
+  its squares are a few pixels wide. Drawn at the detail its distance asks for (16, 8, 4 or 2
+  squares a side as it is nearer than 150, 300, 600 m or farther), 7,426.
+- **The ground's sum inside the step's loops made each step cost 2.3 times as much** (laptop: 2.41
+  s against 1.06 s for the whole take), every thing against every ring. Each thing and ring now
+  keeps the ground under it, worked out when it is placed or moves: 1.07 s.
+
 ## One take plays out the same on every machine tried (measured 2026-11-17)
 
 `toys/wheel/tools/same-take.zig` runs the wheel toy's rules and sound with no picture. It plays

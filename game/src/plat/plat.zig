@@ -284,6 +284,29 @@ fn openWindowWith(options: WindowOptions) ?Window {
     }
     _ = sdl.GL_MakeCurrent(handle, context);
     _ = sdl.ShowCursor(c.SDL_DISABLE);
+    // The panel offers 58.46 Hz (its default) and 60.02 Hz (docs/hardware-target.md). The world
+    // steps sixty times a second, so at 60.02 a frame and a step nearly coincide (spec/engine.md).
+    if (!windowed and have_desktop) {
+        var best: ?c.SDL_DisplayMode = null;
+        const n = sdl.GetNumDisplayModes(0);
+        var m: c_int = 0;
+        while (m < n) : (m += 1) {
+            var mode: c.SDL_DisplayMode = undefined;
+            if (sdl.GetDisplayMode(0, m, &mode) != 0) continue;
+            if (mode.w != desktop.w or mode.h != desktop.h or mode.refresh_rate < 59 or mode.refresh_rate > 61) continue;
+            // the nearest to sixty
+            if (best == null or @abs(mode.refresh_rate - 60) < @abs(best.?.refresh_rate - 60)) best = mode;
+        }
+        if (best) |mode| {
+            if (mode.refresh_rate != desktop.refresh_rate) {
+                if (sdl.SetWindowDisplayMode(handle, &mode) == 0 and sdl.SetWindowFullscreen(handle, c.SDL_WINDOW_FULLSCREEN) == 0) {
+                    log("display: switched from its {d} Hz mode to its {d} Hz mode", .{ desktop.refresh_rate, mode.refresh_rate });
+                } else {
+                    log("display: could not switch to its {d} Hz mode: {s}", .{ mode.refresh_rate, std.mem.span(sdl.GetError()) });
+                }
+            }
+        }
+    }
     _ = sdl.GL_SetSwapInterval(1);
 
     inline for (@typeInfo(gl).@"struct".decl_names) |name| {

@@ -253,6 +253,17 @@ pub fn build(w: *const world_mod.World) void {
     for (plans[0..count], 0..) |*p, t| buildOne(p, w.towers[t].first, &models[t]);
 }
 
+/// Stand every aster on the ground (`height` at a place), once, after build.
+pub fn liftModels(height: *const fn (f32, f32) f32) void {
+    for (models[0..count]) |*md| {
+        lines.lift(md.near[0..md.near_n], height);
+        lines.lift(md.close[0..md.close_n], height);
+        lines.lift(md.mid[0..md.mid_n], height);
+        lines.lift(md.far[0..md.far_n], height);
+        lines.liftPoints(md.occ[0..md.occ_n], height);
+    }
+}
+
 /// Where the middle of an aster's stalk is at a height.
 pub fn mastAt(tower: usize, h: f32) V {
     return plans[tower].mast(h);

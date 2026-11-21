@@ -557,3 +557,27 @@ test "the scripted player is answered by the drip, breathes with it, and the pag
     try std.testing.expect(w.dawnAge() > 0.0);
     try std.testing.expectEqual(@as(u32, 0), w.dropped);
 }
+
+test "through the whole first evening every thing and every ring keeps the ground under it" {
+    // a thing's kept ground (world.zig, Thing.ground) must be the ground under it wherever it has
+    // moved: the bee flying, the knots lunging, the hose's drone following Hum along it
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initEvening();
+    var bot = Walker{};
+    var cues: [world_mod.max_cues]@import("../sound/sound.zig").Cue = undefined;
+    var moved_bee = false;
+    var bee_was = [2]f32{ 0.0, 0.0 };
+    while (!bot.done and w.step < 60 * 60 * 14) {
+        _ = w.stepOnce(bot.hands(w), &cues);
+        if (w.step % 30 == 0) try std.testing.expect(w.groundsTrue());
+        if (w.bee.thing != world_mod.no_thing) {
+            const me = w.things[w.bee.thing];
+            if (w.step > 1 and (me.x != bee_was[0] or me.z != bee_was[1])) moved_bee = true;
+            bee_was = .{ me.x, me.z };
+        }
+    }
+    try std.testing.expect(bot.done);
+    try std.testing.expect(moved_bee);
+    try std.testing.expect(w.knots_home > 0);
+}

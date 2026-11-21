@@ -42,6 +42,83 @@ var audio_channels: usize = 2;
 var audio_realtime: i32 = -1;
 var audio_slowest_us: u32 = 0;
 
+// The sound's clock, for the picture: the samples counted when the latest buffer was asked for,
+// and when. Written on the sound's thread, read on the picture's; `clock_seq` is odd while it is
+// being written.
+var clock_seq: u32 = 0;
+var clock_sample: u64 = 0;
+var clock_time: u64 = 0;
+
+fn stampClock(sample: u64, time: f64) void {
+    const s = @atomicLoad(u32, &clock_seq, .monotonic);
+    @atomicStore(u32, &clock_seq, s +% 1, .release);
+    @atomicStore(u64, &clock_sample, sample, .monotonic);
+    @atomicStore(u64, &clock_time, @bitCast(time), .monotonic);
+    @atomicStore(u32, &clock_seq, s +% 2, .release);
+}
+
+/// Where the sound's count is at `time`, in samples, carried on from the latest buffer at the
+/// sound's own rate and no further than two buffers past it; null before the first.
+fn soundClock(time: f64) ?f64 {
+    var tries: u32 = 0;
+    while (tries < 8) : (tries += 1) {
+        const s1 = @atomicLoad(u32, &clock_seq, .acquire);
+        if (s1 & 1 != 0) continue;
+        const sample = @atomicLoad(u64, &clock_sample, .monotonic);
+        const at: f64 = @bitCast(@atomicLoad(u64, &clock_time, .monotonic));
+        const s2 = @atomicLoad(u32, &clock_seq, .acquire);
+        if (s1 != s2) continue;
+        if (s1 == 0) return null;
+        const since = std.math.clamp((time - at) * sound_mod.rate, 0.0, 256.0);
+        return @as(f64, @floatFromInt(sample)) + since;
+    }
+    return null;
+}
+
+/// What the picture needs of where Hum is: its place, its ground, which way it faces and which way
+/// the view is turned and tilted.
+const Pose = struct {
+    x: f32,
+    z: f32,
+    ground: f32,
+    yaw: f32,
+    tilt: f32,
+    face: f32,
+
+    fn of(w: *const World) Pose {
+        return .{ .x = w.hum_x, .z = w.hum_z, .ground = w.hum_ground, .yaw = w.look_yaw, .tilt = w.look_tilt, .face = w.hum_face };
+    }
+
+    fn put(p: Pose, w: *World) void {
+        w.hum_x = p.x;
+        w.hum_z = p.z;
+        w.hum_ground = p.ground;
+        w.look_yaw = p.yaw;
+        w.look_tilt = p.tilt;
+        w.hum_face = p.face;
+    }
+
+    /// `a` steps on from `now`, at the pace from `before` to `now` (back toward `before` when `a` is
+    /// below nought). A jump, as when the place is set somewhere new, is shown as it is.
+    fn between(before: Pose, now: Pose, a: f32) Pose {
+        const dx = now.x - before.x;
+        const dz = now.z - before.z;
+        if (dx * dx + dz * dz > 4.0 or @abs(now.yaw - before.yaw) > 0.5) return now;
+        var turn = now.face - before.face;
+        if (turn > std.math.pi) turn -= 2.0 * std.math.pi;
+        if (turn < -std.math.pi) turn += 2.0 * std.math.pi;
+        if (@abs(turn) > 0.5) turn = 0.0;
+        return .{
+            .x = now.x + dx * a,
+            .z = now.z + dz * a,
+            .ground = now.ground + (now.ground - before.ground) * a,
+            .yaw = now.yaw + (now.yaw - before.yaw) * a,
+            .tilt = now.tilt + (now.tilt - before.tilt) * a,
+            .face = now.face + turn * a,
+        };
+    }
+};
+
 /// The shoulders and face buttons straight from the kernel, looked at before every buffer
 /// (plat/presses.zig).
 var presses = presses_mod.Presses{};
@@ -208,6 +285,7 @@ fn audioCallback(userdata: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.c)
         @atomicStore(i32, &audio_realtime, if (granted) 1 else 0, .monotonic);
     }
     const began = plat.now();
+    stampClock(snd.played(), began);
     handsNow();
     var mono: [512]f32 = undefined;
     var done: usize = 0;
@@ -997,6 +1075,48 @@ fn playOn(player: *take.Player, scene: Scene) void {
     }
 }
 
+/// How steady the picture's travel is while Hum walks: frame to frame, how far the ground under the
+/// eye moved as shown and as it would have by whole steps. A steady walk moves the same each frame.
+const Steady = struct {
+    n: u32 = 0,
+    sum: f64 = 0.0,
+    shown_sq: f64 = 0.0,
+    shown_sum: f64 = 0.0,
+    stepped_sq: f64 = 0.0,
+    stepped_sum: f64 = 0.0,
+
+    fn add(self: *Steady, shown: [2]f32, stepped: [2]f32, gap_ms: f64) void {
+        const s: f64 = @sqrt(shown[0] * shown[0] + shown[1] * shown[1]);
+        const w: f64 = @sqrt(stepped[0] * stepped[0] + stepped[1] * stepped[1]);
+        // only a frame shown on time, while Hum walks at a steady pace
+        if (gap_ms < 14.0 or gap_ms > 20.0 or s < 0.05 or s > 0.3) return;
+        self.n += 1;
+        self.sum += s;
+        self.shown_sum += s;
+        self.shown_sq += s * s;
+        self.stepped_sum += w;
+        self.stepped_sq += w * w;
+    }
+
+    fn mean(self: *const Steady) f64 {
+        return self.sum / @as(f64, @floatFromInt(@max(self.n, 1)));
+    }
+
+    fn spread(self: *const Steady, which: enum { shown, stepped }) f64 {
+        const n: f64 = @floatFromInt(@max(self.n, 1));
+        const s = if (which == .shown) self.shown_sum else self.stepped_sum;
+        const q = if (which == .shown) self.shown_sq else self.stepped_sq;
+        const m_ = s / n;
+        return @sqrt(@max(q / n - m_ * m_, 0.0));
+    }
+};
+
+fn flatGround(x: f32, z: f32) f32 {
+    _ = x;
+    _ = z;
+    return 0.0;
+}
+
 fn loadTake(path: [*:0]const u8) ?take.Player {
     const file = c.fopen(path, "rb") orelse return null;
     defer _ = c.fclose(file);
@@ -1063,6 +1183,10 @@ pub fn run(window: plat.Window, options: Options) bool {
             if (options.scene == .evening) world.initEvening() else world.initAsters();
             aster_lines.build(&world);
             garden_lines.build();
+            if (world.in_garden) {
+                aster_lines.liftModels(&world_mod.ground.heightAt);
+                garden_lines.liftModels(&world_mod.ground.heightAt);
+            }
             renderer.keep = 0.55;
             renderer.fade = 70.0;
             renderer.far_floor = 0.05;
@@ -1078,9 +1202,8 @@ pub fn run(window: plat.Window, options: Options) bool {
             // to the picture is not the first time this GPU is asked to change one
             ground_dirty[((0 - @as(i32, @intFromFloat(ground_from[1]))) * ground_size / @as(i32, @intFromFloat(ground_span)) / ground_block) * ground_blocks + ((0 - @as(i32, @intFromFloat(ground_from[0]))) * ground_size / @as(i32, @intFromFloat(ground_span)) / ground_block)] = true;
             renderer.setGround(ground_size, ground_from, .{ ground_from[0] + ground_span, ground_from[1] + ground_span }, &ground);
-            // the land's ground, for the lines to stand on
-            const L = world_mod.land;
-            renderer.setShape(.{ L.pool[0], L.pool[1], L.pool[2], L.rim[2] }, .{ L.bowl_depth, L.bowl_beds, 0.0, 0.0 }, L.rise, &world_mod.ground.pads);
+            // the ground's light lies on the ground
+            renderer.setGroundShape(if (world.in_garden) &world_mod.ground.heightAt else &flatGround, !world.in_garden);
             log("the ground: {s}", .{if (remembered) "as it was left" else "black: nothing has been sung on it yet"});
             log("the {s}: {d} asters, {d} things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave", .{ name, world.tower_count, world.thing_count });
         },
@@ -1171,6 +1294,7 @@ pub fn run(window: plat.Window, options: Options) bool {
     var work_sum: f64 = 0.0;
     var work_worst: f64 = 0.0;
     var last_swap = plat.now();
+    var first_swap: f64 = 0.0;
     var running = true;
     var picked_x: f32 = 1e9;
     var picked_z: f32 = 1e9;
@@ -1185,6 +1309,14 @@ pub fn run(window: plat.Window, options: Options) bool {
     var worst_parts: [6]f64 = @splat(0.0);
     var ring_dumped = false;
     var done_at: ?u32 = null;
+    // the picture between steps: the pose before the latest step, the frame's moment in steps by
+    // the sound's clock, and how steady the eye's travel was while Hum walked
+    var pose_before = Pose.of(&world);
+    var view_t: f64 = -1.0;
+    var view_from: f64 = 0.0;
+    var shown_last: ?[2]f32 = null;
+    var stepped_last: ?[2]f32 = null;
+    var steady = Steady{};
 
     while (running) : (frame += 1) {
         const began = plat.now();
@@ -1227,6 +1359,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             @atomicStore(u32, &ready_home, @bitCast(world.home_hz), .monotonic);
             var ran: u32 = 0;
             while (world.step < due and ran < 3) : (ran += 1) {
+                pose_before = Pose.of(&world);
                 var hands = if (replay) |*r| r.hands(world.step) else if (!scripted) held else if (options.scene != .dark) walker.hands(&world) else script.hands(world.step);
                 if (!scripted and replay == null and presses.fd >= 0) kernelHands(&hands, world.step);
                 if (!scripted and replay == null and presses.fd < 0) clapOfSteps(&hands, world.step);
@@ -1259,7 +1392,34 @@ pub fn run(window: plat.Window, options: Options) bool {
             continue;
         }
 
-        // the picture
+        // the picture, drawn where Hum is at this frame's own moment: on the handheld, by the
+        // sound's clock between the last two steps; with no sound, at the step itself
+        var pose_real: ?Pose = null;
+        if (device != 0) {
+            if (soundClock(began)) |samples| {
+                const measured = samples / @as(f64, @floatFromInt(world_mod.samples_per_step));
+                if (view_t < 0.0 or @abs(measured - view_t) > 3.0) {
+                    view_t = measured;
+                } else {
+                    view_t += (began - view_from) * 60.0;
+                    view_t += (measured - view_t) * 0.2;
+                }
+                const gap_ms = (began - view_from) * 1000.0;
+                view_from = began;
+                const a: f32 = @floatCast(std.math.clamp(view_t - @as(f64, @floatFromInt(world.step)), -1.0, 1.25));
+                const real = Pose.of(&world);
+                pose_real = real;
+                const shown = Pose.between(pose_before, real, a);
+                shown.put(&world);
+                // how far the eye's ground moved since the last frame, shown and by whole steps
+                if (shown_last) |was| {
+                    if (stepped_last) |was_step| steady.add(.{ shown.x - was[0], shown.z - was[1] }, .{ real.x - was_step[0], real.z - was_step[1] }, gap_ms);
+                }
+                shown_last = .{ shown.x, shown.z };
+                stepped_last = .{ real.x, real.z };
+            }
+        }
+        defer if (pose_real) |real| real.put(&world);
         parts[0] = (plat.now() - began) * 1000.0;
         repicked = false;
         var eye: m.V3 = undefined;
@@ -1350,9 +1510,16 @@ pub fn run(window: plat.Window, options: Options) bool {
                 const half_side: i32 = @divTrunc(aster_lines.cover_side, 2);
                 const grid_now = [2]i32{ @as(i32, @intFromFloat(@floor(world.hum_x / 16.0))) - half_side, @as(i32, @intFromFloat(@floor(world.hum_z / 16.0))) - half_side };
                 picked.lines += garden_lines.pick(world.hum_x, world.hum_z, grid_now, static_lines[picked.lines..]);
+                // what is made afresh for where Hum is stands on the ground as it is made
+                const made_from = picked.lines;
+                const occ_from = picked.occ;
                 picked.lines += aster_lines.fallen(&world, static_lines[picked.lines..]);
                 picked.lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[picked.lines..], &static_occ, &picked.occ, &cover_grid);
                 picked.lines += aster_lines.horn(&world, static_lines[picked.lines..]);
+                if (world.in_garden) {
+                    lines.lift(static_lines[made_from..picked.lines], &world_mod.ground.heightAt);
+                    lines.liftPoints(static_occ[occ_from..picked.occ], &world_mod.ground.heightAt);
+                }
                 spreadLight(static_lines[0..picked.lines]);
                 renderer.setLand(static_lines[0..picked.lines], static_lines[0..0], static_occ[0..picked.occ]);
                 picked_x = eye[0];
@@ -1381,6 +1548,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             moving_n += garden_lines.figureLines(&world, moving[moving_n..]);
         }
         moving_n += movingLines(&world, eye, moving[moving_n..]);
+        if (world.in_garden) lines.lift(moving[0..moving_n], &world_mod.ground.heightAt);
         most_lines = @max(most_lines, picked.lines + moving_n);
         parts[2] = (plat.now() - began) * 1000.0;
         renderer.setDynamic(moving[0..moving_n]);
@@ -1429,6 +1597,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         sdl.GL_SwapWindow(window.handle);
         const swapped = plat.now();
         if (frame > 30 and (swapped - last_swap) * 1000.0 > 25.0) late += 1;
+        if (frame == 30) first_swap = swapped;
         last_swap = swapped;
         if (options.frames > 0 and frame + 1 >= options.frames) running = false;
     }
@@ -1466,6 +1635,8 @@ pub fn run(window: plat.Window, options: Options) bool {
         // the sound, the most of any press this scene
         log("the hands: {d} presses of R1 and R2 and claps ({d} of them claps) started Hum's own sound on the buffer after them, the latest {d:.2} ms after the kernel saw the press; {d} strikes timed by the hands started there too; the world found {d} of them already sounding; {d} calls choked by a clap just after; {d} strikes timed and {d} placed in all", .{ @atomicLoad(u32, &hands_started, .monotonic), @atomicLoad(u32, &hands_claps, .monotonic), @as(f64, @floatFromInt(@atomicLoad(u32, &hands_most_us, .monotonic))) / 1000.0, @atomicLoad(u32, &hands_strikes, .monotonic), snd.own_met, snd.choked, world.timed_strikes, world.placed_strikes });
     }
+    if (frame > 90 and !options.headless) log("the screen: a frame shown every {d:.2} ms on average", .{(last_swap - first_swap) * 1000.0 / @as(f64, @floatFromInt(frame - 31))});
+    if (steady.n > 0) log("the picture between steps: while Hum walked it moved {d:.1} cm a frame, varying by {d:.1} cm as shown, and by {d:.1} cm as it would have been by whole steps ({d} frames)", .{ steady.mean() * 100.0, steady.spread(.shown) * 100.0, steady.spread(.stepped) * 100.0, steady.n });
     log("the slowest frame was {d} (step {d}): steps done by {d:.2} ms, the land by {d:.2}, the moving lines by {d:.2}, sent to the GPU by {d:.2}, drawn by {d:.2}, the backlight set by {d:.2}; {s}", .{ worst_at, worst_step, worst_parts[0], worst_parts[1], worst_parts[2], worst_parts[3], worst_parts[4], worst_parts[5], worst_why });
     for (world_mod.witness.names, 0..) |promise, i| {
         const seen = world.seen.marks[i];

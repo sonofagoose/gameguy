@@ -394,6 +394,8 @@ pub const Thing = struct {
     spread: f32 = 0.0,
     /// The step it last rang, so its kin can't ring it straight back.
     rung_at: u32 = 0,
+    /// The ground's height under it (world/ground.zig), kept as it is placed and as it moves.
+    ground: f32 = 0.0,
 };
 
 /// A tall thing with a foot: the view leans back at it, and a call climbs it.
@@ -422,6 +424,8 @@ pub const Ring = struct {
     own: bool = true,
     /// How strong it set out: less from moss.
     strength: f32 = 1.0,
+    /// The ground's height where it set out.
+    ground: f32 = 0.0,
 };
 
 /// A sound on its way to Hum's ears.
@@ -884,6 +888,7 @@ pub const World = struct {
         self.bee.place(self, bee_thing, .{ (drip_x + asters.great_x) * 0.5, (drip_z + asters.great_z) * 0.5 }, 0);
         self.thing_count = at;
         self.findKin();
+        self.settleGrounds();
     }
 
     /// Tell the player something. This is the only way anything in the world makes a sound, and
@@ -913,7 +918,7 @@ pub const World = struct {
                 const hx = thing.x - self.hum_x;
                 const hz = thing.z - self.hum_z;
                 const flat = @max(0.0, @sqrt(hx * hx + hz * hz) - thing.spread);
-                const up = thing.y + self.groundAt(thing.x, thing.z) - self.hum_ground;
+                const up = thing.y + thing.ground - self.hum_ground;
                 const far = @sqrt(flat * flat + up * up);
                 const delay: u64 = @intFromFloat(far / sound_speed * sound.rate);
                 const level: f32 = if (what.sound.kind == .strike) answer_level else voice_level;
@@ -954,7 +959,7 @@ pub const World = struct {
             }
             if (r.born < self.rings[oldest].born) oldest = i;
         }
-        self.rings[oldest] = .{ .x = x, .z = z, .born = self.step, .live = true, .hz = hz, .own = own, .strength = strength };
+        self.rings[oldest] = .{ .x = x, .z = z, .born = self.step, .live = true, .hz = hz, .own = own, .strength = strength, .ground = self.groundAt(x, z) };
     }
 
     /// Drip's note now: a fifth above Hum's, flat by less with every breath they have taken
@@ -1153,7 +1158,13 @@ pub const World = struct {
         if (self.singing and self.locked_at != never and self.step >= self.hold_until) self.swellStep(hands);
         if (self.drip != no_thing) self.dripStep();
         if (self.rung_first != no_thing) self.skyStep();
-        if (self.clock_part + self.tempo >= 1.0) self.bee.step(self);
+        if (self.clock_part + self.tempo >= 1.0) {
+            self.bee.step(self);
+            if (self.bee.thing != no_thing) {
+                const me = &self.things[self.bee.thing];
+                me.ground = self.groundAt(me.x, me.z);
+            }
+        }
         if (self.pool_count > 0) self.poolStep();
         if (self.knot_count > 0) self.knotStep();
         if (self.in_garden and self.hose_thing != no_thing) self.hoseStep();
@@ -1189,7 +1200,7 @@ pub const World = struct {
                 for (self.things[0..self.thing_count]) |*thing| {
                     const dx = thing.x - ring.x;
                     const dz = thing.z - ring.z;
-                    const up = thing.y + self.groundAt(thing.x, thing.z) - self.groundAt(ring.x, ring.z);
+                    const up = thing.y + thing.ground - ring.ground;
                     const far = @sqrt(dx * dx + dz * dz + up * up);
                     if (far > before and far <= reach) thing.lit = @max(thing.lit, 0.6);
                 }
@@ -1198,7 +1209,7 @@ pub const World = struct {
             for (self.things[0..self.thing_count], 0..) |*thing, index| {
                 const dx = thing.x - ring.x;
                 const dz = thing.z - ring.z;
-                const up = thing.y + self.groundAt(thing.x, thing.z) - self.groundAt(ring.x, ring.z);
+                const up = thing.y + thing.ground - ring.ground;
                 const far = @sqrt(dx * dx + dz * dz + up * up);
                 if (far <= before or far > reach) continue;
                 thing.lit = 1.0;
@@ -1414,6 +1425,7 @@ pub const World = struct {
             const th = &self.things[self.hose_thing];
             th.x = near.p[0];
             th.z = near.p[1];
+            th.ground = self.groundAt(th.x, th.z);
             const more = hose_more * @max(0.0, 1.0 - near.d / hose_heard);
             const level = (hose_least + more) * (if (self.hose_open) hose_open_more else 1.0);
             self.tell(.{ .thing = self.hose_thing }, cues_mod.Cue.of(.{ .kind = .tone, .voice = hose_voice, .family = if (self.hose_open) .open_pipe else .stopped_pipe, .hz = if (self.hose_open) hose_open_hz else hose_stopped_hz, .strength = level, .ring = 0.0 }, .glow));
@@ -1698,6 +1710,7 @@ pub const World = struct {
         const side: f32 = if (self.strikes % 2 == 0) 1.0 else -1.0;
         self.hum_x += @cos(self.look_yaw) * 2.2 * side;
         self.hum_z += @sin(self.look_yaw) * 2.2 * side;
+        self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
         for (self.knots[0..self.knot_count]) |kn| {
             if (kn.lunge_from == knots.never_lunged) continue;
             const arrives = kn.lunge_from + knots.lunge_steps / 2;
@@ -1728,6 +1741,7 @@ pub const World = struct {
         if (far > knots.keeps_off) return;
         self.hum_x += dx / far * knots.knock_back;
         self.hum_z += dz / far * knots.knock_back;
+        self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
         self.hum_light = 0.0;
         self.knocked += 1;
         for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.6, .ring = 0.4 }, .glow));
@@ -1781,9 +1795,11 @@ pub const World = struct {
                     if (into == knots.lunge_steps / 2 and beat_moves) self.lungeLands(kn);
                 }
             }
+            const kn_ground = self.groundAt(kn.x, kn.z);
             for (kn.thing) |th| {
                 self.things[th].x = kn.x;
                 self.things[th].z = kn.z;
+                self.things[th].ground = kn_ground;
             }
             if (!beat_moves) continue;
             // kin dances on Hum's one, a bar to its cycle, and each pulse lands on a creature still
@@ -2046,6 +2062,23 @@ pub const World = struct {
     /// or down off a belly, is free; walking up into a belly is turned along the line, and a belly
     /// throws Hum back toward the line, harder the louder it is. Still water gives no grip: a step
     /// on it is a fifth of one, and it floats Hum back to the nearest shore.
+    /// Every thing's ground, worked out afresh: when a scene is set up.
+    pub fn settleGrounds(self: *World) void {
+        for (self.things[0..self.thing_count]) |*th| th.ground = self.groundAt(th.x, th.z);
+    }
+
+    /// Whether every thing's kept ground is the ground under it now.
+    pub fn groundsTrue(self: *const World) bool {
+        if (self.hum_ground != self.groundAt(self.hum_x, self.hum_z)) return false;
+        for (self.things[0..self.thing_count]) |th| {
+            if (th.ground != self.groundAt(th.x, th.z)) return false;
+        }
+        for (self.rings) |r| {
+            if (r.live and r.ground != self.groundAt(r.x, r.z)) return false;
+        }
+        return true;
+    }
+
     /// The ground's height at a place, in the Garden; nought in a world made for a test.
     pub fn groundAt(self: *const World, x: f32, z: f32) f32 {
         return if (self.in_garden) ground.heightAt(x, z) else 0.0;
@@ -2184,6 +2217,7 @@ pub const World = struct {
             d.x = self.hum_x;
             d.z = self.hum_z;
             d.y = 1.25;
+            d.ground = self.hum_ground;
         }
         const dx = d.x - self.hum_x;
         const dz = d.z - self.hum_z;
