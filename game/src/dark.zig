@@ -831,8 +831,14 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
         const swell: f32 = if (w.singing) 1.2 + 0.05 * @as(f32, @floatFromInt(w.swell_bars)) else 1.0;
         const rx = @cos(w.look_yaw);
         const rz = @sin(w.look_yaw);
-        const wide = 0.36 * swell;
-        const high = 0.5 * swell;
+        // landing, it squashes a little and springs back (spec/engine.md, Hum's legs)
+        var squash: f32 = 1.0;
+        if (w.landed_at > 0 and w.step >= w.landed_at) {
+            const since = @as(f32, @floatFromInt(w.step - w.landed_at));
+            if (since < 6.0) squash = 0.85 else if (since < 15.0) squash = 0.85 + 0.15 * (since - 6.0) / 9.0;
+        }
+        const wide = 0.36 * swell * (2.0 - squash);
+        const high = 0.5 * swell * squash;
         // it stands facing the eye: seen from above, its upright leans away from the eye as much
         // as the eye looks down on it, so it stays a figure and never a sliver
         const ex = w.hum_x - eye[0];

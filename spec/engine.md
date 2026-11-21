@@ -180,6 +180,12 @@ The thirteen rules in `docs/other-platforms.md` hold. In code they mean:
   Distance, height and width move together on one smooth curve. The view is anchored to the
   ground under Hum, and to Hum's height only past a jump's, so a jump never moves the picture. Hum
   is drawn facing the eye, so from above it is still a figure.
+- **Hum's legs.** Speed and way are apart, so a turn arcs and keeps its speed: 1.5 m round at a
+  run, 5 m at a sprint. The first 6 m/s come at once and the rest climbs, to a run in another half
+  second. Pulled right round at speed, Hum skids, and the ground it skids on sounds. The left
+  stick's push is curved, so a small push walks. Slopes pull: uphill slower, downhill faster. The
+  dodge and a knock-back are bursts through the same move, so what is solid stops them. A jump
+  pressed just before landing jumps as Hum lands, and Hum squashes a little as it lands.
 - **What stands between the eye and Hum.** The eye keeps over its own ground, and the line from
   Hum to it clears the ground: it rises over a slope quickly and comes down slowly, and past a
   steep rise round Hum it comes in instead. Anything thin inside a narrow cone round the line of

@@ -137,8 +137,45 @@ pub const brush_rings: f32 = 0.4;
 
 /// How much of the way to the speed the stick asks for Hum's legs go each step, pushed and let go:
 /// nine tenths of the way in a sixth of a second, and a skid of about 0.4 m from a run.
-pub const go_ease: f32 = 0.2;
+pub const go_ease: f32 = 0.25;
 pub const stop_ease: f32 = 0.28;
+/// The legs' two stages: the first quick_speed comes at go_ease, nine tenths of it in 0.13 s; the
+/// rest climbs at this many metres a second each second, to a run in another half second, and to a
+/// sprint.
+pub const quick_speed: f32 = 6.0;
+pub const run_climb: f32 = 6.0;
+pub const sprint_climb: f32 = 10.0;
+/// Turning keeps Hum's speed and bends its way: at most this many radians a second while slow,
+/// and a turn this wide at a run and at a sprint, so a body arcs where a cursor would slide.
+pub const turn_slow: f32 = 12.0;
+pub const turn_radius_run: f32 = 1.5;
+pub const turn_radius_sprint: f32 = 5.0;
+/// Pulled round further than skid_turn at more than skid_least, Hum skids round instead: it
+/// brakes this hard, sounding the ground it skids on, and turns once it is slow.
+pub const skid_turn: f32 = 1.92;
+pub const skid_least: f32 = 5.0;
+pub const skid_brake: f32 = 40.0;
+pub const skid_done: f32 = 1.5;
+/// The left stick: nothing inside its dead middle, a full run from stick_full out, and between,
+/// the run's speed by the push past the middle raised to this power.
+pub const stick_dead: f32 = 0.12;
+pub const stick_full: f32 = 0.85;
+pub const stick_power: f32 = 1.2;
+/// Slopes pull: uphill the legs give this much less by the slope's sine, downhill this much more,
+/// to at most downhill_most.
+pub const uphill_pull: f32 = 1.2;
+pub const downhill_push: f32 = 0.8;
+pub const downhill_most: f32 = 12.0;
+/// A press of the bottom face this many steps before landing still jumps, as Hum lands; one this
+/// many steps after walking off an edge still jumps. Falling this low over the ground, a press is
+/// that early jump, never a glide.
+pub const jump_early: u32 = 6;
+pub const jump_late: u32 = 6;
+pub const jump_early_height: f32 = 1.0;
+/// The dodge is a burst through the same move as walking, so whatever is solid stops it: this far
+/// in this many steps. A lunge that lands knocks Hum back the same way.
+pub const dodge_steps: u32 = 6;
+pub const knock_steps: u32 = 4;
 /// How far Hum turns in a step at most: a turn about takes a quarter of a second.
 pub const turn_most: f32 = 0.2;
 /// The view swings in behind where Hum is going at this rate (a part of the gap a second, at a
@@ -795,6 +832,16 @@ pub const World = struct {
     upbeat_at: u64 = never,
     /// The stalk Hum is against now, if any: a brush rings only as it begins.
     touching: u16 = no_tower,
+    /// Skidding round: braking before it turns.
+    skidding: bool = false,
+    skids: u32 = 0,
+    /// A jump pressed early, steps left for it to land in; and steps since Hum last stood.
+    jump_wanted: u32 = 0,
+    stood_ago: u32 = 0,
+    /// A burst (the dodge, a knock-back): metres a second, and steps left of it.
+    burst_x: f32 = 0.0,
+    burst_z: f32 = 0.0,
+    burst_left: u32 = 0,
     /// The sideways pull of Hum's turning, eased: it leans into a turn.
     lean_x: f32 = 0.0,
     lean_z: f32 = 0.0,
@@ -1334,7 +1381,13 @@ pub const World = struct {
             self.hum_light = @max(self.hum_light, 0.35);
         }
         // the bottom face: on the ground a jump; in the air it opens or closes the glide
-        if (pressed & Hands.jump != 0 and self.view == .place and self.stand >= 1.0) {
+        if (self.jump_wanted > 0) self.jump_wanted -= 1;
+        const landing_soon = self.airborne and !self.gliding and self.hum_vy < 0.0 and self.hum_y < jump_early_height;
+        if (pressed & Hands.jump != 0 and self.view == .place and self.stand >= 1.0 and landing_soon) {
+            // falling, just over the ground: the press is the next jump, as Hum lands
+            self.jump_wanted = jump_early;
+        } else if ((pressed & Hands.jump != 0 or (self.jump_wanted > 0 and !self.airborne)) and self.view == .place and self.stand >= 1.0) {
+            self.jump_wanted = 0;
             if (!self.airborne) {
                 self.airborne = true;
                 self.hum_vy = jump_speed;
@@ -1377,8 +1430,9 @@ pub const World = struct {
                 self.stick_latched = size >= latch_least;
             }
         }
-        if (size > 0.12) {
-            const scale = @min(size, 1.0) / size * (if (self.sprinting) sprint_speed else run_speed);
+        if (size > stick_dead) {
+            const push = std.math.clamp((size - stick_dead) / (stick_full - stick_dead), 0.0, 1.0);
+            var top: f32 = if (self.sprinting) sprint_speed else run_speed;
             var wx = mx;
             var wz = mz;
             if (self.view == .place) {
@@ -1387,6 +1441,15 @@ pub const World = struct {
                 wx = cy * mx - sy * mz;
                 wz = sy * mx + cy * mz;
             }
+            // slopes pull: the ground a metre ahead along the way the stick asks
+            if (self.view == .place and self.in_garden and !self.airborne) {
+                const ux = wx / size;
+                const uz = wz / size;
+                const rise = self.groundAt(self.hum_x + ux, self.hum_z + uz) - self.groundAt(self.hum_x, self.hum_z);
+                const sine = rise / @sqrt(1.0 + rise * rise);
+                top = if (sine > 0.0) top * @max(0.0, 1.0 - uphill_pull * sine) else @min(@max(top, downhill_most), top * (1.0 - downhill_push * sine));
+            }
+            const scale = std.math.pow(f32, push, stick_power) / size * top;
             want_x = wx * scale;
             want_z = wz * scale;
             var turn = std.math.atan2(wx, -wz) - self.hum_face;
@@ -1438,8 +1501,62 @@ pub const World = struct {
             }
             ease = air_ease;
         }
-        self.hum_vx += (want_x - self.hum_vx) * ease;
-        self.hum_vz += (want_z - self.hum_vz) * ease;
+        const leg_sp = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
+        const want_sp = @sqrt(want_x * want_x + want_z * want_z);
+        if (!self.gliding and !self.airborne and size > stick_dead and leg_sp > 0.5 and want_sp > 0.01) {
+            // on its legs, Hum's speed and way are apart: a turn bends the way and keeps the speed,
+            // and the speed comes in two stages
+            var leg_gap = std.math.atan2(want_x, -want_z) - std.math.atan2(self.hum_vx, -self.hum_vz);
+            if (leg_gap > std.math.pi) leg_gap -= 2.0 * std.math.pi;
+            if (leg_gap < -std.math.pi) leg_gap += 2.0 * std.math.pi;
+            if (!self.skidding and @abs(leg_gap) > skid_turn and leg_sp > skid_least) {
+                // pulled right round at speed: a skid, sounded by the ground it is on
+                self.skidding = true;
+                self.skids += 1;
+                const skid_at = Place{ .x = self.hum_x, .y = 0.1, .z = self.hum_z };
+                const skid_family: sound.Family = if (self.cover == .leaves) .bar else .skin;
+                const skid_strength: f32 = if (self.cover == .moss) 0.03 else 0.08;
+                self.tell(.{ .at = skid_at }, cues_mod.Cue.of(.{ .kind = .strike, .family = skid_family, .hz = self.home_hz * 0.5, .strength = skid_strength, .ring = 0.12 }, .glow));
+            }
+            var new_sp = leg_sp;
+            var leg_by: f32 = 0.0;
+            if (self.skidding) {
+                new_sp = @max(0.0, leg_sp - skid_brake * dt);
+                if (new_sp < skid_done) {
+                    self.skidding = false;
+                    leg_by = leg_gap;
+                }
+            } else {
+                const over = std.math.clamp((leg_sp - run_speed) / (sprint_speed - run_speed), 0.0, 1.0);
+                const radius = turn_radius_run + (turn_radius_sprint - turn_radius_run) * over;
+                const leg_rate = @min(turn_slow, leg_sp / radius);
+                leg_by = std.math.clamp(leg_gap, -leg_rate * dt, leg_rate * dt);
+                const climb: f32 = if (self.sprinting) sprint_climb else run_climb;
+                if (want_sp <= leg_sp) {
+                    new_sp = leg_sp + (want_sp - leg_sp) * go_ease;
+                } else if (leg_sp < quick_speed) {
+                    new_sp = @min(want_sp, leg_sp + (@min(want_sp, quick_speed + 0.3) - leg_sp) * go_ease);
+                } else {
+                    new_sp = @min(want_sp, leg_sp + climb * dt);
+                }
+            }
+            const ux = self.hum_vx / leg_sp;
+            const uz = self.hum_vz / leg_sp;
+            const c_ = @cos(leg_by);
+            const s_ = @sin(leg_by);
+            self.hum_vx = (ux * c_ - uz * s_) * new_sp;
+            self.hum_vz = (ux * s_ + uz * c_) * new_sp;
+        } else {
+            if (!self.airborne) self.skidding = false;
+            // from rest, the way at once and the first stage of the speed
+            if (!self.gliding and !self.airborne and size > stick_dead and want_sp > quick_speed + 0.3) {
+                const k = (quick_speed + 0.3) / want_sp;
+                want_x *= k;
+                want_z *= k;
+            }
+            self.hum_vx += (want_x - self.hum_vx) * ease;
+            self.hum_vz += (want_z - self.hum_vz) * ease;
+        }
         // sailing, Hum faces where it is carried
         if (self.gliding and self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz > 0.25) self.hum_face = std.math.atan2(self.hum_vx, -self.hum_vz);
         if (!self.airborne and size <= 0.12 and self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz < 0.0025) {
@@ -1464,6 +1581,12 @@ pub const World = struct {
         self.lean_z += (pull_z - self.lean_z) * 0.15;
         var go_x = self.hum_vx * dt;
         var go_z = self.hum_vz * dt;
+        // a burst (the dodge, a knock-back) goes through the same move, so what is solid stops it
+        if (self.burst_left > 0) {
+            self.burst_left -= 1;
+            go_x += self.burst_x * dt;
+            go_z += self.burst_z * dt;
+        }
         // on the water, the water has its say in where a step goes
         if (self.view == .place and self.pool_count > 0) self.onWater(&go_x, &go_z);
         if (self.view == .place) self.atShore(&go_x, &go_z);
@@ -2181,10 +2304,15 @@ pub const World = struct {
     /// thickens, and the next strikes take more (SPEC.md 10).
     fn dodge(self: *World) void {
         self.dodged_at = self.clock;
+        // toward where Hum is going, or else to the side, by turns; 2.2 m in a tenth of a second
         const side: f32 = if (self.strikes % 2 == 0) 1.0 else -1.0;
-        self.hum_x += @cos(self.look_yaw) * 2.2 * side;
-        self.hum_z += @sin(self.look_yaw) * 2.2 * side;
-        self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
+        const going = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
+        const dx = if (going > 1.0) self.hum_vx / going else @cos(self.look_yaw) * side;
+        const dz = if (going > 1.0) self.hum_vz / going else @sin(self.look_yaw) * side;
+        const speed = 2.2 / (@as(f32, @floatFromInt(dodge_steps)) * dt);
+        self.burst_x = dx * speed;
+        self.burst_z = dz * speed;
+        self.burst_left = dodge_steps;
         for (self.knots[0..self.knot_count]) |kn| {
             if (kn.lunge_from == knots.never_lunged) continue;
             const arrives = kn.lunge_from + knots.lunge_steps / 2;
@@ -2213,9 +2341,10 @@ pub const World = struct {
         const dz = self.hum_z - kn.z;
         const far = @max(@sqrt(dx * dx + dz * dz), 0.1);
         if (far > knots.keeps_off) return;
-        self.hum_x += dx / far * knots.knock_back;
-        self.hum_z += dz / far * knots.knock_back;
-        self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
+        const speed = knots.knock_back / (@as(f32, @floatFromInt(knock_steps)) * dt);
+        self.burst_x = dx / far * speed;
+        self.burst_z = dz / far * speed;
+        self.burst_left = knock_steps;
         self.hum_light = 0.0;
         self.knocked += 1;
         if (self.stand < 1.0) self.knocked_in_dark += 1;
@@ -4886,6 +5015,10 @@ test "the sprint: the right face held while walking runs at a quarter of the spe
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
     afterTheLock(w);
+    // on the level by the Mirror Pool's north shore, running along it (slopes pull: Hum's legs)
+    w.hum_x = land.pool[0];
+    w.hum_z = land.pool[1] + land.pool[2] + 8.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
     var cues: [max_cues]sound.Cue = undefined;
     var step: u32 = 0;
     var fastest: f32 = 0.0;
@@ -5288,4 +5421,102 @@ test "a fight lifts the view so the ground round Hum is seen, and lets it down a
     w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
     for (0..fight_linger + 70) |_| w.look(.{}, 0);
     try std.testing.expect(w.orbitNow() < 0.001);
+}
+
+test "Hum's legs: the first six metres a second at once, a run in two thirds of a second; a turn arcs and keeps its speed; pulled right round, it skids" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    // on the flat of the Mirror Pool's shore, facing along it
+    w.hum_x = land.pool[0] + land.pool[2] + 60.0;
+    w.hum_z = land.pool[1];
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    var cues: [max_cues]sound.Cue = undefined;
+    for (0..10) |_| _ = w.stepOnce(.{}, &cues);
+    w.look_yaw = 0.0;
+    var at_013: f32 = 0.0;
+    var at_063: f32 = 0.0;
+    for (0..60) |i| {
+        _ = w.stepOnce(.{ .ly = -127 }, &cues);
+        const sp = @sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz);
+        if (i == 7) at_013 = sp;
+        if (i == 37) at_063 = sp;
+    }
+    try std.testing.expect(at_013 > quick_speed * 0.85 and at_013 < quick_speed * 1.1);
+    try std.testing.expect(at_063 > run_speed * 0.9);
+    // the stick swung a quarter round at a run: the way bends at the run's turn, the speed kept
+    const sp0 = @sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz);
+    var least_sp: f32 = 1e9;
+    var pts: [3][2]f32 = undefined;
+    for (0..30) |i| {
+        _ = w.stepOnce(.{ .lx = 127, .ly = 0 }, &cues);
+        least_sp = @min(least_sp, @sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz));
+        if (i == 2) pts[0] = .{ w.hum_x, w.hum_z };
+        if (i == 6) pts[1] = .{ w.hum_x, w.hum_z };
+        if (i == 10) pts[2] = .{ w.hum_x, w.hum_z };
+    }
+    try std.testing.expect(least_sp > sp0 * 0.85);
+    // the circle through three points of the arc
+    const ax = pts[0][0];
+    const az = pts[0][1];
+    const bx = pts[1][0];
+    const bz = pts[1][1];
+    const cx = pts[2][0];
+    const cz = pts[2][1];
+    const d = 2.0 * (ax * (bz - cz) + bx * (cz - az) + cx * (az - bz));
+    const ux = ((ax * ax + az * az) * (bz - cz) + (bx * bx + bz * bz) * (cz - az) + (cx * cx + cz * cz) * (az - bz)) / d;
+    const uz = ((ax * ax + az * az) * (cx - bx) + (bx * bx + bz * bz) * (ax - cx) + (cx * cx + cz * cz) * (bx - ax)) / d;
+    const radius = @sqrt((ax - ux) * (ax - ux) + (az - uz) * (az - uz));
+    try std.testing.expect(radius > turn_radius_run * 0.8 and radius < turn_radius_run * 1.4);
+    // running on, then the stick right round: a skid, sounded, and then the new way
+    for (0..60) |_| _ = w.stepOnce(.{ .lx = 127 }, &cues);
+    const skids = w.skids;
+    _ = w.stepOnce(.{ .lx = -127 }, &cues);
+    try std.testing.expectEqual(skids + 1, w.skids);
+    for (0..40) |_| _ = w.stepOnce(.{ .lx = -127 }, &cues);
+    try std.testing.expect(!w.skidding);
+    try std.testing.expect(w.hum_vx < -1.0);
+}
+
+test "the dodge is a burst that whatever is solid stops; a jump pressed just before landing jumps as Hum lands" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    // beside a stalk, moving toward it, a dodge: Hum is never inside it
+    const tw = w.towers[0];
+    w.hum_x = tw.x - 2.0;
+    w.hum_z = tw.z;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.hum_vx = 2.0;
+    w.hum_vz = 0.0;
+    w.dodge();
+    var nearest: f32 = 1e9;
+    for (0..dodge_steps + 4) |_| {
+        _ = w.stepOnce(.{ .lx = 60 }, &cues);
+        const dx = w.hum_x - tw.x;
+        const dz = w.hum_z - tw.z;
+        nearest = @min(nearest, @sqrt(dx * dx + dz * dz));
+    }
+    try std.testing.expect(nearest >= stalk_foot);
+    // a jump, and a press on the way down just over the ground: the next jump goes as it lands
+    w.hum_x += 30.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    for (0..20) |_| _ = w.stepOnce(.{}, &cues);
+    const jumps = w.jumps;
+    _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+    var pressed_early = false;
+    var steps: u32 = 0;
+    while (steps < 90) : (steps += 1) {
+        var h = Hands{};
+        if (!pressed_early and w.airborne and w.hum_vy < 0.0 and w.hum_y < 0.6) {
+            h.buttons = Hands.jump;
+            pressed_early = true;
+        }
+        _ = w.stepOnce(h, &cues);
+        if (w.jumps == jumps + 2) break;
+    }
+    try std.testing.expect(pressed_early);
+    try std.testing.expect(!w.gliding);
+    try std.testing.expectEqual(jumps + 2, w.jumps);
 }
