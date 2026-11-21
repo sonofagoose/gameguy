@@ -865,6 +865,9 @@ pub const Scene = enum { dark, evening, asters };
 
 pub const Options = struct {
     scene: Scene = .dark,
+    /// Draw each frame. A check of the world alone (a take played back, a save opened) needs no
+    /// picture, and is twenty times quicker without one.
+    picture: bool = true,
     headless: bool = false,
     frames: u32 = 0,
     dump: ?[*:0]const u8 = null,
@@ -1247,6 +1250,10 @@ pub fn run(window: plat.Window, options: Options) bool {
         if (done_at) |at| {
             // five seconds more, so what the last thing done sets ringing is heard and seen to its end
             if (options.frames == 0 and frame > at + 300) running = false;
+        }
+        if (!options.picture) {
+            if (options.frames > 0 and frame + 1 >= options.frames) running = false;
+            continue;
         }
 
         // the picture
