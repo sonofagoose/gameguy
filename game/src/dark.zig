@@ -296,6 +296,13 @@ fn audioCallback(userdata: ?*anyopaque, stream: [*c]u8, len: c_int) callconv(.c)
         @atomicStore(i32, &audio_realtime, if (granted) 1 else 0, .monotonic);
     }
     const began = plat.now();
+    // the songbook open: the world waits, and so does the sound's count, which is the world's clock;
+    // what the hands press meanwhile is read and let go, and the speaker is silent
+    if (@atomicLoad(u8, &ready_paused, .monotonic) != 0) {
+        handsNow();
+        for (0..frames * audio_channels) |i| out[i] = 0.0;
+        return;
+    }
     stampClock(snd.played(), began);
     handsNow();
     var mono: [512]f32 = undefined;
@@ -388,6 +395,18 @@ var l1_down = false;
 var l2_down = false;
 /// The face buttons as the kernel's edges left them: bottom, right, left, top.
 var face_down: [4]bool = @splat(false);
+
+/// A scene starts with no presses waiting and nothing held: edges stamped by the last scene's sound
+/// clock would sit at the front of the queue and hold back every new one.
+fn forgetPresses() void {
+    @atomicStore(u32, &started_tail, @atomicLoad(u32, &started_head, .acquire), .release);
+    edges_n = 0;
+    r1_down = false;
+    r2_down = false;
+    l1_down = false;
+    l2_down = false;
+    face_down = @splat(false);
+}
 
 fn takeEdges() void {
     var tail = @atomicLoad(u32, &started_tail, .monotonic);
@@ -1324,7 +1343,8 @@ pub fn run(window: plat.Window, options: Options) bool {
             // the ground starts black, or as it was left: a run with no screen always starts black,
             // so its frames are the same every time
             @memset(&ground, 0);
-            const remembered = !options.headless and loadGround();
+            // the first evening has no yesterday: it starts black, and only what is sung lights it
+            const remembered = !options.headless and options.scene != .evening and loadGround();
             @memset(&ground_dirty, false);
             // the square under Hum is sent again in the first frames, so the first real change
             // to the picture is not the first time this GPU is asked to change one
@@ -1383,6 +1403,8 @@ pub fn run(window: plat.Window, options: Options) bool {
         if (!resumed) _ = card.begin(scene_t);
     }
     snd.init();
+    forgetPresses();
+    @atomicStore(u8, &ready_paused, 0, .monotonic);
     if (options.load != null or resumed) {
         // the sound's count is the clock: it starts where the world was, and what was being held
         // is told again
@@ -1461,8 +1483,6 @@ pub fn run(window: plat.Window, options: Options) bool {
     var start_was = false;
     var select_seen = false;
     var flip_ready = true;
-    var paused_from: u64 = 0;
-    var paused_total: u64 = 0;
 
     while (running) : (frame += 1) {
         const began = plat.now();
@@ -1507,13 +1527,11 @@ pub fn run(window: plat.Window, options: Options) bool {
                     if (!book_open and !world.singing) {
                         book_open = true;
                         book_from = plat.now();
-                        paused_from = snd.played();
                         book_page = songbook.needed(&world) orelse lastLearned(&world);
                         @atomicStore(u8, &ready_paused, 1, .monotonic);
                         log("the songbook opened at step {d} on its page for {s}", .{ world.step, @tagName(book_page) });
                     } else if (book_open) {
                         book_open = false;
-                        paused_total += snd.played() - paused_from;
                         @atomicStore(u8, &ready_paused, 0, .monotonic);
                     }
                 }
@@ -1528,7 +1546,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                 }
                 if (held.lx < 30 and held.lx > -30) flip_ready = true;
             }
-            const due = if (book_open) world.step else (snd.played() - paused_total) / world_mod.samples_per_step;
+            const due = if (book_open) world.step else snd.played() / world_mod.samples_per_step;
             // what the hands started, read after the count: every edge before it is here
             takeEdges();
             @atomicStore(u8, &ready_cover, @intFromEnum(world.cover), .monotonic);
