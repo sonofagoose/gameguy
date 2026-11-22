@@ -3,6 +3,27 @@
 Where the build stands, so a new session can pick it up. Newest first. The plan is in `SPEC.md`,
 section 20, and `spec/stages.md`.
 
+## Now: Gate 0 audit and first touch spec implementation (2026-11-22)
+
+Work order: `gameguy-work-order-20261122.md`.
+
+| piece | state |
+|---|---|
+| Gate 0: audit of uncommitted diff | done: 200+ lines across 13 files; see `design/keep-revert-table-20261122.md` |
+| Piece 1: page at top of dial | done: full-range camera (0° to 90°) with smooth transition, true top-down page view |
+| Piece 2: jump designed fresh | done: SM64×TotK standard, 2.8 m max height, variable height (tap=1.8m, hold=2.8m), coyote time 6 steps, air steering 0.20 |
+| Piece 3: strike ported | done: GameguyPage groundArc animation, 16-part sweep arc |
+| Piece 4: wheel as circle of fifths | done: both outer (major) and inner (relative minor) rings, key letters, 68% background dim when open |
+| Piece 7: calls/rings ride air | done: Ring.y field stores airborne height |
+| Piece 8: no knots before peace | done: knots off by default until Piece 8 designs gate |
+| fast build targets | done: `./build.sh push`, `./build.sh handheld`, `./build.sh dev` targets |
+| kill test runs (KILLS=100) | done: gate runs, skip only with `KILLS=0` env var |
+| Bee timbre | done: warm owl character (Kaepora Gaebora, DECISIONS.md row 148) |
+| pool resonance | done: smoothed onset, 0.62 voice level (Clip 32, whats-next.md) |
+| Drip metronome | done: audible when needed, silent when exploring (works-next.md) |
+| spec/doc files | done: BOARD.md, hands.md kept at HEAD, regenerated in gate run |
+| PROGRESS.md updated | done |
+
 ## Now: Morgan's first room session, synthesis and actionable vision (2026-11-21)
 
 Morgan played GameguyRoom on the purple (unit 164), answering all 59 items (the ear check, 13

@@ -355,6 +355,9 @@ pub const Renderer = struct {
     /// For measuring: leave out the trail's pass, or the ground's light.
     without_trail: bool = false,
     without_ground: bool = false,
+    /// Lines to draw on top of everything (unoccluded by world geometry, like the wheel & swell).
+    top_first: u32 = 0,
+    top_count: u32 = 0,
     decay_prog: c.GLuint = 0,
     decay_u_src: c.GLint = -1,
     decay_u_cur: c.GLint = -1,
@@ -709,6 +712,12 @@ pub const Renderer = struct {
         gl.BindBuffer(c.GL_ARRAY_BUFFER, 0);
     }
 
+    /// Mark a range of dynamic lines to be drawn on top of all world geometry (e.g. circle of fifths).
+    pub fn setTop(self: *Renderer, first: u32, count: u32) void {
+        self.top_first = first;
+        self.top_count = count;
+    }
+
     /// Lay the ground's light on the ground's curve (`height` at a place): each of its tiles is
     /// ground_cells by ground_cells squares, made once, after setGround.
     pub fn setGroundShape(self: *Renderer, height: *const fn (f32, f32) f32, flat: bool) void {
@@ -832,6 +841,40 @@ pub const Renderer = struct {
         gl.Disable(c.GL_DEPTH_TEST);
     }
 
+    fn drawTopLines(self: *Renderer, vp: *const m.M4, vbo: c.GLuint, first: u32, count: u32) void {
+        if (count == 0) return;
+        gl.UseProgram(self.line_prog);
+        gl.UniformMatrix4fv(self.line_u_vp, 1, c.GL_FALSE, vp);
+        gl.Uniform2f(self.line_u_half, @as(f32, @floatFromInt(self.fb_w)) * 0.5, @as(f32, @floatFromInt(self.fb_h)) * 0.5);
+        gl.ActiveTexture(c.GL_TEXTURE0);
+        gl.BindTexture(c.GL_TEXTURE_2D, self.loud_tex);
+        gl.Uniform1i(self.line_u_loud, 0);
+        gl.Uniform1f(self.line_u_fade, self.fade);
+        gl.Uniform2f(self.line_u_far, self.far_floor, self.heft);
+        gl.Uniform1f(self.line_u_stand, self.stand);
+        gl.Uniform1f(self.line_u_emit, self.emit);
+        gl.Uniform3f(self.line_u_eye, self.cone_eye[0], self.cone_eye[1], self.cone_eye[2]);
+        gl.Uniform1f(self.line_u_cone, 0.0);
+        gl.Uniform3f(self.line_u_cdir, self.cone_dir[0], self.cone_dir[1], self.cone_dir[2]);
+        gl.Uniform1f(self.line_u_clen, self.cone_len);
+        gl.Disable(c.GL_DEPTH_TEST);
+        gl.DepthMask(c.GL_FALSE);
+        gl.Enable(c.GL_BLEND);
+        gl.BlendFunc(c.GL_ONE, c.GL_ONE);
+        gl.BindVertexArray(self.line_vao);
+        gl.BindBuffer(c.GL_ARRAY_BUFFER, vbo);
+        const stride: c.GLsizei = @sizeOf(Inst);
+        const base: usize = @as(usize, first) * @sizeOf(Inst);
+        gl.VertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "a")));
+        gl.VertexAttribPointer(1, 3, c.GL_FLOAT, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "b")));
+        gl.VertexAttribPointer(2, 2, c.GL_FLOAT, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "half_width")));
+        gl.VertexAttribPointer(3, 4, c.GL_UNSIGNED_BYTE, c.GL_TRUE, stride, @ptrFromInt(base + @offsetOf(Inst, "col")));
+        gl.DrawArraysInstanced(c.GL_TRIANGLE_STRIP, 0, 4, @intCast(count));
+        gl.BindVertexArray(0);
+        gl.Disable(c.GL_BLEND);
+        gl.DepthMask(c.GL_TRUE);
+    }
+
     fn drawSky(self: *Renderer) void {
         if (self.sky[0] + self.sky[1] + self.sky[2] <= 0.0) return;
         gl.UseProgram(self.sky_prog);
@@ -877,7 +920,9 @@ pub const Renderer = struct {
         self.drawOcc(vp);
         self.drawSky();
         self.drawLines(vp, self.line_vbo, 0, self.sounding);
-        self.drawLines(vp, self.dyn_vbo, 0, self.dyn_count);
+        const base_dyn = if (self.top_count > 0 and self.top_first <= self.dyn_count) self.top_first else self.dyn_count;
+        self.drawLines(vp, self.dyn_vbo, 0, base_dyn);
+        if (self.top_count > 0) self.drawTopLines(vp, self.dyn_vbo, self.top_first, self.top_count);
 
         // 2. the trail, half size
         gl.Disable(c.GL_DEPTH_TEST);
@@ -916,6 +961,7 @@ pub const Renderer = struct {
         self.drawOcc(vp);
         if (!self.without_ground) self.drawGround(vp);
         self.drawLines(vp, self.line_vbo, self.sounding, self.lit);
+        if (self.top_count > 0) self.drawTopLines(vp, self.dyn_vbo, self.top_first, self.top_count);
 
         self.ping = next;
     }

@@ -50,7 +50,6 @@ pub const Walker = struct {
     sprint_marked: bool = false,
     breathed_at: ?u64 = null,
     fly_from: ?u64 = null,
-    glide_pressed: bool = false,
     flown: bool = false,
 
     /// The fight, taken up wherever the knots reach Hum (SPEC.md 6.1: they come at you): 0 not
@@ -466,18 +465,13 @@ pub const Walker = struct {
                     return h;
                 }
                 self.in_open = true;
-                // out in the open, once: a jump, the glide opened at its top, and down again
+                // out in the open, once: a jump, and down again
                 if (!self.flown) {
                     h.ly = -100;
                     if (self.fly_from == null) {
                         self.fly_from = step;
                         h.buttons |= Hands.jump;
                         self.mark = "jump";
-                        return h;
-                    }
-                    if (w.airborne and !w.gliding and w.hum_vy <= 0.0 and !self.glide_pressed) {
-                        self.glide_pressed = true;
-                        h.buttons |= Hands.jump;
                         return h;
                     }
                     if (!w.airborne and step > self.fly_from.? + 5) self.flown = true;

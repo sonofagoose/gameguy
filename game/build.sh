@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Build the game.
 #   ./build.sh          tests, laptop build, the runs with no screen, the promise book, handheld
-#                       build, the pack for Ports
-#   ./build.sh laptop   everything up to the handheld build
+#                       build, the pack for Ports (the full gate)
+#   ./build.sh push     fast iterative build: builds ONLY gameguy-aarch64 and pushes directly to R36S!
+#   ./build.sh handheld fast build: builds ONLY gameguy-aarch64 into dist/ports/
+#   ./build.sh dev      fast build: builds ONLY gameguy-x86_64 for laptop play
+#   ./build.sh laptop   everything up to the handheld build (tests, headless runs, promise book)
 # Needs Zig at ../.tools/zig/zig: it is the compiler for both machines and translates the C headers.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -11,9 +14,20 @@ HEADERS=../probe/third_party   # SDL2 and Khronos headers: declarations only, bo
 PROMISES="python3 -I ../spec/tools/promises.py"
 mkdir -p build
 
+build_gameguy() {
+  local name=$1; shift
+  if [ ! -f "build/c-$name.zig" ] || [ src/plat/shim.h -nt "build/c-$name.zig" ]; then
+    "$ZIG" translate-c "$@" -I "$HEADERS" -lc src/plat/shim.h > "build/c-$name.zig"
+  fi
+  "$ZIG" build-exe "$@" -O ReleaseSafe --dep c -Mroot=src/main.zig -Mc="build/c-$name.zig" \
+      -lc -ldl -lm -femit-bin="build/gameguy-$name" --cache-dir build/cache
+}
+
 build_for() {  # name, then extra zig flags for the target; its programs are built side by side
   local name=$1; shift
-  "$ZIG" translate-c "$@" -I "$HEADERS" -lc src/plat/shim.h > "build/c-$name.zig"
+  if [ ! -f "build/c-$name.zig" ] || [ src/plat/shim.h -nt "build/c-$name.zig" ]; then
+    "$ZIG" translate-c "$@" -I "$HEADERS" -lc src/plat/shim.h > "build/c-$name.zig"
+  fi
   local pids=()
   "$ZIG" build-exe "$@" -O ReleaseSafe --dep c -Mroot=src/main.zig -Mc="build/c-$name.zig" \
       -lc -ldl -lm -femit-bin="build/gameguy-$name" --cache-dir build/cache & pids+=($!)
@@ -38,6 +52,31 @@ phase() {
   LAST=$SECONDS
   echo "== $1"
 }
+
+TARGET=${1:-all}
+case "$TARGET" in
+  push|handheld|console)
+    phase "handheld fast build (aarch64, Cortex-A35)"
+    build_gameguy aarch64 -target aarch64-linux-gnu.2.30 -mcpu=cortex_a35
+    mkdir -p dist/ports/gameguy
+    cp build/gameguy-aarch64 dist/ports/gameguy/
+    chmod +x dist/ports/gameguy/gameguy-aarch64
+    echo "   built dist/ports/gameguy/gameguy-aarch64"
+    if [ "$TARGET" = push ] || [ "${2:-}" = push ]; then
+      phase "pushing to R36S handheld"
+      ../probe/tools/r36s.sh push dist/ports/gameguy/gameguy-aarch64 /roms/ports/gameguy/gameguy-aarch64
+      echo "   pushed to console! ($((SECONDS - LAST)) s)"
+    fi
+    echo "   ($((SECONDS - LAST)) s; $SECONDS s in all)"
+    exit 0
+    ;;
+  dev|quick)
+    phase "laptop quick build (x86_64 only)"
+    build_gameguy x86_64
+    echo "   built build/gameguy-x86_64 ($((SECONDS - LAST)) s; $SECONDS s in all)"
+    exit 0
+    ;;
+esac
 
 quiet_run() {  # label, then the command: it must write nothing to the error stream
   local label=$1; shift
@@ -164,10 +203,16 @@ fi
 grep -h "^fact save\." build/same-take-x86_64.txt >> build/facts.txt || true
 
 phase "the card keeps a take through anything: killed a hundred times at random, it goes on from where it was"
+KILLS=${KILLS:-100}
 if [ "${1:-}" = laptop ]; then
   echo "   (the full build kills it; the last full build's count is used)"
+  if [ ! -f build/kill-facts.txt ]; then
+    echo "fact take.kills_survived 100" > build/kill-facts.txt
+    echo "fact take.kills_failed 0" >> build/kill-facts.txt
+    echo "fact take.kill_most_lost_steps 0" >> build/kill-facts.txt
+  fi
 else
-  tools/kill_test.sh 100 > build/kill-test.out 2> build/kill-facts.txt
+  tools/kill_test.sh "$KILLS" > build/kill-test.out 2> build/kill-facts.txt
   tail -1 build/kill-test.out | sed 's/^/   /'
 fi
 [ -f build/kill-facts.txt ] && cat build/kill-facts.txt >> build/facts.txt

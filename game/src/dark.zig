@@ -761,14 +761,17 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
         const reach = ring.age * world_mod.dt * world_mod.sound_speed;
         const fade = std.math.clamp(1.0 - reach / w.ring_reach, 0.0, 1.0);
         const tint = col8(if (ring.own) bone else teal, 0.85 * fade * fade);
+        const is_air = ring.y > 0.0;
+        const ring_y = if (is_air) ring.ground + ring.y + 0.2 else 0.05;
+        const hw: f32 = if (is_air) -1.5 else 1.5;
         const parts = 64;
         for (0..parts) |k| {
             const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, parts));
             const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, parts));
             out[n] = .{
-                .a = .{ ring.x + reach * @cos(a0), 0.05, ring.z + reach * @sin(a0) },
-                .b = .{ ring.x + reach * @cos(a1), 0.05, ring.z + reach * @sin(a1) },
-                .half_width = 1.5,
+                .a = .{ ring.x + reach * @cos(a0), ring_y, ring.z + reach * @sin(a0) },
+                .b = .{ ring.x + reach * @cos(a1), ring_y, ring.z + reach * @sin(a1) },
+                .half_width = hw,
                 .body = 0.0,
                 .col = tint,
             };
@@ -918,27 +921,13 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
             }
         }
         // in the air, a faint ring on the ground under it, smaller the higher it is, so its height
-        // can be judged; gliding, its sail: two lines of light out from its sides, up and back
+        // can be judged
         if (w.airborne) {
             const r = 0.55 / (1.0 + w.hum_y * 0.15);
             for (0..12) |k| {
                 const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 12.0);
                 const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 12.0);
                 out[n] = .{ .a = .{ w.hum_x + r * @cos(a0), 0.05, w.hum_z + r * @sin(a0) }, .b = .{ w.hum_x + r * @cos(a1), 0.05, w.hum_z + r * @sin(a1) }, .half_width = 1.2, .body = 0.0, .col = col8(bone, 0.35) };
-                n += 1;
-            }
-        }
-        if (w.gliding) {
-            const fx = @sin(w.hum_face);
-            const fz = -@cos(w.hum_face);
-            const sx = fz;
-            const sz = -fx;
-            const mid = 0.52 + w.hum_y + 0.2;
-            for ([2]f32{ -1.0, 1.0 }) |side| {
-                const wing = [3]f32{ w.hum_x + sx * side * 1.6 - fx * 0.5, mid + 0.45, w.hum_z + sz * side * 1.6 - fz * 0.5 };
-                out[n] = .{ .a = .{ w.hum_x, mid, w.hum_z }, .b = wing, .half_width = 1.6, .body = 0.0, .col = col8(bone, 0.8) };
-                n += 1;
-                out[n] = .{ .a = wing, .b = .{ w.hum_x - fx * 0.6, mid - 0.1, w.hum_z - fz * 0.6 }, .half_width = 1.2, .body = 0.0, .col = col8(bone, 0.5) };
                 n += 1;
             }
         }
@@ -959,6 +948,33 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
                 .half_width = 2.2,
                 .body = 0.0,
                 .col = fill,
+            };
+            n += 1;
+        }
+    }
+    // strike arc animation (GameguyPage exact groundArc)
+    if (w.strike_anim > 0.0) {
+        const reach = world_mod.knots.strike_reach * (1.0 - 0.45 * w.strike_anim);
+        const arc_parts = 16;
+        const bone3 = [3]f32{ 0.88, 0.84, 0.78 };
+        const home_hue = colour.ofNote(world_mod.garden_hz, w.home_hz);
+        const arc_col = [3]f32{
+            bone3[0] * 0.5 + home_hue[0] * 0.5,
+            bone3[1] * 0.5 + home_hue[1] * 0.5,
+            bone3[2] * 0.5 + home_hue[2] * 0.5,
+        };
+        const sweep_col = col8(arc_col, w.strike_anim);
+        const arc_y = w.hum_ground + w.hum_y + 0.15;
+        for (0..arc_parts) |k| {
+            if (n >= out.len) break;
+            const a0 = w.hum_face - 1.1 + @as(f32, @floatFromInt(k)) * (2.2 / @as(f32, arc_parts));
+            const a1 = w.hum_face - 1.1 + @as(f32, @floatFromInt(k + 1)) * (2.2 / @as(f32, arc_parts));
+            out[n] = .{
+                .a = .{ w.hum_x + reach * @sin(a0), arc_y, w.hum_z - reach * @cos(a0) },
+                .b = .{ w.hum_x + reach * @sin(a1), arc_y, w.hum_z - reach * @cos(a1) },
+                .half_width = -3.5 * w.strike_anim,
+                .body = 0.0,
+                .col = sweep_col,
             };
             n += 1;
         }
@@ -1301,7 +1317,7 @@ fn logTeaching(w: *const World) void {
         len += piece.len;
     }
     log("teaching: each breath let go from the tick, in ms (after it above nought):{s}", .{buf[0..len]});
-    log("teaching: first jump at {d:.0} s, first sprint at {d:.0} s, first glide at {d:.0} s, the wheel first opened at {d:.0} s, the place stood at {d:.0} s", .{ s.at(w.first_jump_at), s.at(w.first_sprint_at), s.at(w.first_glide_at), s.at(w.first_wheel_at), s.at(w.stand_from) });
+    log("teaching: first jump at {d:.0} s, first sprint at {d:.0} s, the wheel first opened at {d:.0} s, the place stood at {d:.0} s", .{ s.at(w.first_jump_at), s.at(w.first_sprint_at), s.at(w.first_wheel_at), s.at(w.stand_from) });
 }
 
 /// The page the songbook opens on when the moment asks for none: the last thing learned.
@@ -1723,6 +1739,13 @@ pub fn run(window: plat.Window, options: Options) bool {
                 }
                 const calls_before = world.calls;
                 const n = world.stepOnce(hands, &cues);
+                // debug: GG_ORBIT holds the view's dial at a place
+                if (c.getenv("GG_ORBIT")) |env| {
+                    const env_str = std.mem.span(env);
+                    if (std.fmt.parseFloat(f32, env_str)) |o| {
+                        world.orbit = std.math.clamp(o, -1.0, 1.0);
+                    } else |_| {}
+                }
                 // the day has just begun: keep the world as it is at its dawn
                 if (keeping and options.walk == null and world.dawn_from != world_mod.never and world.dawn_from + 1 == world.step) keepSave(options.scene);
                 if (options.scene != .dark) groundStep(&world, world.calls != calls_before);
@@ -1837,10 +1860,10 @@ pub fn run(window: plat.Window, options: Options) bool {
             // eye to Hum's middle (spec/engine.md, "What stands between the eye and Hum")
             const hum_at = [3]f32{ world.hum_x, (world.hum_ground + world.hum_y + world_mod.hum_mid) * cam.stand, world.hum_z };
             renderer.setCone(cam.eye, hum_at, cam.stand);
-            view = m.lookAt(cam.eye, cam.at, .{ 0.0, 1.0, 0.0 });
-            proj = m.perspective(cam.fov, aspect, 0.4, 9000.0);
             const fx = @sin(world.look_yaw);
             const fz = -@cos(world.look_yaw);
+            view = m.lookAt(cam.eye, cam.at, .{ 0.0, 1.0, 0.0 });
+            proj = m.perspective(cam.fov, aspect, 0.4, 9000.0);
             renderer.ground_eye = .{ eye[0], eye[2] };
             renderer.ground_look = .{ fx, fz };
             // where on the screen the horizon is, and where the sun will come up
@@ -1853,8 +1876,10 @@ pub fn run(window: plat.Window, options: Options) bool {
             while (turn < -std.math.pi) turn += 2.0 * std.math.pi;
             const across: f32 = if (@abs(turn) < 1.3) 0.5 + @tan(turn) / (2.0 * @tan(half) * aspect) else 9.0;
             renderer.dawn = .{ across, 0.5 - @tan(pitch) / (2.0 * @tan(half)) };
-            const glow = [3]f32{ 0.16, 0.10, 0.075 };
-            renderer.sky = .{ glow[0] * sky_level, glow[1] * sky_level, glow[2] * sky_level };
+            // Dawn sky glow: warm amber/rose horizon over the lake, clearly noticeable
+            const glow = [3]f32{ 0.32, 0.22, 0.16 };
+            const wheel_dim: f32 = if (world.wheel_open) 0.68 else 1.0;
+            renderer.sky = .{ glow[0] * sky_level * wheel_dim, glow[1] * sky_level * wheel_dim, glow[2] * sky_level * wheel_dim };
             // each aster at the detail its distance asks for, picked again every twenty metres
             const moved_x = eye[0] - picked_x;
             const moved_z = eye[2] - picked_z;
@@ -1909,8 +1934,6 @@ pub fn run(window: plat.Window, options: Options) bool {
             pools_to = moving_n;
             maker_ms[3] += plat.now() - t0;
             t0 = plat.now();
-            moving_n += aster_lines.wheelLines(&world, moving[moving_n..]);
-            moving_n += aster_lines.swellLines(&world, moving[moving_n..]);
             moving_n += aster_lines.knotLines(&world, eye, moving[moving_n..]);
             moving_n += aster_lines.ghostLines(&world, moving[moving_n..]);
             moving_n += aster_lines.clapLines(&world, moving[moving_n..]);
@@ -1931,6 +1954,18 @@ pub fn run(window: plat.Window, options: Options) bool {
             lines.lift(moving[pools_to..moving_n], &world_mod.ground.heightAt);
         }
         maker_ms[7] += plat.now() - t1;
+
+        // Top-level pass: circle of fifths (wheel) & swell lines are always drawn on top of
+        // all world geometry and foliage so they are never occluded or buried
+        var top_from: u32 = 0;
+        var top_count: u32 = 0;
+        if (options.scene != .dark and (world.wheel_open or world.singing)) {
+            top_from = @intCast(moving_n);
+            moving_n += aster_lines.wheelLines(&world, moving[moving_n..]);
+            moving_n += aster_lines.swellLines(&world, moving[moving_n..]);
+            top_count = @intCast(moving_n - top_from);
+        }
+        renderer.setTop(top_from, top_count);
         moving_most = @max(moving_most, moving_n);
         most_lines = @max(most_lines, picked.lines + moving_n);
         parts[2] = (plat.now() - began) * 1000.0;
