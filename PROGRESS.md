@@ -3,7 +3,23 @@
 Where the build stands, so a new session can pick it up. Newest first. The plan is in `SPEC.md`,
 section 20, and `spec/stages.md`.
 
-## Now: Piece 3 — The Strike (2026-11-23)
+## Now: Piece 4 — The Wheel as the True Circle of Fifths (2026-11-23)
+
+Work order Piece 4: Concentric Circle of Fifths with Outer Major & Inner Relative Minor Rings, Deflection Cursor, Audio Preview, and 68% Background Dim.
+
+| piece | state |
+|---|---|
+| Outer Major Ring | done: 12 Major keys (F, C, G, D, A, E, B, F#, Db, Ab, Eb, Bb) displayed around circumference at outer radius |
+| Inner Relative Minor Ring | done: 12 Relative Minor keys (Dm, Am, Em, Bm, F#m, C#m, G#m, D#m, Bbm, Fm, Cm, Gm) at $k+3$ displayed on inner concentric ring |
+| Stick Deflection Cursor | done: half deflection ($0.55 \le r < 0.72$) selects inner relative minor ring; full deflection ($r \ge 0.72$) selects outer major ring |
+| Home Commit | done: releasing R1 commits home to relative minor root wedge $eff\_k = foldWedge(k + 3)$ when inner ring selected, or major root $k$ on outer ring; updates home pitch and triad quality (subsequent strikes cycle minor vs major triad) |
+| Audio Preview & Clicks | done: entering awake wedge gives pitch click at `wedgeHz(day_hz, eff_k) * 2.0` (dull skin knock if asleep); resting on awake wedge hums preview pitch under Hum's breath |
+| 68% Background Dim | done: `wheel_dim = 0.68` dims sky, things, and ground cover while wheel is open |
+| Draw on Top | done: wheel lines rendered in top pass (`renderer.setTop`) over all terrain and geometry |
+| Verification | done: all 102 unit tests pass, including dedicated Piece 4 circle of fifths deflection cursor & minor/major commit test |
+| Handheld build & push | built `aarch64` binary and deployed to purple R36S unit 164 (`10.36.164.1`) |
+
+## Piece 3 — The Strike (2026-11-23)
 
 Work order Piece 3: Wholesale port of GameguyPage strike (`toys/page/src/main.zig` and `toys/wheel/src/world.zig`).
 

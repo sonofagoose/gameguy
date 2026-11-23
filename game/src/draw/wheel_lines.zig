@@ -168,12 +168,15 @@ pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
     var k: i8 = -6;
     while (k <= 5) : (k += 1) {
         const awake = w.isAwake(k);
+        const minor_k = world_mod.foldWedge(k + 3);
+        const minor_awake = w.isAwake(minor_k);
         const pointed = if (w.wheel_point) |p| p == k else false;
         const a = @as(f32, @floatFromInt(k)) * (std.math.pi / 6.0);
         const d = Line.way(fx, fz, rx, rz, a);
         const note_hz = world_mod.wedgeHz(w.day_hz, k);
         const tint = colour.ofNote(world_mod.garden_hz, note_hz);
-        const minor_tint = colour.ofNote(world_mod.garden_hz, note_hz * 5.0 / 6.0);
+        const minor_hz = world_mod.wedgeHz(w.day_hz, minor_k);
+        const minor_tint = colour.ofNote(world_mod.garden_hz, minor_hz);
         const sel_inner = pointed and w.wheel_minor;
         const sel_outer = pointed and !w.wheel_minor;
 
@@ -187,9 +190,9 @@ pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
         // Inner/outer dividing circle arc (mid_r)
         const a_next = @as(f32, @floatFromInt(k + 1)) * (std.math.pi / 6.0);
         const d_next = Line.way(fx, fz, rx, rz, a_next);
-        const div_col = if (awake) col8(tint, if (pointed) 0.7 else 0.3) else col8(cool, 0.15);
+        const div_col = if (awake or minor_awake) col8(tint, if (pointed) 0.7 else 0.3) else col8(cool, 0.15);
         if (n < out.len) {
-            out[n] = .{ .a = .{ cx + d[0] * mid_r, y, cz + d[1] * mid_r }, .b = .{ cx + d_next[0] * mid_r, y, cz + d_next[1] * mid_r }, .half_width = if (pointed and awake) 2.0 else 1.0, .body = 0.0, .col = div_col };
+            out[n] = .{ .a = .{ cx + d[0] * mid_r, y, cz + d[1] * mid_r }, .b = .{ cx + d_next[0] * mid_r, y, cz + d_next[1] * mid_r }, .half_width = if (pointed and (awake or minor_awake)) 2.0 else 1.0, .body = 0.0, .col = div_col };
             n += 1;
         }
 
@@ -201,7 +204,7 @@ pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
         }
 
         // Concentric inner perimeter arc (inner_r)
-        const inner_col = if (awake) (if (sel_inner) col8(minor_tint, 1.0) else col8(minor_tint, 0.35)) else col8(cool, 0.15);
+        const inner_col = if (minor_awake) (if (sel_inner) col8(minor_tint, 1.0) else col8(minor_tint, 0.35)) else col8(cool, 0.15);
         if (n < out.len) {
             out[n] = .{ .a = .{ cx + d[0] * inner_r, y, cz + d[1] * inner_r }, .b = .{ cx + d_next[0] * inner_r, y, cz + d_next[1] * inner_r }, .half_width = if (sel_inner) 2.2 else 1.0, .body = 0.0, .col = inner_col };
             n += 1;
@@ -217,13 +220,14 @@ pub fn wheelLines(w: *const world_mod.World, out: []Inst) usize {
         drawLabel(cx, y, cz, d_mid, (mid_r + outer_r) * 0.5, labels.major, if (sel_outer) 1.5 else 1.2, maj_col, out, &n);
 
         // Inner Minor Key Label
-        const min_col = if (awake) (if (sel_inner) col8([3]f32{ 1.0, 1.0, 1.0 }, 1.0) else col8(minor_tint, 0.65)) else col8(cool, 0.25);
+        const min_col = if (minor_awake) (if (sel_inner) col8([3]f32{ 1.0, 1.0, 1.0 }, 1.0) else col8(minor_tint, 0.65)) else col8(cool, 0.25);
         drawLabel(cx, y, cz, d_mid, (inner_r + mid_r) * 0.5, labels.minor, if (sel_inner) 1.2 else 0.9, min_col, out, &n);
 
         // Cursor spoke if pointed
-        if (pointed and awake) {
+        const eff_awake = if (w.wheel_minor) minor_awake else awake;
+        if (pointed and eff_awake) {
             const cursor_r = if (w.wheel_minor) mid_r else outer_r;
-            const cursor_col = if (w.wheel_minor) col8(minor_tint, 0.95) else col8(tint, 0.95);
+            const cursor_col = if (w.wheel_minor) (if (sel_inner) col8([3]f32{ 1.0, 1.0, 1.0 }, 1.0) else col8(minor_tint, 0.95)) else (if (sel_outer) col8([3]f32{ 1.0, 1.0, 1.0 }, 1.0) else col8(tint, 0.95));
             if (n < out.len) {
                 out[n] = .{ .a = .{ cx + d_mid[0] * inner_r, y, cz + d_mid[1] * inner_r }, .b = .{ cx + d_mid[0] * cursor_r, y, cz + d_mid[1] * cursor_r }, .half_width = 2.4, .body = 0.0, .col = cursor_col };
                 n += 1;

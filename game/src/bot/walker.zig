@@ -270,8 +270,8 @@ pub const Walker = struct {
         const sy = @sin(w.stick_yaw);
         h.lx = @intFromFloat(110.0 * (cy * dx / far + sy * dz / far));
         h.ly = @intFromFloat(110.0 * (-sy * dx / far + cy * dz / far));
-        // the hose across the way: jump it, as a person would
-        if (w.at_hose and !w.airborne and w.step % 2 == 0) h.buttons |= Hands.jump;
+        // the hose across the way: jump it, as a person would (hold jump through upward arc)
+        if (w.at_hose or (w.airborne and w.hum_vy > 0.0)) h.buttons |= Hands.jump;
         return far;
     }
 
@@ -740,6 +740,7 @@ test "through the whole first evening every thing and every ring keeps the groun
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
     w.initEvening();
+    w.knot_count = world_mod.land.knots.len;
     var bot = Walker{};
     var cues: [world_mod.max_cues]@import("../sound/sound.zig").Cue = undefined;
     var moved_bee = false;

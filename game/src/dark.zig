@@ -1849,6 +1849,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             loud[1] = shine(0.0, sky_level, 1.0, 1.0);
             // before the dawn's edge reaches a place, the sky's own light falls on it faintly
             const twilight = 0.4 * sky_level;
+            const wheel_dim: f32 = if (world.wheel_open) 0.68 else 1.0;
             const rung_end = if (world.rung_first == world_mod.no_thing) 0 else world.rung_first + world_mod.rungs;
             for (world.things[0..world.thing_count], 0..) |thing, i| {
                 const body = aster_lines.thing_body + i;
@@ -1861,7 +1862,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                 const dim: f32 = if (thing.sounds) 0.30 else 0.26;
                 const own: f32 = if (thing.sounds) thing.loud else 0.0;
                 if (thing.sounds) brightest = @max(brightest, World.light(thing));
-                loud[body] = shine(own, @max(dim * day, thing.lit * 0.55), spread[body], 0.9);
+                loud[body] = shine(own * wheel_dim, @max(dim * day, thing.lit * 0.55) * wheel_dim, spread[body], 0.9);
             }
             // the ground's cover, a square at a time: the day where the dawn has reached it, and
             // the edge of any ring crossing it, given back as its cover gives
@@ -1881,7 +1882,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                     const fall = 1.0 - behind / 110.0;
                     band = @max(band, fall * fall);
                 }
-                loud[aster_lines.cover_body + cell] = shine(0.0, @max(world.dayAt(cx, cz), twilight) + band * 1.6, 1.0, aster_lines.coverGives(aster_lines.coverAt(cx, cz)));
+                loud[aster_lines.cover_body + cell] = shine(0.0, (@max(world.dayAt(cx, cz), twilight) + band * 1.6) * wheel_dim, 1.0, aster_lines.coverGives(aster_lines.coverAt(cx, cz)));
             }
             // debug: GG_ORBIT holds the view's dial at a place
             if (c.getenv("GG_ORBIT")) |env| {
@@ -1916,7 +1917,6 @@ pub fn run(window: plat.Window, options: Options) bool {
             renderer.dawn = .{ across, 0.5 - tan_pitch / (2.0 * @tan(half)) };
             // Dawn sky glow: warm amber/rose horizon over the lake, clearly noticeable
             const glow = [3]f32{ 0.32, 0.22, 0.16 };
-            const wheel_dim: f32 = if (world.wheel_open) 0.68 else 1.0;
             if (cam.stand < 0.5 or pitch < -1.2) {
                 renderer.sky = .{ 0.0, 0.0, 0.0 };
             } else {

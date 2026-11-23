@@ -301,15 +301,21 @@ pub const lit_most: i8 = 5;
 /// note, in the order of the wedges: F, C, G, D, A, E, B for a day on C.
 const pure_lit = [7]f32{ 4.0 / 3.0, 1.0, 3.0 / 2.0, 9.0 / 8.0, 5.0 / 3.0, 5.0 / 4.0, 15.0 / 8.0 };
 
+/// Fold a circle of fifths index into [-6, 5].
+pub fn foldWedge(k: i8) i8 {
+    var f: i32 = k;
+    while (f > 5) f -= 12;
+    while (f < -6) f += 12;
+    return @intCast(f);
+}
+
 /// The wedge a direction of the right stick points at. The day's note is at the top, the sharp
 /// side to the right and the flat side to the left, a twelfth of a turn for each fifth; the five
 /// dark wedges are under the horizon. Up on the stick is negative y.
 pub fn wedgeAt(rx: f32, ry: f32) i8 {
     const turn = std.math.atan2(rx, -ry); // 0 at the top, clockwise
-    var k: i32 = @intFromFloat(@round(turn / (std.math.pi / 6.0)));
-    if (k > 5) k -= 12;
-    if (k < -6) k += 12;
-    return @intCast(k);
+    const k: i32 = @intFromFloat(@round(turn / (std.math.pi / 6.0)));
+    return foldWedge(@intCast(k));
 }
 
 /// The lit wedge a note falls on, in fifths from the day's note, by its pitch class; a note off the
@@ -880,6 +886,7 @@ pub const World = struct {
     jumps: u32 = 0,
     landed_at: u64 = 0,
     wheel_minor: bool = false,
+    wheel_minor_was: bool = false,
     strike_anim: f32 = 0.0,
     strike_count: u32 = 0,
     /// Hum is against the hose (the scripted player jumps it), and was the step before: a touch
@@ -3870,34 +3877,49 @@ pub const World = struct {
                     while (off < -std.math.pi) off += 2.0 * std.math.pi;
                     if (@abs(off) < std.math.pi / 12.0 + wheel_hold) k = was;
                 }
-                if (self.wheel_point == null or self.wheel_point.? != k) {
+                const changed = (self.wheel_point == null or self.wheel_point.? != k or self.wheel_minor_was != self.wheel_minor);
+                if (changed) {
                     self.wheel_point = k;
+                    self.wheel_minor_was = self.wheel_minor;
                     self.wheel_point_since = self.step;
                     self.stopPreview();
+                    const eff_k = if (self.wheel_minor) foldWedge(k + 3) else k;
                     // entering a wedge: a soft click in its note if its mood is awake, a dull knock
                     // with no pitch if it sleeps
-                    if (self.isAwake(k)) {
-                        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = wedgeHz(self.day_hz, k) * 2.0, .strength = 0.05, .ring = 0.12 }, .glow));
+                    if (self.isAwake(eff_k)) {
+                        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = wedgeHz(self.day_hz, eff_k) * 2.0, .strength = 0.05, .ring = 0.12 }, .glow));
                     } else {
                         self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = garden_hz * 0.5, .strength = 0.04, .ring = 0.04 }, .dims));
                     }
                 }
                 // resting on an awake wedge that is not home: Hum hums it under its breath
-                if (self.previewing == null and k != self.home_k and self.isAwake(k) and self.step >= self.wheel_point_since + preview_after) {
-                    self.previewing = k;
-                    self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = preview_voice, .hz = wedgeHz(self.day_hz, k), .strength = preview_strength * hum_strength, .ring = 0.0 }, .swell));
+                const eff_k = if (self.wheel_minor) foldWedge(k + 3) else k;
+                if (self.previewing == null and eff_k != self.home_k and self.isAwake(eff_k) and self.step >= self.wheel_point_since + preview_after) {
+                    self.previewing = eff_k;
+                    self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = preview_voice, .hz = wedgeHz(self.day_hz, eff_k), .strength = preview_strength * hum_strength, .ring = 0.0 }, .swell));
+                }
+            } else {
+                if (self.wheel_point != null) {
+                    self.wheel_point = null;
+                    self.wheel_minor = false;
+                    self.wheel_minor_was = false;
+                    self.stopPreview();
                 }
             }
             return;
         }
         self.stopPreview();
         // let go: home goes where the stick pointed, if that mood is awake
+        // Committing on the inner ring moves home to the relative minor's root wedge, k+3 (Piece 4)
         if (self.wheel_point) |k| {
+            const eff_k = if (self.wheel_minor) foldWedge(k + 3) else k;
             const was = self.home_k;
-            if (self.moveHome(k) and k != was) self.spend(step_costs);
+            if (self.moveHome(eff_k) and eff_k != was) self.spend(step_costs);
         }
         self.wheel_open = false;
         self.wheel_point = null;
+        self.wheel_minor = false;
+        self.wheel_minor_was = false;
     }
 
     /// The preview's breath ends.
@@ -5568,6 +5590,75 @@ test "the strike pitch and chord triad are tied to the R1-selected circle of fif
     var d_fork5: f32 = 0.0;
     for (cues[0..n]) |c| if (c.kind == .strike) { d_fork5 = c.hz; };
     try std.testing.expectApproxEqAbs(d_hz * 2.0 * 1.2, d_fork5, 0.1);
+}
+
+test "Piece 4: circle of fifths wheel cursor deflection, inner relative minor (k+3) and outer major (k) commit" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    w.awake = 0xff; // all moods awake
+    var cues: [max_cues]sound.Cue = undefined;
+    for (0..100) |_| _ = w.stepOnce(.{}, &cues);
+    w.stand = 1.0;
+    w.hold_until = 0;
+    w.locked_at = 1;
+
+    // 1. Open wheel with R1
+    for (0..25) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    try std.testing.expect(w.wheel_open);
+
+    // 2. Half deflection (r ~ 0.63, 0.55 <= r < 0.72) pointing north (k = 0, C / Am):
+    // selects inner relative minor ring!
+    for (0..5) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 0, .ry = -80 }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.wheel_point.?);
+    try std.testing.expect(w.wheel_minor);
+
+    // Wait for preview to start
+    for (0..15) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 0, .ry = -80 }, &cues);
+    // Relative minor of C (k=0) is A minor (k=3)
+    try std.testing.expectEqual(@as(i8, 3), w.previewing.?);
+
+    // 3. Release R1: commits to relative minor root wedge k+3 = 3 (A minor)
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(!w.wheel_open);
+    try std.testing.expectEqual(@as(i8, 3), w.home_k);
+    try std.testing.expectEqual(Quality.minor, homeQuality(w.home_k));
+    try std.testing.expectApproxEqAbs(wedgeHz(w.day_hz, 3), w.home_hz, 0.1);
+
+    // 4. Open wheel again and use FULL deflection (r ~ 0.94, r >= 0.72) pointing north (k = 0, C):
+    // selects outer major ring!
+    for (0..25) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    try std.testing.expect(w.wheel_open);
+    for (0..5) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 0, .ry = -120 }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.wheel_point.?);
+    try std.testing.expect(!w.wheel_minor);
+
+    // Wait for preview
+    for (0..15) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 0, .ry = -120 }, &cues);
+    // Major key preview is C (k=0)
+    try std.testing.expectEqual(@as(i8, 0), w.previewing.?);
+
+    // 5. Release R1: commits to major key k = 0 (C major)
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(!w.wheel_open);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    try std.testing.expectEqual(Quality.major, homeQuality(w.home_k));
+    try std.testing.expectApproxEqAbs(wedgeHz(w.day_hz, 0), w.home_hz, 0.1);
+
+    // 6. Test flatward wedge: point at F (k = -1), half deflection (relative minor D minor k = 2):
+    for (0..25) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    try std.testing.expect(w.wheel_open);
+    // rx = -40, ry = -70 gives r = sqrt(1600+4900)/127 ~ 80.6/127 ~ 0.63 (half deflection)
+    for (0..5) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = -40, .ry = -70 }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.wheel_point.?);
+    try std.testing.expect(w.wheel_minor);
+
+    // Release R1: commits to D minor (k = foldWedge(-1 + 3) = 2)
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(!w.wheel_open);
+    try std.testing.expectEqual(@as(i8, 2), w.home_k);
+    try std.testing.expectEqual(Quality.minor, homeQuality(w.home_k));
+    try std.testing.expectApproxEqAbs(wedgeHz(w.day_hz, 2), w.home_hz, 0.1);
 }
 
 test "strike forward cone only hits targets in front, not behind, and auto-aims nearest target" {
