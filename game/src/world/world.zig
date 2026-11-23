@@ -5491,6 +5491,85 @@ test "the strike is a wholesale port from GameguyPage: available anytime standin
     try std.testing.expectApproxEqAbs(w.home_hz * 2.0 * 1.0, fork4, 0.1);
 }
 
+test "the strike pitch and chord triad are tied to the R1-selected circle of fifths" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    w.awake = 0xff; // all moods awake for testing circle of fifths
+    var cues: [max_cues]sound.Cue = undefined;
+    for (0..100) |_| _ = w.stepOnce(.{}, &cues);
+    w.stand = 1.0;
+    w.hold_until = 0;
+    w.locked_at = 1;
+
+    // Initial home: C (k = 0, Major quality)
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    try std.testing.expectEqual(Quality.major, homeQuality(w.home_k));
+    const c_hz = w.home_hz;
+
+    // 1. Hold R1 (Hands.call) to open the circle of fifths wheel
+    for (0..25) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    try std.testing.expect(w.wheel_open);
+    // While wheel is open, Hum cannot strike
+    try std.testing.expect(!w.canStrike());
+
+    // 2. Point right stick at wedge -1 (F, wonder)
+    for (0..10) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = -63, .ry = -110 }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.wheel_point.?);
+
+    // 3. Release R1: home moves to F (k = -1, fourth up / fifth down on circle of fifths)
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(!w.wheel_open);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expectEqual(Quality.major, homeQuality(w.home_k));
+    const f_hz = w.home_hz;
+    try std.testing.expectApproxEqAbs(c_hz * (4.0 / 3.0), f_hz, 0.1);
+
+    // Strike 1 on R1-selected key F: Root of F (f_hz * 2.0 * 1.0)
+    w.stand = 1.0;
+    try std.testing.expect(w.canStrike());
+    while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
+    var n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    var f_fork1: f32 = 0.0;
+    for (cues[0..n]) |c| if (c.kind == .strike) { f_fork1 = c.hz; };
+    try std.testing.expectApproxEqAbs(f_hz * 2.0 * 1.0, f_fork1, 0.1);
+
+    // Strike 2 on R1-selected key F: Major Third of F (f_hz * 2.0 * 1.25)
+    while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
+    n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    var f_fork2: f32 = 0.0;
+    for (cues[0..n]) |c| if (c.kind == .strike) { f_fork2 = c.hz; };
+    try std.testing.expectApproxEqAbs(f_hz * 2.0 * 1.25, f_fork2, 0.1);
+
+    // 4. Now move home via the wheel to D (k = 2, Minor quality)
+    try std.testing.expect(w.moveHome(2));
+    try std.testing.expectEqual(@as(i8, 2), w.home_k);
+    try std.testing.expectEqual(Quality.minor, homeQuality(w.home_k));
+    const d_hz = w.home_hz;
+    try std.testing.expectApproxEqAbs(c_hz * (9.0 / 8.0), d_hz, 0.1);
+
+    // Strike 3 on D (turn 2): Fifth of D (d_hz * 2.0 * 1.5)
+    while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
+    n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    var d_fork3: f32 = 0.0;
+    for (cues[0..n]) |c| if (c.kind == .strike) { d_fork3 = c.hz; };
+    try std.testing.expectApproxEqAbs(d_hz * 2.0 * 1.5, d_fork3, 0.1);
+
+    // Strike 4 on D (turn 0): Root of D (d_hz * 2.0 * 1.0)
+    while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
+    n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    var d_fork4: f32 = 0.0;
+    for (cues[0..n]) |c| if (c.kind == .strike) { d_fork4 = c.hz; };
+    try std.testing.expectApproxEqAbs(d_hz * 2.0 * 1.0, d_fork4, 0.1);
+
+    // Strike 5 on D (turn 1): MINOR Third of D (d_hz * 2.0 * 1.2 - minor 3rd for minor key!)
+    while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
+    n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    var d_fork5: f32 = 0.0;
+    for (cues[0..n]) |c| if (c.kind == .strike) { d_fork5 = c.hz; };
+    try std.testing.expectApproxEqAbs(d_hz * 2.0 * 1.2, d_fork5, 0.1);
+}
+
 test "strike forward cone only hits targets in front, not behind, and auto-aims nearest target" {
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
