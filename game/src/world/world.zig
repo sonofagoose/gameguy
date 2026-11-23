@@ -1818,18 +1818,15 @@ pub const World = struct {
             if (self.threatened()) self.dodge() else self.dash();
         }
 
-        // the left face strikes with Hum's fork (SPEC.md 10)
-        // the left face strikes: timed by the hands near the beat, at once and fuller; otherwise the
-        // game places it on the next beat
+        // the left face strikes with Hum's fork (SPEC.md 10):
+        // fires at once on press with zero input delay. Timed strikes near the beat ring fuller
+        // with fork_octave and bonus drain; untimed strikes ring plain fork immediately.
         if (self.canStrike() and pressed & Hands.strike != 0) {
             const at = self.beatAt(hands.stamp);
             const in_pocket = self.step < self.pocket_until;
-            if (in_pocket or at.from_beat <= self.widen(strike_window)) {
-                self.strike_due = never;
-                self.strike(at.pos, true);
-            } else if (self.strike_due == never) {
-                self.strike_due = at.next_beat;
-            }
+            const timed = in_pocket or at.from_beat <= self.widen(strike_window);
+            self.strike_due = never;
+            self.strike(at.pos, timed);
         }
         // a placed strike lands on its beat, on the sample the beat falls
         if (self.strike_due != never) self.placedStrike(now_sample);
@@ -2478,8 +2475,8 @@ pub const World = struct {
         const fork = self.home_hz * strike_over * ratios[turn % 3];
 
         // timed: its note with its octave and a brighter light, which the hands may already have
-        // started; placed: its note alone, on the beat
-        self.own_now = if (timed) sound.own_strike else sound.own_only;
+        // started; untimed: its note alone, plain, both starting at once on press
+        self.own_now = sound.own_strike;
         self.tell(.hum, cues_mod.Cue.of(.{
             .kind = .strike,
             .family = if (timed) .fork_octave else .fork,
@@ -5411,7 +5408,7 @@ test "out of the pocket the afterimage lands softer each bar, and is gone" {
     try std.testing.expectEqual(@as(u8, 0), w.layer_n);
 }
 
-test "a strike timed within an eighth of a beat lands at once with its octave; off the beat the game places it on the next beat, plain" {
+test "a strike timed within an eighth of a beat lands at once with its octave; off the beat it lands at once, plain" {
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
     w.initAsters();
@@ -5428,34 +5425,16 @@ test "a strike timed within an eighth of a beat lands at once with its octave; o
         if (cue.own == sound.own_strike and cue.family == .fork_octave) fuller = true;
     }
     try std.testing.expect(fuller);
-    // a quarter of a beat after a beat: off it, so the game places it on the next beat
+    // a quarter of a beat after a beat: off it, so it lands at once without delay, plain
     while (w.clock % tick_every != tick_every / 4) _ = w.stepOnce(.{}, &cues);
-    _ = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
-    try std.testing.expectEqual(@as(u32, 0), w.placed_strikes);
-    const due = w.strike_due;
-    try std.testing.expectEqual(@as(u64, 0), due % tick_every);
-    // it lands in the step its beat falls in, its note alone, sent for the sample the beat falls on
-    var landed = false;
-    step = 0;
-    while (!landed and step < 2 * tick_every) : (step += 1) {
-        const was = w.clock;
-        n = w.stepOnce(.{}, &cues);
-        if (w.placed_strikes == 1) {
-            landed = true;
-            try std.testing.expect(was <= due and w.clock >= due);
-        }
-    }
-    try std.testing.expect(landed);
+    n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    try std.testing.expectEqual(@as(u32, 1), w.placed_strikes);
+    try std.testing.expectEqual(never, w.strike_due);
     var plain = false;
-    step = 0;
-    while (step < 4) : (step += 1) {
-        for (cues[0..n]) |cue| {
-            if (cue.own == sound.own_only and cue.family == .fork) plain = true;
-        }
-        n = w.stepOnce(.{}, &cues);
+    for (cues[0..n]) |cue| {
+        if (cue.own == sound.own_strike and cue.family == .fork) plain = true;
     }
     try std.testing.expect(plain);
-    try std.testing.expectEqual(never, w.strike_due);
 }
 
 test "the strike is a wholesale port from GameguyPage: available anytime standing, cycles home chord triad" {

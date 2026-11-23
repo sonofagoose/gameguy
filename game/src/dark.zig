@@ -225,10 +225,18 @@ fn noteStrike(cue: sound_mod.Cue) void {
 }
 
 /// Hum's timed strike as the hands start it: the same sound the world tells for it.
-fn strikeCue(home: f32, count: u32, home_k: i8) sound_mod.Cue {
+fn strikeCue(home: f32, count: u32, home_k: i8, timed: bool) sound_mod.Cue {
     const ratios = world_mod.chordRatios(world_mod.homeQuality(home_k));
     const fork = home * world_mod.strike_over * ratios[count % 3];
-    return .{ .at = 0, .kind = .strike, .family = .fork_octave, .own = sound_mod.own_strike, .hz = fork, .gain = world_mod.strike_strength * world_mod.voice_level, .ring = world_mod.strike_ring };
+    return .{
+        .at = 0,
+        .kind = .strike,
+        .family = if (timed) .fork_octave else .fork,
+        .own = sound_mod.own_strike,
+        .hz = fork,
+        .gain = world_mod.strike_strength * world_mod.voice_level,
+        .ring = world_mod.strike_ring,
+    };
 }
 
 /// Hum's clap as the hands start it: the same sound the world tells for it.
@@ -284,14 +292,16 @@ fn handsNow() void {
                 own_hum_at = began;
                 break :blk began;
             },
-            // the left face: inside the beat's window it is a strike timed by the hands, fuller and at
-            // once; outside it the world places it on the next beat
+            // the left face strikes with Hum's fork (SPEC.md 10):
+            // fires at once on press with low kernel latency (~2 ms);
+            // timed inside the beat's window plays fork_octave, outside plays plain fork.
             .strike_down => blk: {
                 const b = beats[@atomicLoad(u32, &beat_now, .acquire)];
-                if (!timedNow(snd.sample)) break :blk snd.sample;
+                if (!b.can_strike) break :blk snd.sample;
                 const strike_idx = @atomicLoad(u32, &hands_strikes, .monotonic);
                 @atomicStore(u32, &hands_strikes, strike_idx + 1, .monotonic);
-                break :blk snd.ownNow(strikeCue(home, strike_idx, b.home_k));
+                const timed = timedNow(snd.sample);
+                break :blk snd.ownNow(strikeCue(home, strike_idx, b.home_k, timed));
             },
             else => snd.sample,
         };
@@ -762,6 +772,7 @@ fn movingLines(w: *const World, cam_stand: f32, eye: m.V3, out: []lines.Inst) us
     var n: usize = 0;
     for (w.rings) |ring| {
         if (!ring.live) continue;
+        if (ring.wave_more > 0.0) continue; // strikes do not draw call rings
         const reach = ring.age * world_mod.dt * world_mod.sound_speed;
         const fade = std.math.clamp(1.0 - reach / w.ring_reach, 0.0, 1.0);
         const tint = col8(if (ring.own) bone else teal, 0.85 * fade * fade);
@@ -1862,6 +1873,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                 var band: f32 = 0.0;
                 for (world.rings) |ring| {
                     if (!ring.live) continue;
+                    if (ring.wave_more > 0.0) continue; // strikes do not illuminate call bands
                     const dx = cx - ring.x;
                     const dz = cz - ring.z;
                     const behind = ring.age * world_mod.dt * world_mod.sound_speed - @sqrt(dx * dx + dz * dz);

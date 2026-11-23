@@ -11,12 +11,12 @@ Work order Piece 3: Wholesale port of GameguyPage strike (`toys/page/src/main.zi
 |---|---|
 | Open-world availability | done: strike active anytime standing in world (`stand >= 1.0`), never gated behind threats or combat |
 | Cycling triad chord progression | done: strikes cycle musically through home's triad (Root 1.0 -> Third 1.25/1.2 -> Fifth 1.5 -> Root) |
-| Timed strike & zero latency | done: beat window lands at once with full fork octave overtone (`.fork_octave`), Hum lights bright, started on sound thread with 0 ms kernel latency |
-| Placed strike | done: off-beat strike queues to beat, landing plain (`.fork`) on sample |
+| Timed & untimed strikes | done: zero input delay; both timed strikes (near beat, fork_octave overtone, brighter glow, 1.25× damage) and untimed strikes (plain fork, 1.0× damage) fire instantly on Y press with ~2 ms kernel latency on the sound thread; no delayed queuing to next beat |
+| Removed call circle on strike | done: 360° call circle and ground band illumination suppressed on strike; visual response is strictly the forward ground arc sweep (`strikeLines`) |
 | Auto-aim & forward cone | done: auto-faces nearest target within 1.5× reach; forward cone (138° arc, cos(69°) ~ 0.36) hits only targets in front |
 | Ground arc sweep animation | done: GameguyPage `groundArc` (16 segments, 126° arc, 3.5 px width, bone + home hue) sweeps 4.95m to 9.0m over 0.2s in place & page views |
-| Verification | done: unit tests pass for open-world strike, triad cycling, forward cone filtering, placed/timed strike, and sound cues |
-| Handheld build & push | ready for push to purple unit 164 |
+| Verification | done: all 8 strike unit tests pass (open-world strike, triad cycling, forward cone filtering, instant timed/untimed strikes, shockwave carries, pocket looper) |
+| Handheld build & push | built and pushed to purple unit 164 |
 
 ## Piece 2 — The Jump (2026-11-23)
 
