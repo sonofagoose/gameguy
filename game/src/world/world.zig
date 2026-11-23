@@ -26,6 +26,7 @@ pub const hose = @import("hose.zig");
 pub const reeds = @import("reeds.zig");
 pub const covers = @import("covers.zig");
 pub const home = @import("home.zig");
+pub const drip = @import("drip.zig");
 
 /// The puddles on the ground at once (pools.zig).
 pub const max_pools = pools.garden.len;
@@ -911,6 +912,7 @@ pub const World = struct {
     drip_shows: u32 = 0,
     /// After showing, Drip rests a bar before it shows again.
     drip_rest_until: u64 = 0,
+    drip_state: drip.DripState = .{},
     /// How much later than the window a breath may be let go and still count: grown by misses.
     breath_slack: u64 = 0,
     /// Where a player was held up, for the session's log: when Hum first came beside Drip, when the
@@ -1865,6 +1867,7 @@ pub const World = struct {
             self.swell_bars = 0;
             self.swell_steered = false;
             self.swell_leaned = false;
+            self.drip_state.wake();
             self.own_now = sound.own_hands;
             self.tell(.hum, cues_mod.Cue.of(humSound(self.home_hz), .swell));
             self.own_now = sound.own_world;
@@ -3775,6 +3778,8 @@ pub const World = struct {
         const dx = d.x - self.hum_x;
         const dz = d.z - self.hum_z;
         const far = @sqrt(dx * dx + dz * dz);
+        // Step Drip's physical inertia, jump response, and spring dynamics (Piece 5)
+        self.drip_state.stepPhysics(self);
         // close by, before the two have locked: the time to learn its breath
         const teaching = !self.drip_met and self.locked_at == never and far <= beside * 1.6;
         if (teaching and self.beside_first_at == never) self.beside_first_at = self.step;
@@ -3794,19 +3799,22 @@ pub const World = struct {
         if (self.ticked_at != self.clock and fromTick(self.clock) == 0 and untilTick(self.clock) == 0) {
             self.ticked_at = self.clock;
             const k = self.clock / tick_every;
-            const tick: cues_mod.Sound = if (k % 4 == 0)
+            const is_one = (k % 4 == 0);
+            const peaceful = !teaching and far > beside * 1.8 and !self.singing and !self.wheel_open and !self.threatened() and self.step >= self.hold_until and self.drip_met and self.drip_out == 0;
+            self.drip_state.onBeat(is_one, peaceful);
+            const tick: cues_mod.Sound = if (is_one)
                 .{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 4.0, .strength = tick_one_strength, .ring = tick_one_ring }
             else
                 .{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 2.0, .strength = tick_strength, .ring = tick_ring };
-            // Metronome balance: audible when keeping time is needed (teaching, singing, wheel, combat, or near faucet)
-            const near_faucet = far <= beside * 1.8;
-            const audible = (self.step >= 240 or self.drip_met) and (teaching or near_faucet or self.singing or self.wheel_open or self.threatened() or self.step < self.hold_until or !self.drip_met);
+            // Metronome balance: audible via drip_state single source of truth (Piece 5)
+            const audible = (self.step >= 240 or self.drip_met) and self.drip_state.isAudible(self, far);
             if (audible) {
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(tick, .glow));
             } else {
-                // Soft visual pulse on Hum's head cap without audio ear-fatigue while exploring
-                const glow_amt: f32 = if (k % 4 == 0) 0.35 else 0.15;
-                self.hum_light = @max(self.hum_light, glow_amt);
+                // Soft visual pulse on Hum's head cap without audio ear-fatigue while sleeping
+                if (is_one) {
+                    self.hum_light = @max(self.hum_light, 0.22);
+                }
             }
             // beside a silent Hum, with the view leaned in, it breathes on its own to show how: it
             // hums from a downbeat for three beats and lets go on the fourth tick, then rests
@@ -3856,6 +3864,7 @@ pub const World = struct {
         if (!self.wheel_open) {
             if (stood and self.call_held >= wheel_after and !self.singing and !self.winded) {
                 self.wheel_open = true;
+                self.drip_state.wake();
                 self.wheel_opens += 1;
                 if (self.first_wheel_at == never) self.first_wheel_at = self.step;
                 self.wheel_point = null;

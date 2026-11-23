@@ -17,6 +17,7 @@ const lines = @import("draw/lines.zig");
 const aster_lines = @import("draw/aster_lines.zig");
 const garden_lines = @import("draw/garden_lines.zig");
 const colour = @import("draw/colour.zig");
+const drip_lines = @import("draw/drip_lines.zig");
 const m = @import("m.zig");
 const world_mod = @import("world/world.zig");
 const sound_mod = @import("sound/sound.zig");
@@ -627,111 +628,9 @@ const bone = colour.bone;
 const teal = colour.teal;
 
 /// What the first evening adds to the picture: Drip, the ripple that shows which way its answer
-/// came from, and the figure between its voice and Hum's.
+/// came from, and the figure between its voice and Hum's (Piece 5: modularized to draw/drip_lines.zig).
 fn eveningLines(w: *const World, out: []lines.Inst) usize {
-    if (w.drip == world_mod.no_thing) return 0;
-    var n: usize = 0;
-    const drip = w.things[w.drip];
-    const drip_body: f32 = @floatFromInt(aster_lines.thing_body + w.drip);
-    // Drip's lead: on each bar's one a ripple of light runs out along the ground from Hum toward
-    // the next thing, in Drip's colour, fading as it goes
-    if (w.drip_met and w.lead_step > 0 and w.step >= w.lead_step and w.step - w.lead_step < 60) {
-        const f = @as(f32, @floatFromInt(w.step - w.lead_step)) / 60.0;
-        const way = std.math.atan2(w.lead_z - w.hum_z, w.lead_x - w.hum_x);
-        for (0..3) |wave| {
-            const d = 3.0 + 16.0 * f + @as(f32, @floatFromInt(wave)) * 2.5;
-            const alpha = (1.0 - f) * (0.75 - 0.2 * @as(f32, @floatFromInt(wave)));
-            for (0..6) |k| {
-                if (n >= out.len) return n;
-                const a0 = way + (@as(f32, @floatFromInt(k)) - 3.0) * 0.07;
-                const a1 = a0 + 0.07;
-                out[n] = .{ .a = .{ w.hum_x + d * @cos(a0), 0.08, w.hum_z + d * @sin(a0) }, .b = .{ w.hum_x + d * @cos(a1), 0.08, w.hum_z + d * @sin(a1) }, .half_width = 1.8, .body = 0.0, .col = col8(teal, alpha) };
-                n += 1;
-            }
-        }
-    }
-    if (w.drip_met) {
-        // riding on Hum's head: a drop 40 cm across, which never finished falling
-        const rx = @cos(w.look_yaw);
-        const rz = @sin(w.look_yaw);
-        const tint = col8(teal, 0.95);
-        for (0..8) |k| {
-            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 8.0);
-            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 8.0);
-            // round below, drawn up to a point above
-            const s0 = @sin(a0);
-            const s1 = @sin(a1);
-            const narrow0: f32 = if (s0 > 0.0) 1.0 - 0.75 * s0 * s0 else 1.0;
-            const narrow1: f32 = if (s1 > 0.0) 1.0 - 0.75 * s1 * s1 else 1.0;
-            const tall0: f32 = if (s0 > 0.0) 1.7 else 1.0;
-            const tall1: f32 = if (s1 > 0.0) 1.7 else 1.0;
-            const r0 = 0.2 * narrow0;
-            const r1 = 0.2 * narrow1;
-            // where Drip is: on Hum's head, or out showing the way (World.drip_out)
-            const y0 = drip.y + 0.2 * s0 * tall0;
-            const y1 = drip.y + 0.2 * s1 * tall1;
-            if (n >= out.len) return n;
-            out[n] = .{ .a = .{ drip.x + rx * r0 * @cos(a0), y0, drip.z + rz * r0 * @cos(a0) }, .b = .{ drip.x + rx * r1 * @cos(a1), y1, drip.z + rz * r1 * @cos(a1) }, .half_width = 1.4, .body = 0.0, .col = tint };
-            n += 1;
-        }
-        return n;
-    }
-    // out in the dark: a small ring on the ground that is only seen when it ticks or hums
-    for (0..8) |k| {
-        if (n >= out.len) return n;
-        const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 8.0);
-        const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 8.0);
-        out[n] = .{ .a = .{ drip.x + 0.55 * @cos(a0), 0.05, drip.z + 0.55 * @sin(a0) }, .b = .{ drip.x + 0.55 * @cos(a1), 0.05, drip.z + 0.55 * @sin(a1) }, .half_width = 2.2, .body = drip_body, .col = col8(teal, 1.0) };
-        n += 1;
-    }
-    const dx = drip.x - w.hum_x;
-    const dz = drip.z - w.hum_z;
-    const far = @sqrt(dx * dx + dz * dz);
-    // the ripple: for two seconds after its answer arrives, arcs on the ground toward it
-    if (w.answered and w.step - w.answered_at < 130 and far > 1.0) {
-        const age = @as(f32, @floatFromInt(w.step - w.answered_at)) / 130.0;
-        const way = std.math.atan2(dz, dx);
-        for (0..3) |arc| {
-            const r = 3.0 + 2.2 * @as(f32, @floatFromInt(arc)) + age * 2.0;
-            const tint = col8(teal, (1.0 - age) * (0.9 - 0.2 * @as(f32, @floatFromInt(arc))));
-            for (0..6) |k| {
-                if (n >= out.len) return n;
-                const a0 = way - 0.5 + @as(f32, @floatFromInt(k)) * (1.0 / 6.0);
-                const a1 = a0 + 1.0 / 6.0;
-                out[n] = .{ .a = .{ w.hum_x + r * @cos(a0), 0.05, w.hum_z + r * @sin(a0) }, .b = .{ w.hum_x + r * @cos(a1), 0.05, w.hum_z + r * @sin(a1) }, .half_width = 1.6, .body = 0.0, .col = tint };
-                n += 1;
-            }
-        }
-    }
-    // the figure between the two voices: three lobes by two, because their notes are as three
-    // to two, turning as fast as they beat. It lies on the ground between them.
-    // it is their beating, so it is there only while both sound (World.figureLight)
-    if (far < world_mod.beside * 2.0 and w.figureLight() > 0.0) {
-        const locked = w.locked_at != world_mod.never;
-        const k_true = @as(f32, @floatFromInt(w.breaths)) / @as(f32, world_mod.breaths_to_lock);
-        const tint3 = [3]f32{ teal[0] + (bone[0] - teal[0]) * k_true, teal[1] + (bone[1] - teal[1]) * k_true, teal[2] + (bone[2] - teal[2]) * k_true };
-        const shown: f32 = w.figureLight();
-        const tint = col8(tint3, shown);
-        const cx = (drip.x + w.hum_x) * 0.5;
-        const cz = (drip.z + w.hum_z) * 0.5;
-        const r = @min(1.5, far * 0.40);
-        const parts = 72;
-        const heavy: f32 = if (locked) 2.0 else 1.5;
-        for (0..parts) |k| {
-            if (n >= out.len) return n;
-            const t0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, parts));
-            const t1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, parts));
-            out[n] = .{
-                .a = .{ cx + r * @sin(3.0 * t0 + w.figure_turn), 0.06, cz + r * @sin(2.0 * t0) },
-                .b = .{ cx + r * @sin(3.0 * t1 + w.figure_turn), 0.06, cz + r * @sin(2.0 * t1) },
-                .half_width = heavy,
-                .body = 0.0,
-                .col = tint,
-            };
-            n += 1;
-        }
-    }
-    return n;
+    return drip_lines.dripLines(w, out);
 }
 
 /// The dark's things: each a stalk, a ring for a head and three spokes. Its body number is its

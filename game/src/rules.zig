@@ -21,6 +21,7 @@ test {
     _ = world.reeds;
     _ = world.covers;
     _ = world.home;
+    _ = world.drip;
     _ = @import("plat/keys.zig");
     _ = sound;
     _ = m;

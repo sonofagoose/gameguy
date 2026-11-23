@@ -3,7 +3,20 @@
 Where the build stands, so a new session can pick it up. Newest first. The plan is in `SPEC.md`,
 section 20, and `spec/stages.md`.
 
-## Now: Piece 4 — The Wheel as the True Circle of Fifths (2026-11-23)
+## Now: Piece 5 — Drip's Metronome Balance, Bar-Centric Timing & Procedural Animations (2026-11-23)
+
+Work order Piece 5: Metronome Auditory Balance, Bar-Centric Timing, Sleep/Wake Cycle, Procedural Droplet Animations, and Separation of Concerns Architecture.
+
+| piece | state |
+|---|---|
+| Separation of Concerns | done: extracted Drip domain logic into `game/src/world/drip.zig` and drawing into `game/src/draw/drip_lines.zig`; removed 104 lines of embedded drawing out of `game/src/dark.zig` |
+| Bar-Centric Timing | done: all timers/cooldowns expressed in musical Bars and Beats (1 Beat = 50 steps $\approx 72\text{ BPM}$, 1 Bar = 4 Beats = 200 steps); timing is tempo-invariant |
+| Auditory Balance & Sleep Cycle | done: Drip sleeps and silences metronome audio after 2 bars of peaceful exploration (`sleep_after_bars = 2`); wakes immediately on R2 swell, R1 wheel, or knot threat |
+| Procedural Animations | done: 16-segment living droplet contour, launch stretch ($1.35\times$), landing squash ($1.28\times$), sleeping nightcap slump, inner liquid glint, and directional guidance lean |
+| Verification | done: all 105 unit tests pass, including 3 dedicated Drip state & bar-centric timing unit tests |
+| Handheld build | done: built `gameguy-aarch64` into `dist/ports/gameguy/gameguy-aarch64`, ready for push to purple R36S unit 164 |
+
+## Piece 4 — The Wheel as the True Circle of Fifths (2026-11-23)
 
 Work order Piece 4: Concentric Circle of Fifths with Outer Major & Inner Relative Minor Rings, Deflection Cursor, Audio Preview, and 68% Background Dim.
 
