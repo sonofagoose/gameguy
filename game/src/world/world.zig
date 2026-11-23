@@ -119,8 +119,9 @@ pub const jump_air_s: f32 = 0.68;
 pub const fall_pull: f32 = 8.0 * jump_height / (jump_air_s * jump_air_s);
 pub const jump_speed: f32 = 4.0 * jump_height / jump_air_s;
 /// Variable jump: how much of the full jump speed a tap gives (the rest comes from holding).
-/// A tap-jump clears about 2.0 m (clearing the 1.8 m hose); held all the way, the full 3.0 m (SM64 × TotK standard).
-pub const jump_tap_frac: f32 = 0.78;
+/// A quick tap gives a crisp, low ~1.5 m hop for clearing low snags (about half of the full jump);
+/// holding reaches the full 3.0 m leap (SM64 × TotK standard).
+pub const jump_tap_frac: f32 = 0.66;
 /// Air steering: how much of the stick's ask the legs give in the air (generous, TotK style).
 pub const air_ease: f32 = 0.20;
 /// (Glide removed: DECISIONS.md row 146. Hum's movement is SM64 × TotK ambitious, not sailed.)
@@ -5769,8 +5770,8 @@ test "the bottom face jumps: a held jump reaches three metres, a tap-jump about 
         tap_top = @max(tap_top, w.hum_y);
     }
     try std.testing.expect(!w.airborne);
-    try std.testing.expect(tap_top < top * 0.75);
-    try std.testing.expect(tap_top > 1.8);
+    try std.testing.expect(tap_top < top * 0.60);
+    try std.testing.expect(tap_top > 1.3);
     // coyote time: stepping off an edge gives six steps where a jump still takes to the air
     for (0..10) |_| _ = w.stepOnce(.{}, &cues);
     w.airborne = true;
@@ -5821,6 +5822,8 @@ test "the hose is solid: walked at, Hum stops at its side; jumped, Hum goes over
         if (!jumped and hose.distance(w.hum_x, w.hum_z) < 4.0) {
             h.buttons = Hands.jump;
             jumped = true;
+        } else if (jumped and w.airborne) {
+            h.buttons = Hands.jump;
         }
         _ = w.stepOnce(h, &cues);
     }
@@ -5858,8 +5861,8 @@ test "the hose's coil round Drip's clearing: walked over on the page, a wall onc
         }
     }.far;
     try std.testing.expect(inside(w, cx, cz) < 10.5);
-    // a jump, walking on: over, and out of the ring
-    _ = w.stepOnce(.{ .ly = -127, .buttons = Hands.jump }, &cues);
+    // a held jump, walking on: over, and out of the ring
+    for (0..20) |_| _ = w.stepOnce(.{ .ly = -127, .buttons = Hands.jump }, &cues);
     step = 0;
     while (step < 60 * 3) : (step += 1) _ = w.stepOnce(.{ .ly = -127 }, &cues);
     try std.testing.expect(inside(w, cx, cz) > 14.0);

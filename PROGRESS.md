@@ -10,7 +10,7 @@ Work order Piece 2: SM64 by way of TotK standard jump (3.0 m height, snappy air 
 | piece | state |
 |---|---|
 | Target jump height & timing | done: `jump_height = 3.0 m`, `jump_air_s = 0.68 s` (gravity `fall_pull = 51.9 m/s²`, initial velocity `jump_speed = 17.65 m/s`) |
-| Variable jump height | done: releasing jump button early clamps upward speed (`jump_tap_frac = 0.78`), giving a ~2.0 m hop clearing the 1.8 m hose coil, while holding reaches 3.0 m |
+| Variable jump height | done: releasing jump button early clamps upward speed (`jump_tap_frac = 0.66`), giving a crisp ~1.5 m hop (50% of full jump) to clear low obstacles, while holding reaches the full 3.0 m leap (Morgan: "a little more of a dramatic difference between a quick tap and a press-and-hold") |
 | Coyote time | done: 6 steps (100 ms) window after walking off an edge (`stood_ago <= jump_late`) allowing a jump press to take flight |
 | Buffered landing jump | done: pressing jump while descending near the ground (`hum_y < 1.0 m`) buffers to `jump_wanted` and fires immediately on the touchdown frame |
 | Air steering | done: `air_ease = 0.20` generous TotK style air control |
