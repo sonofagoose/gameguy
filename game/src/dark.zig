@@ -178,13 +178,13 @@ fn followJack(step: u64) void {
 
 /// The world's beat as the main thread last left it, for the sound's thread to tell a timed strike
 /// from one the game will place: two copies, the one not being written is the one to read.
-const Beat = struct { clock: u64 = 0, part: f32 = 0.0, tempo: f32 = 1.0, at_sample: u64 = 0, can_strike: bool = false, window: f64 = world_mod.strike_window };
+const Beat = struct { clock: u64 = 0, part: f32 = 0.0, tempo: f32 = 1.0, at_sample: u64 = 0, can_strike: bool = false, window: f64 = world_mod.strike_window, home_k: i8 = 0, strike_count: u32 = 0 };
 var beats: [2]Beat = .{ .{}, .{} };
 var beat_now: u32 = 0;
 
 fn publishBeat(w: *const World) void {
     const next = (@atomicLoad(u32, &beat_now, .monotonic) + 1) % 2;
-    beats[next] = .{ .clock = w.clock, .part = w.clock_part, .tempo = w.tempo, .at_sample = w.step * world_mod.samples_per_step, .can_strike = w.canStrike(), .window = w.widen(world_mod.strike_window) };
+    beats[next] = .{ .clock = w.clock, .part = w.clock_part, .tempo = w.tempo, .at_sample = w.step * world_mod.samples_per_step, .can_strike = w.canStrike(), .window = w.widen(world_mod.strike_window), .home_k = w.home_k, .strike_count = w.strike_count };
     @atomicStore(u32, &beat_now, next, .release);
 }
 
@@ -225,8 +225,10 @@ fn noteStrike(cue: sound_mod.Cue) void {
 }
 
 /// Hum's timed strike as the hands start it: the same sound the world tells for it.
-fn strikeCue(home: f32) sound_mod.Cue {
-    return .{ .at = 0, .kind = .strike, .family = .fork_octave, .own = sound_mod.own_strike, .hz = home * world_mod.strike_over, .gain = world_mod.strike_strength * world_mod.voice_level, .ring = world_mod.strike_ring };
+fn strikeCue(home: f32, count: u32, home_k: i8) sound_mod.Cue {
+    const ratios = world_mod.chordRatios(world_mod.homeQuality(home_k));
+    const fork = home * world_mod.strike_over * ratios[count % 3];
+    return .{ .at = 0, .kind = .strike, .family = .fork_octave, .own = sound_mod.own_strike, .hz = fork, .gain = world_mod.strike_strength * world_mod.voice_level, .ring = world_mod.strike_ring };
 }
 
 /// Hum's clap as the hands start it: the same sound the world tells for it.
@@ -285,9 +287,11 @@ fn handsNow() void {
             // the left face: inside the beat's window it is a strike timed by the hands, fuller and at
             // once; outside it the world places it on the next beat
             .strike_down => blk: {
+                const b = beats[@atomicLoad(u32, &beat_now, .acquire)];
                 if (!timedNow(snd.sample)) break :blk snd.sample;
-                @atomicStore(u32, &hands_strikes, hands_strikes + 1, .monotonic);
-                break :blk snd.ownNow(strikeCue(home));
+                const strike_idx = @atomicLoad(u32, &hands_strikes, .monotonic);
+                @atomicStore(u32, &hands_strikes, strike_idx + 1, .monotonic);
+                break :blk snd.ownNow(strikeCue(home, strike_idx, b.home_k));
             },
             else => snd.sample,
         };
@@ -953,32 +957,36 @@ fn movingLines(w: *const World, cam_stand: f32, eye: m.V3, out: []lines.Inst) us
             n += 1;
         }
     }
-    // strike arc animation (GameguyPage exact groundArc)
-    if (w.strike_anim > 0.0) {
-        const reach = world_mod.knots.strike_reach * (1.0 - 0.45 * w.strike_anim);
-        const arc_parts = 16;
-        const bone3 = [3]f32{ 0.88, 0.84, 0.78 };
-        const home_hue = colour.ofNote(world_mod.garden_hz, w.home_hz);
-        const arc_col = [3]f32{
-            bone3[0] * 0.5 + home_hue[0] * 0.5,
-            bone3[1] * 0.5 + home_hue[1] * 0.5,
-            bone3[2] * 0.5 + home_hue[2] * 0.5,
+    return n;
+}
+
+/// Part of a circle in front of Hum lying on the ground, sweeping out as the strike lands (GameguyPage exact groundArc)
+pub fn strikeLines(w: *const World, out: []lines.Inst) usize {
+    if (w.strike_anim <= 0.0) return 0;
+    var n: usize = 0;
+    const reach = world_mod.knots.strike_reach * (1.0 - 0.45 * w.strike_anim);
+    const arc_parts = 16;
+    const bone3 = [3]f32{ 0.88, 0.84, 0.78 };
+    const home_hue = colour.ofNote(world_mod.garden_hz, w.home_hz);
+    const arc_col = [3]f32{
+        bone3[0] * 0.5 + home_hue[0] * 0.5,
+        bone3[1] * 0.5 + home_hue[1] * 0.5,
+        bone3[2] * 0.5 + home_hue[2] * 0.5,
+    };
+    const sweep_col = col8(arc_col, w.strike_anim);
+    const arc_y = w.hum_ground + w.hum_y + 0.15;
+    for (0..arc_parts) |k| {
+        if (n >= out.len) break;
+        const a0 = w.hum_face - 1.1 + @as(f32, @floatFromInt(k)) * (2.2 / @as(f32, arc_parts));
+        const a1 = w.hum_face - 1.1 + @as(f32, @floatFromInt(k + 1)) * (2.2 / @as(f32, arc_parts));
+        out[n] = .{
+            .a = .{ w.hum_x + reach * @sin(a0), arc_y, w.hum_z - reach * @cos(a0) },
+            .b = .{ w.hum_x + reach * @sin(a1), arc_y, w.hum_z - reach * @cos(a1) },
+            .half_width = -3.5 * w.strike_anim,
+            .body = 0.0,
+            .col = sweep_col,
         };
-        const sweep_col = col8(arc_col, w.strike_anim);
-        const arc_y = w.hum_ground + w.hum_y + 0.15;
-        for (0..arc_parts) |k| {
-            if (n >= out.len) break;
-            const a0 = w.hum_face - 1.1 + @as(f32, @floatFromInt(k)) * (2.2 / @as(f32, arc_parts));
-            const a1 = w.hum_face - 1.1 + @as(f32, @floatFromInt(k + 1)) * (2.2 / @as(f32, arc_parts));
-            out[n] = .{
-                .a = .{ w.hum_x + reach * @sin(a0), arc_y, w.hum_z - reach * @cos(a0) },
-                .b = .{ w.hum_x + reach * @sin(a1), arc_y, w.hum_z - reach * @cos(a1) },
-                .half_width = -3.5 * w.strike_anim,
-                .body = 0.0,
-                .col = sweep_col,
-            };
-            n += 1;
-        }
+        n += 1;
     }
     return n;
 }
@@ -1947,6 +1955,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             maker_ms[1] += plat.now() - t0;
             t0 = plat.now();
             moving_n += eveningLines(&world, moving[moving_n..]);
+            moving_n += strikeLines(&world, moving[moving_n..]);
             moving_n += aster_lines.sparks(&world, moving[moving_n..]);
             moving_n += aster_lines.beeLines(&world, moving[moving_n..]);
             maker_ms[2] += plat.now() - t0;

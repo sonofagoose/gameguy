@@ -3,7 +3,22 @@
 Where the build stands, so a new session can pick it up. Newest first. The plan is in `SPEC.md`,
 section 20, and `spec/stages.md`.
 
-## Now: Piece 2 — The Jump (2026-11-23)
+## Now: Piece 3 — The Strike (2026-11-23)
+
+Work order Piece 3: Wholesale port of GameguyPage strike (`toys/page/src/main.zig` and `toys/wheel/src/world.zig`).
+
+| piece | state |
+|---|---|
+| Open-world availability | done: strike active anytime standing in world (`stand >= 1.0`), never gated behind threats or combat |
+| Cycling triad chord progression | done: strikes cycle musically through home's triad (Root 1.0 -> Third 1.25/1.2 -> Fifth 1.5 -> Root) |
+| Timed strike & zero latency | done: beat window lands at once with full fork octave overtone (`.fork_octave`), Hum lights bright, started on sound thread with 0 ms kernel latency |
+| Placed strike | done: off-beat strike queues to beat, landing plain (`.fork`) on sample |
+| Auto-aim & forward cone | done: auto-faces nearest target within 1.5× reach; forward cone (138° arc, cos(69°) ~ 0.36) hits only targets in front |
+| Ground arc sweep animation | done: GameguyPage `groundArc` (16 segments, 126° arc, 3.5 px width, bone + home hue) sweeps 4.95m to 9.0m over 0.2s in place & page views |
+| Verification | done: unit tests pass for open-world strike, triad cycling, forward cone filtering, placed/timed strike, and sound cues |
+| Handheld build & push | ready for push to purple unit 164 |
+
+## Piece 2 — The Jump (2026-11-23)
 
 Work order Piece 2: SM64 by way of TotK standard jump (3.0 m height, snappy air time, variable height, coyote time, landing buffer).
 

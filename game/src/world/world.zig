@@ -77,6 +77,32 @@ pub const strike_strength: f32 = 0.6;
 pub const strike_ring: f32 = 0.5;
 pub const strike_window: f64 = @as(f64, @floatFromInt(tick_every)) / 8.0;
 pub const timed_takes: f32 = 1.25;
+
+const QualityDef = enum { major, minor, diminished };
+pub const Quality = QualityDef;
+
+/// The chord quality on each lit wedge: major for F, C, G; diminished for B; minor for D, A, E.
+fn homeQualityFn(k: i8) QualityDef {
+    var folded: i8 = k;
+    while (folded > 5) folded -= 12;
+    while (folded < -6) folded += 12;
+    return switch (folded) {
+        -1, 0, 1 => .major,
+        5 => .diminished,
+        else => .minor,
+    };
+}
+pub const homeQuality = homeQualityFn;
+
+/// The three notes of home's chord, as pure ratios above home's own note (GameguyPage standard).
+fn chordRatiosFn(q: QualityDef) [3]f32 {
+    return switch (q) {
+        .major => .{ 1.0, 1.25, 1.5 },
+        .minor => .{ 1.0, 1.2, 1.5 },
+        .diminished => .{ 1.0, 1.2, 1.4 },
+    };
+}
+pub const chordRatios = chordRatiosFn;
 /// Gentle widens every window of timing by one sum (SPEC.md 10: "Gentle widens the timing and the
 /// ledges"): the strike's, the dodge's, a meeting's, the downbeat's and the breath's.
 pub const gentle_widens: f64 = 1.5;
@@ -855,6 +881,7 @@ pub const World = struct {
     landed_at: u64 = 0,
     wheel_minor: bool = false,
     strike_anim: f32 = 0.0,
+    strike_count: u32 = 0,
     /// Hum is against the hose (the scripted player jumps it), and was the step before: a touch
     /// sounds only as it begins.
     at_hose: bool = false,
@@ -1796,7 +1823,8 @@ pub const World = struct {
         // game places it on the next beat
         if (self.canStrike() and pressed & Hands.strike != 0) {
             const at = self.beatAt(hands.stamp);
-            if (at.from_beat <= self.widen(strike_window)) {
+            const in_pocket = self.step < self.pocket_until;
+            if (in_pocket or at.from_beat <= self.widen(strike_window)) {
                 self.strike_due = never;
                 self.strike(at.pos, true);
             } else if (self.strike_due == never) {
@@ -2361,10 +2389,9 @@ pub const World = struct {
         return if (self.fierce) base else base * gentle_widens;
     }
 
-    /// Whether Hum can strike now: standing, in the place, and facing creatures.
+    /// Whether Hum can strike now: standing, active in the world, and wheel is not open.
     pub fn canStrike(self: *const World) bool {
-        // Strike is only active when facing creatures/combat (GameguyPage standard)
-        return self.view == .place and self.stand >= 1.0 and (self.threatened() or self.knot_count > 0);
+        return self.stand >= 1.0 and !self.wheel_open;
     }
 
     pub const BeatAt = struct {
@@ -2414,8 +2441,11 @@ pub const World = struct {
     }
 
     /// A strike lands at a moment of the world's beat: timed by the hands, or placed by the game.
+    /// Wholesale port of GameguyPage strike: cycling triad chord progression, auto-facing,
+    /// forward 138-degree cone targeting, and ground arc animation.
     fn strike(self: *World, at: f64, timed: bool) void {
         self.strikes += 1;
+        self.strike_count += 1;
         if (timed) self.timed_strikes += 1 else self.placed_strikes += 1;
         const landed: u64 = @intFromFloat(@round(at));
         if (self.bar_strike_n < knots.strikes_in_a_bar) {
@@ -2440,27 +2470,48 @@ pub const World = struct {
             self.hum_face = std.math.atan2(kn.x - self.hum_x, -(kn.z - self.hum_z));
         }
         self.strike_anim = 1.0;
+
+        // The fork's own note: home's chord, one note after another (GameguyPage standard)
+        // Strike 1 = root, Strike 2 = third, Strike 3 = fifth, cycling
+        const turn = (self.strike_count - 1) % 3;
+        const ratios = chordRatios(homeQuality(self.home_k));
+        const fork = self.home_hz * strike_over * ratios[turn % 3];
+
         // timed: its note with its octave and a brighter light, which the hands may already have
         // started; placed: its note alone, on the beat
         self.own_now = if (timed) sound.own_strike else sound.own_only;
-        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = if (timed) .fork_octave else .fork, .hz = self.home_hz * strike_over, .strength = strike_strength, .ring = strike_ring }, .glow));
+        self.tell(.hum, cues_mod.Cue.of(.{
+            .kind = .strike,
+            .family = if (timed) .fork_octave else .fork,
+            .hz = fork,
+            .strength = strike_strength,
+            .ring = strike_ring,
+        }, .glow));
         self.own_now = sound.own_world;
         if (timed) self.hum_light = 1.0;
         const more: f32 = if (timed) timed_takes else 1.0;
         const bar: f64 = @floatFromInt(4 * tick_every);
+        const in_pocket = self.step < self.pocket_until;
         for (self.knots[0..self.knot_count]) |*kn| {
             if (kn.home) continue;
             const dx = kn.x - self.hum_x;
             const dz = kn.z - self.hum_z;
-            if (dx * dx + dz * dz > knots.strike_reach * knots.strike_reach) continue;
+            const d2 = dx * dx + dz * dz;
+            if (d2 > knots.strike_reach * knots.strike_reach) continue;
+            const d = @sqrt(d2);
+            // only what is in front: an arc a little wider than the one drawn (GameguyPage standard: cos(69°) ~ 0.36)
+            if (d > 1.5) {
+                const dot = (dx * @sin(self.hum_face) - dz * @cos(self.hum_face)) / d;
+                if (dot < 0.36) continue;
+            }
             const cycle = knots.cycleSteps(bar, self.home_hz, kn.root_hz);
-            const take = more * knots.drainAt(kn, @max(0.0, at - @as(f64, @floatFromInt(kn.phase_from))), cycle, self.widen(knots.meet_window)) + (if (self.step < self.pocket_until) knots.pocket_drain else 0.0);
+            const take = more * knots.drainAt(kn, @max(0.0, at - @as(f64, @floatFromInt(kn.phase_from))), cycle, self.widen(knots.meet_window)) + (if (in_pocket) knots.pocket_drain else 0.0);
             kn.colour = @max(0.0, kn.colour - take);
             // it rings at its own notes, as hard as the strike met it
             for (kn.thing, 0..) |th, s| self.tell(.{ .thing = th }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = kn.strands[s].hz, .strength = 0.4 + take, .ring = 0.8 }, .glow));
         }
         // and its note carries: a ring that strikes what it reaches out to wave_reach
-        const r = self.startRing(self.hum_x, self.hum_z, self.home_hz * strike_over, true, wave_reach / self.ring_reach);
+        const r = self.startRing(self.hum_x, self.hum_z, fork, true, wave_reach / self.ring_reach);
         self.rings[r].wave_more = more;
     }
 
@@ -5405,6 +5456,88 @@ test "a strike timed within an eighth of a beat lands at once with its octave; o
     }
     try std.testing.expect(plain);
     try std.testing.expectEqual(never, w.strike_due);
+}
+
+test "the strike is a wholesale port from GameguyPage: available anytime standing, cycles home chord triad" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    w.knot_count = 0; // knots not required (GameguyPage standard)
+    w.stand = 1.0;
+    try std.testing.expect(w.canStrike());
+
+    var cues: [max_cues]sound.Cue = undefined;
+    for (0..10) |_| _ = w.stepOnce(.{}, &cues);
+
+    // Strike 1: Root note (ratios[0] = 1.0)
+    while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
+    var n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    try std.testing.expectEqual(@as(u32, 1), w.strike_count);
+    try std.testing.expect(w.strike_anim > 0.9);
+    var fork1: f32 = 0.0;
+    for (cues[0..n]) |c| {
+        if (c.kind == .strike and c.family == .fork_octave) fork1 = c.hz;
+    }
+    // Root octave: home_hz * 2.0 * 1.0
+    try std.testing.expectApproxEqAbs(w.home_hz * 2.0 * 1.0, fork1, 0.1);
+
+    // Strike 2: Third note (ratios[1] = 1.25 for major key)
+    while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
+    n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    try std.testing.expectEqual(@as(u32, 2), w.strike_count);
+    var fork2: f32 = 0.0;
+    for (cues[0..n]) |c| {
+        if (c.kind == .strike and c.family == .fork_octave) fork2 = c.hz;
+    }
+    try std.testing.expectApproxEqAbs(w.home_hz * 2.0 * 1.25, fork2, 0.1);
+
+    // Strike 3: Fifth note (ratios[2] = 1.5 for major key)
+    while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
+    n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    try std.testing.expectEqual(@as(u32, 3), w.strike_count);
+    var fork3: f32 = 0.0;
+    for (cues[0..n]) |c| {
+        if (c.kind == .strike and c.family == .fork_octave) fork3 = c.hz;
+    }
+    try std.testing.expectApproxEqAbs(w.home_hz * 2.0 * 1.5, fork3, 0.1);
+
+    // Strike 4: cycles back to Root note (ratios[0] = 1.0)
+    while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
+    n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
+    try std.testing.expectEqual(@as(u32, 4), w.strike_count);
+    var fork4: f32 = 0.0;
+    for (cues[0..n]) |c| {
+        if (c.kind == .strike and c.family == .fork_octave) fork4 = c.hz;
+    }
+    try std.testing.expectApproxEqAbs(w.home_hz * 2.0 * 1.0, fork4, 0.1);
+}
+
+test "strike forward cone only hits targets in front, not behind, and auto-aims nearest target" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    w.knot_count = 2;
+    w.hum_x = 0.0;
+    w.hum_z = 0.0;
+    w.hum_face = 0.0; // facing -z (north)
+    // Knot 0 is 4m in front (0.0, -4.0)
+    w.knots[0].x = 0.0;
+    w.knots[0].z = -4.0;
+    w.knots[0].colour = 1.0;
+    w.knots[0].root_hz = w.home_hz;
+    // Knot 1 is 4m behind (0.0, 4.0)
+    w.knots[1].x = 0.0;
+    w.knots[1].z = 4.0;
+    w.knots[1].colour = 1.0;
+    w.knots[1].root_hz = w.home_hz;
+
+    w.strike(@floatFromInt(w.clock), true);
+    // Auto-aim picked knot 0 (closer in front) and faced it
+    try std.testing.expectApproxEqAbs(@as(f32, 0.0), w.hum_face, 0.01);
+    // Knot 0 (in front) should have lost colour
+    try std.testing.expect(w.knots[0].colour < 1.0);
+    // Knot 1 (behind) should NOT have lost colour
+    try std.testing.expectEqual(@as(f32, 1.0), w.knots[1].colour);
 }
 
 test "the four doors: rung open and the next grey, settled, kin for a phrase, slid home, and a plain ending" {
