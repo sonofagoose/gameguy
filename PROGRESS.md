@@ -3,7 +3,21 @@
 Where the build stands, so a new session can pick it up. Newest first. The plan is in `SPEC.md`,
 section 20, and `spec/stages.md`.
 
-## Now: Gate 0 audit and first touch spec implementation (2026-11-22)
+## Now: Piece 1 — The page at the top of the dial (2026-11-22)
+
+Work order Piece 1: Continuous fold from 3D place into 2D top-down page at dial top (`orbit == 1.0`).
+
+| piece | state |
+|---|---|
+| Continuous dial fold | done: right stick down transitions world continuously from place to page (Paper Mario / GameguyPage style) |
+| Orthonormal camera up | done: `cam_up = { -fx * sp, cp, -fz * sp }`, `{fx, 0, fz}` at 90° down; zero singularity, zero NaN |
+| Shader dawn & sky clamp | done: `@tan(pitch)` clamped for 90° look; `renderer.sky` disabled when looking down |
+| Hum on page | done: flat circular mark with heading tick on XZ ground plane when `cam.stand < 0.5` |
+| View base anchoring | done: `eye[1]` and `at[1]` keep ground elevation across fold |
+| Headless frame dumps | done: verified with offscreen GL renderer at `stand == 1.0, orbit == 1.0`; visual artifact captured |
+| Purple handheld push | done: built aarch64 binary and pushed to purple unit 164 |
+
+## Gate 0 audit and first touch spec implementation (2026-11-22)
 
 Work order: `gameguy-work-order-20261122.md`.
 

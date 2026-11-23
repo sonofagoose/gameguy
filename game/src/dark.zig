@@ -754,7 +754,7 @@ fn thingLines(w: *const World, out: []lines.Inst) usize {
 
 /// What changes every frame: the rings on the ground, the band of light a call sends up each
 /// stalk, and Hum.
-fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
+fn movingLines(w: *const World, cam_stand: f32, eye: m.V3, out: []lines.Inst) usize {
     var n: usize = 0;
     for (w.rings) |ring| {
         if (!ring.live) continue;
@@ -808,7 +808,8 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
 
     // on moss Hum is dim: moss swallows light as it swallows sound (spec/shape.md)
     const hum_tint = col8(bone, if (w.cover == .moss) 0.55 else 1.0);
-    if (w.view == .place and w.stand < 0.5 and !w.singing and w.hum_light > 0.01) {
+    const on_page = (w.view == .place and cam_stand < 0.5);
+    if (on_page and !w.singing and w.hum_light > 0.01) {
         // silent on the page, Hum answers in light what reaches it: Drip's ticks, a press: a
         // second ring round it, in Drip's colour, as bright as Hum's own light
         const r = 1.05 + 0.25 * w.hum_light;
@@ -819,7 +820,7 @@ fn movingLines(w: *const World, eye: m.V3, out: []lines.Inst) usize {
             n += 1;
         }
     }
-    if (w.view == .place and w.stand < 0.5) {
+    if (on_page) {
         // on the page Hum is a mark like any other: a small ring, and a tick for where it faces
         for (0..10) |k| {
             const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 10.0);
@@ -1673,6 +1674,13 @@ pub fn run(window: plat.Window, options: Options) bool {
             if (replay) |*r| {
                 if (r.done(world.step + 1)) running = false;
             }
+            // debug: GG_ORBIT holds the view's dial at a place
+            if (c.getenv("GG_ORBIT")) |env| {
+                const env_str = std.mem.span(env);
+                if (std.fmt.parseFloat(f32, env_str)) |o| {
+                    world.orbit = std.math.clamp(o, -1.0, 1.0);
+                } else |_| {}
+            }
             if (keeping) card.note(world.step, hands);
             const calls_before = world.calls;
             const n = world.stepOnce(hands, &cues);
@@ -1801,6 +1809,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         repicked = false;
         var eye: m.V3 = undefined;
         var view: m.M4 = undefined;
+        var cam: world_mod.Camera = undefined;
         var brightest: f32 = 0.0;
         if (options.scene == .dark) {
             for (world.things[0..world.thing_count], 0..) |thing, i| {
@@ -1812,6 +1821,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             }
             eye = .{ world.hum_x, 40.0, world.hum_z + 36.0 };
             view = m.lookAt(eye, .{ world.hum_x, 0.0, world.hum_z - 3.0 }, .{ 0.0, 1.0, 0.0 });
+            cam = .{ .eye = eye, .at = .{ world.hum_x, 0.0, world.hum_z - 3.0 }, .up = .{ 0.0, 1.0, 0.0 }, .fov = 50.0, .stand = 1.0 };
         } else {
             // A thing shines with its own sound, spread over its lines, and gives back the light
             // that falls on it: the day, once the dawn has reached it, or a passing call. In the
@@ -1853,7 +1863,14 @@ pub fn run(window: plat.Window, options: Options) bool {
                 }
                 loud[aster_lines.cover_body + cell] = shine(0.0, @max(world.dayAt(cx, cz), twilight) + band * 1.6, 1.0, aster_lines.coverGives(aster_lines.coverAt(cx, cz)));
             }
-            const cam = world.camera();
+            // debug: GG_ORBIT holds the view's dial at a place
+            if (c.getenv("GG_ORBIT")) |env| {
+                const env_str = std.mem.span(env);
+                if (std.fmt.parseFloat(f32, env_str)) |o| {
+                    world.orbit = std.math.clamp(o, -1.0, 1.0);
+                } else |_| {}
+            }
+            cam = world.camera();
             renderer.stand = cam.stand;
             eye = cam.eye;
             // what stands between the eye and Hum is see-through: a cone round the line from the
@@ -1862,7 +1879,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             renderer.setCone(cam.eye, hum_at, cam.stand);
             const fx = @sin(world.look_yaw);
             const fz = -@cos(world.look_yaw);
-            view = m.lookAt(cam.eye, cam.at, .{ 0.0, 1.0, 0.0 });
+            view = m.lookAt(cam.eye, cam.at, cam.up);
             proj = m.perspective(cam.fov, aspect, 0.4, 9000.0);
             renderer.ground_eye = .{ eye[0], eye[2] };
             renderer.ground_look = .{ fx, fz };
@@ -1875,11 +1892,16 @@ pub fn run(window: plat.Window, options: Options) bool {
             while (turn > std.math.pi) turn -= 2.0 * std.math.pi;
             while (turn < -std.math.pi) turn += 2.0 * std.math.pi;
             const across: f32 = if (@abs(turn) < 1.3) 0.5 + @tan(turn) / (2.0 * @tan(half) * aspect) else 9.0;
-            renderer.dawn = .{ across, 0.5 - @tan(pitch) / (2.0 * @tan(half)) };
+            const tan_pitch = if (pitch > -1.45) @tan(pitch) else -10.0;
+            renderer.dawn = .{ across, 0.5 - tan_pitch / (2.0 * @tan(half)) };
             // Dawn sky glow: warm amber/rose horizon over the lake, clearly noticeable
             const glow = [3]f32{ 0.32, 0.22, 0.16 };
             const wheel_dim: f32 = if (world.wheel_open) 0.68 else 1.0;
-            renderer.sky = .{ glow[0] * sky_level * wheel_dim, glow[1] * sky_level * wheel_dim, glow[2] * sky_level * wheel_dim };
+            if (cam.stand < 0.5 or pitch < -1.2) {
+                renderer.sky = .{ 0.0, 0.0, 0.0 };
+            } else {
+                renderer.sky = .{ glow[0] * sky_level * wheel_dim, glow[1] * sky_level * wheel_dim, glow[2] * sky_level * wheel_dim };
+            }
             // each aster at the detail its distance asks for, picked again every twenty metres
             const moved_x = eye[0] - picked_x;
             const moved_z = eye[2] - picked_z;
@@ -1945,7 +1967,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             maker_ms[5] += plat.now() - t0;
         }
         var t1 = plat.now();
-        moving_n += movingLines(&world, eye, moving[moving_n..]);
+        moving_n += movingLines(&world, cam.stand, eye, moving[moving_n..]);
         maker_ms[6] += plat.now() - t1;
         t1 = plat.now();
         // the puddles' lines stand at their own water's level already

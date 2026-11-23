@@ -234,7 +234,7 @@ Face buttons are named by position.
 | input | tap | hold |
 |---|---|---|
 | left stick, L3 | move; click to hush (stop humming, go dark) | |
-| right stick, R3 | look: round Hum, and from its feet to high above it; steers a wheel while one is open; click to lean in | |
+| right stick, R3 | look: round Hum, and vertical dial from feet to true top-down page (continuous fold from place to page); steers a wheel while one is open; click to lean in | |
 | bottom face | jump; in the air, open or close the glide | |
 | right face | dash; near a creature, dodge (on the beat: the pocket) | sprint |
 | left face | strike with the fork; its note carries | charge; let go on the beat |

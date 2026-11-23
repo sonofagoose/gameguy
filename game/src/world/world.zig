@@ -120,7 +120,7 @@ pub const fall_pull: f32 = 8.0 * jump_height / (jump_air_s * jump_air_s);
 pub const jump_speed: f32 = 4.0 * jump_height / jump_air_s;
 /// Variable jump: how much of the full jump speed a tap gives (the rest comes from holding).
 /// A tap-jump clears about 1.7 m; held all the way, the full 2.8 m (SM64 × TotK standard).
-pub const jump_tap_frac: f32 = 0.60;
+pub const jump_tap_frac: f32 = 0.72;
 /// Air steering: how much of the stick's ask the legs give in the air (generous, TotK style).
 pub const air_ease: f32 = 0.20;
 /// (Glide removed: DECISIONS.md row 146. Hum's movement is SM64 × TotK ambitious, not sailed.)
@@ -572,7 +572,7 @@ pub const recentre_steps: u8 = 18;
 pub const lifts_after: u32 = 120;
 pub const recentre_cut: f32 = 1.745;
 
-pub const Camera = struct { eye: [3]f32, at: [3]f32, fov: f32, stand: f32 };
+pub const Camera = struct { eye: [3]f32, at: [3]f32, up: [3]f32, fov: f32, stand: f32 };
 
 /// The page: the same world seen from above, lying flat. The eye is this high, this far behind.
 pub const page_up: f32 = 105.0;
@@ -1936,7 +1936,7 @@ pub const World = struct {
                 const hx = self.hum_x - ring.x;
                 const hz = self.hum_z - ring.z;
                 const to_hum = @sqrt(hx * hx + hz * hz);
-                if (to_hum > before and to_hum <= reach and !self.answered) {
+                if (to_hum > before and to_hum <= reach and !self.answered and self.calls >= 2) {
                     self.answered = true;
                     self.answered_at = self.step;
                     self.seen.meet(.evening_call, self.step);
@@ -3051,7 +3051,6 @@ pub const World = struct {
         self.airborne = false;
         self.jump_held = false;
         self.jump_steps = 0;
-        self.jump_wanted = 0;
         self.jump_cooldown = 4;
         self.landed_at = self.step;
         const at = Place{ .x = self.hum_x, .y = 0.1, .z = self.hum_z };
@@ -3842,8 +3841,8 @@ pub const World = struct {
         const rx = @as(f32, @floatFromInt(hands.rx)) * (1.0 / 127.0);
         const ry = @as(f32, @floatFromInt(hands.ry)) * (1.0 / 127.0);
         // the right stick goes round Hum and up and down the dial; while the wheel is open it
-        // points at wedges: then it does not look (in the swell, L1/L2 bumper stepping frees the stick)
-        const stick_looks = !self.wheel_open;
+        // points at wedges: then it does not look (in the swell, the right stick does not look)
+        const stick_looks = !self.wheel_open and !self.swelling();
         const looking = stick_looks and (@abs(rx) > look_dead or @abs(ry) > look_dead);
         const want_yaw: f32 = if (stick_looks) lookRate(rx) * yaw_most else 0.0;
         const want_orbit: f32 = if (stick_looks) lookRate(ry) * orbit_most else 0.0;
@@ -4146,15 +4145,17 @@ pub const World = struct {
         }
         const len = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
         var at = [3]f32{ eye[0] + dir[0] / len * 10.0, eye[1] + dir[1] / len * 10.0, eye[2] + dir[2] / len * 10.0 };
-        // the hinge, eased so that it starts and ends gently
-        var s = self.stand * self.stand * (3.0 - 2.0 * self.stand);
-        if (u > 0.65) {
-            // As the camera approaches 90° bird's-eye view, smoothly fold the 3D world flat to the 2D page (Paper Mario / GameguyPage style)
-            const fold = std.math.clamp((u - 0.65) / 0.35, 0.0, 1.0);
-            const fold_eased = fold * fold * (3.0 - 2.0 * fold);
-            s *= (1.0 - fold_eased);
-        }
-        if (s < 1.0) {
+        // the hinge: the dial fold smoothly lays the world down to the page as u approaches 1.0
+        const dial_fold: f32 = blk: {
+            if (u <= 0.5) break :blk 0.0;
+            const t = (u - 0.5) / 0.5;
+            break :blk t * t * (3.0 - 2.0 * t);
+        };
+        const stand_smooth = self.stand * self.stand * (3.0 - 2.0 * self.stand);
+        var s = stand_smooth * (1.0 - dial_fold);
+        if (self.wheel_open) s = @min(s, wheel_stand);
+
+        if (self.stand < 1.0) {
             // beside Drip, standing still, the page comes closer
             const high = page_up + self.near_in * (12.0 - page_up);
             const behind = page_back + self.near_in * (5.0 - page_back);
@@ -4173,9 +4174,13 @@ pub const World = struct {
         }
         // the place stands on the ground: the eye rides with the view's anchor (base_past), as far
         // as the place stands up
-        eye[1] += self.view_base * s;
-        at[1] += self.view_base * s;
-        return .{ .eye = eye, .at = at, .fov = fov, .stand = s };
+        eye[1] += self.view_base * stand_smooth;
+        at[1] += self.view_base * stand_smooth;
+        // camera up vector: smoothly rotates from {0, 1, 0} at horizon to {fx, 0, fz} when looking straight down
+        const cp = @cos(pitch);
+        const sp = @sin(pitch);
+        const up_vec = [3]f32{ -fx * sp, cp, -fz * sp };
+        return .{ .eye = eye, .at = at, .up = up_vec, .fov = fov, .stand = s };
     }
 
     fn atTallFoot(self: *const World) bool {
@@ -5837,11 +5842,7 @@ fn onScreenForTest(cam: Camera, p: [3]f32) [2]f32 {
     var f = [3]f32{ cam.at[0] - cam.eye[0], cam.at[1] - cam.eye[1], cam.at[2] - cam.eye[2] };
     const fl = @sqrt(f[0] * f[0] + f[1] * f[1] + f[2] * f[2]);
     for (&f) |*v| v.* /= fl;
-    // right is forward crossed with up; up again is right crossed with forward
-    var r = [3]f32{ -f[2], 0.0, f[0] };
-    const rl = @sqrt(r[0] * r[0] + r[2] * r[2]);
-    r[0] /= rl;
-    r[2] /= rl;
+    const r = [3]f32{ f[1] * cam.up[2] - f[2] * cam.up[1], f[2] * cam.up[0] - f[0] * cam.up[2], f[0] * cam.up[1] - f[1] * cam.up[0] };
     const u = [3]f32{ r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0] };
     const v = [3]f32{ p[0] - cam.eye[0], p[1] - cam.eye[1], p[2] - cam.eye[2] };
     const z = v[0] * f[0] + v[1] * f[1] + v[2] * f[2];
