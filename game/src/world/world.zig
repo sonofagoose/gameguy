@@ -439,7 +439,7 @@ pub const dew_every: f32 = 0.9;
 /// view does not fit the thing to the screen: the gaze climbs it at the speed of sound, narrowing
 /// as it goes, so the ground is lost and the height is paid for in time. A call made there is
 /// ridden up: the gaze follows the band of light.
-pub const cam_back: f32 = 22.0;
+pub const cam_back: f32 = 15.0;
 pub const cam_up: f32 = 2.2;
 pub const walk_pitch: f32 = 0.24;
 pub const place_fov: f32 = 55.0;
@@ -460,10 +460,10 @@ pub const walk_rise: f32 = std.math.atan2(cam_up - hum_mid, cam_back);
 /// wide the view is (degrees, top to bottom), and how far above Hum the middle of the frame looks
 /// (radians). Between keys the dial goes on one smooth curve that never turns back.
 pub const orbit_keys = [_][5]f32{
-    .{ -1.0, -0.01396, 19.0, 62.0, 0.4503 },
+    .{ -1.0, -0.01396, 13.0, 62.0, 0.4503 },
     .{ 0.0, walk_rise, @sqrt(cam_back * cam_back + (cam_up - hum_mid) * (cam_up - hum_mid)), place_fov, walk_pitch + walk_rise },
-    .{ 0.4, 0.4712, 30.5, 53.0, 0.2321 },
-    .{ 0.7, 1.1868, 46.0, 50.0, 0.0698 },
+    .{ 0.4, 0.4712, 24.0, 53.0, 0.2321 },
+    .{ 0.7, 1.1868, 38.0, 50.0, 0.0698 },
     .{ 1.0, std.math.pi / 2.0, 52.0, 45.0, 0.0 },
 };
 /// The curve's slope at each key, made so that it never overshoots a key (Fritsch and Carlson).
