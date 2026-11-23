@@ -235,7 +235,7 @@ Face buttons are named by position.
 |---|---|---|
 | left stick, L3 | move; click to hush (stop humming, go dark) | |
 | right stick, R3 | look: round Hum, and vertical dial from feet to true top-down page (continuous fold from place to page); steers a wheel while one is open; click to lean in | |
-| bottom face | jump; in the air, open or close the glide | |
+| bottom face | jump: tap for ~2 m hop (clears 1.8 m hose), hold for full 3 m jump (SM64 × TotK standard); buffered landing jump & coyote time | |
 | right face | dash; near a creature, dodge (on the beat: the pocket) | sprint |
 | left face | strike with the fork; its note carries | charge; let go on the beat |
 | top face | grab, talk, plant | carry; leaning in, keep a phrase |

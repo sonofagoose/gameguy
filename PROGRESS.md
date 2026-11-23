@@ -3,7 +3,21 @@
 Where the build stands, so a new session can pick it up. Newest first. The plan is in `SPEC.md`,
 section 20, and `spec/stages.md`.
 
-## Now: Piece 1 — The page at the top of the dial (2026-11-22)
+## Now: Piece 2 — The Jump (2026-11-23)
+
+Work order Piece 2: SM64 by way of TotK standard jump (3.0 m height, snappy air time, variable height, coyote time, landing buffer).
+
+| piece | state |
+|---|---|
+| Target jump height & timing | done: `jump_height = 3.0 m`, `jump_air_s = 0.68 s` (gravity `fall_pull = 51.9 m/s²`, initial velocity `jump_speed = 17.65 m/s`) |
+| Variable jump height | done: releasing jump button early clamps upward speed (`jump_tap_frac = 0.78`), giving a ~2.0 m hop clearing the 1.8 m hose coil, while holding reaches 3.0 m |
+| Coyote time | done: 6 steps (100 ms) window after walking off an edge (`stood_ago <= jump_late`) allowing a jump press to take flight |
+| Buffered landing jump | done: pressing jump while descending near the ground (`hum_y < 1.0 m`) buffers to `jump_wanted` and fires immediately on the touchdown frame |
+| Air steering | done: `air_ease = 0.20` generous TotK style air control |
+| Verification | done: tests verify held 3m jump, tap 2m hop, edge coyote jump, obstacle clearance over 1.8m hose |
+| Purple handheld push | ready for push to purple unit 164 |
+
+## Piece 1 — The page at the top of the dial (2026-11-22)
 
 Work order Piece 1: Continuous fold from 3D place into 2D top-down page at dial top (`orbit == 1.0`).
 

@@ -113,14 +113,14 @@ pub const threat_reach: f32 = 60.0;
 
 /// The jump: how high, and how long in the air, which set how hard the ground pulls (a game's pull,
 /// snappier than a real one).
-/// SM64 x TotK standard: crisp, punchy, responsive.
-pub const jump_height: f32 = 2.8;
-pub const jump_air_s: f32 = 0.65;
+/// SM64 x TotK standard: crisp, punchy, responsive (Piece 2).
+pub const jump_height: f32 = 3.0;
+pub const jump_air_s: f32 = 0.68;
 pub const fall_pull: f32 = 8.0 * jump_height / (jump_air_s * jump_air_s);
 pub const jump_speed: f32 = 4.0 * jump_height / jump_air_s;
 /// Variable jump: how much of the full jump speed a tap gives (the rest comes from holding).
-/// A tap-jump clears about 1.7 m; held all the way, the full 2.8 m (SM64 × TotK standard).
-pub const jump_tap_frac: f32 = 0.72;
+/// A tap-jump clears about 2.0 m (clearing the 1.8 m hose); held all the way, the full 3.0 m (SM64 × TotK standard).
+pub const jump_tap_frac: f32 = 0.78;
 /// Air steering: how much of the stick's ask the legs give in the air (generous, TotK style).
 pub const air_ease: f32 = 0.20;
 /// (Glide removed: DECISIONS.md row 146. Hum's movement is SM64 × TotK ambitious, not sailed.)
@@ -713,6 +713,8 @@ pub const Ring = struct {
     hz: f32 = garden_hz,
     /// Hum's own call, which rings what it passes; or someone else's, which is an answer.
     own: bool = true,
+    /// Whether this ring is an answer to Hum's call returning to Hum
+    is_answer: bool = false,
     /// A strike's note carrying (SPEC.md 10): how much more than a placed strike it takes from
     /// each knot it reaches past the fork's own reach, or nought if it is a call.
     wave_more: f32 = 0.0,
@@ -1383,7 +1385,10 @@ pub const World = struct {
             .thing => |index| {
                 const thing = &self.things[index];
                 thing.loud = @max(thing.loud, what.light.brightness);
-                if (what.light.shape == .ring_on_the_ground) _ = self.startRing(thing.x, thing.z, what.sound.hz, false, 1.0);
+                if (what.light.shape == .ring_on_the_ground) {
+                    const r_idx = self.startRing(thing.x, thing.z, what.sound.hz, false, 1.0);
+                    self.rings[r_idx].is_answer = true;
+                }
                 // heard when it has come back to where Hum is now, softer and duller for the
                 // way it has come; its light is where it is, as bright as it sounds there
                 const hx = thing.x - self.hum_x;
@@ -1522,12 +1527,13 @@ pub const World = struct {
         // the bottom face: on the ground a jump (SM64 x TotK standard: snappy, weighty, non-floaty)
         if (self.jump_wanted > 0) self.jump_wanted -= 1;
         const landing_soon = self.airborne and self.hum_vy < 0.0 and self.hum_y < jump_early_height;
+        const can_coyote = self.stood_ago > 0 and self.stood_ago <= jump_late and self.hum_vy <= 0.0;
         const wants_jump = (pressed & Hands.jump != 0 and self.jump_can_retrigger) or (self.jump_wanted > 0 and !self.airborne);
         if (pressed & Hands.jump != 0 and self.jump_can_retrigger and self.view == .place and self.stand >= 1.0 and landing_soon) {
             // falling, just over the ground: buffer the next jump on landing
             self.jump_wanted = jump_early;
             self.jump_can_retrigger = false;
-        } else if (wants_jump and self.view == .place and self.stand >= 1.0 and !self.airborne and self.jump_cooldown == 0) {
+        } else if (wants_jump and self.view == .place and self.stand >= 1.0 and (!self.airborne or can_coyote) and (self.jump_cooldown == 0 or self.jump_wanted > 0)) {
             self.jump_wanted = 0;
             self.jump_can_retrigger = false;
             self.airborne = true;
@@ -1535,6 +1541,7 @@ pub const World = struct {
             self.jump_steps = 0;
             self.hum_vy = jump_speed;
             self.jumps += 1;
+            self.stood_ago = jump_late + 1;
             if (self.first_jump_at == never) self.first_jump_at = self.step;
             // the push off: a short note a fifth over home, and Hum flares
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * 1.5, .strength = 0.12, .ring = 0.2 }, .glow));
@@ -1731,6 +1738,17 @@ pub const World = struct {
         self.hum_x += go_x;
         self.hum_z += go_z;
         self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
+        if (!self.airborne and height_was - self.hum_ground > step_up) {
+            // walked off an edge: begin falling with coyote time
+            self.airborne = true;
+            self.hum_y = height_was - self.hum_ground;
+            self.hum_vy = 0.0;
+            self.stood_ago = 1;
+        } else if (!self.airborne) {
+            self.stood_ago = 0;
+        } else if (self.stood_ago > 0) {
+            self.stood_ago += 1;
+        }
         if (self.airborne) self.flyStep(height_was);
         const moved = if (self.airborne) 0.0 else @sqrt(go_x * go_x + go_z * go_z);
         if (moved > 0.0005 and self.view == .place and self.stand >= 1.0) self.underfoot(moved);
@@ -1936,7 +1954,7 @@ pub const World = struct {
                 const hx = self.hum_x - ring.x;
                 const hz = self.hum_z - ring.z;
                 const to_hum = @sqrt(hx * hx + hz * hz);
-                if (to_hum > before and to_hum <= reach and !self.answered and self.calls >= 2) {
+                if (ring.is_answer and to_hum > before and to_hum <= reach and !self.answered and self.calls >= 2) {
                     self.answered = true;
                     self.answered_at = self.step;
                     self.seen.meet(.evening_call, self.step);
@@ -3842,7 +3860,7 @@ pub const World = struct {
         const ry = @as(f32, @floatFromInt(hands.ry)) * (1.0 / 127.0);
         // the right stick goes round Hum and up and down the dial; while the wheel is open it
         // points at wedges: then it does not look (in the swell, the right stick does not look)
-        const stick_looks = !self.wheel_open and !self.swelling();
+        const stick_looks = !self.wheel_open and !self.swelling() and !hands.held(Hands.sing);
         const looking = stick_looks and (@abs(rx) > look_dead or @abs(ry) > look_dead);
         const want_yaw: f32 = if (stick_looks) lookRate(rx) * yaw_most else 0.0;
         const want_orbit: f32 = if (stick_looks) lookRate(ry) * orbit_most else 0.0;
@@ -5720,7 +5738,7 @@ test "a walk home that takes the whole breath, landed, grows it by one" {
     try std.testing.expectEqual(@as(u32, 1), w.breath_grew);
 }
 
-test "the bottom face jumps: a held jump reaches five metres, a tap-jump about 1.8 m (variable height)" {
+test "the bottom face jumps: a held jump reaches three metres, a tap-jump about 1.9 m (variable height), and stepping off an edge has coyote time" {
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
     afterTheLock(w);
@@ -5728,7 +5746,7 @@ test "the bottom face jumps: a held jump reaches five metres, a tap-jump about 1
     w.in_garden = false;
     w.hum_ground = 0.0;
     var cues: [max_cues]sound.Cue = undefined;
-    // a held jump: press and hold, up and down, its top near five metres
+    // a held jump: press and hold, up and down, its top three metres
     _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
     try std.testing.expect(w.airborne);
     var top: f32 = 0.0;
@@ -5738,19 +5756,29 @@ test "the bottom face jumps: a held jump reaches five metres, a tap-jump about 1
         top = @max(top, w.hum_y);
     }
     try std.testing.expect(!w.airborne);
-    try std.testing.expect(top > jump_height * 0.7);
-    // a tap-jump: press once and release immediately, its top much lower
+    try std.testing.expect(top >= jump_height * 0.95);
+    try std.testing.expect(top <= jump_height * 1.15);
+    // a tap-jump: press once and release immediately, its top lower but clearing obstacles
     for (0..30) |_| _ = w.stepOnce(.{}, &cues);
     _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
     try std.testing.expect(w.airborne);
     var tap_top: f32 = 0.0;
-    while (w.airborne and steps < 240) : (steps += 1) {
+    steps = 0;
+    while (w.airborne and steps < 120) : (steps += 1) {
         _ = w.stepOnce(.{}, &cues);
         tap_top = @max(tap_top, w.hum_y);
     }
     try std.testing.expect(!w.airborne);
-    try std.testing.expect(tap_top < top * 0.65);
-    try std.testing.expect(tap_top > 0.8);
+    try std.testing.expect(tap_top < top * 0.75);
+    try std.testing.expect(tap_top > 1.8);
+    // coyote time: stepping off an edge gives six steps where a jump still takes to the air
+    for (0..10) |_| _ = w.stepOnce(.{}, &cues);
+    w.airborne = true;
+    w.hum_y = 2.0;
+    w.hum_vy = -0.5;
+    w.stood_ago = 3; // within jump_late (6)
+    _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+    try std.testing.expect(w.hum_vy > 10.0);
 }
 
 test "the hose is solid: walked at, Hum stops at its side; jumped, Hum goes over" {
@@ -5896,7 +5924,7 @@ test "the view's dial: walking is the old view; up it the eye rises over Hum and
     var top: f32 = 0.0;
     var eye_moved: f32 = 0.0;
     for (0..40) |_| {
-        _ = w.stepOnce(.{}, &cues);
+        _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
         top = @max(top, w.hum_y);
         const e = w.camera().eye;
         eye_moved = @max(eye_moved, @abs(e[1] - before[1]));
