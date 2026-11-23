@@ -118,10 +118,9 @@ pub const jump_height: f32 = 3.0;
 pub const jump_air_s: f32 = 0.68;
 pub const fall_pull: f32 = 8.0 * jump_height / (jump_air_s * jump_air_s);
 pub const jump_speed: f32 = 4.0 * jump_height / jump_air_s;
-/// Variable jump: how much of the full jump speed a tap gives (the rest comes from holding).
-/// A quick tap gives a crisp, low ~1.5 m hop for clearing low snags (about half of the full jump);
-/// holding reaches the full 3.0 m leap (SM64 × TotK standard).
-pub const jump_tap_frac: f32 = 0.66;
+/// Target minimal jump height on a quick tap release: ~1.5 m (50% of full 3.0 m leap).
+/// Releasing anytime within the first 100 ms (~6 steps) reliably produces this low hop without superhuman tap timing.
+pub const jump_tap_height: f32 = 1.55;
 /// Air steering: how much of the stick's ask the legs give in the air (generous, TotK style).
 pub const air_ease: f32 = 0.20;
 /// (Glide removed: DECISIONS.md row 146. Hum's movement is SM64 × TotK ambitious, not sailed.)
@@ -1551,8 +1550,12 @@ pub const World = struct {
         if (self.jump_held) {
             if (hands.buttons & Hands.jump == 0) {
                 self.jump_held = false;
-                if (self.hum_vy > jump_speed * jump_tap_frac) {
-                    self.hum_vy = jump_speed * jump_tap_frac;
+                const rem = jump_tap_height - self.hum_y;
+                if (rem > 0.0) {
+                    const v_needed = @sqrt(2.0 * fall_pull * rem);
+                    if (self.hum_vy > v_needed) self.hum_vy = v_needed;
+                } else if (self.hum_vy > 0.0) {
+                    self.hum_vy = 0.0;
                 }
             } else if (self.hum_vy <= 0.0) {
                 self.jump_held = false;
@@ -5772,6 +5775,18 @@ test "the bottom face jumps: a held jump reaches three metres, a tap-jump about 
     try std.testing.expect(!w.airborne);
     try std.testing.expect(tap_top < top * 0.60);
     try std.testing.expect(tap_top > 1.3);
+    // a 4-step natural tap (66 ms) still reliably produces the low hop (~1.5 m)
+    for (0..30) |_| _ = w.stepOnce(.{}, &cues);
+    for (0..4) |_| _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+    var tap4_top: f32 = 0.0;
+    steps = 0;
+    while (w.airborne and steps < 120) : (steps += 1) {
+        _ = w.stepOnce(.{}, &cues);
+        tap4_top = @max(tap4_top, w.hum_y);
+    }
+    try std.testing.expect(!w.airborne);
+    try std.testing.expect(tap4_top < top * 0.60);
+    try std.testing.expect(tap4_top > 1.3);
     // coyote time: stepping off an edge gives six steps where a jump still takes to the air
     for (0..10) |_| _ = w.stepOnce(.{}, &cues);
     w.airborne = true;
