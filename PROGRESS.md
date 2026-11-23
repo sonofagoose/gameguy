@@ -24,7 +24,7 @@ Work order Piece 1: Continuous fold from 3D place into 2D top-down page at dial 
 | piece | state |
 |---|---|
 | Continuous dial fold | done: right stick down transitions world continuously from place to page (Paper Mario / GameguyPage style) |
-| Camera distance tightened | done: walking distance pulled in to 15m (was 22m) for deeper immersion, scaling out to 52m at dial top |
+| Camera distance tightened | done: walking distance pulled in to 11m sweet spot (was 15m, originally 22m) for character-centered immersion, scaling out to 52m at dial top |
 | Orthonormal camera up | done: `cam_up = { -fx * sp, cp, -fz * sp }`, `{fx, 0, fz}` at 90° down; zero singularity, zero NaN |
 | Shader dawn & sky clamp | done: `@tan(pitch)` clamped for 90° look; `renderer.sky` disabled when looking down |
 | Hum on page | done: flat circular mark with heading tick on XZ ground plane when `cam.stand < 0.5` |
