@@ -144,8 +144,8 @@ _Every sentence of the specification that promises a player something, read by
 
 - spoken for by `hands.by-position`: Face buttons are named by position.
 - spoken for by `hands.map`: left stick, L3 | move; click to hush (stop humming, go dark)
-- spoken for by `hands.map`: right stick, R3 | look: round Hum, and from its feet to high above it; steers a wheel while one is open; click to lean in
-- spoken for by `hands.map`: bottom face | jump; in the air, open or close the glide
+- open: right stick, R3 | look: round Hum, and vertical dial from feet to true top-down page (continuous fold from place to page); steers a wheel while one is open; click to lean in
+- open: bottom face | jump: tap for ~1.5 m low hop to clear low snags, hold for full 3 m jump (SM64 × TotK standard); buffered landing jump & coyote time
 - spoken for by `hands.map`: right face | dash; near a creature, dodge (on the beat: the pocket) | sprint
 - spoken for by `hands.map`: left face | strike with the fork; its note carries | charge; let go on the beat
 - spoken for by `hands.map`: top face | grab, talk, plant | carry; leaning in, keep a phrase
