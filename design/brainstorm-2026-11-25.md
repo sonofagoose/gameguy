@@ -6,6 +6,12 @@ and propose small experiments. Nothing here is decided. Every idea is a proposal
 as Morgan's. The working words I coined are listed near the end so that none of them gets used later
 as if it were settled._
 
+_The note has two parts. Part one is the sorting Morgan first asked for. Part two was written after
+his reply the same day: it is the whole game imagined, and it corrects part one in three places,
+which are marked._
+
+# Part one: what is alive, and what is scaffolding
+
 ## What I read
 
 - **In full:** `SPEC.md`, `PROGRESS.md`, `DECISIONS.md`, `SCRATCH.md`, the audit
@@ -52,17 +58,21 @@ Each of these has Morgan's hands, ears or words behind it.
    loudest by how brightly it shone.
 3. **The page and the place on one hinge.** He asked for the page at the top of the right stick's
    dial, and thinks it will solve puzzles later.
-4. **His body in time.** The sprint's breath on the half beats ("absolutely yes and I fucking love
-   this!"), a timed strike feeling stronger, letting go on the one feeling like landing. And his own
-   sentence: "The first musical concept that the player is ever exposed to is rhythm."
-5. **Home, and one note that means seven things.** Clip 4 ("absolutely does feel like seven things")
-   and clip 26 both got a yes.
+4. **His body in time.** The sprint's breath on the half beats, a timed strike feeling stronger,
+   letting go on the one feeling like landing: three yeses. (His words "absolutely yes and I fucking
+   love this!" were first quoted here for the sprint. They most likely belong to clip 22; see the
+   correction in part two.) And his own sentence: "The first musical concept that the player is ever
+   exposed to is rhythm."
+5. **Home, and one note that means seven things.** Clip 4 and clip 26 both got a yes, and
+   "absolutely does feel like seven things" most likely belongs to clip 26 (part two).
 6. **Bringing a thing home instead of beating it.** "Kinder than beating them": yes.
 7. **A world that answers by law.** He called just to hear what would answer, and the asters felt as
    tall as cathedrals. "Laws, not lists" was his ask.
-8. **The river singing the day back.** Clip 28: "ANCIENT AND STRONG YES".
-9. **The comma, seen and briefly heard.** Two suns got a yes ("nasty and hardcore"). The held comma
-   is "really close", and he does not yet know what would make it land.
+8. **The river singing the day back.** Clip 28 got a yes. (The words "ANCIENT AND STRONG YES" were
+   filed beside it by mistake; part two.)
+9. **The comma, seen and briefly heard.** Two suns got a yes. ("nasty and hardcore" was most likely
+   about the wolf fifth; part two.) The held comma is "really close", and he does not yet know what
+   would make it land.
 10. **His own cast, from one evening after a storm:** the drip like a leaky faucet, the knot that
     wants to be undone, the pool that wants to return to the ocean, the caravan that wants to make a
     trade, Jeanne, the white cat, the fly.
@@ -402,3 +412,954 @@ Worked out by a script on 2026-11-25. Ratios are exact; cents are rounded to thr
 
 Heights use 100 m to the octave: 23.460 cents is 1.955 m, 21.506 is 1.792 m, 41.059 is 3.422 m,
 62.565 is 5.214 m, and 1.954 is 0.163 m.
+
+---
+
+# Part two: the whole game, imagined
+
+_Written later the same day. Morgan read part one and said: "you still arent holding the full
+thing". He gave his newest threads again in his own words and asked: "what should this game really
+be? imagine exhaustively, be ambitious." So this part is not a sorting. It is one game, imagined
+whole, from everything in the notebook and from his reply. The rules of part one hold: nothing here
+is decided, every idea is a proposal unless it is marked as his, and the working words are listed at
+the end. Where the two parts disagree, part two is the later thought, and the changes are listed
+under "What changed since part one"._
+
+_For this part I read again, in full: his four pieces, the poem, the first brainstorm's sections 6
+to 17 and 21, the three shapes, `the-wheel.md`, `thirteenth-morning.md`, `the-way-home.md`,
+`the-whole-game.md`, `memory-in-rhythm.md`, `whats-next.md`, `true-actionable-vision.md`,
+`after-the-first-plays.md`, `morgans-room-session.md` and its machine log, `SCRATCH.md`, the audit,
+`spec/world.md`, `spec/years.md`, the page toy's notes and `design/listen/README.md`. Every number
+below was worked out by a script; the sums are in the last section._
+
+## What Morgan said
+
+His words, from the session:
+
+- "world-center island and it's surrounding "great lake" (perhapa at a low water level - parts of it
+  frozen, perhaps?) acting as a hub like "Isle Delfino" and "Clock Tower""
+- "each of the circle of fifth's major lands (ground level - can see the sky) and it's subsequent
+  relative minor (underground - like the depths in Tears of the Kingdom) all the distant realms you
+  travel to"
+- "like how In super Mario Sunshine each realm is a place you visit multiple times and completing
+  something unlocks things and connects the realm to the central hub in a meaningful way"
+- "the 'river of time" that carries Hum back to central and compiles Hums day/memories into it's
+  central reality is...a dream/sleep? or??"
+- "I don't want to be like you get to the end and then you finally get to have the full circle if
+  it's in my control over the musically and do all this fun stuff but like you've already beaten the
+  game"
+- "part of the expiration should be like unlocked by using different harmonics and mechanics of like
+  music and theory" (I read "expiration" as exploration.)
+- "how much should the wolf note and like everything and equal temperament or pure temperament play
+  into the story and game and feel of things like it's so much..."
+
+## A correction first: his clip notes were filed eighteen places off
+
+This changes what his ears are on record as saying, so it comes before any design.
+
+`morgans-room-session.md` has a column of his written notes beside the 41 listening clips. It says
+the notes were "numbered from his own count". The table then puts each note beside the clip with the
+same number. But his numbers counted every item in the room: the ear check, thirteen walks and the
+checks for the hands came first, eighteen items in all, and then the clips. Seven of his notes use
+the very words of the question asked eighteen clips earlier:
+
+| his words | filed beside | eighteen earlier | the question asked there | the machine's answer there |
+|---|---|---|---|---|
+| "what is meant by 'ring'?" | 27, placed and true | 9, the pure land | "does it ring?" | yes |
+| "ANCIENT AND STRONG YES" | 28, two tellings | 10, a chant over an open fifth | "ancient and strong, or thin?" | yes |
+| "nasty and hardcore, Ganon/Ganondorf energy" | 29, two suns | 11, sweet thirds, then the wolf fifth alone | "is the wolf the right kind of awful?" | yes |
+| "No, SEASICK!" | 32, water sings back | 14, the shimmer grove | "beautiful, or seasick?" | no |
+| "yes, a twist" | 37, placed then timed | 19, it turns | "a twist, or a mistake?" | yes |
+| "not sly and sideways" | 39, a stalk brushed | 21, the slide | "does the second feel sly and sideways?" | no |
+| "warnings? something's actively wrong. what is 'howl'?" | 41, jump and glide | 23, rising doubled | "can you hear the warnings, and bear them? is the fourth a howl?" | yes |
+
+By the same shift, and this is my inference:
+
+| his words | filed beside | eighteen earlier |
+|---|---|---|
+| "absolutely yes and I fucking love this!" | 40, a sprint | 22, stand where they meet: three against five, and then the low note under both comes in on the one |
+| "jail for ears" | 35, wonder | 17, two ways home, played in held synth tones |
+| "abrasive... OoT Owl energy is what's needed" | 33, the bee | 15, the land with no octave, in a clarinet-like tone |
+| "higher pitched fast tinkling and drone are overbearing" | 34, underfoot | 16, a rhythm sped up until it is a fifth |
+| "BOTH" | 25, twelve mornings | 7, the day rises a fifth: "does it lift, or feel restless?" |
+
+Two more could not have been placed by number. "absolutely does feel like seven things" uses the
+words of clip 26's question (one held note while home walks under it), not clip 4's. And the
+write-up calls the comma hold "#43", which by this shift is clip 25: twelve pure fifths in one
+breath, and then the first note beside the last. That is the one he called "really close", and its
+machine answer is no.
+
+- **What is not in doubt.** The machine's yes and no for every clip, and every walk's answers. Those
+  lines carry the clip's or the promise's own name.
+- **What it changes.**
+  - His strongest words belong to the root arriving under two rhythms, to pure fifths over a ground,
+    and to one note meaning seven things. They do not belong to the sprint, the river's song or the
+    two suns, which each got a plain yes.
+  - "SEASICK" was the shimmer grove, the one place built to beat on purpose. `whats-next.md` damped
+    the puddle's bloom "to prevent seasick disorientation (Clip 32 fix)" on the misfiled note. Clip
+    32 did get a no. The reason given for it was probably not his.
+  - The wolf fifth, alone for two seconds, is the sound with "Ganon/Ganondorf energy". He likes it
+    as the right kind of awful.
+  - The same shift probably moves the "OoT Owl" note off the bee, which `whats-next.md` also acted
+    on.
+- **What I have fixed.** Items 4, 5, 8 and 9 of "What is alive" in part one quoted four of these
+  beside the wrong clips. They are corrected in place.
+- **Only Morgan can confirm it.** It is the first of the questions at the end.
+
+## The one idea: the note underneath
+
+Read with the notes back where they belong, his strongest yeses are one thing.
+
+| what he heard or did | his answer |
+|---|---|
+| a lower note comes in under Hum and Drip that neither is singing, and "Oh. You're in." | the room's three questions about it: yes. Of the page toy, a week earlier: "really liked the little 'oh' moment" |
+| three against five stumbling, and then the low note under both comes in on the one (clip 22) | "absolutely yes and I fucking love this!" |
+| one held note while home walks under it (clip 26) | "absolutely does feel like seven things" |
+| five reeds wandering, and one low held note comes in (clip 30) | yes |
+| a chant over an open fifth (clip 10) | "ANCIENT AND STRONG YES" |
+| two voices lock and a lower third voice appears (clip 8) | yes |
+
+Every one of these is the same event: two things that don't seem to belong together, and then the
+note underneath that holds them both. His newest thread is underneath too. And his poems have it as
+what one person is to another: "I will be the rock that shelters you till spring", and "a steady
+breeze upon which, you may fold and twirl your wings".
+
+**Proposal: build the whole game on that one act, at every size.** A hum is a ground. Hum is small,
+has one note, and learns what its note is under.
+
+| size | the two things | what is underneath |
+|---|---|---|
+| two voices | Hum, and Drip a fifth above | the C below them both (130.81 Hz), sung by neither |
+| two rhythms | three against five | the one they share |
+| a chord | its notes | home |
+| a land and its night | the land above, and the same notes from below | the two notes they share, and the point half way between them |
+| twelve lands | twelve homes | the island |
+| two people | two tunings | what they carry between them |
+
+Everything below is that table, built out.
+
+## The game in one paragraph
+
+You are a small thing with one note. The world is laid out as the wheel in your hand: an island in
+the middle of a low, half-frozen lake, twelve lands round the shore under the sky, and under each
+land the same land in the dark, with home a third lower. Everything in it can ring, and keeps what
+you play. You make music from the first minute, by moving, calling, singing and striking in time,
+and by choosing what is underneath. Your one note opens upward into its own overtones as you meet
+others, and each new overtone is a new note to play, a new rhythm to feel and a new way to go
+somewhere. Each day you go out to a land. Each night its river carries you under the ground to the
+island, and what you played is set into the island's song. Bringing a land's river back joins it to
+the island: its chord comes under your thumb wherever you are, its people come to the middle, the
+lake rises, and more of the world remembers. When the song can go all the way round, it comes home a
+comma high, as it must. What the world does with that remainder, where it is warm, where it is
+frozen, and who carries the difference, has been yours to arrange the whole time.
+
+## Seven moments, as played
+
+Each has the moment first, then what the hands do, then what is true underneath it.
+
+### 1. The Garden's first day
+
+- **The moment.** Morning, and nothing is asked of you yet. You strike an aster's stalk, twice and
+  then once, and it keeps that in its bells, a bar long, over and over. You call at the reeds in the
+  gap and they keep the call. You run, and land on a leaf on the one. Then you hold the wheel and
+  put home on the cell to the left, and everything you set going changes chord together. You have
+  made something, and nobody asked for it.
+- **In the hands.** A strike, a call, a jump, and R1.
+- **Underneath.** While the lake is low a thing keeps what you give it for a bar or two. Home
+  decides which of its notes it uses.
+
+### 2. The first night
+
+- **The moment.** Dusk. The hose runs, the pool is full, and where it spills over the old shore the
+  water goes into the ground. Drip's tick slows. You lie down in the stream and it takes you under.
+  It is black, and then your own day comes back to you off the walls: the calls, the strikes, the
+  three notes with Drip, folded into eight bars, with a lower note under them than they had all day.
+  It sounds like someone who was there, telling it. Roots hang in the dark and ring as you pass.
+  Near the end there is a phrase you never played. Then grey light. You are lying on a mound in the
+  middle of a frozen lake, and your eight bars are playing, very quietly, from a post on its shore.
+  Eleven other posts are dark.
+- **In the hands.** Nothing is asked. You can hum along, and what you hum is in the song tomorrow.
+- **Underneath.** The same notes, with home a pure minor third lower (315.641 cents). One note of
+  the tune gives 21.506 cents to stay pure with it.
+
+### 3. Morning on the island
+
+- **The moment.** Cold, and very quiet. A sapling stands on top of the mound. A path runs round the
+  shore past twelve posts, and one of them is lit green and faces north. Far off that way, up on its
+  cliff, there is a green light: the garden, where you were yesterday. Eleven more cliffs stand
+  round the horizon, dark. The ice is good to run on. You run the path, strike the green post as you
+  pass, and the garden's chord goes out over the lake. Something on the north cliff answers, late.
+  You come round to where you began, and the path is over your head: a ledge twice your height. You
+  jump down.
+- **In the hands.** Running and sliding, a strike, a call. Nothing to solve.
+- **Underneath.** The ledge is twelve pure fifths against seven octaves: 23.460 cents, which is
+  1.955 m if height is pitch.
+
+### 4. Underneath, awake
+
+- **The moment.** At the foot of the garden's cliff the stream comes out of a mouth in the rock.
+  Inside is the black of the first evening. You call. A ring of light runs out along roots as thick
+  as roads, hanging from a ceiling you can't see. The ones that share your note ring, and far above,
+  faintly, their asters answer. You have been here: last night's dream came through this room.
+  Everything you learned above still works. But the lowest thing that answers is not the garden's
+  note. It is the note a third below it, and with that under you, your own note is small and close.
+- **In the hands.** Tap R1 to see. Hold R2 at a root, and its aster lights above, and the light
+  comes down the root to you.
+- **Underneath.** The garden's seven notes, with home on A. Hum's C is its minor third: the mood the
+  notebook calls tenderness.
+
+### 5. A stranger in the east
+
+- **The moment.** Three lands sharpward, in the Bell Meadow, bells as big as houses swing in six.
+  You call, as you always do, and almost nothing answers. Your note is not one of this land's seven.
+  You try the fifth you learned from Drip. Nothing. Somebody is singing by the mill-race, and what
+  they sing is warm in a way nothing of yours is. You fall into step with them and breathe with
+  them, and above your own note a new one opens, one you could never have stacked up by yourself.
+  That one is in this land's seven. You call with it, and the whole meadow rings.
+- **In the hands.** The breath you learned with Drip, now with someone else. Then a button that did
+  nothing yesterday.
+- **Underneath.** A major has no C and no G. Of Hum's overtones it has the 5th (its E), the 9th, the
+  15th, the 45th, and the 27th, which is its home. To belong far from home, you sing from higher in
+  yourself.
+
+### 6. A border in the cold
+
+- **The moment.** Night, on the bridge between the Glass Hills and the Bell Meadow. It is bitterly
+  clear. The bell at each end rings a fifth with the other that stands perfectly still, and every
+  chord for three lands round is thin and bright, with nothing soft in it. The caravan is camped at
+  the near end, lamps lit, smelling of somewhere else. You have something from far away that it
+  wants. It leaves a pinch of what it carries on the bridge, and tells you which bridge, far round
+  the lake, it took it from. The two bells begin to turn against each other, very slowly, like
+  breathing. Behind you, in the Garden and its neighbours, the thirds come sweet, and things flower.
+  Somewhere on the far side a bridge you have never seen has gone colder and clearer.
+- **In the hands.** A trade is a choice of two places. There are no numbers.
+- **Underneath.** A grain is 1.955 cents. A fifth with three on it still shares 85.8%. A grain on
+  that bridge sweetens the thirds of four lands by a grain each: the Porch, the Garden, the Alfalfa
+  and the Glass Hills. The total never changes.
+
+### 7. The twelfth river
+
+- **The moment.** The last instrument sounds and the last river runs, and that night the dream is
+  longer than it has ever been. In the morning all twelve posts are lit, and there are people from
+  every shore on the island. The song starts at the garden's post, as it always has, and goes round,
+  land by land, each part coming in on its turn. For the first time there is no rest in it anywhere.
+  It comes all the way round. And where the garden's part should begin again there are two of them,
+  a hair apart, and the whole island is listening to see what you do.
+- **In the hands.** Everything you have: the wheel, the voice, and someone beside you.
+- **Underneath.** 23.460 cents. Where it goes is the rest of the game, and that is his.
+
+## The world
+
+Two pictures were drawn for this part (the world from above, and in section). They are outside the
+repository, with the sketches.
+
+### From above: the wheel is the map
+
+- **Stick at rest is the island. A full push is a land, under the sky. A half push is the same land
+  from underneath.** The half push is Morgan's (`SCRATCH.md`: "if I go halfway up well then guess
+  what I'd probably be selecting the relative minor of the very top one which is C major but then if
+  I push the you know right stick all the way up well then the c major cell is selected"). So is the
+  sentence that makes the map: "the actual entire world is a gigantic circle of fifths".
+- **Walking out from the island, you reach a land's foot before its top,** the way the thumb reaches
+  the half push before the full one. So underneath is entered from the lake side: mouths in the old
+  shore, under the lip of the land.
+- **The lake is low, so there is dry lake bed between the island's water and every land,** and
+  across it twelve river beds, like spokes. A river that runs is a land joined to the island. At the
+  start none of them does.
+- **Round the shore, neighbours share six of their seven notes.** One note changes at each border.
+- **North is only where the first finger went down.** The Garden is C because the poem says so: "may
+  as well put a finger down, call it home (C)".
+
+### In section: one stands up, the other hangs down
+
+- **A land stands up from its ground.** Count 4, 5, 6 up from a low note and you have its chord: C,
+  E, G.
+- **Underneath hangs down from the land's third.** Count 4, 5, 6 down from E and you have the chord
+  below: E, C, A. The same numbers, turned over. That is what a minor chord is, and it is why
+  "underground" and "relative minor" are the same thought.
+- **They share two notes of three,** C and E. The land has the note toward the sky (G). Underneath
+  has the floor (A). If height is pitch, at the notebook's 100 m to the octave: E is 32.2 m up, G
+  58.5 m up, and the floor underneath is 26.3 m down.
+- **The mirror between them has one fixed point:** the note exactly half way through the pure third,
+  193.157 cents above C. The D the land uses (9/8, 203.910) and the D that underneath wants (10/9,
+  182.404) sit either side of it, 21.506 cents apart, and the turn swaps them. So the audit's best
+  find, the D that cannot please both its neighbours, is the surface of the water. One D belongs
+  above and one below.
+- **Tears of the Kingdom's Depths are its surface turned upside down** (general knowledge). Here
+  that would not be a look. It is the arithmetic.
+- **The tree and its reflection.** His worksheet has, directly in front of him, "a Box elder
+  sappling", and a still pool that "holds the sapplings reflection". Offer: the sapling stands on
+  the island. Overtones are its branches going up, and the same numbers going down are its
+  reflection. Where the sapling really belongs is his.
+
+### The lake
+
+Three things the lake's level could be, and they are one thing.
+
+- **Whether music comes home.** This is wasatch's rule: "the piece literally can't come home until
+  the lake does". While the lake is low, the world's own songs end on almost-endings (clip 6: he
+  said yes, longing and not wrong). Every life's tune stops short for that one reason, not for
+  ninety-six separate ones. As the lake rises the world's songs begin to finish themselves. That is
+  his sister's sentence as the long shape of the game: "lo and behold now the whole world is singing
+  its own songs all over".
+- **How long the world remembers.** Low, a thing keeps what you played for a bar, and a land has
+  forgotten your day by morning. Full, things keep it for days.
+- **How high home is.** A lap of pure chords that doesn't close moves home (part one, 3b). The
+  oldest turnaround sinks 21.506 cents a lap, which is 1.79 m if height is pitch. So a world that
+  sang its favourite song in tune would sink, a comma at a time. And on the treaty's notes nothing
+  moves at all: water that cannot drift does not flow, and still water freezes.
+
+**The ice is the treaty.**
+
+- The poem: "One surface, upon which all agree and the blooming people can meet in the middle". Ice
+  is a floor. Anyone can walk straight across it to the middle, and from the middle to anywhere,
+  which is what the treaty gives: every key next door.
+- It answers a little less (98.3% on a fifth, 43.5% on a third), and nothing grows on it.
+- "Equal temperament is the quantization": freezing is what quantizing is, a liquid locking into a
+  lattice.
+- His worksheet has both sides of it: "to be a rock and not to roll, safe, stable, and cold",
+  against "stay warm in a whirling irrational stroll".
+
+**Low and partly frozen, read this way:** the world has stopped coming home, and the middle has gone
+numb where everyone agreed and nobody listens any more. Nobody did it. "bloom, touch me, please, I'm
+numb."
+
+**A real lake stands behind it** (general knowledge, and the lake of his own wasatch): the Great
+Salt Lake has no way out. The old levels of the far bigger lake it is left over from are still drawn
+as lines on the mountains above it, and that older lake once rose until it spilled over a pass and
+ran to the ocean. His pool "wants: TO RETURN TO THE OCEAN" and "knows something about: TIME". Offer:
+the lake is the pool at the size of the world, and its old levels are terraces on every land's
+cliff.
+
+### The island
+
+What Delfino Plaza and Clock Town do (general knowledge): you come back to them after every outing,
+they are a pleasure to move through for their own sake, they change as the world is mended, and they
+keep the game's one big idea in plain sight (a town getting its sun back, a clock counting down).
+
+- **The island keeps what comes home.** Twelve posts stand round its shore, each facing its land and
+  made of that land's stuff: a glass bowl, a reed, a bell-flower, a wire, a porch chime. A post
+  wakes when its land's river arrives. Run the shore and you strum them, as noodles strums by
+  dragging across wedges. The island is the wheel at the size of a playground.
+- **The island's song.** Each morning it plays what is kept. At first that is one thin line and long
+  rests. Each land that arrives fills its turn. It has to take turns round the wheel: twelve homes
+  at once is a cluster, as the audit says, and part one was wrong to have them sound together.
+- **The path round it does not meet itself** (an offer). Walk the posts by pure fifths and you
+  arrive above where you set out, at a ledge 1.955 m high if height is pitch: twice Hum's height.
+  You would see it every morning. It is "by something I can't measure", made into something you can
+  stand beside. Jump down and you have faked the closure, fondly. Morgan, in `SCRATCH.md`: "as
+  ridiculous as it is when I look at it to realize that it's really not a circle and that it is a
+  spiral".
+- **It fills with people.** Once a land is joined, its people can come to the middle. Lives from
+  lands on opposite shores meet here.
+- **The middle of the road.** The line of his worksheet he marked as having heat has a mound in the
+  middle of the road, cats gone into their holes in it, "but one white cat center of the road,
+  staring back", and something that "extends invitation". I only point at it: a mound in the middle,
+  holes going under, and one who waits. Where it goes is his.
+- **Under the island.** His worksheet again: "On the gap in the center of the hourglass", and "does
+  the last grain of sand fall through the eye?" And his fifth favourite, Phantom Hourglass, is built
+  on one place in the middle that you go down into again and again, further each time (general
+  knowledge). Proposal: under the island is where all twelve underneaths meet. Each land that
+  arrives lets you go one level further down. Further down is slower: a note becomes a beat, a beat
+  a bar, a bar a day, until at the bottom your whole game so far is one tune. What is at the very
+  bottom is his.
+
+### The rivers, and the night
+
+His question: is the river a dream, or sleep, "or??"
+
+**Proposal: it is the night.**
+
+- The lake is too low for any river to reach it over the ground. So at the old shore each river goes
+  under, and runs beneath the lake bed to the island.
+- Riding it is sleep. On the way you pass through the land's underneath, where the day is being laid
+  down.
+- The dream is your day sung back with home a third lower, mixed with what was already down there
+  (sketch b).
+- You wake on the island, and the day is in its song.
+
+So travel, sleep and dream are one trip. And the first time you walk underneath awake, you know the
+place: you have been through it in your sleep.
+
+- **"Compiles."** What the river keeps is what you did on purpose and in time, folded onto bars by
+  where it fell in the bar (part one's experiment 7). A day becomes eight bars. The island keeps
+  bars. Nothing is lost by that: a take is its inputs, so the whole day can still be walked again.
+- **Dreams join things** (`memory-in-rhythm.md`, idea 2), because under the ground neighbouring
+  rivers run close. A day in the Garden can wake with a phrase from under the Porch in it.
+- **What the river does not carry is the land's own state.** While the lake is low, the land forgets
+  (below).
+- **His line for it** is from SAFE AND SOUND: "together we can make it home safe downstreeeeam."
+
+### Underneath
+
+- **The same land, from below:** its roots, the undersides of its pools, its pipes and cellars.
+  Dark.
+- **You see by calling.** It is the first evening's dark again, as a whole country, and "what
+  sounds, shines" at its plainest. (In the walk about calling he called 52 times in two minutes, and
+  said yes to "Did you start calling just to hear what would answer?")
+- **Every ringing thing above has a root below.** Sing to a root and the thing above answers, and
+  its light comes down the root. So you mend above from below, and below from above.
+- **The same seven notes, with home a third lower.** Everything learned above still works and means
+  something else. Turned over, the moods swap: wonder with the darkest, sunny home with fierceness,
+  drive with tenderness. Cool soul is the mirror itself, and stays. (The old table gave cool soul
+  the power to ride water, by luck.)
+- **Three ways down, and each moves one voice while two stay** (the audit's missed mechanic 3; part
+  one, section 2):
+
+| the way | which two notes stay | which moves, and how far | where it lands you |
+|---|---|---|---|
+| a well, or a root: straight down | the root and third (C, E) | G up to A, 182.404 cents | under your own land (A minor) |
+| a slip under the sharp border | the third and fifth (E, G) | C down to B, 111.731 cents | under the next land sharpward (E minor) |
+| still water: through the mirror | the root and fifth (C, G) | E down to E flat, 70.672 cents | under the land three round, flatward (C minor, under E flat) |
+
+- **Every cave has three ways up as well.** From under the Garden you can come up into the Garden,
+  into the Porch next door, or through still water into the Bell Meadow, three lands round. So
+  underneath is where the short ways are.
+- **Getting out.** The land's own notes lead up: the chord on G lifts to C, and it is morning. A
+  note that is not the land's, G sharp, makes underneath a home with a pull of its own. Sketch e
+  asks whether that can be heard. The human moment: the past is somewhere you could decide to live.
+
+**Time is minor.** This is the idea with the most reach in this part.
+
+- Things that happen every 4, 5 and 6 beats, sped up, are a minor chord (10:12:15).
+- Things that happen 4, 5 and 6 times a beat, sped up, are a major chord (4:5:6).
+- The numbers are the same. One counts how often. The other counts how long between.
+- So a world of rounds and returns, where someone is at the bridge every third day, is a minor chord
+  played very slowly. (`spec/world.md` already noticed that rounds of 3, 4 and 5 mornings make a
+  minor chord. It did not notice why.)
+- **Underneath a land is its clockwork:** its tides, rounds and returns. That is why memory is down
+  there, and why the river that turns days into memories runs there. Sketch g.
+
+**It is not 24 countries built by hand.**
+
+- Underneath is worked out from the land above: its ground turned over so that heights become
+  depths, the roots of its things, its water seen from below, and what the player's own days have
+  laid down.
+- Made by hand: the mouths, the meeting places and a few set pieces.
+- The dark is cheap to draw, because only what sounds is lit. That is an estimate until it is
+  measured on the purple.
+
+### The sky, briefly
+
+The sky over a land is the higher overtones of its note, closer together as they climb. It is where
+the notes no wheel has are (overtones 7, 11 and 13). It stays in the drawer for now.
+
+## What you do
+
+### The first evening stays
+
+It has his first warm words and his yeses. It also already teaches the one idea: two voices, a
+figure between them, and a note underneath that neither is singing. What it lacked, in his own walk,
+was any sense of what to try next. That is a fault in the teaching, not in the evening.
+
+### The hands: performance from the first minute
+
+- **Move.** His standard: Mario in Super Mario 64, crossed with Link in Tears of the Kingdom.
+- **Call** (tap R1), and things that share your note answer.
+- **Sing** (hold R2): the swell grows a band each bar, and letting go on the one is landing.
+- **Strike** (left face): at once, and fuller when it is timed.
+- **The wheel** (hold R1): choose what is underneath.
+- **L1 and L2 step home flatward and sharpward while you sing.** That is his decision: "YES WE ARE
+  GOING WITH THIS RECOMMENDATION".
+- **The world keeps what you give it.** A thing you strike or call on purpose keeps that rhythm for
+  a bar or two, in its own voice and in home's chord, and for longer as the lake rises. On stage he
+  is a looper ("bass and guitar as the loops stack"). This is the garden as a loop station.
+- **One guard, from his ears:** nothing rings by itself underfoot. Clip 34, walking through ticks
+  and ringing leaves, got a no. Only what you mean is kept.
+- **The D-pad stays open,** as he asked.
+
+### One voice that opens
+
+Hum has one note. A bugle has one note too, and it plays tunes, by its overtones.
+
+**Proposal: Hum's voice opens upward through the overtones of its one note. Each new one is three
+things at once: a note to play, a rhythm to feel, and a way to reach.**
+
+| overtone | as a note | as a rhythm | as a reach | it comes from |
+|---|---|---|---|---|
+| 1 | Hum's own | the pulse | the call: what shares your note answers | waking |
+| 3 | the fifth | threes | leaning: what sits a fifth above falls toward you, and you toward a fifth below; the land next door | Drip (the figure between you is three lobes by two) |
+| 2 | the octave | twos and halves | the same place higher or lower: up through a floor, down through one | the hose opening (a stopped pipe jumps an octave) |
+| 5 | the pure third | fives | warmth: melting, growing, mending; the ways underneath | someone else, always |
+| 7 | the low seventh, 968.826 cents, 31.174 under the treaty's | sevens | wanting: any chord can be made to lean, so there is a road toward any land; the notes off the wheel | the caravan, by a trade |
+
+- **In the order play would meet them:** 1, 3, 2, 5, 7.
+- **A bugle plays its calls with four of them:** overtones 3, 4, 5 and 6 (general knowledge). Higher
+  up, 8 to 16 are a whole scale, with two notes in it that no wheel has (11 at 551 cents, 13 at
+  841).
+- **"The third you can't reach alone"** (shape 2) is how the 5 arrives. No stack of 3s and 2s is
+  ever a 5.
+- **Products are combinations.** 9 is a fifth of a fifth. 15 is a fifth's third: the note that slips
+  under a border. 27 is three fifths: the land due east. This is Tears of the Kingdom's "few rules,
+  many combinations", with the primes for rules.
+- **How the hand picks an overtone is an experiment, not a design.** One candidate: while R2 is
+  held, the four face buttons are overtones 3, 4, 5 and 6. That is an ocarina's layout, which his
+  hands know from his first and third favourite games.
+- **This answers his worry.** The circle does not arrive after the ending. The voice opens from the
+  first evening, a cell of the wheel wakes with every land joined, and with the 7 you can lean
+  toward any land from wherever you stand.
+
+### Home moves under you
+
+- **Hum's note does not move. What is under it moves, and that changes what it is.** This is his yes
+  to clip 26, and it is why I would answer the audit's contradiction 4 with one note.
+- **So the wheel is the hand that composes, and the voice is the constant.** Sketch d is that, as a
+  tune.
+- **The patch from part one stands:** three cells outside, the three under them, and the edge.
+- **Hum belongs in seven lands and is a stranger in five.** Seven lands have Hum's C among their
+  seven notes: D flat, A flat, E flat, B flat, F, C and G. Five do not: D, A, E, B and F sharp.
+  Shape 1 said what the game is about: "losing your own note inside someone else's key; finding it
+  again". This is where that happens, by arithmetic.
+  - **Sharpward, an overtone is the passport.** D is Hum's 9th overtone, E its 5th, B its 15th, A
+    its 27th. And the low part of the voice falls away first: in D, Hum's own note is not one of the
+    seven; in A its fifth is gone too; by B only the 5th, 15th and 45th are left. To belong far that
+    way, you sing from higher in yourself.
+  - **Flatward, it is the other way round.** Hum's note is their overtone: the 3rd of F, the 5th of
+    A flat, the 9th of B flat, the 15th of D flat, the 27th of E flat. There Hum does nothing to
+    belong. It is held. And the top of the voice falls away first: in F the 15th is gone, in B flat
+    the 5th, and by D flat the one note is nearly all that is left. There it is the seventh note of
+    the land, the one that leans hardest toward home.
+  - **One way round the lake you are the ground. The other way you are carried.**
+
+### Rhythm first
+
+His sentence: "The first musical concept that the player is ever exposed to is rhythm."
+
+- **Drip is the pulse, and sleeps and wakes** (his "absolutely perfect").
+- **Finding the one under two rhythms is his strongest yes.** It should be the first thing a tangle
+  asks of the player, and the last.
+- **Each land has a metre.** The atlas has them: three in the Alfalfa, six danced as three against
+  two in the Bell Meadow, twelve shuffled on the Highway.
+- **Swing is what a frozen thing cannot do.**
+- **Moving home could move the downbeat.** The seven-note scale is also a seven-stroke bell pattern
+  in twelve (shape 1), so where home sits is where the one falls. This is unbuilt, and it may be too
+  much.
+
+## A day, and coming back
+
+- **Morning on the island.** The song plays what is kept. You can see which rivers run, where the
+  ice is and who has come. You set out.
+- **Ways out.**
+  - Over the ice where it is frozen: straight, quick and a little numb.
+  - Down a dry river bed on foot, to a land's foot.
+  - By boat where there is water. The wind is the land's note, and you tack by moving home (the
+    atlas's sail).
+  - Round the rim from land to land: one note changes at each border.
+- **A land's day is a song:** dawn, noon, dusk, 2am. Key is the place and not the date (part one).
+- **At dusk, the river.**
+
+**A low lake forgets.** Until a land's river reaches the lake, the land wakes each morning as it
+was: its great instrument stuck, its people where they were. What you keep is what you learned, what
+your voice can now do, and what the river carried. That is the reset of his favourite game, with no
+clock and no menu, and it ends one land at a time.
+
+**Joining a land.** Every land's river is stopped at its great instrument. The atlas has twelve: a
+knotted hose, a wind harp, an armonica, a belfry, a looper, an organ, a piano, a bell jar, a music
+box, a cistern, a mouth organ and a guitar. Setting one right is playing it. Then the river runs,
+and:
+
+| what changes | where |
+|---|---|
+| its post wakes, and its part joins the island's song | the island |
+| its cell is awake on the wheel wherever you are, so you can borrow its chord | your hands |
+| its people can come to the middle, and they remember you | the island and the land |
+| the land keeps what you do there | the land |
+| the lake rises a step: some ground becomes water, some mouths drown, others can now be reached by boat | everywhere |
+| the world's own songs come home a little more often | everywhere |
+
+**Going back.** What makes a land different on each visit is the state of the world, not a list of
+episodes: the hour you arrive, the lake's level, which neighbours are joined, how warm it is there
+(below), who has come and gone, and what you can sing now.
+
+**What each favourite gives this shape** (my reading of his list):
+
+| game | what it gives |
+|---|---|
+| Super Mario Sunshine | a middle you come home to; lands you go back to; washing a place clean, as thawing; a town getting its sun back |
+| Majora's Mask | the reset; people who keep their own time; four freed giants called to the middle |
+| Phantom Hourglass | one place in the middle that you go down into again and again, further each time |
+| Tears of the Kingdom | sky, ground and depths; the depths as the ground turned over; few rules that multiply |
+| Ocarina of Time | two states of one map, through a hinge in the middle; an instrument on the buttons |
+| The Wind Waker | a world under water; conducting |
+| Outer Wilds | knowing is the key; the band gathered for one song |
+| Fallout | the trade: choose, and live with it |
+| Paper Mario: The Thousand-Year Door | the timed press; the page and the place |
+
+**A question this raises.** `spec/people.md` says a player who never helps anyone can still reach
+the ending. In this shape the main line is the rivers, and lives are the depth. Whether a river can
+be freed without its people is his.
+
+## What opens what
+
+His ask: part of the exploration unlocked "by using different harmonics and mechanics of like music
+and theory". Each row is a true thing, and what it could open.
+
+| what you can do | why it is true | what it opens |
+|---|---|---|
+| call, and be answered | things that share a note answer each other | seeing in the dark; finding what is kin |
+| find the one under two rhythms | two rhythms share a pulse, as two notes share a root | knots, anything tangled, a crowd's step |
+| land on the one | a cadence | whatever leans; doors that are "not locked but unresolved" (the first brainstorm) |
+| put home under a thing | a note means what its ground makes it mean | carrying, pulling, calming |
+| the octave (2) | the same note, higher or lower | up through a floor and down through one; the sky's first rung |
+| the fifth (3) | neighbours share six notes of seven | crossing a border: hold a note both lands have, and step |
+| hold two notes and move one | the three ways down | underneath |
+| the third (5), given by someone | warmth | thawing, growing; the water's surface thins where thirds are sweet |
+| three voices | a third voice closes what two can't (clip 31: yes) | a border that howls |
+| the seventh (7) | a chord with the seventh in it leans | a road toward any land from where you stand |
+| the far side shares your restless interval | the two leaning chords on opposite sides of the wheel share it, but only on the treaty's notes | the straight way across the lake, and it has to be over ice |
+| a pure lap that doesn't close | the pump | locks, lifts and the lake's own level |
+| everyone gives the same small share | the treaty | the lake freezes over: a floor to meet on |
+| give more at one border | warmth is gathered there | sweet thirds on the lands beside it, and colder somewhere else |
+| carry the difference with someone | what singers do | the seam |
+
+One of his ears' answers bears on this table: the far side's half-step way home (clip 21) did not
+feel "sly and sideways" to him. So the straight way across is offered as a crossing, not as a
+cadence.
+
+## Tuning: how much, and how
+
+His question: how much should the wolf, equal temperament and pure tuning play into the story, the
+game and the feel?
+
+**My answer: all the way down, as the ground and the weather, and almost never as a sour sound.**
+
+His ears set the terms.
+
+- "most of the game sounding out of tune is just going to be so fucking irritating" (2026-11-13).
+- A grove built to beat on purpose: "No, SEASICK!" Held synth tones: "jail for ears".
+- Pure fifths over a ground: "ANCIENT AND STRONG YES".
+- The wolf fifth alone for two seconds: "nasty and hardcore, Ganon/Ganondorf energy". Yes.
+- Keys with different colours (clip 13): yes.
+- The treaty's twelve chords falling exactly home (clip 12), "do you feel the closure?": no.
+
+### Three ways tuning is felt
+
+1. **As how much the world answers you.** Law 1: all of it when two notes match, 98.3% at two cents,
+   8.7% at a comma (the width of 15 cents is my number, to tune). A mismatch is heard as dimness and
+   quiet, not as beating. This is part one's 3a.
+2. **As drift that does work.** A pure lap that doesn't close moves things: part one's 3b, and above
+   it is what moves water.
+3. **As warm and cold.** This is the new part.
+
+### One dial: the size of the fifth
+
+The poem: "Two pins and a generator, music?" The two pins are where and how high. The size of the
+generator is the one thing left to choose.
+
+| the fifth | twelve of them against seven octaves | a major third from four of them | the twelfth fifth, if eleven are this size |
+|---|---|---|---|
+| pure, 701.955 | 23.460 over | 21.506 sharp | 678.495: narrow, and it howls |
+| the treaty, 700 | closes | 13.686 sharp | 700 |
+| a sixth of a comma narrow, 698.371 | 19.553 short | 7.169 sharp | 717.923 |
+| a quarter of a comma narrow, 696.578 | 41.059 short | pure | 737.637: wide, and it howls |
+
+- **The treaty is the one size at which the walk closes.** Any wider and it overshoots. Any narrower
+  and it falls short. It is a freezing point.
+- **On the cold side:** pure fifths and harsh thirds. Sung as fifths, octaves and drones, it is the
+  sound he called ancient and strong.
+- **On the warm side:** sweet thirds and full chords, and somewhere one fifth far too wide: the
+  sound with Ganon's energy.
+- **"Temperament" and "temperature" come from the same word,** to mix in proportion (general
+  knowledge). His fourth piece begins "freezing and heated / winter sun come on" and has "she sends
+  me intently / the melting of steel".
+- **Each tuning is a style, and each sounds good as itself.** Cold lands sing in fifths over a
+  ground. Warm lands sing chords. Frozen ground lets you go anywhere. Nothing has to sound wrong for
+  the difference to be felt.
+
+### Twelve shares of the comma
+
+For the ring to close, the twelve borders between lands must give up 23.460 cents between them. That
+sum cannot change. Where it sits can.
+
+Call a twelfth of it a grain: 1.955 cents. His hourglass has grains of sand, and his caravan carries
+spice. Then the big comma is 12 grains, the comma between fifths and thirds is 11 (to a thousandth
+of a cent), and their difference is 1.
+
+| where the grains sit | what that tuning is | what you hear |
+|---|---|---|
+| one on every border | the treaty | every land alike; every third 13.686 sharp (43.5%) |
+| all twelve on one border | the old tuning by fifths, with its wolf | eleven borders ring; one howls; the four thirds that cross the wolf are nearly pure (1.954 flat) |
+| three each on four borders | Werckmeister III | home's third 3.91 sharp; the far side's 21.51 sharp |
+| two each on six borders | Vallotti | home's third 5.87 sharp; the far side's 21.51 sharp |
+| 2.75 on each of eleven, and the twelfth 18.25 the other way | sweet thirds | eight thirds pure; one fifth 35.682 wide, and the four thirds that cross it 41.059 sharp: the wolf's valley |
+
+- **A grain sweetens every third that crosses it, and dulls its own fifth by a hair:** 98.3% for one
+  grain, 85.8% for three, 54.3% for six.
+- **So warmth is bought with give, and it can be gathered:** sweet at home, cold far away. That is
+  what "every key its own colour" means, and he said yes to it. Sketch f.
+- **In the cold placing, the wolf guards the warmth.** Pile the whole remainder on one border and
+  the thirds that cross that border are the sweetest in the world. In the warm placing it is the
+  other way round: everywhere is sweet except the valley.
+- **His caravan.** The worksheet: "A GYPSY FAMILY SPICE CARAVAN "No. 27"", "It came from: BEYOND
+  EASTERN PLAINS", "It wants: TO MAKE A TRADE", "It knows something about: HARMONY".
+  - 27 is three fifths stacked: the A of the land due east on the wheel.
+  - The A a pure sixth over the Garden is 5/3. The two differ by 81/80, which is the 11 grains.
+  - So the caravan's own number is the first place where round and underneath disagree. And a trade,
+    give here and take there, is what a temperament is.
+  - Offer: the caravan carries grains. I did not plan this. It fell out of his worksheet.
+
+### Frozen into the ground, or carried between people
+
+- **The remainder can sit in the ground.** That is a treaty: ice.
+- **Or it can be carried live.** Singers who listen to each other keep every chord pure and take up
+  the comma in the moving notes, a hair at a time. No fixed tuning does that. Things that cannot
+  listen need the ice. (General knowledge: choirs and string quartets tune this way, and the drift
+  that comes when nobody takes the comma up was written about in the sixteenth century. To be
+  checked before anything is built on it.)
+- **So the treaty is for strangers, and for things that can't listen.** With someone who is
+  listening you don't need it. You carry the difference between you. The poem: "through all we keep
+  between us, our gravity, I pull".
+- **The old duet ending is this, as a skill.** And who takes the comma on a given lap is something
+  two people can pass back and forth.
+
+### Wolves, the frozen and the old endings
+
+- **A wolf is not a kind of creature. It is a place:** the border that holds too much. Where the
+  remainder is, something wants.
+- **The frozen** are what stopped listening (the old Greys). They want nothing, so nothing brings
+  them home until someone gives them a third.
+- **The three old endings are three places in one space.** Everything even, with nobody listening.
+  Everything on one border, with nobody sharing. And the difference carried between two.
+- **None of them is an enemy in a small amount.** Ice is how strangers meet. In the cold placing,
+  the howling border is where the warmth is. Nobody can carry everything live.
+- **How much of this a player must understand:** none of the arithmetic. They hear how much the
+  world answers. They feel drift. They see and feel how warm or cold a border is. They make a trade.
+
+## The twelve lands, and what is under each
+
+The lands and their great instruments are from the atlas (`spec/world.md`): mine, built on his
+worksheet and his style book. The underneaths are new offers. Which of any of it stays is his.
+
+| land | its key | what stops its river | under it | what is down there (an offer) |
+|---|---|---|---|---|
+| the Garden | C | the knotted hose | A minor | the asters' roots, the buried run of the hose, the pool from beneath |
+| the Alfalfa | G | the wind harp | E minor | the field's roots and burrows; the wires that run under everything |
+| the Glass Hills | D | the armonica | B minor | where glass is still sand and fire |
+| the Bell Meadow | A | the belfry | F sharp minor | the pits the bells were cast in; the sad third every bell carries in its own sound |
+| the Highway | E | the looper | C sharp minor | the culvert and the underpass at 2am |
+| the Chrome Nave | B | the organ | G sharp minor | under the hood and under the seats: springs, and what was lost down there |
+| the far side | F sharp, or G flat | the piano | E flat minor | inside the piano; the pendulum |
+| the Aster Steps | D flat | the bell jar | B flat minor | the seed vault under the dome |
+| Verbena Hollow | A flat | the music box | F minor | the den |
+| the Rain Steps | E flat | the cistern | C minor | the cistern itself, which the Garden's still water also leads to |
+| the Reed Mouths | B flat | the mouth organ | G minor | the mud, and the frogs' winter |
+| the Porch | F | the guitar | D minor | under the porch, where the cats go |
+
+- **The far side loses its city.** In the old atlas the treaty's city stood on the far rim. In this
+  shape the treaty's home is the middle, so that city, its market and its clock shop would move to
+  the island. The far side is then simply the land farthest from where you woke. Hum's note sits
+  straight across from its home there, the hardest place to belong.
+- **Morgan's decision from the room stands:** "All creatures should be unique and intentional based
+  whatever one of 12 lands they are from".
+
+## Who you meet
+
+His own cast, in this shape. All of these are offers, and where each belongs is his.
+
+- **Drip:** the pulse, the first friend, on Hum's head, asleep until rhythm matters.
+- **The knot:** fear. "It wants: TO BE UNDONE." It stops the first river.
+- **The pool:** perhaps the lake itself.
+- **The caravan:** the trade, and the 7.
+- **Jeanne:** she carries a compass, refuses to explain where she has been, and wants to make
+  friends. The worksheet's secret story has "we're the faces, of all the places in between the
+  journey and the destination, we are the spaces she will roam". So perhaps she belongs to the
+  in-between: the borders and the dry lake bed.
+- **The white cat:** the middle.
+- **The fly:** whenever you sit still.
+- **The sapling:** the island's tree.
+- **Whoever gives the 5.** Someone has to. Who is his.
+- **Lives.** Each is a tune that can't reach its ending while the lake is low. The help a life wants
+  is something music does: a steady pulse, the one that two rhythms share, a third, an ending. As
+  the lake rises they finish their own tunes, and you stop mending and play along. No counts.
+
+## Trouble
+
+- **Knots** are tangles of rhythm. Find the one underneath, strike on it and let the cadence land.
+  His note in `SCRATCH.md`: none before a peaceful time in the garden.
+- **The frozen** can't swing. Swing loosens them, and a third brings them back.
+- **Wolves** gather at a border with too much on it.
+- **The great instruments are the big pieces.** You go inside one and play it right.
+- **Nothing dies.** "Kinder than beating them": yes.
+- **The honest part.** He won a fight in eight minutes without knowing how. If the one idea is
+  right, a fight has one question, and it has to be visible as one thing: where is the note under
+  these two? The page toy is still the bar for that.
+
+## The long shape
+
+1. **The first evening, the Garden's first day, the first river, and waking on the island.** The
+   world opens out from the middle, and the garden is a green light on the north shore.
+2. **The near lands.** The patch fills. The 2 and the 5 arrive. You walk underneath awake for the
+   first time. The lake rises, and the island gets its first people.
+3. **The far lands.** Hum is a stranger there, and overtones are passports. The 7. Borders with too
+   much on them. The caravan. The straight way across the ice.
+4. **The twelfth river.** The island's song goes all the way round for the first time and comes home
+   23.460 cents high. No date brings it. The player's own finishing does, and they have walked past
+   the ledge every morning.
+   - Smaller versions arrive long before: the two Ds as soon as there is a land and its underneath,
+     the pump inside one land, the first cold third at four lands.
+5. **What happens then is Morgan's.** Three things this shape offers him:
+   - The remainder is now loose in the world, and wherever it sits something wants. It can be
+     placed, frozen or carried.
+   - One last piece: a lap of the island sung with someone, the two of you passing the comma, every
+     land's post joining as you pass it. It is Outer Wilds' last song and Majora's giants (general
+     knowledge).
+   - The pool's want: a full lake spills over the pass and runs to the ocean. The Generative Self:
+     "A closed system has nowhere to go."
+6. **After.** He said: "composition after the ending removes a constraint". I don't know which
+   constraint he means. Four candidates:
+   - The river's one direction. Days become material: go upstream into any kept day, and lay days
+     beside each other. Composing is performing with time taken off.
+   - The snap to the scale and the beat.
+   - The size of the generator. Other fifths close other rings: 19 lands, 31, 53. At the two ends of
+     the range are 7 equal steps, where every step is the same and no home differs from another, and
+     5, where the half steps vanish and nothing leans.
+   - Where, and how high, home is for the whole world.
+
+   My pick is the first. The third is the far country.
+
+## Two consoles
+
+Unchanged from the notebook, with two additions. You are each other's 5: neither of you can make the
+other's third alone. And passing the comma between two players, lap by lap, is the duet as something
+two people do with their hands.
+
+## On this handheld
+
+- Lines of light, and sound made live, as before.
+- Underneath costs few lines, because it is dark, and its ground is worked out from the land above.
+  An estimate, to be measured on the purple.
+- The island's song is bars, which is almost nothing to store.
+- A land that forgets is less to keep, not more, until it is joined.
+- Nothing new was measured today. The costs that matter are the ones they always were: the places
+  made by hand, and his ears and hands in the room.
+
+## What changed since part one, and what I would kill
+
+**Changed.**
+
+- **"Underneath can be an hour, not a place"** (part one, section 2). It is both: a place, and the
+  night's road through it. He wants a place.
+- **"The one place where all twelve lands' music can sound together"** (part one, section 4). Wrong.
+  Twelve homes at once is a cluster. They take turns.
+- **Four quotations of his** were beside the wrong clips (above).
+
+**Killed today.**
+
+- **Every step singing a note.** I considered making walking a melody. His no to clip 34 already
+  answers it.
+- **The treaty's city on the far rim.** It moves to the middle.
+- **The three endings as three offers at a gate.**
+- **Underneath as an hour only.**
+
+**Not sure of.**
+
+- **The island's path with its ledge.** It may be too neat.
+- **Grains as something the player handles.** It could turn into a spreadsheet. Experiment 12 would
+  say.
+- **The downbeat moving with home.**
+- **The sapling, the mound and the caravan's number.** These readings may be mine and not his.
+
+**What could harden next, if nobody watches it.**
+
+- "Time is minor" is true, and it may never need saying or building beyond rounds.
+- Primes as reaches must never become a skill tree in a menu.
+- Twelve posts, twelve rivers and twelve instruments are a count. The count is not the game.
+
+## Experiments
+
+Ears first. All seven sketches are outside the repository. I cannot hear them. Measured with the
+game's own tool, their roughness reads inside the range of clips he has said yes to. The four new
+ones use no held tones: everything is struck or sung and dies away.
+
+| sketch | what it is | the question | what a no would kill |
+|---|---|---|---|
+| a, b, c | part one's | part one's | part one's |
+| d, one voice over a moving ground (46 s) | a tune made only of overtones 3, 4, 5, 6 and 8 of Hum's note; it never changes; the ground under it goes C, A, F, G, E, D, G, C | did it sound like a different tune each time the ground moved, and would you play it? | the voice as the constant and the wheel as the composing hand |
+| e, down and back up (34 s) | C's chord; two notes stay and G rises to A; the same notes from underneath; the chord on G lifts back to C; then down again, and G sharp makes underneath a home | did the first change feel like going under? did the lift feel like morning? did the last ending feel like staying? | underneath as the relative minor; the way out as a choice |
+| f, the trade (34 s) | one phrase at home and on the far side under the treaty; then at home with sweet thirds; then the far side as that leaves it, sung as fifths; then once as a full chord | home got sweeter and the far side got colder: is that a trade you would make? | warmth as something you gather |
+| g, standing and hanging (30 s) | 4, 5, 6 up from a low note; 4, 5, 6 down from a high one; then three bells every 4, 5 and 6 beats, sped up into that second chord | did the second chord sound like the first upside down? did the bells turn into it? | time is minor |
+
+Then hands, in the page toy, because that is his bar:
+
+8. **The bugle.** While R2 is held the four face buttons are overtones 3, 4, 5 and 6. L1 and L2 move
+   home. One aster keeps your last bar. Question: did you keep playing after you had seen what it
+   does?
+9. **The wheel lit as noodles lights it** (part one's 2).
+10. **The dark underneath.** One cave under the garden: black, roots, seeing by calling, and one
+    root that answers above. Question: is the dark a place you want to be in?
+11. **One border.** Two bells a hair apart, one on each side. Give a grain and they agree. Question:
+    did giving feel like something, or like a setting?
+12. **Twelve grains on a ring.** Place them, hear each land's chord, and hear the wolf where they
+    pile up. Question: is placing the remainder a pleasure?
+13. **The island's song, first line.** His own evening of 2026-11-21, folded to eight bars (part
+    one's 7), with eleven rests after it. Question: does the song with holes in it make you want to
+    fill them?
+
+I would have his ears on the sketches first, and then build 8 and 10.
+
+## Questions that are Morgan's
+
+These replace part one's list.
+
+1. **Did the room file his notes eighteen places off,** as I think?
+2. **Underneath:** is "the same land from below, and the night's road" his Depths, or does he see
+   somewhere else?
+3. **The river as the night under the ground:** is that the dream?
+4. **Which constraint does the ending remove?**
+5. **The lake:** is it the pool? Does it reach the ocean?
+6. **The sapling, the mound, the white cat and the caravan's trade:** do these readings fit, or are
+   they only mine?
+7. **The treaty's home in the middle,** and not on the far rim?
+8. **Hum's one note, fixed for the whole game,** with the voice opening upward?
+9. **Can a river be freed without its people?**
+10. **`CLAUDE.md`:** it still says to read `SPEC.md` first and to treat every sentence as a claim.
+    Should it say lab notebook?
+
+## Working words, part two
+
+None of these is a name in the game. They are handles for this note only: underneath (his word is
+"underground"); stands up, hangs down; the patch; a grain (after his hourglass); a post; the ledge;
+the island's song; joined (a land whose river reaches the lake); the frozen; a reach; the passport;
+time is minor.
+
+## The arithmetic, part two
+
+Worked out by a script on 2026-11-25. Ratios are exact; cents are rounded to three places.
+
+| what | ratio or sum | value |
+|---|---|---|
+| a grain: one twelfth of the Pythagorean comma | | 1.955 cents |
+| the syntonic comma, in grains | | 11.001 |
+| the schisma, in grains | | 0.999 |
+| a fifth with 1, 3, 6 and 12 grains on it shares (width 15 cents) | | 98.3%, 85.8%, 54.3%, 8.7% |
+| the treaty's major third, and what it shares | | 13.686 sharp, 43.5% |
+| a major third over four pure fifths, and what it shares | 81/64 | 21.506 sharp, 12.8% |
+| a quarter-comma fifth, in grains | | 2.750 |
+| the last fifth when eleven are a quarter-comma narrow | | 737.637 cents: 35.682 wide, or 18.25 grains the other way |
+| twelve quarter-comma fifths against seven octaves | 125/128 | 41.059 short |
+| Werckmeister III: C to E | 9 grains | 3.911 sharp |
+| Vallotti: C to E | 8 grains | 5.866 sharp |
+| a third across a border that holds all twelve grains | | 1.954 flat |
+| the mirror between C major and A minor | the square root of 5/4 | 193.157 cents above C |
+| the D above the mirror, and the D below | 9/8, 10/9 | 203.910, 182.404 |
+| the mirror swaps | | C with E, F with B, G with A, and the two Ds |
+| things every 4, 5 and 6 beats, as rates | 10:12:15 | steps of 315.641 and 386.314: a minor chord |
+| things 4, 5 and 6 times a beat | 4:5:6 | steps of 386.314 and 315.641: a major chord |
+| things every 3, 4 and 5 beats, as rates | 12:15:20 | a minor chord, with its third in the bass |
+| a third across the wide wolf, when eleven fifths are a quarter-comma narrow | | 41.059 sharp |
+| Hum on C, Drip a pure fifth over it, and their difference | 261.63, 392.44 | 130.81 Hz: the C below |
+| the lands' homes as overtones of C | G 3, D 9, A 27, E 5, B 15, F sharp 45 | |
+| C as an overtone of the flatward lands' homes | F 3, B flat 9, E flat 27, A flat 5, D flat 15 | |
+| lands whose seven notes include C | | D flat, A flat, E flat, B flat, F, C, G |
+| Hum's overtones 1, 3, 5, 9, 15, 27, 45 that are among a land's seven notes, by the wheel's twelve names | sharpward: G all seven; D all but 1; A 5, 9, 15, 27, 45; E 5, 15, 27, 45; B 5, 15, 45 | flatward: F all but 15 and 45; B flat 1, 3, 9, 27; E flat 1, 3, 9; A flat 1, 3; D flat 1 and 45 |
+| a grain on the border between D and A sweetens the thirds on | | F, C, G and D |
+| A as overtone 27, against A a pure sixth over C | 81/80 | 21.506 |
+| overtone 7 | 7/4 | 968.826; 31.174 under the treaty's seventh |
+| overtones 8 to 16, in cents over the 8th | | 0, 204, 386, 551, 702, 841, 969, 1088, 1200 |
+| down by a well: G to A | 10/9 | 182.404 |
+| down by a slip: C to B | 16/15 | 111.731 |
+| down by a mirror: E to E flat | 25/24 | 70.672 |
+| the fifths that close a ring of 7, 19, 31, 12, 53 and 5 lands | | 685.714, 694.737, 696.774, 700, 701.887, 720 |
+| with 7 equal steps, the tone and the half step | | both 171.43 |
+| with 5 equal steps, the half step | | 0 |
+| heights at 100 m to the octave | third, fifth, the floor underneath | 32.19 m, 58.50 m, 26.30 m down |
