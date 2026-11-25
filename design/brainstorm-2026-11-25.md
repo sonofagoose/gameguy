@@ -6,9 +6,10 @@ and propose small experiments. Nothing here is decided. Every idea is a proposal
 as Morgan's. The working words I coined are listed near the end so that none of them gets used later
 as if it were settled._
 
-_The note has two parts. Part one is the sorting Morgan first asked for. Part two was written after
-his reply the same day: it is the whole game imagined, and it corrects part one in three places,
-which are marked._
+_The note has three parts. Part one is the sorting Morgan first asked for. Part two was written
+after his reply the same day: it is the whole game imagined, and it corrects part one in places,
+which are marked. Part three, after his next reply, is about trouble: why there is any, what a fight
+is like in the hands, and how theory is taught and rewarded._
 
 # Part one: what is alive, and what is scaffolding
 
@@ -1174,6 +1175,8 @@ His own cast, in this shape. All of these are offers, and where each belongs is 
 
 ## Trouble
 
+_Part three replaces this section._
+
 - **Knots** are tangles of rhythm. Find the one underneath, strike on it and let the cadence land.
   His note in `SCRATCH.md`: none before a peaceful time in the garden.
 - **The frozen** can't swing. Swing loosens them, and a third brings them back.
@@ -1363,3 +1366,479 @@ Worked out by a script on 2026-11-25. Ratios are exact; cents are rounded to thr
 | with 7 equal steps, the tone and the half step | | both 171.43 |
 | with 5 equal steps, the half step | | 0 |
 | heights at 100 m to the octave | third, fifth, the floor underneath | 32.19 m, 58.50 m, 26.30 m down |
+
+---
+
+# Part three: trouble
+
+_Written the same day, after Morgan read part two and asked: "and what about combat/conflict? what's
+the reason? the game-feel? like this game should be as deep and vast and exhaustive and coherent as
+Tears of the Kingdom.. the circle of fifths should be so much fun to use and theory should be taught
+as well as rewarded". The same rules hold: every idea is a proposal unless it is marked as his._
+
+_Read again for this part: `spec/laws.md`, the wheel toy's and the page toy's notes, `the-wheel.md`,
+`the-way-home.md`, `experience-fixes.md`, `after-the-first-plays.md`, and the fight rows of
+`PROGRESS.md`._
+
+## Marked as Morgan's
+
+He said two things in that message that are his, in his words:
+
+- "the first meeting with drip being the exposure to rhythm as the first musical concept.. love
+  it.."
+- "drip as the "Tael" of this game - love it"
+
+A note on the name. In Majora's Mask the fairy who rides with Link is Tatl. Tael is her brother, the
+one who stays with the masked child (general knowledge). Either way the job he means is the one on
+Hum's head. If he did mean the brother, there is a story in that, and it is under "The reason"
+below.
+
+## What part two got wrong
+
+It gave trouble seven lines. It said what the troubles are and never why there are any, or what a
+fight is like in the hands. It also treated the plainest fact in the room's log as a footnote: he
+won a fight in eight minutes without knowing how. That is the largest unsolved thing in the build,
+and this part starts from it.
+
+## Five fights, as played
+
+### 1. The first knot
+
+- **The moment.** After a quiet morning you follow the hose toward where it is stopped, and
+  something stumbles out of the reeds: two strands wound round each other, each tugging at its own
+  rate. It lashes when you come near, and you can't find when. You hold L2. Drip hops off your head
+  onto it and ticks what it hears there, and that is a mess too. You hold R1. Time thickens, the
+  garden lies down, and the mess comes apart into two pulses, one in threes and one in fives. A
+  thread runs from Drip to one cell, the one on the left. You put home there. A low note comes in on
+  the one, and the mess is a groove: three and five, over a one that nobody was singing until you
+  did. Now its lash lands on a beat you can feel. You step aside on it and time opens. You strike on
+  the one, and again, each strike the next note of the chord. It loses its colour and leans. You
+  hold R2 and let go on the one. It springs open into a loop of hose, and water runs.
+- **In the hands.** L2, R1 and a flick, a dodge, three strikes, R2 and a release. Each is one press,
+  and each has been done once already with nothing at stake.
+- **Underneath.** The strands sing C and A: five against three. Both are overtones of F, its third
+  and its fifth, and F is the cell on the left. The pulse two rhythms share and the root two notes
+  share are one thing. This is clip 22, as a fight (sketch i).
+
+### 2. A pack in the Alfalfa
+
+- **The moment.** Three small things from the field circle you, and behind them a big one. You call:
+  the three ring one note, and the big one rings the note above it. The small ones keep falling in
+  on you. Your fork goes straight through the big one. You hold R1 and flick right. Everything on
+  the screen lurches. The three small ones are with you now: they have fallen into your step, their
+  lunges land on your beat and turn on your guard, and you could pick one up as if it weighed
+  nothing. The big one, which could not be touched, starts to fall toward you. You let it come, step
+  aside on its beat, and ring it until it goes grey. You hold R2. On the downbeat you tap L1 once:
+  home falls a fifth, the big one comes home as it passes, and the three small ones go grey and lean
+  after it. You let go on the one. All four fold up together, and the chord that lands has every one
+  of them in it.
+- **In the hands.** A flick, a dodge, strikes, R2, one tap of L1 on a downbeat, a release.
+- **Underneath.** The small ones sing G and the big one D. With home on C, the G is a fifth above
+  home and falls toward you, and the D is two fifths off and passes through you. With home on G, the
+  small ones are kin and the D leans. Then D to G to C, each a fifth falling home: the strongest
+  motion in music, and the one thing a tap of L1 does.
+
+### 3. Surrounded, on the far side
+
+- **The moment.** The far side: rows of hammers, dead level, everything marching in fours. Your note
+  has never been further from anything, and you are surrounded. You hold R1 and point at the one
+  cell you would know in your sleep, your own. For one phrase home is the garden, and from the
+  garden everything here is as far away as a thing can be. You strike the nearest and it goes over
+  the roofs. The next one's blow lands on you, and you go over the roofs as well, the other way,
+  across the gap you could not jump.
+- **In the hands.** One flick to a cell you know by heart, a strike, and letting yourself be hit on
+  purpose.
+- **Underneath.** F sharp is six fifths from C whichever way you count. Law 2 calls that far:
+  nothing shared, and rough. "Your blows throw it, and its blows throw you." Borrowing home lasts a
+  phrase.
+
+### 4. A border that howls
+
+- **The moment.** Dusk, at a bridge with too much on it. Things come up from under it doubled, two
+  outlines a hair apart, red in the eye, and their howl is the sound between the two outlines. You
+  do what has always worked. You wear one grey, put home beside it, hold, and let go on the one. It
+  falls toward home, lands beside it, and howls. Again. It misses again, by the same gap every time.
+  Then the one who came with you sings a single note between the two ends of the gap. Each end moves
+  a hair toward it. You hold under all three and let go on the one. The whole pack lies down as a
+  chord, and for as long as the three of you keep singing, the bridge is quiet.
+- **In the hands.** Everything you know fails once, on purpose. Then the first lesson again: breathe
+  with the one beside you, hold, let go.
+- **Underneath.** The fifth across this border is 23.460 cents short, and nothing lands on a fifth
+  like that. A third note between its two ends gives both something to tune to (clip 31: yes). The
+  wolf fifth alone is the sound he called "nasty and hardcore, Ganon/Ganondorf energy". While it is
+  carried between you it is quiet. When you walk away it is back, unless the remainder is moved.
+
+### 5. The last one (an offer; the ending is his)
+
+- **The moment.** Under the island, at the bottom, is the note the whole frozen lake has been
+  holding. It is not loud. It is simply under everything, and it has never moved. Everything you
+  have brought sings into it: the third someone gave you, the low seventh the caravan traded you.
+  With those sounding over it, the great still note is not still any more. It leans, and it has
+  nothing to lean on. So you do the first thing you ever did. You hold your one note, underneath it.
+  On the one you let go, and the largest thing in the world comes home.
+- **In the hands.** Hold R2. Let go on the one.
+- **Underneath.** A note with its third and its low seventh over it (4:5:6:7) is the chord that most
+  wants to fall a fifth. The lake's note is Drip's note, and Hum's is the fifth below it. The poem
+  has the whole of this as a stage direction: "(V7 resolving to I)". Sketch h.
+
+## The reason
+
+**Everything that fights you is something that leans, with nothing under it.**
+
+Wanting is what this world runs on: "ache IS the engine". A want with ground under it comes home,
+and coming home is what makes music and moves water. A want with nothing under it does one of three
+things.
+
+| what it does | what it becomes | his words for it | what brings it home |
+|---|---|---|---|
+| it grabs, and holds on | a knot | "A DEMON OF FEAR", "It came from: PEOPLE", "It wants: TO BE UNDONE" | the one under its rhythms |
+| it throws its ache at whatever is near | a wolf | "nasty and hardcore" | a third voice |
+| it stops wanting | the frozen | "bloom, touch me, please, I'm numb" | swing, and then warmth |
+
+- **These are states, not kinds of creature.** Anything can fall into them: a creature, a life, a
+  river, a bell, a whole land, and Hum. So a land's troubles and a land's band are one cast, and
+  every fight ends with one more voice in the world. His decision from the room fits this: each
+  land's things knot, howl and freeze in that land's own metre and material.
+- **Why there is so much of it.** The lake is low, so nothing in the world can finish its own phrase
+  (part two). Every tune leans for ever. That is where knots, wolves and the frozen come from, and
+  it is why there are fewer of each as the lake rises.
+
+**Why the lake is low and frozen: three ages.** This is an offer of mine. It is the real history of
+tuning, told as weather.
+
+| age | its fifth | a lap round the ring | the lake | how it sounded | its trouble |
+|---|---|---|---|---|---|
+| the age of fifths | pure | 23.460 over: rising | high: the old shorelines; it reached the ocean | clear and strong, with harsh thirds | one narrow wolf |
+| the sweet age | narrowed, for sweet thirds | up to 41.059 short: sinking | falling | warm chords in every land that asked | a wolf's valley that grew with every land that was warmed |
+| the treaty | 700 | closes: nothing moves | frozen where it lay | every land alike, and a little numb | none, and nothing comes home |
+
+- **Nobody in it is wicked.** Each age mended the last one's pain. The poem says so twice: "silly
+  human with their silly human crew", and "I mean, I get it."
+- **The wolf is in the ice.** The treaty did not get rid of the howl. It cut it in twelve and froze
+  a twelfth into every border. That is arithmetic: twelve times 1.955 is the 23.460 the old wolf was
+  short by. So every pure thing made in a frozen world lets a grain of it out, and the first one is
+  the fifth you lock with Drip.
+- **So the trouble grows with your own kindness.** Warm one home and the far side goes cold. Warm
+  many, and the sweetness is overdrawn past the twelve grains, and the debt gathers in one valley
+  and howls. The game's great enemy is the sum of what was pushed away to make home sweet. That is
+  his fixed thing as a plot: "the ache of the remainder is an engine, not a defect".
+- **It has two faces.** Frozen, it is a held note that never moves, the sound his ears called "jail
+  for ears". Thawed, it is the wolf fifth. Neither should be played at the player for long. Frozen,
+  it is felt as the world answering less. Thawed, it howls for seconds at a time. And it has to thaw
+  before it can come home: numb, then it hurts, then it resolves.
+- **A hum and a drone are the same thing. The difference is listening.** The enemy is what a ground
+  becomes when it stops moving under others. His ears already know the difference: the held synth
+  tone he could not bear, against the page toy, where (in the room write-up's words) the sustained
+  sound has tasteful harmony under it.
+- **His worksheet's farthest sound** (an offer). Its listening list has, closest, "water dropping
+  like a leaky faucet"; farthest, "the freeway"; and, for a sound that almost sounds like something
+  else, "a low rumble in the atmosphere that sounds like the ocean". So his own evening has Drip
+  nearest and, farthest, a rumble that sounds like the ocean and is not one. The pool wants the
+  ocean.
+- **Drip, and Tael.** The lake's frozen note is Drip's note: Drip is one drop of it that never
+  froze. So the first evening is the last one, small: a note, and Hum's note under it. If he meant
+  the brother who stays with the lost one, this is that.
+- **And the player's reason.** Every trouble brought home is a voice the island's song did not have,
+  and a thing in the world that now plays with you. Nothing is beaten, so nothing is used up.
+- **Failing.** When Hum is shaken apart its note breaks up, the light goes, and the nearest river
+  carries it to the island. It is an early night, and the land forgets the day. Nothing else is
+  lost. His line again: "together we can make it home safe downstreeeeam".
+
+## The feel
+
+Six things a fight should put in the body, in the order they come:
+
+1. **The lurch,** when home moves and everything in earshot changes what it is to you.
+2. **The swing,** when home is right and a stumble turns into a groove.
+3. **Opened time,** when you step aside on the beat.
+4. **The chord,** when the last strike completes it and it is the brightest thing on the screen.
+5. **The fall,** when you put home under a far thing and go to it.
+6. **The landing,** when you let go on the one.
+
+His hands have already said yes to the landing and to the timed strike. The other four have never
+been built with any weight.
+
+### The wheel must do five things every time it is touched
+
+1. **Sound.** Entering a cell plays its chord, voice-led from wherever you were (noodles).
+2. **Move the world.** Things lurch: see "Home is down".
+3. **Show.** Every thing's shape and lean change as you hover, before you commit.
+4. **Land.** Home moves on the beat, with weight: a still frame or two, the ring at Hum's feet
+   jumping, the light changing hue.
+5. **Be worth playing with nothing to fight.** Sit in the garden and play the cells, and the things
+   that kept your bars follow.
+
+Today it does the first only as a soft hum, and none of the rest. `after-the-first-plays.md` counted
+his evening: about 30 holds of R1, home moved about 6 times, silently, and nothing answered. That is
+why eight minutes taught nothing. It was not his hands.
+
+### Home is down
+
+A picture was drawn for this (one flick moves everything). The table is the notebook's own
+(`spec/laws.md`, law 2).
+
+| where a thing's note sits from home | what it is to you | what happens |
+|---|---|---|
+| on home | kin | weightless to you; it keeps your time |
+| a fifth above | it leans to you | it falls toward you |
+| a fifth below | you lean to it | you fall toward it |
+| two fifths off | passing | you pass through each other |
+| three or four | warm | it takes colour, and grows |
+| five | grinding | it shakes, and pushes off |
+| straight across | far | your blows throw it, and its blows throw you |
+
+- **One flick re-aims every pull in earshot.** A fight changes shape in a beat: what was swarming
+  you is with you, what could not be touched is falling toward you, and what was in your way is
+  across the valley.
+- **It is how you get about as well.** Put home a fifth under a far bell and you fall toward it.
+- **It is the one idea again.** Things fall toward the note underneath them, and you choose what
+  that is.
+- **It has never been felt.** In the toys a creature's shape, its distance and its pulse all change
+  with home, and nothing moves with weight. Experiment 14.
+
+### Drip is the lock-on
+
+- **In the games he means, the fairy is the target.** Hold the trigger and she flies to the enemy
+  and sits on it (general knowledge).
+- **L2: Drip hops to the target and ticks what it hears there.** Now there are two pulses in the
+  air, yours and its. That is the stumble.
+- **The wheel then shows one thread, not a hundred and sixty:** from Drip to the cell where the two
+  pulses share a one.
+- **Drip shows the moment coming.** Its light gathers before the target's one, so a dodge is on a
+  beat you can see.
+- **Drip sings where home wants to go,** until you have done it once yourself.
+- **Drip sleeps when rhythm doesn't matter.** His "absolutely perfect".
+
+So his two loves are one design. The first musical idea is rhythm, the one who carries it is the
+Tael, and in a fight the Tael is how rhythm is read.
+
+### A fight is a song in three parts
+
+1. **Find the one.** Two pulses, and the note under both. When home is right the fight starts to
+   swing, and that moment is the feel the whole game should be known for. It is his strongest yes.
+2. **Play.** Strikes are the notes of home's chord, at once, and fuller when timed. A dodge on the
+   beat opens time, and in it each strike is the next note. A finished chord rings out, and it is
+   the brightest thing on the screen.
+3. **Land it.** The swell grows a voice each bar. A tap of L1 on a downbeat lets home fall a fifth
+   and brings home what it passes. Letting go on the one is the cadence.
+
+### What is built, what his hands said, and what I would change
+
+| | built today | his hands | what I would change |
+|---|---|---|---|
+| the strike | at once; it walks home's chord; timed, it rings with its octave | "Did a timed hit feel stronger?" yes | nothing. It is the best thing in the fight |
+| the wheel | both rings, with letters, drawn on top | he could see which slice to point at; he did not know why, or what it did | the five things above |
+| the swell | bands by the bar; let go on the one | landing: yes. Kinder than beating them: yes. The room's write-up has him confused that R2 shows nothing until it is let go | it sounds and grows while held; L1 and L2 step home (his decision) |
+| the dodge | on the beat a lunge lands on, it opens time | 46 lashes, 2 found | Drip shows it; the lunge falls on a beat you can already feel |
+| the guard | hold L2 and meet the blow | nobody has used it | be its note, and its blows turn easily; a blow turned is a ball of dark |
+| the call | rings each creature in its own note | calling to hear what answers: yes | in a fight it is how a pack is read: you hear its chord |
+| the copies | strikes made in the opened time land again on later bars | "Did the copies feel like your own band?" no | out of fights. The band is whoever you brought home |
+
+- **A strike must always do something.** In the toys a strike only drains a creature when it lands
+  on a meeting of the two pulses, and the screen says nothing when it doesn't. He struck 155 times
+  in one session and 17 landed on a meeting. An unmet strike should still ring the thing, show its
+  note and nudge it. A met one does more.
+
+### The body
+
+- The sprint's breath on the half beats, and landing on the one: both yes.
+- A hit holds the picture still for two or three frames. There is no motor, so stillness is the
+  thump.
+- What sounds, shines. A fight is the brightest thing in the world because it is the loudest.
+- Sliding on the ice, which no land's ground lets you do.
+
+### The thumb: which way is up?
+
+- The wheel's cells are thirty degrees wide, and the patch in use is three of them side by side.
+  That is narrow for a thumb in a fight.
+- **One answer:** draw the true ring, with its letters, turned so that the land you stand in is at
+  the top whenever the wheel opens. The hand then makes the same six moves in every land (home up,
+  its neighbours either side, the three under them at a half push), and the eye still reads the real
+  circle.
+- **The other:** north stays up, as noodles has it, and D is always two steps clockwise.
+- On the island there is no "your land", and north is up either way.
+- Only his hands can say. It is part of experiment 9.
+
+## As deep and as coherent as Tears of the Kingdom
+
+What makes that game hold together is not its size. It is that a few rules multiply, and every
+ability turns the whole world into material (shape 1 has this from its makers' own talk).
+
+### Ten rules
+
+Seven are about sound, from `spec/laws.md`. Three are about music.
+
+1. Things answer what they share.
+2. Things fall toward the note underneath them.
+3. Near rhythms fall into step.
+4. A held note makes still places, and you can stand on them.
+5. Opposites cancel into dark. Near-misses turn things.
+6. Sound takes time to arrive.
+7. Pushes in time build up.
+8. A note means what is under it.
+9. A rhythm and an interval are the same number.
+10. What does not close leaves a remainder, and the remainder cannot be destroyed.
+
+Everything in parts two and three is meant to follow from these. Where something doesn't, it is a
+list, and it should go.
+
+### The kit: what you can do to a thing or a phrase
+
+These are the things musicians have always done to a phrase. Several are from shape 1.
+
+| in the hand | what it is in music | what it does in the world | the nearest thing in that game |
+|---|---|---|---|
+| move home | changing the ground | re-aims every pull | nothing: this is the game's own |
+| be its note | unison | it is weightless: carry it, stack it, ride it | Ultrahand |
+| hold things in a chord | voicing | joints that are in tune hold; the rest shake loose | Ultrahand's glue |
+| add a note to a strike | an extension | a fifth splits it, a third makes it seek, a seventh pulls, straight across throws | Fuse |
+| the octave | register | up through a floor, down through one | Ascend |
+| backwards | retrograde | a thing's last bar runs in reverse | Recall |
+| keep and replay | the loop | a thing keeps your bar; a kept phrase can be played again | Autobuild |
+| upside down | inversion | a blow turned over; the way underneath | the Depths |
+| half speed, double speed | augmentation | thick time; a slow thing's rhythm becomes a note | |
+| a late copy | canon | a far wall answers bars later: you strike from two times at once | |
+| give a little | tempering | ice to cross on; warmth gathered | clothes for the weather |
+| carry it between two | what singers do | the seam | the sages beside you |
+
+### How its pillars would be answered here
+
+| in that game | here | by which rule |
+|---|---|---|
+| shrines | wonders: one true thing about sound, found by doing it, with no fight and no words | all ten, one at a time |
+| roots that light the Depths under each shrine | a root under every ringing thing | 1 |
+| temples | the great instruments: you go inside one and play it right | each instrument's own physics |
+| the hold-to-slow wheel | the wheel | 2 and 8 |
+| the blood moon | a low lake forgets | the lake's level |
+| gloom | numbness: near the frozen the world answers you less | 1 |
+| stamina and hearts | breath, and steadiness: when Hum is hurt its note wavers | |
+| the paraglider | cut, by him. Falling toward a home, and the ice | 2 |
+| seeds hidden everywhere | everything answers a call, and some things keep a phrase for you | 1 |
+| memories found in the land | pools that remember | 6 |
+| the dragons | the caravan, the black train, the cloud that kept everything | rounds |
+| the sword that grows with you | Hum's own voice, opening upward | 9 |
+| the machines and their batteries | loops, driven by a remainder | 3, 5 and 10 |
+| the last enemy | the howl in the ice | 10 |
+
+- **None of this is a count.** It is a check that each thing that game does has an answer here that
+  comes from a rule.
+- **"Vast" should mean how far a rule reaches,** as part one said about my counts.
+
+## Theory, taught and rewarded
+
+His fixed thing stands over this section: music theory is "the physics and the play, not decoration
+and not a quiz".
+
+**Taught.**
+
+1. **You do it before it has a name.**
+2. **Drip does it first, beside you.** That is the Tael's job.
+3. **The world shows the relation** as a shape, a lean and a thread. One idea has one look and one
+   sound, everywhere.
+4. **The first time is safe, and free.**
+5. **Wonders** teach one thing each, with nothing to fight.
+6. **The songbook names it afterwards, if you ask.** By the end it is a harmony book that you wrote
+   by playing.
+7. **Trouble arrives in the order music is learned:** rhythm, then harmony, then tuning.
+
+**Rewarded.** Knowing more always gets you more.
+
+1. **Outcomes.** How a thing comes home decides what it leaves. A full close springs it open. An
+   amen settles it to sleep. A turn puts it beside you for a phrase (his "yes, a twist").
+2. **Size.** A longer walk home lands a bigger chord: the seventh, then the ninth. He said yes to
+   that.
+3. **Reach.** Overtones are passports. The seventh is a road to anywhere.
+4. **Short ways.** A note two lands share, held across a border. The straight way over the ice.
+5. **Kindness.** The gentlest endings take the most skill: a whole pack sung to sleep in one long
+   walk.
+6. **Secrets.** Places that open to one particular move and no other.
+7. **Company.** What you bring home stays, and plays.
+
+**Never asked.** Nothing in the game ever asks what a thing is called. It asks whether you can get
+home from here.
+
+**Trouble as the lessons, in order.**
+
+| trouble | what it asks | what you learn, without the word | what knowing more gets you |
+|---|---|---|---|
+| a knot | find the one under two rhythms | pulse, metre, a polyrhythm, the root | knots of three rhythms; knots of knots |
+| a lash | step aside on its beat | the upbeat | opened time |
+| something leaning | let go on the one, with home beside it | the cadence | a choice of what it leaves |
+| a pack | hear its chord; be the note it lacks | chords, major and minor | one note of yours turns the whole pack |
+| a run of things a fifth apart | walk home the long way | the walk every song uses | longer walks, richer chords |
+| a land where your note does not belong | sing from higher in yourself | overtones, borrowed notes | belonging anywhere |
+| the frozen | swing; then a third from someone | swing; thirds | a thaw, and a friend |
+| a border that howls | three voices | why a third closes what a fifth can't | the remainder, yours to move |
+| the great instruments | play it right | how pipes, strings, bars and bells work | the river |
+| the note under the lake | be underneath, and hold | the longest cadence there is | home |
+
+## What I would kill, and what I am unsure of
+
+**Killed.**
+
+- **Part two's "Trouble" section,** as written. This replaces it.
+- **Copies of your strikes as a band in a fight.** His no.
+- **The slide as a way home.** His no.
+- **A strike that does nothing unless it lands on a meeting.**
+- **About 160 threads on the wheel.** One, from Drip.
+
+**Not sure of.**
+
+- **A creature's rhythm changing as home moves.** It follows from rule 9, and `the-wheel.md` already
+  feared it is too much to read in a fight.
+- **The three ages.** They are mine. They make one story of the low lake, the ice and the wolf, and
+  they may be more history than a game wants.
+- **The lake's note being Drip's.** Mine.
+- **Being thrown on the far side.** It could be the funniest thing in the game or the wrong tone for
+  it.
+- **The last one as a hold.** His to decide.
+
+## Experiments
+
+Ears. Two more sketches, outside the repository. I cannot hear them. Both read well under the
+roughness of clips he has said yes to.
+
+| sketch | what it is | the question | what a no would kill |
+|---|---|---|---|
+| h, a floor under the floor (40 s) | a steady G with a figure over it that sounds like home; one note is added, the ground's own low seventh, and it leans; a C comes in underneath and everything falls onto it; then the first figure again, unchanged, over the C | for the first while, did G feel like home? when the C came in under it, was that a relief, or a trick? | the last one as a hold; the world as one long leaning chord |
+| i, a fight becomes a song (25 s) | clip 22's stumble; strikes with home in the wrong place; the note under both comes in; four strikes on the one; two bars of swell; the landing, and the garden answers | when the low note came in, did it turn into something you would want to keep playing? did the last chord land? | a fight as a song in three parts |
+
+Hands, in the page toy:
+
+14. **One flick moves everything.** Three things and nothing to fight: one on home, one a fifth
+    above, one a fifth below. Flick home, and they lurch. Question: did moving home feel like
+    throwing a switch?
+15. **Drip is the lock-on.** L2 sends Drip to a knot. You hear two pulses. The wheel shows one
+    thread. Question: did you know what to do, without a word?
+16. **The first knot, whole.** Question, the one he answered no to on 2026-11-21: after you let go,
+    did the tangle fall into step, and did you know why?
+
+I would build 14 first. If moving home has no weight, nothing else in this part stands.
+
+## Questions that are Morgan's, added
+
+11. **Is "something that leans, with nothing under it" the reason?**
+12. **Does the trouble have a face?** The rumble that sounds like the ocean, the howl in the ice, or
+    nothing with a face at all?
+13. **Tael, or Tatl:** did he mean the brother?
+14. **The thumb:** the land you stand in at the top, or north?
+15. **Can you fail,** and is being carried home the right way to?
+
+## Working words, part three
+
+Handles for this note only: a knot, a wolf and the frozen as states; the three ages; home is down;
+the lock-on; the kit; the ten rules. None is a name in the game.
+
+## The arithmetic, part three
+
+| what | ratio or sum | value |
+|---|---|---|
+| a note with its third and low seventh over it | 4:5:6:7 | the seventh is 968.826 cents over the ground |
+| when it falls a fifth, the seventh falls to the new third by | 21/20 | 84.467 cents |
+| and its third rises to the new ground by | 16/15 | 111.731 cents |
+| twelve grains, frozen one to a border | 12 times 1.955 | 23.460: what the old wolf was short by |
+| a lap of pure fifths; of quarter-comma fifths; of the treaty's | | 23.460 over; 41.059 short; closes |
+| five against three, as notes | 5/3 | a major sixth, 884.359 cents; both are overtones (5 and 3) of the note under them |
+| things on G and D, with home on C | | a fifth above (leans); two fifths off (passing) |
+| the same things with home on G | | kin; a fifth above (leans) |
+| F sharp from C | six fifths either way | far |
