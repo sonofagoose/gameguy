@@ -9,7 +9,9 @@ as if it were settled._
 _The note has three parts. Part one is the sorting Morgan first asked for. Part two was written
 after his reply the same day: it is the whole game imagined, and it corrects part one in places,
 which are marked. Part three, after his next reply, is about trouble: why there is any, what a fight
-is like in the hands, and how theory is taught and rewarded._
+is like in the hands, and how theory is taught and rewarded. Part four is what the game actually is
+today, looked at after he asked when I last had, and it corrects part three's account of what is
+built._
 
 # Part one: what is alive, and what is scaffolding
 
@@ -69,8 +71,9 @@ Each of these has Morgan's hands, ears or words behind it.
 6. **Bringing a thing home instead of beating it.** "Kinder than beating them": yes.
 7. **A world that answers by law.** He called just to hear what would answer, and the asters felt as
    tall as cathedrals. "Laws, not lists" was his ask.
-8. **The river singing the day back.** Clip 28 got a yes. (The words "ANCIENT AND STRONG YES" were
-   filed beside it by mistake; part two.)
+8. **The river singing the day back.** Clip 28 got a yes. It is a listening clip: there is no river
+   in the game (part four). (The words "ANCIENT AND STRONG YES" were filed beside it by mistake;
+   part two.)
 9. **The comma, seen and briefly heard.** Two suns got a yes. ("nasty and hardcore" was most likely
    about the wolf fifth; part two.) The held comma is "really close", and he does not yet know what
    would make it land.
@@ -1378,7 +1381,8 @@ as well as rewarded". The same rules hold: every idea is a proposal unless it is
 
 _Read again for this part: `spec/laws.md`, the wheel toy's and the page toy's notes, `the-wheel.md`,
 `the-way-home.md`, `experience-fixes.md`, `after-the-first-plays.md`, and the fight rows of
-`PROGRESS.md`._
+`PROGRESS.md`. I had not run the game or read its fight code when I wrote this part. Part four did,
+and two passages below are corrected from it; they are marked._
 
 ## Marked as Morgan's
 
@@ -1568,9 +1572,14 @@ been built with any weight.
 5. **Be worth playing with nothing to fight.** Sit in the garden and play the cells, and the things
    that kept your bars follow.
 
-Today it does the first only as a soft hum, and none of the rest. `after-the-first-plays.md` counted
-his evening: about 30 holds of R1, home moved about 6 times, silently, and nothing answered. That is
-why eight minutes taught nothing. It was not his hands.
+_Corrected from part four._ Today the wheel does the first in small: entering a cell clicks in its
+note, resting on one hums it, and moving home rings a note from Hum. It does the fourth a little:
+home's ring and Hum's own note change. It does none of the second, third or fifth: nothing in the
+world moves or changes shape, and only two of the twenty-four cells can be chosen. On his first
+evening home did move silently (`after-the-first-plays.md` counted about 30 holds of R1 and about 6
+moves). The note on moving home was added in `5cc88f0`, before his room session the same day. So I
+was wrong to say silence is why his eight minutes taught him nothing. I don't know why they didn't,
+and it was not his hands.
 
 ### Home is down
 
@@ -1624,15 +1633,18 @@ Tael, and in a fight the Tael is how rhythm is read.
 
 ### What is built, what his hands said, and what I would change
 
-| | built today | his hands | what I would change |
-|---|---|---|---|
-| the strike | at once; it walks home's chord; timed, it rings with its octave | "Did a timed hit feel stronger?" yes | nothing. It is the best thing in the fight |
-| the wheel | both rings, with letters, drawn on top | he could see which slice to point at; he did not know why, or what it did | the five things above |
-| the swell | bands by the bar; let go on the one | landing: yes. Kinder than beating them: yes. The room's write-up has him confused that R2 shows nothing until it is let go | it sounds and grows while held; L1 and L2 step home (his decision) |
-| the dodge | on the beat a lunge lands on, it opens time | 46 lashes, 2 found | Drip shows it; the lunge falls on a beat you can already feel |
-| the guard | hold L2 and meet the blow | nobody has used it | be its note, and its blows turn easily; a blow turned is a ball of dark |
-| the call | rings each creature in its own note | calling to hear what answers: yes | in a fight it is how a pack is read: you hear its chord |
-| the copies | strikes made in the opened time land again on later bars | "Did the copies feel like your own band?" no | out of fights. The band is whoever you brought home |
+_Corrected from part four: "in the game" means the game a person starts today._
+
+| | in the code | in the game today | his hands, on the builds of 2026-11-14 and 2026-11-21 | what I would change |
+|---|---|---|---|---|
+| the strike | at once; it walks home's chord; timed, it rings with its octave; its ring carries | yes | "Did a timed hit feel stronger?" yes | nothing. It is the best thing there |
+| the wheel | two rings with letters, drawn on top; a click, a hum, and a note when home moves | yes, and only two cells can be chosen | he could see which slice to point at; he did not know why, or what it did | the five things above |
+| the swell | a voice enters each bar while it is held; L1 and L2 step home; letting go rings home's chord | yes, since 2026-11-22; a step can only go between the two cells, and there is nothing to bring home | landing: yes. Kinder than beating them: yes | nothing yet: what he asked for is built |
+| the dodge | on the beat a lunge lands on, it opens time | no: nothing lunges, so the right face only dashes | 46 lashes, 2 found (the page toy) | Drip shows it; the lunge falls on a beat you can already feel |
+| the guard | none: L2 swings the view behind Hum | no | nobody has used one | be its note, and its blows turn easily; a blow turned is a ball of dark |
+| the call | rings what is kin, late by its distance | yes | calling to hear what answers: yes | in a fight it is how a pack is read: you hear its chord |
+| the copies | strikes made in the opened time land again on later bars | no: there is no opened time | "Did the copies feel like your own band?" no | out of fights. The band is whoever you brought home |
+| the knots | three, with their lunges, their grey and their doors | no: switched off since 2026-11-22 | the eight minutes, on the build of 2026-11-21 | part three's fight 1 |
 
 - **A strike must always do something.** In the toys a strike only drains a creature when it lands
   on a meeting of the two pulses, and the screen says nothing when it doesn't. He struck 155 times
@@ -1842,3 +1854,105 @@ the lock-on; the kit; the ten rules. None is a name in the game.
 | things on G and D, with home on C | | a fifth above (leans); two fifths off (passing) |
 | the same things with home on G | | kin; a fifth above (leans) |
 | F sharp from C | six fifths either way | far |
+
+---
+
+# Part four: the game as it stands
+
+_After part three Morgan asked: "when's the last time you actually looked at the current state of
+the game?" The honest answer was: not that day. Parts one to three were written from the documents.
+That morning I had run the rule tests and read about thirty lines of the rules. Part three's account
+of what is built came from `PROGRESS.md`, which other models wrote, and from the toys' notes. So I
+looked._
+
+## What I looked at
+
+- **The source as it stands.** The last change to the game's source is `1b576b6`, 2026-11-23. The
+  checkpoint of 2026-11-25 did not touch it. I read the step of the world, the wheel, the swell, the
+  strike, the dodge, the clap, the knots' start, Drip's leading, and how the evening begins.
+- **The laptop program the build made from that source** (2026-11-23 21:27), run with no screen by
+  the scripted player for 26,200 steps, from the black to after the wheel. I looked at its frames
+  and read its log. The run wrote nothing to the repository.
+- **The last build's own frames and log,** and the room's list of walks.
+- **Not looked at:** the game on a handheld, and which build is on the purple. Nothing here is from
+  hands or ears.
+
+## What is in the game a person starts today
+
+1. **The opening.** The black page. Two drops fall, two seconds apart. A call is a ring of light,
+   and what is kin answers late by its distance. Drip answers. Beside it, R2 held and let go on its
+   tick, four times, and the two lock (the scripted player locks at 21 seconds). The figure between
+   them. The dawn runs out over the ground, "Oh. You're in.", and the page stands up into the place.
+2. **Drip rides on Hum's head,** sleeps after two quiet bars, and wakes for the swell and the wheel.
+   It leads over the hose's coil, then toward the great aster, then toward the first puddle. After
+   that it leads nowhere.
+3. **The body.** Running, the sprint and its breath, the skid, a jump of up to 3 m that a tap makes
+   a hop, and a dash on the right face.
+4. **The garden.** Sixty-eight asters, reeds, clover, moss, fallen leaves, the hose (stopped, and
+   droning softly), the spigot, the bee, four puddles whose figures can be walked on, and the sky.
+5. **The strike.** At once, walking home's chord, fuller when timed. Its ring carries and strikes
+   what it reaches.
+6. **The wheel.** Two rings with letters, drawn on top of everything. **Two of its twenty-four cells
+   can be chosen:** C, and the F to its left. Every other cell answers with a dull knock, and
+   nothing in the game wakes another.
+7. **The swell.** A voice enters each bar that R2 is held: root, fifth, third, seventh, ninth. L1
+   and L2 step home, which today can only mean between C and F. Letting go rings home's chord and a
+   ring on the ground.
+8. **The clap, the songbook's pages, the page at the top of the camera's dial, takes and saves.**
+
+In the frames it is a beautiful thing to look at: Hum with Drip on its head and home's ring at its
+feet, the hose, the reeds, the asters with their coloured bells, a line of light across black water.
+
+## What is not in it
+
+- **Any trouble at all.** The evening starts with its knots switched off (`knot_count = 0`), and
+  nothing switches them on. That was done on 2026-11-22 (`81d9b1e`), to keep the garden peaceful
+  until somebody designed when they come, and nobody did. So there is no fight, no lunge, no opened
+  time, nothing to turn grey, nothing to bring home, and no hint from Drip about any of it.
+- **So the hose can never open.** It opens when every knot is home, and there has to be at least
+  one. No water runs, the pool never fills, and nobody sits on its edge. The hose's held tone, which
+  is the stopped pipe's, goes on for the whole evening.
+- **An end to the evening.** There is no dusk, no river, no night and no second day.
+- **Anything pulled by home.** Law 2 is not in the game. Moving home changes Hum's note, which
+  things answer a call, which puddle stands, and the strike's chord.
+- **Twenty-two cells of the wheel.** The inner ring is drawn as relative minors, and the only two of
+  its cells that work are the ones labelled F minor and C minor. They give F major and C major.
+  Under the letters the rules are still seven notes of one day.
+- **Voices other than Drip; anything on the top face; a guard.** L2 swings the view behind Hum.
+- **Four of the room's thirteen walks.** The tangles, striking, singing them in and after the hose
+  have no starting point among the saves this build makes. As far as I can tell from the build's
+  files, the room can no longer put him in a fight. The running walk still tells him to glide, which
+  he cut.
+- **A test that would notice.** All 105 tests pass. Seven of them switch knots on, or wake every
+  cell, by hand. Those seven test a game that cannot be reached by playing.
+
+After the first puddle there is nothing the game asks of you, and nothing it gives.
+
+## What this corrects
+
+- **Part three's table of what is built, and its paragraph on the wheel.** Both are corrected in
+  place and marked.
+- **"He won a fight in eight minutes without knowing how."** True, of the build of 2026-11-21, which
+  had knots. That was the last time he fought anything in this game.
+- **Part one's "what is alive".** His yeses stand. But the river, the fight and "bringing a thing
+  home" are alive as clips, as a toy and as one room session. They are not in the game today.
+- **`PROGRESS.md` says "done" of pieces 3, 4 and 5.** Each is done as written, in the code. Two of
+  them are done for a game that has only two cells awake and nothing to strike.
+- **`PROGRESS.md` records two fixes built on the misfiled notes** (part two): the bee's warmer
+  voice, and the puddle's smoothed onset. I have not checked either in the sound.
+
+## What it changes in what I would do first
+
+Nothing in parts two and three is disproved by this. But they describe the far end, and the near end
+is plainer than I wrote it.
+
+1. **Experiment 14 stands, and is truer than I knew:** nothing in the game is pulled by home, and it
+   never has been.
+2. **Before any new kind of trouble, the old one has to come back.** The knots are written, with
+   their lunges and their doors. What was never decided is when they arrive. `SCRATCH.md` has his
+   own words for it: none "until after a like you know peaceful time in the garden".
+3. **Wake a third cell,** so that a step of home can go two ways and a walk has somewhere to go.
+4. **Then the evening needs an end.** The river is his own thread, his ears said yes to it as a
+   clip, and none of it is built.
+
+Those four are small next to parts two and three, and none of them is a decision of mine to make.
