@@ -1065,6 +1065,9 @@ pub const Options = struct {
     /// Play a take through from its first step with nothing drawn and nothing heard, say where it
     /// ends, and stop.
     check_take: ?[*:0]const u8 = null,
+    /// The try-out of design/the-game.md: L1 and L2 step the chord among the lift, home and the lean
+    /// wherever Hum is, and Hum's body follows the chord (world.zig, chords_tryout).
+    chords: bool = false,
 };
 
 /// The take being written as it is played, and its dawns.
@@ -1430,6 +1433,13 @@ pub fn run(window: plat.Window, options: Options) bool {
     }
     if (options.load) |path| {
         if (!openSave(path)) return false;
+    }
+    world_mod.chords_tryout = options.chords;
+    world_mod.tryout = .{};
+    if (options.chords) {
+        // the lean wakes beside the lift and home; nothing else in the world is changed
+        world.awake |= @as(u8, 1) << @intFromEnum(world_mod.Mood.drive);
+        log("the chords try-out (design/the-game.md): L1 steps the chord flatward and L2 sharpward among the lift (F), home (C) and the lean (G); on the lift Hum is light, on the lean it is fast, and stepping home off the lean throws it forward", .{});
     }
     if (options.check_take) |path| {
         var player = loadTake(path) orelse {
@@ -1928,6 +1938,25 @@ pub fn run(window: plat.Window, options: Options) bool {
             words.line((@as(f32, @floatFromInt(window.width)) - wide) * 0.5, @as(f32, @floatFromInt(window.height)) * 0.17, scale, .{ 0.886 * shown, 0.839 * shown, 0.784 * shown, shown }, line);
             words.flush();
         }
+        if (options.chords and world.stand >= 1.0 and !world.wheel_open) {
+            // the try-out's one line of words: what the two triggers are until they have been found,
+            // and for two seconds after each change the chord's letter and what it is
+            const t = world_mod.tryout;
+            const since: f32 = if (t.changed_at == world_mod.never) 1.0e9 else @floatFromInt(world.step - t.changed_at);
+            const line: []const u8 = if (since < 120.0) (switch (world.home_k) {
+                -1 => "F  LIFT",
+                1 => "G  LEAN",
+                else => "C  HOME",
+            }) else if (t.steps < 4) "L1 LIFT    L2 LEAN" else "";
+            if (line.len > 0) {
+                const shown: f32 = if (since < 120.0) std.math.clamp((120.0 - since) / 40.0, 0.0, 1.0) else 0.7;
+                const scale: f32 = 2.2;
+                const wide = @as(f32, @floatFromInt(line.len)) * 9.6 * scale;
+                // at the top: Hum stands in the lower third
+                words.line((@as(f32, @floatFromInt(window.width)) - wide) * 0.5, @as(f32, @floatFromInt(window.height)) * 0.06, scale, .{ 0.886 * shown, 0.839 * shown, 0.784 * shown, shown }, line);
+                words.flush();
+            }
+        }
         if (book_open) {
             const whole: f32 = if (songbook.learned(&world, book_page)) 1.0 else 0.55;
             songbook.draw(&sketch, book_page, @floatCast(plat.now() - book_from), whole);
@@ -2016,6 +2045,14 @@ pub fn run(window: plat.Window, options: Options) bool {
         if (@atomicLoad(i32, &audio_realtime, .monotonic) == 1) "yes" else "no",
         most_lines,
     });
+    if (options.chords) {
+        const t = world_mod.tryout;
+        log("the chords try-out: {d} steps of the chord, {d} of them on the tick, {d} knocks at the end of what is awake, {d} throws home off the lean; highest {d:.1} m, fastest {d:.1} m/s; ended on {s}", .{ t.steps, t.timed, t.knocks, t.launches, t.highest, t.fastest, switch (world.home_k) {
+            -1 => "the lift",
+            1 => "the lean",
+            else => "home",
+        } });
+    }
     if (presses.fd >= 0) {
         // how soon Hum answered the hands: from the kernel seeing a press to the buffer that began
         // the sound, the most of any press this scene

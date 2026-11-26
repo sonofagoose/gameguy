@@ -145,6 +145,39 @@ pub const jump_height: f32 = 3.0;
 pub const jump_air_s: f32 = 0.68;
 pub const fall_pull: f32 = 8.0 * jump_height / (jump_air_s * jump_air_s);
 pub const jump_speed: f32 = 4.0 * jump_height / jump_air_s;
+/// A try-out of design/the-game.md, off unless the game is started with --chords: L1 and L2 step
+/// the chord between the lift, home and the lean wherever Hum is, at once, and Hum's body follows
+/// the chord. Its switch and its counts are kept out of the world itself, so the game's saves and
+/// takes are as they were. Every number here is a first guess for Morgan's hands.
+pub var chords_tryout: bool = false;
+pub const Tryout = struct {
+    /// The step the chord last came onto the lean, to know how long Hum has leaned.
+    leaned_from: u64 = never,
+    /// The step of the last change of chord, for the line of words.
+    changed_at: u64 = never,
+    steps: u32 = 0,
+    timed: u32 = 0,
+    knocks: u32 = 0,
+    launches: u32 = 0,
+    highest: f32 = 0.0,
+    fastest: f32 = 0.0,
+};
+pub var tryout = Tryout{};
+/// On the lift Hum is light: the ground pulls this much as hard, going up and coming down.
+pub const lift_pull: f32 = 0.55;
+/// On the lean Hum is drawn forward: this much faster on its legs.
+pub const lean_speed: f32 = 1.3;
+/// Stepping home off the lean throws Hum the way it is going: this far after a long lean, in this
+/// many steps; a short lean throws it less, and never less than a third of it.
+/// How long the chord's own strings ring, how far round Hum what is kin to the chord lights, how
+/// much it must share to count as kin, and how many of the nearest sound.
+pub const chord_rings: f32 = 0.9;
+pub const chord_kin_reach: f32 = 90.0;
+pub const chord_kin_least: f32 = 0.5;
+pub const chord_kin_sound = 4;
+pub const launch_far: f32 = 6.0;
+pub const launch_steps: u32 = 9;
+pub const launch_full_after: u32 = 90;
 /// Target minimal jump height on a quick tap release: ~1.5 m (50% of full 3.0 m leap).
 /// Releasing anytime within the first 100 ms (~6 steps) reliably produces this low hop without superhuman tap timing.
 pub const jump_tap_height: f32 = 1.55;
@@ -1626,6 +1659,7 @@ pub const World = struct {
         if (size > stick_dead) {
             const push = std.math.clamp((size - stick_dead) / (stick_full - stick_dead), 0.0, 1.0);
             var top: f32 = if (self.sprinting) sprint_speed else run_speed;
+            if (chords_tryout and self.home_k == 1) top *= lean_speed;
             var wx = mx;
             var wz = mz;
             if (self.view == .place) {
@@ -1814,6 +1848,15 @@ pub const World = struct {
                 self.stand = if (self.stand > wheel_stand) @max(wheel_stand, self.stand - fold_rate) else @min(wheel_stand, self.stand + rise_rate);
             } else {
                 self.stand = if (standing) @min(1.0, self.stand + rise_rate) else @max(0.0, self.stand - fold_rate);
+            }
+            // the try-out: L1 steps the chord flatward and L2 sharpward, wherever Hum is
+            if (chords_tryout and self.stand >= 1.0 and !self.wheel_open and !self.swelling()) {
+                var dir: i8 = 0;
+                if (pressed & Hands.voice != 0) dir = -1;
+                if (pressed & Hands.guard != 0) dir = 1;
+                if (dir != 0) self.chordStep(dir, hands.stamp);
+                tryout.highest = @max(tryout.highest, self.hum_y);
+                tryout.fastest = @max(tryout.fastest, @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz));
             }
             self.look(hands, pressed);
         }
@@ -2124,6 +2167,97 @@ pub const World = struct {
         // home moving is told, whichever hand moved it: Hum sings the new note, and its light
         if (k != was) self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork_octave, .hz = self.home_hz, .strength = 0.16, .ring = 0.6 }, .glow));
         return true;
+    }
+
+    /// The try-out's step of the chord (design/the-game.md, "The hands"): one cell flatward or
+    /// sharpward among the lift, home and the lean, at once. The chord sounds as its root and fifth
+    /// under Hum, what is kin to it near Hum lights and the nearest few answer (law 1), and a step
+    /// made on Drip's tick is fuller. Stepping home off the lean throws Hum the way it is going.
+    pub fn chordStep(self: *World, dir: i8, stamp: u16) void {
+        const from = self.home_k;
+        const to: i8 = std.math.clamp(from + dir, @as(i8, -1), @as(i8, 1));
+        if (to == from or !self.isAwake(to)) {
+            // the end of what is awake: a dull knock with no pitch, as the wheel gives
+            tryout.knocks += 1;
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = garden_hz * 0.5, .strength = 0.04, .ring = 0.04 }, .dims));
+            return;
+        }
+        const timed = self.beatAt(stamp).from_beat <= self.widen(strike_window);
+        if (!self.moveHome(to)) return;
+        tryout.steps += 1;
+        if (timed) tryout.timed += 1;
+        tryout.changed_at = self.step;
+        self.drip_state.wake();
+        // the chord under Hum: its root an octave below the wedge's note and the fifth over that,
+        // struck and dying away; on the tick the octave too, and all of it fuller
+        const full: f32 = if (timed) 1.0 else 0.7;
+        const low = self.home_hz * 0.5;
+        const parts = [3]f32{ 1.0, 1.5, 2.0 };
+        const n: usize = if (timed) 3 else 2;
+        for (parts[0..n], 0..) |ratio, i| {
+            const at = Place{ .x = self.hum_x, .y = self.hum_y + 0.6 + 0.4 * @as(f32, @floatFromInt(i)), .z = self.hum_z };
+            self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = low * ratio, .strength = (0.22 - 0.04 * @as(f32, @floatFromInt(i))) * full, .ring = chord_rings }, .glow));
+        }
+        self.wakeKin(full);
+        self.hum_light = @max(self.hum_light, 0.6 * full);
+        if (to == 1) tryout.leaned_from = self.step;
+        if (from == 1 and to == 0) {
+            // the full close: what the lean wound up lets go, the way Hum is going (or faces)
+            const leaned: f32 = if (tryout.leaned_from == never) 0.0 else @floatFromInt(@min(self.step - tryout.leaned_from, launch_full_after));
+            const wound = @max(leaned / @as(f32, @floatFromInt(launch_full_after)), 1.0 / 3.0);
+            const going = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
+            const dx = if (going > 1.0) self.hum_vx / going else @sin(self.hum_face);
+            const dz = if (going > 1.0) self.hum_vz / going else -@cos(self.hum_face);
+            const speed = launch_far * wound * (if (timed) @as(f32, 1.25) else 1.0) / (@as(f32, @floatFromInt(launch_steps)) * dt);
+            self.burst_x = dx * speed;
+            self.burst_z = dz * speed;
+            self.burst_left = launch_steps;
+            tryout.launches += 1;
+        }
+    }
+
+    /// What is in the chord wakes (design/the-game.md, rule 2), as the try-out shows it: every
+    /// thing near Hum that is kin to the chord's note lights, and the nearest few of them sound,
+    /// softly and briefly. A call's ring on the ground would do the same for the whole garden, and
+    /// stepping chord after chord that piles up into roughness (measured with the ears, 2026-11-25:
+    /// rough for 47% of a scripted run against 12% without it), so this is a small answer.
+    fn wakeKin(self: *World, full: f32) void {
+        var nearest: [chord_kin_sound]u32 = @splat(no_thing);
+        var nearest_far: [chord_kin_sound]f32 = @splat(std.math.floatMax(f32));
+        var nearest_kin: [chord_kin_sound]f32 = @splat(0.0);
+        for (self.things[0..self.thing_count], 0..) |*thing, index| {
+            if (!thing.sounds) continue;
+            if (index == self.bee.thing or index == self.drip) continue;
+            if (self.pool_first != no_thing and index >= self.pool_first and index < self.pool_first + self.pool_count) continue;
+            const dx = thing.x - self.hum_x;
+            const dz = thing.z - self.hum_z;
+            const far = @sqrt(dx * dx + dz * dz);
+            if (far > chord_kin_reach) continue;
+            const rec = sound.recipe(thing.family);
+            const kin = sympathy(self.home_hz, thing.hz, rec.mult, rec.gain);
+            if (kin < chord_kin_least) continue;
+            thing.lit = 1.0;
+            // keep the nearest few, nearest first
+            var at: usize = chord_kin_sound;
+            while (at > 0 and far < nearest_far[at - 1]) at -= 1;
+            if (at == chord_kin_sound) continue;
+            var j: usize = chord_kin_sound - 1;
+            while (j > at) : (j -= 1) {
+                nearest[j] = nearest[j - 1];
+                nearest_far[j] = nearest_far[j - 1];
+                nearest_kin[j] = nearest_kin[j - 1];
+            }
+            nearest[at] = @intCast(index);
+            nearest_far[at] = far;
+            nearest_kin[at] = kin;
+        }
+        for (nearest, nearest_far, nearest_kin) |index, far, kin| {
+            if (index == no_thing) continue;
+            const thing = &self.things[index];
+            const strength = 0.12 * full * kin / (1.0 + (far / 40.0) * (far / 40.0));
+            self.tell(.{ .thing = @intCast(index) }, cues_mod.Cue.of(.{ .kind = .strike, .family = thing.family, .hz = thing.hz, .strength = strength, .ring = @min(thing.ring, 0.6) }, .glow));
+            thing.rung_at = @truncate(self.step);
+        }
     }
 
     /// Whether a lit wedge's mood is awake.
@@ -3115,6 +3249,7 @@ pub const World = struct {
     /// In the air: the ground pulls, and the ground is met.
     fn flyStep(self: *World, height_was: f32) void {
         var pull = fall_pull;
+        if (chords_tryout and self.home_k == -1) pull *= lift_pull;
         if (@abs(self.hum_vy) < 2.5) {
             pull *= 0.75; // TotK apex float at peak of arc
         } else if (self.hum_vy < 0.0) {
@@ -3971,7 +4106,7 @@ pub const World = struct {
         if (self.looked_ago > lifts_after) self.lifts_on = @min(1.0, self.lifts_on + dt / 0.6);
         // L2 tapped with nothing threatening: the view swings in behind Hum, the dial back to
         // walking; a look stops it
-        if (pressed & Hands.guard != 0 and self.view == .place and self.stand >= 1.0 and !self.wheel_open and !self.threatened()) {
+        if (!chords_tryout and pressed & Hands.guard != 0 and self.view == .place and self.stand >= 1.0 and !self.wheel_open and !self.threatened()) {
             var by = self.hum_face - self.look_yaw;
             while (by > std.math.pi) by -= 2.0 * std.math.pi;
             while (by < -std.math.pi) by += 2.0 * std.math.pi;
@@ -6657,4 +6792,97 @@ test "a strike's note carries: a knot twenty metres off is struck as the wave re
     while (w.wave_hits == 0 and steps < 60) : (steps += 1) _ = w.stepOnce(.{}, &cues);
     try std.testing.expectEqual(@as(u32, 1), w.wave_hits);
     try std.testing.expect(steps >= 15 and steps <= 25);
+}
+
+test "the chords try-out: off, L1 and L2 leave home alone; on, they step among the lift, home and the lean and no further" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    chords_tryout = false;
+    for ([_]u16{ Hands.voice, 0, Hands.guard, 0 }) |b| _ = w.stepOnce(.{ .buttons = b }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    chords_tryout = true;
+    defer chords_tryout = false;
+    tryout = .{};
+    w.awake |= @as(u8, 1) << @intFromEnum(Mood.drive);
+    // L1: the lift, and its note is the wedge a fifth below the day's
+    _ = w.stepOnce(.{ .buttons = Hands.voice }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expectApproxEqAbs(wedgeHz(w.day_hz, -1), w.home_hz, 0.001);
+    _ = w.stepOnce(.{}, &cues);
+    // L1 again: the end of what is awake, a knock, and home stays
+    _ = w.stepOnce(.{ .buttons = Hands.voice }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expectEqual(@as(u32, 1), tryout.knocks);
+    _ = w.stepOnce(.{}, &cues);
+    // L2, L2: home, then the lean; L2 again knocks
+    _ = w.stepOnce(.{ .buttons = Hands.guard }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.guard }, &cues);
+    try std.testing.expectEqual(@as(i8, 1), w.home_k);
+    _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.guard }, &cues);
+    try std.testing.expectEqual(@as(i8, 1), w.home_k);
+    try std.testing.expectEqual(@as(u32, 3), tryout.steps);
+    try std.testing.expectEqual(@as(u32, 2), tryout.knocks);
+    try std.testing.expectEqual(@as(u32, 0), tryout.launches);
+    _ = w.stepOnce(.{}, &cues);
+    // home off the lean: Hum is thrown the way it faces
+    _ = w.stepOnce(.{ .buttons = Hands.voice }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    try std.testing.expectEqual(@as(u32, 1), tryout.launches);
+    try std.testing.expect(w.burst_left > 0);
+}
+
+test "the chords try-out: on the lift a held jump goes higher; on the lean Hum runs faster" {
+    var cues: [max_cues]sound.Cue = undefined;
+    chords_tryout = true;
+    defer chords_tryout = false;
+    tryout = .{};
+    var tops = [2]f32{ 0.0, 0.0 };
+    for (&tops, 0..) |*top, lifted| {
+        const w = try std.testing.allocator.create(World);
+        defer std.testing.allocator.destroy(w);
+        afterTheLock(w);
+        w.in_garden = false;
+        w.hum_ground = 0.0;
+        if (lifted == 1) {
+            _ = w.stepOnce(.{ .buttons = Hands.voice }, &cues);
+            _ = w.stepOnce(.{}, &cues);
+            try std.testing.expectEqual(@as(i8, -1), w.home_k);
+        }
+        _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+        var steps: u32 = 1;
+        while (w.airborne and steps < 300) : (steps += 1) {
+            _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+            top.* = @max(top.*, w.hum_y);
+        }
+        try std.testing.expect(!w.airborne);
+    }
+    try std.testing.expect(tops[0] >= jump_height * 0.95 and tops[0] <= jump_height * 1.15);
+    try std.testing.expect(tops[1] > tops[0] * 1.6 and tops[1] < tops[0] * 2.0);
+    var fastest = [2]f32{ 0.0, 0.0 };
+    for (&fastest, 0..) |*f, leaning| {
+        const w = try std.testing.allocator.create(World);
+        defer std.testing.allocator.destroy(w);
+        afterTheLock(w);
+        w.awake |= @as(u8, 1) << @intFromEnum(Mood.drive);
+        // on the level by the Mirror Pool's north shore, as the sprint's test runs
+        w.hum_x = land.pool[0];
+        w.hum_z = land.pool[1] + land.pool[2] + 8.0;
+        w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+        if (leaning == 1) {
+            _ = w.stepOnce(.{ .buttons = Hands.guard }, &cues);
+            try std.testing.expectEqual(@as(i8, 1), w.home_k);
+        }
+        var step: u32 = 0;
+        while (step < 200) : (step += 1) {
+            _ = w.stepOnce(.{ .lx = 127 }, &cues);
+            f.* = @max(f.*, @sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz));
+        }
+    }
+    try std.testing.expect(fastest[0] <= run_speed + 0.001);
+    try std.testing.expect(fastest[1] > fastest[0] * 1.2 and fastest[1] <= run_speed * lean_speed + 0.001);
 }

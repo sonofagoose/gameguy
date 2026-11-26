@@ -509,7 +509,8 @@ fn visit(window: plat.Window, item: *Item, device: *c.SDL_AudioDeviceID) void {
     const save_path = std.mem.printSentinel(&path, "{s}/walks/{s}.save", .{ room_dir, item.start }, 0) catch return;
     log("room: walk {s}: going there (from {s})", .{ item.id, save_path });
     const first: ?[]const u8 = if (item.ask_n > 0) item.asks[0].promise else null;
-    _ = dark.run(window, .{ .scene = .evening, .load = save_path.ptr, .walk = item.id, .promise = first });
+    // a walk whose name begins "chords-" is the try-out of design/the-game.md
+    _ = dark.run(window, .{ .scene = .evening, .load = save_path.ptr, .walk = item.id, .promise = first, .chords = std.mem.startsWith(u8, item.id, "chords-") });
     item.been = true;
     item.plays += 1;
     device.* = openPlay();

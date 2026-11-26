@@ -515,6 +515,36 @@ In order:
 
 That is the first evening, whole. Everything after it is more places with the same hands.
 
+### Step one, as a try-out on the purple
+
+Built the same day, so the design's first claim can be judged by hands and not by reading.
+
+- **What it is.** The garden just after it has stood up, with L1 and L2 stepping the chord among the
+  lift (F), home (C) and the lean (G) wherever Hum is. On the lift Hum is light: a held jump reaches
+  5.2 m where it reaches 3 m at home. On the lean it runs 1.3 times as fast. Stepping home off the
+  lean throws it forward, further after a long lean and further on Drip's tick. Each step sounds the
+  chord's root and fifth under Hum. What is kin to the chord near Hum lights, and the nearest four
+  answer softly. The ring at Hum's feet takes the chord's colour, and one line of words at the top
+  names the chord for two seconds.
+- **How to start it.** On the purple, in Ports: GameguyChords. Select and Start together leave. It
+  is its own program beside the game: the game on that unit, its kept takes and dawns and the room
+  there were not touched. What your hands do is kept as a take in `results/walks/`, named
+  `chords-tryout`.
+- **What it is not.** It is three cells of twenty-four. Nothing in the garden is built yet to need a
+  chord: there is no leaf to lift and nothing that leans. The lift and the lean change Hum and what
+  answers him. They do not yet move the world. Every number in it is a first guess for your hands.
+- **What was measured** (2026-11-25). All 107 tests pass, two of them new, and with the try-out off
+  the rules are as they were. On the laptop, a scripted run of twelve steps of the chord in 25
+  seconds: the ears (`game/build/ears`) call 16% of it rough, the longest rough stretch 0.43 s. The
+  same hands with the try-out off: 12% and 0.26 s. My first version rang the whole garden and its
+  puddles on every step and measured 47% and 2.05 s, so it was replaced before it reached the
+  purple. On the purple the same run made the same twelve steps and drew 1,330 frames, 39 of them
+  late, with 6.04 ms of work a frame (`game/results/gameguy-chords-20261123-225843.txt`; the unit's
+  clock is two days slow). The game's own last four sessions on that unit had between 10 and 526
+  late frames. Nobody has heard it or held it.
+- **Where it lives.** `chordStep` and `wakeKin` in `game/src/world/world.zig`, behind `--chords`;
+  the launcher is `game/port/GameguyChords.sh`.
+
 ## What I am dropping or parking
 
 - **Tuning as the centre.** My twelve-shares dial is parked until after the last river.

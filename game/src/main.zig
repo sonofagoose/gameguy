@@ -39,6 +39,11 @@ const Args = struct {
     songbook: ?[*:0]const u8 = null,
     check_take: ?[*:0]const u8 = null,
     room: ?[*:0]const u8 = null,
+    /// The try-out of design/the-game.md: L1 and L2 step the chord among the lift, home and the lean.
+    chords: bool = false,
+    /// Play as a walk of this name: the person's own kept game is left alone, and the take is
+    /// written into results/walks/ under the name.
+    walk: ?[*:0]const u8 = null,
     /// Only report which controller is found and where its face buttons are, then stop: no
     /// window, no sound, so it can be run over a cable without touching the screen.
     controls: bool = false,
@@ -64,6 +69,11 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
             args.controls = true;
         } else if (std.mem.eql(u8, a, "--bot")) {
             args.bot = true;
+        } else if (std.mem.eql(u8, a, "--chords")) {
+            args.chords = true;
+        } else if (std.mem.eql(u8, a, "--walk") and i + 1 < n) {
+            i += 1;
+            args.walk = argv[i];
         } else if (std.mem.eql(u8, a, "--keep")) {
             args.keep = true;
         } else if (std.mem.eql(u8, a, "--resume-only")) {
@@ -116,7 +126,7 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
             i += 1;
             args.wav = argv[i];
         } else if (std.mem.eql(u8, a, "--help")) {
-            log("gameguy [--controls] [--lines] [--room DIR] [--load SAVE] [--replay TAKE] [--bot] [--headless] [--windowed] [--frames N] [--dump DIR] [--dump-every N] [--wav FILE] [--log FILE]", .{});
+            log("gameguy [--controls] [--lines] [--room DIR] [--chords] [--walk NAME] [--load SAVE] [--replay TAKE] [--bot] [--headless] [--windowed] [--frames N] [--dump DIR] [--dump-every N] [--wav FILE] [--log FILE]", .{});
         }
     }
     return args;
@@ -415,7 +425,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     } else if (args.bench_lines) {
         ok = benchLines(window, args);
     } else {
-        ok = dark.run(window, .{ .scene = args.scene, .replay = args.replay, .load = args.load, .keep = args.keep, .resume_only = args.resume_only, .picture = args.picture, .without_trail = args.without_trail, .without_ground = args.without_ground, .half_land = args.half_land, .songbook_dump = args.songbook, .check_take = args.check_take, .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot, .walk_starts = args.walk_starts });
+        ok = dark.run(window, .{ .scene = args.scene, .replay = args.replay, .load = args.load, .keep = args.keep, .resume_only = args.resume_only, .picture = args.picture, .without_trail = args.without_trail, .without_ground = args.without_ground, .half_land = args.half_land, .songbook_dump = args.songbook, .check_take = args.check_take, .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot, .walk_starts = args.walk_starts, .chords = args.chords, .walk = if (args.walk) |w| std.mem.span(w) else null });
     }
     if (plat.log_file) |file| _ = c.fclose(file);
     return if (ok) 0 else 1;
