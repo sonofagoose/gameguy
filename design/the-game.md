@@ -1,11 +1,18 @@
 # The game
 
+> **Status, 2026-11-26: the direction.** Morgan, of this document and its parts two and three: "this
+> is absolutely 100% the direction". The rest of the repository has been aligned to them:
+> `CLAUDE.md`, `README.md` and `PROGRESS.md` point here, and every older document says at its top
+> what of it the direction keeps. Within the direction, "What is sure, and what is still a bet" says
+> which parts his hands and ears have tested, and anything marked a candidate or a proposal is to be
+> tried before it is built as settled. The game's code was built to the older specification and has
+> not yet been changed to match: building it is the work ahead.
+
 _Written 2026-11-25 by Claude. That day Morgan said: "we need to settle on what this game actually
 is ASAP. I give you Express permission to design it! I want the circle of fifths and moving and
 Harmony to be the main tool". This document is the design that answers him. Where a thing is his own
-decision or his own image, it says so and quotes him. Everything else is my call, made under that
-permission, and his to change or strike. `SPEC.md`, `PROGRESS.md`, `CLAUDE.md` and the game's code
-have not been changed to match it._
+decision or his own image, it says so and quotes him. Everything else was my call, made under that
+permission. On 2026-11-26 he made the whole of it the direction, and it stays his to change._
 
 _Before writing it I reread the first brainstorm with the poem, his four pieces, his inline notes in
 `SCRATCH.md`, the three shapes, `thirteenth-morning.md`, `the-wheel.md`, `the-way-home.md`,
@@ -113,7 +120,7 @@ like. On a day in C:
   of the key that can't stand by itself. It is the seam of the day, and it is where trouble comes
   from (see "Trouble").
 - **The other eighteen places are asleep.** They are dark and quiet and you can still walk into
-  them. Being there is being outside the key (see "Borrowing").
+  them. Being there is being outside the key (see "Outside the key").
 
 ### Three faces above, three below
 
@@ -249,7 +256,7 @@ the map and the instrument at once.
 - **Resting on a cell plays it softly** before you commit, so the ear chooses before the thumb does.
 - **It shows what would happen.** Everything near you that belongs to the cell you are pointing at
   lights up while you point.
-- **The dark eighteen can be pointed at too.** That is borrowing (below).
+- **The dark eighteen can be pointed at too.** That is leaving the key (below, and part three).
 - **Held on the lift or the lean for a whole bar, it carries the day there.** The lit six slide one
   step round the wheel and you are in the next key without going back to the island. This comes
   later, and it is how someone who knows music travels (see "What grows").
@@ -302,6 +309,9 @@ and what his singing does. On a day in C:
   step over its root and grinds. It breaks things. It is rare and it costs.
 - **How much lighter, faster and heavier** is for Morgan's hands to find. The numbers are not
   designed here.
+- **Part three proposes one rule that may replace this table:** the floor Hum's note stands on in
+  each chord (`the-wormhole.md`, "The elevator"). It is a candidate, to be tried before either is
+  kept.
 - **The moves fall out of it.** Lean, then lift at the top of a jump, then home to land is a run, a
   leap and a landing, and it is the three chords everyone knows in an order that sounds finished.
 
@@ -319,7 +329,7 @@ How you get back to home decides what happens to everything that was leaning.
 Morgan's ears said yes to all four (clips 17, 36, 19 and 18). In theory's words they are the
 authentic, plagal and deceptive cadences and the circle progression.
 
-### Borrowing
+### Outside the key
 
 - **A dark cell is a chord from a sleeping place.** Point at it with the wheel and it is under you,
   for as long as you stay (part three).
@@ -333,7 +343,8 @@ authentic, plagal and deceptive cadences and the circle progression.
   them the day's note is a seventh, then a raised ninth, a lowered thirteenth and a lowered ninth,
   the altered sounds of jazz, and each one falls into a chord where Hum's note has its place.
 - **Walking into a sleeping land is the same thing at the size of a place.** It is night there. A
-  borrowed chord wakes a patch of it for one phrase.
+  chord from that land wakes a patch of it for as long as you stay. (Changed in part three. This
+  first said one phrase.)
 
 ## A day
 
@@ -475,6 +486,10 @@ something the player tunes by hand.
    has a table where the twelve small shares of the gap can be laid on the fifths any way you like,
    and each way is a tuning that people once lived in.
 
+The older notes gave each land a tuning of its own (`spec/world.md`), and Morgan's ears liked four
+of those lands (clips 9, 10, 11 and 13) and not the treaty's (12). Whether a land's own music keeps
+its tuning, while Hum's chords ring pure, is open: his to settle.
+
 Inside every key there is a smaller gap of the same kind, and the game uses it quietly. The D that
 sits right in the leaning chord (9/8, 203.910 cents) and the D that sits right in the cave chord
 (10/9, 182.404 cents) are 21.506 cents apart. The cave's D is the lower one. Underneath really is a
@@ -611,6 +626,117 @@ it.
 - **The voice wheel on L1, and guard and lock-on on L2.** Both triggers are chords now. Voices are
   on the D-pad. Drip marks the target.
 - **A forced order of days.** The day's key is chosen, from among the lands you have joined.
+
+## What the older notes had, and where each stands
+
+Added on 2026-11-26, when the repository was aligned to this direction. Every piece of the older
+design a builder might meet in `SPEC.md`, `spec/`, `DECISIONS.md`, the rest of `design/` or the
+code, with where it stands now. **Kept** is in the direction as it was. **Changed** is in the
+direction in another form. **Dropped** is out. **Parked** is out for now, and may come back.
+**Open** is not decided by the direction: it is not to be built from the older notes, and it is
+Morgan's to settle or to ask for.
+
+### The hands
+
+| piece | where it was | now | where |
+|---|---|---|---|
+| the wheel on R1 held, time thickened | `SPEC.md` 9; in the code | changed: the real circle of fifths with its 24 letters; letting go puts the chord on any cell; half a push the inner ring, a full push the outer | "What holding R1 does" |
+| seven moods as fixed powers (Lift, Bind, Drive, Flow, Remember, Strike, Break) | `thirteenth-morning.md`; the code's `Mood` | dropped as powers; the moods live on as what the six places of a day feel like | "Three faces above, three below"; "What I am dropping or parking" |
+| a ring of twelve keys turning behind the moods each morning | `the-wheel.md` | dropped: the wheel never turns; the day's key lights six cells | "A day has a key" |
+| the voice wheel on L1 | shape 1; `SPEC.md` 9 | dropped: L1 steps the chord; the voices are on the D-pad | "The hands" |
+| lock-on and the guard on L2 | `SPEC.md` 8 and 10 | dropped: L2 steps the chord; clicking the right stick sends Drip to what you face | "The hands" |
+| L1 and L2 stepping home in the swell | Morgan's yes, `SCRATCH.md`; in the code | changed: they step the chord at all times, round the day's ring of seven | "The hands"; `the-depths.md`, "Your third picture" |
+| the swell on R2, a voice a bar, let go on the one | `SPEC.md` 9; in the code | kept | "The hands" |
+| the call, R1 tapped | in the code | kept | "The hands" |
+| the strike on the left face, fuller on the tick | Morgan's ask; in the code | kept; a candidate in part three has it follow Hum's rise and fall | "The hands"; `the-wormhole.md`, 8 |
+| the dodge and the pocket, the dash | `SPEC.md` 10; in the code | kept | "The hands"; "Trouble" |
+| the sprint, the right face held | in the code | open: the direction gives the right face to the dash and the dodge, and speed to the lean | |
+| the jump, the bottom face | in the code | kept | "The hands" |
+| the glide | `SPEC.md` 8 | dropped, by Morgan on 2026-11-21 | "The hands" |
+| the clap, L1 and R1 together | `SPEC.md` 8; in the code | open: the ending keeps a clap as a gesture, but L1 now steps the chord, so what the two together do is not decided | "The story" |
+| focus, the right stick clicked | shape 1; `experience-fixes.md` | changed: leaning in sends Drip to what you face | "The hands" |
+| the hush, the left stick clicked | `thirteenth-morning.md` | dropped: the left stick's click goes under | "The hands" |
+| the top face: take hold, talk, plant | `thirteenth-morning.md` | kept; held on anything, it gives its name | "The hands" |
+| the D-pad | left open by Morgan, 2026-11-21 | changed: who sings with you | "The hands" |
+| the songbook and pause on Start and Select | in the code | kept; names wait in the songbook | "The hands"; "A newcomer and a master" |
+| the view on the right stick, round Hum and up to the page | Morgan's call; in the code | kept | "The hands" |
+| Gentle and Fierce | `thirteenth-morning.md`; `DECISIONS.md` | open | |
+
+### The world and its time
+
+| piece | where it was | now | where |
+|---|---|---|---|
+| twelve lands round a lake, and their names | `spec/world.md` | kept | "The wheel is the map"; `the-depths.md` |
+| each land's great instrument, metre and twelve wonders | `spec/world.md` | kept, with what each instrument is the place to learn, and eighteen wonders added | `the-depths.md` |
+| thirteen mornings, each a fifth higher, sharpward only | `thirteenth-morning.md`; `SPEC.md` 6 | dropped: the day's key is chosen at the island from the lands joined | "A day has a key"; "What I am dropping or parking" |
+| Repeat or Onward at the river | `thirteenth-morning.md` | dropped | "A day" |
+| a day of about twenty minutes, shaped like a song | `shape-2-volta.md`; `SPEC.md` | changed: a dawn, a long middle, a dusk; its length is not set | "A day" |
+| the Seam: the treaty city on its bridge, the Metronome, the Wolf in the crack | `spec/world.md` | changed: the gap is at the far side of the lake; the Seam keeps its piano; the wolf lives in one valley | "Tuning"; `the-depths.md`, "The great instruments" |
+| the deep under the Mirror Pool, major turned minor | shape 1; `spec/world.md` | changed: a cave under every land, its relative minor, three ways down and up | "The wheel is the map"; "In every land" |
+| the sky as a ladder of overtones, planets, light forty octaves up | `spec/sky.md` | changed: a sky over each land as the layer above; its detail is open | "The wheel is the map" |
+| the hub island in a low, partly frozen lake | Morgan's image, 2026-11-25 | kept | "The island"; "The lake, the ice and the rivers" |
+| the lake's level deciding whether music comes home | wasatch; shape 3 | kept | "The lake, the ice and the rivers" |
+| the ferry straight across the lake | shape 3 | changed: the ice is the short way between far lands | "The lake, the ice and the rivers" |
+| the islets of other equal temperaments, the Shimmer, the country with no octave | `spec/world.md` | open | |
+| each land's own tuning (pure, fifths, sweet thirds, well-tempered, equal) | `spec/world.md`; shape 3 | open | "Tuning" |
+| lives on rounds of three, four, five and seven mornings; the almanac | `spec/world.md` | changed: people keep their lives by the day's key; the rounds are open | "A day" |
+| one to a hundred; the world's size | `spec/size.md` | open | |
+| lands past the lake after the ending; songs are places | `spec/world.md` | kept | "The story"; `the-depths.md`, "Endless composition" |
+
+### The music
+
+| piece | where it was | now | where |
+|---|---|---|---|
+| chords tuned pure everywhere | shape 3 | kept | "Tuning" |
+| consonant by default, dissonance brief and going somewhere | Morgan, 2026-11-13 | kept | `CLAUDE.md` |
+| the seven laws of sound | `spec/laws.md` | changed: the direction's seven rules; the laws are material for building them | "The rules" |
+| the four doors (full close, amen, turn, slide) | `the-wheel.md` | changed: four ways home (full close, amen, turn, the long way); the slide lives on as the twin across the lake | "Coming home, four ways"; "A newcomer and a master" |
+| borrowed chords as supers that cost breath and fall back | `thirteenth-morning.md`; `the-wheel.md` | changed: outside the key is a wormhole you can stay in | "Outside the key"; `the-wormhole.md`, 1 |
+| one breath for singing, the wheel and the sprint | `SPEC.md` 9; in the code | open | |
+| a breath growing from three notes to seven | `memory-in-rhythm.md` | changed: Hum's voice opens one overtone at a time | "What grows" |
+| choosing notes only after the ending | `DECISIONS.md` | changed: Hum is the tune; the fork plays the chord's notes; free choice of notes is not decided | `the-wormhole.md`, 8 |
+| the comma heard only in rare seconds; two suns at dawn | `the-way-home.md` | changed: the gap is the lake's, and the ending's | "Tuning"; "The story" |
+| sound and picture as one model; every cue a sound and a light | shape 3; `SPEC.md` | kept | `CLAUDE.md` |
+
+### People, voices and trouble
+
+| piece | where it was | now | where |
+|---|---|---|---|
+| Hum, a small creature who hums one note | `thirteenth-morning.md` | kept | "In one breath" |
+| Drip: rhythm first, riding on Hum's head, asleep until rhythm matters | Morgan's yes, `SCRATCH.md`; in the code | kept | "The first hour" |
+| five voices (Drip, Box Elder, Doorstop, Puffball, Patio), one per vowel | `thirteenth-morning.md` | changed: friends who join the band, one in most lands; their vowels show Hum where his overtones live; their names are open | "What grows"; `the-depths.md`, "The third" |
+| the vine, who remembers and carries the third | `thirteenth-morning.md` | changed: the third is found in Hum's own voice; who first sings it with him is Morgan's | "Yours"; `the-depths.md`, "The third" |
+| Jeanne and her compass | Morgan's worksheet | open | |
+| Caravan No. 27, the white cat, the fly | Morgan's worksheet | kept as people in the world; their parts are open | "A day"; "A newcomer and a master" |
+| ninety-six lives, eight to a land | `spec/people.md` | open: the direction keeps people with lives, not a count | "In every land" |
+| every line sung; seven moods as seven answers | `experience-fixes.md` | open | |
+| knots, two strands untied on the one | `SPEC.md` 10; in the code, switched off | changed: a knot is the key's seventh chord loose, something that leans with nothing under it | "Trouble" |
+| Greys, the Grid's soldiers | `thirteenth-morning.md` | dropped | "What I am dropping or parking" |
+| wolves made of the comma, packs at dusk | shape 1 | changed: one wolf, in one valley, one great trouble | "Tuning"; "Trouble" |
+| the Grid as sameness, and the Metronome | shape 2 | parked; the grid lives on as the treaty for time | `the-depths.md`, "When" |
+| bosses: the Great Knot, the Metronome, the Wolf at the Seam | `thirteenth-morning.md` | changed: the big ones are the rivers' stops, one per land | "Trouble" |
+| nothing dies; things transform | `SPEC.md` 5 | kept | "Trouble" |
+| what a creature leaves, by mood | `the-wheel.md` | open | |
+| you can't die | `DECISIONS.md` | kept: you can lose the day, not progress | "A day" |
+
+### Memory, the night and the rest
+
+| piece | where it was | now | where |
+|---|---|---|---|
+| past selves walking beside you as a band | shape 2 | parked | "What I am dropping or parking" |
+| the river at night: the day sung back; keeping four takes | shape 2; `memory-in-rhythm.md` | changed: eight bars; you keep one moment, and it becomes a thing on the island | "Night, and what the river is" |
+| the eleventh dusk, a kept self going to the Wolf | `experience-fixes.md` | dropped | |
+| dreams that find shortcuts; sleep that makes you better | `memory-in-rhythm.md` | open | |
+| pools that remember | `memory-in-rhythm.md` | kept: the cave that remembers; still pools show what went into the water | "Three faces"; "Night" |
+| the thirteenth morning's three offers: the clap, the step, the hold | `the-wheel.md` | kept as the three things that can be done at the gap; which are endings is Morgan's | "The story"; "Yours" |
+| two consoles: the treaty, side by side, the cable | `design/together.md`; `spec/together.md` | changed: whole alone; the second player is the other voice on the same wheel; the cable is proven | "Two consoles" |
+| the card, the pressed page, the book | `design/the-card.md` | open | |
+| lines of light on black; colour by fifths | Morgan's choice, 2026-11-17 | kept | "The rules", rule 1 |
+| sun-print blue for the past | `look.md` | open | |
+| lives changing over years | `spec/years.md` | open | |
+| takes and saves | in the code | kept | |
+| the page and the place | `the-page-and-the-place.md`; in the code | kept | "The first hour"; "The hands" |
+| the promise book, the stages, the board | `spec/promises.md`; `spec/stages.md` | dropped, 2026-11-25 | `CLAUDE.md` |
 
 ## Yours
 

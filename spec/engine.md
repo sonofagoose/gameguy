@@ -1,5 +1,10 @@
 # The engine
 
+> **Status, 2026-11-26.** History, from the specification of 2026-11-19: how the game is built. The
+> code in `game/` follows it (Zig, one clock from the sound card, a deterministic world, lines of
+> light), and those technical choices stand until a measured reason changes one. Where it describes
+> the game itself, the direction wins. What the game is: `design/the-game.md`.
+
 _Part of the specification (`../SPEC.md`, section 19): how the game is built so that everything in
 the other files can be true on this handheld. The technical choices are Fable's to make and are
 decided here; a build session may change one for a measured reason, and writes the reason in

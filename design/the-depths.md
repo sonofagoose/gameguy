@@ -1,17 +1,20 @@
 # The depths
 
+> **Status, 2026-11-26: the direction,** with `the-game.md` and `the-wormhole.md` (Morgan: "this is
+> absolutely 100% the direction"). Read `the-game.md` first.
+
 _Part two of `the-game.md`, written 2026-11-25 by Claude under the same permission. Morgan was
 watching a video about the chord on the third note of a key, sent three pictures from it, and asked:
 "have we identified the experience around how these depths of theory may be manifested in the world
 we're shaping?" He named inversions, voice leading, the wonders, the great instruments of each land,
 endless composition, and "RHYTHM & NUANCE OF THE POCKET", and asked: "what's that about not being
-able to make a 3rd???" Everything here is my call, and his to change or strike._
+able to make a 3rd???" Everything here was my call; on 2026-11-26 he made it part of the direction,
+and it stays his to change._
 
 _The notebook already held a good deal of this, in `spec/world.md` (2026-11-19 and 20): a great
 instrument and a metre for each of twelve lands, 144 wonders, and a world past the lake that never
-ends. That is material, like everything there. This part says what of it stands in the design and
-adds what was missing. Its wonders are nearly all about sound itself. The depths of harmony and of
-time had no place yet._
+ends. That file is history now, but this part keeps those pieces by name, and adds what was missing.
+Its wonders are nearly all about sound itself. The depths of harmony and of time had no place yet._
 
 ## The third: what I said wrong
 
@@ -140,8 +143,9 @@ The oldest idea in this notebook is that a note means nothing until something is
 is that idea for chords: what is lowest decides what a chord is.
 
 - **The ground has a note.** Every land and every cave sounds its own note under whatever chord you
-  play there. It is struck with the chord and dies away with it. It is never a drone: held tones
-  were what Morgan's ears liked least in the room.
+  play there. The world's own sound never plays the third: that is Hum's, from his swell or his fork
+  (part three, "Melody is the main character"). It is struck with the chord and dies away with it.
+  It is never a drone: held tones were what Morgan's ears liked least in the room.
 - **So one chord is six different things in the six places of a day.** Take home's own chord, C, E
   and G:
 

@@ -1,5 +1,9 @@
 # Light-pictures: the garden's story, without words
 
+> **Status, 2026-11-26.** History: a draft of 2026-11-21 for pictures the garden would show of its
+> past. Not placed in the direction. Who the figures are stays Morgan's. What the game is:
+> `design/the-game.md`.
+
 A draft for Morgan's eye before any of it is drawn (plan of 2026-11-21, step 5). SPEC.md 17 keeps
 the game's words to "Oh. You're in." and Jeanne's three lines, so the garden tells what happened to
 it in pictures. Each picture rises in faint lines of light when Hum stands still at its place for a

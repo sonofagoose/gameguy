@@ -1,5 +1,9 @@
 # Every idea, and where it lives now
 
+> **Status, 2026-11-26.** History: a ledger of every idea in the older documents, as of 2026-11-19.
+> Where each piece of the older design stands now is in `design/the-game.md`, "What the older notes
+> had, and where each stands".
+
 _Part of the specification (`../SPEC.md`, section 3). Morgan said of the first shapes: "I like all
 the ideas ... even as un-realized and un-thought-through-as-far-as-how-they-actually-all-connect as
 they are". This is the ledger that keeps that promise: each idea in each document, by source, with

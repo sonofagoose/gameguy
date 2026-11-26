@@ -1,5 +1,14 @@
 # Brainstorm, 2026-11-25: reading the notebook again
 
+> **Status, 2026-11-26.** History. This is Claude's brainstorm note of 2026-11-25, in four parts.
+> The direction that came out of it is `design/the-game.md` and its parts two and three, which
+> Morgan called "absolutely 100% the direction" on 2026-11-26; where this note disagrees with them,
+> they win. Its "one idea" (the note underneath), its twelve-shares tuning dial and its three states
+> of trouble are dropped or parked (`the-game.md`, "What I am dropping or parking"), and its
+> controls (the stick at rest as the island, Drip as lock-on on L2) are not the direction's. Part
+> four, the game as it stood on 2026-11-25, is still the record of what the build did that day. Its
+> sketches a to i are in `design/listen/sketches/`.
+
 _A brainstorm note, not canon. Written by Fable in a session with Morgan, who asked for a return to
 brainstorming: read everything as raw material, say honestly what is alive and what is scaffolding,
 and propose small experiments. Nothing here is decided. Every idea is a proposal unless it is marked

@@ -1,5 +1,11 @@
 # Shape 2: Volta, the day that never quite repeats
 
+> **Status, 2026-11-26.** History: the second shape (2026-11-13): a day that repeats a fifth higher
+> each morning, with past selves as a band. The direction drops the calendar of mornings and parks
+> the band of past selves (`the-game.md`, "What I am dropping or parking"); it keeps the river at
+> night singing the day back. Morgan's ear rule recorded here stands: consonant by default,
+> dissonance brief. What the game is: `design/the-game.md`.
+
 Brainstorm, 2026-11-13. Nothing here is decided. Morgan asked for "a different shape with even more
 depth and immersion" after `shape-1-a-musical-zelda.md`.
 

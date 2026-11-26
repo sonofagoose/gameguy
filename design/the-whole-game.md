@@ -1,5 +1,10 @@
 # The whole game
 
+> **Status, 2026-11-26.** History: every part of the older design in one place (2026-11-17), from
+> which `SPEC.md` was written. Where it disagrees with the direction (`design/the-game.md` and its
+> parts two and three), the direction wins. Where each piece of the older design stands now is in
+> `design/the-game.md`, "What the older notes had, and where each stands".
+
 _Every part of the design so far, in one place, at its full ambition. Written on 2026-11-17, when
 Morgan asked for "a seriously AAA game... like the scope of Tears of the Kingdom", asked "what about
 "river" and the "time loop" and all that?", and asked me to "ensure you've got the full

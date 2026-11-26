@@ -1,5 +1,9 @@
 # page
 
+> **Status, 2026-11-26.** A toy, not the game. The page and the place it tested are kept in the
+> direction, and Morgan's first words on it are his. What it measured stands. What the game is:
+> `design/the-game.md`.
+
 A toy, not the game. It exists to answer one question before a game is designed around the answer:
 **should the game be flat or deep, and can it be both?** The idea it tests is in
 `design/the-page-and-the-place.md`.

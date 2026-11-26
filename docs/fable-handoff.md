@@ -1,5 +1,9 @@
 # Fable handoff: the platform, the tools, the loop
 
+> **Status, 2026-11-26.** Measured facts and the platform, still true where they are about the
+> hardware and the deploy loop. What it says about the game being designed later in a specification
+> session is history: the direction is `design/the-game.md`.
+
 Status 2026-11-12. This document gives you what has been **measured** and what has been
 **proven to work**. It deliberately contains no game design and no game code: the game, its
 architecture and its engine choice are yours (with Morgan) to decide. The creative brief and the

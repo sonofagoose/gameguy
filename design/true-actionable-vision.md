@@ -1,5 +1,10 @@
 # Gameguy: The True Actionable Vision Document
 
+> **Status, 2026-11-26.** History: a synthesis of 2026-11-21 by another model, built on `SPEC.md`
+> and its promise board. It is not the direction. Its controls (the mood wheel on R1, the voice
+> wheel on L1, the guard on L2), its thirteen mornings and its plan by stages are retired. What the
+> game is: `design/the-game.md`.
+
 > _"A game that could have been made for anyone, on any machine, has failed even if it runs."_  
 > — Morgan, `SPEC.md` §2
 

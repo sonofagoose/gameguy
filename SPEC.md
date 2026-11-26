@@ -1,5 +1,14 @@
 # gameguy: the specification
 
+> **Status, 2026-11-26.** History. This specification of 2026-11-19 called itself decided. It
+> was retired as a frame on 2026-11-25, and on 2026-11-26 Morgan made `design/the-game.md` and its
+> parts two and three, `design/the-depths.md` and `design/the-wormhole.md`, the direction: "this is
+> absolutely 100% the direction". Where this file disagrees with them, they win, and its section 3,
+> "Which source wins", no longer holds (see `CLAUDE.md`). Its stages (section 20), its promises
+> (section 21) and its start for a build session (section 22) are retired. The game's code was built
+> to this file between 2026-11-19 and 23. What the direction keeps of it, piece by piece, is in
+> `the-game.md`, "What the older notes had, and where each stands".
+
 _Working title of the game: **Oh. You're in.** They are the first words anyone says in it. Morgan
 names the game; other candidates are in `DECISIONS.md`._
 

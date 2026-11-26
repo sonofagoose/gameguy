@@ -1,5 +1,10 @@
 # The page and the place
 
+> **Status, 2026-11-26.** History (2026-11-14). The direction keeps the page and the place: the flat
+> page that stands up at "Oh. You're in.", and the view on the right stick going all the way up to
+> the page (Morgan's own call). Its uses of the page for the wheel, memory and the map are material.
+> What the game is: `design/the-game.md`.
+
 _Is the game flat or deep? Both, and the music gives the reason. Written on 2026-11-14 in answer to
 three questions from Morgan: if the ultimate form is 3D, should the toys be 3D; does the 2D toy
 deserve to be its own thing; and should 2D be part of the 3D game's world. There is a toy for it,

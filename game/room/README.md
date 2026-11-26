@@ -1,5 +1,9 @@
 # The room's walks
 
+> **Status, 2026-11-26.** The room is a tool and stays one. Its walks and questions were written for
+> the first evening as it was built to the older specification, and each names a retired promise.
+> What the game is: `design/the-game.md`.
+
 `walks.txt` is the one list of what the room asks a person to try. Each walk:
 
 - starts from this build's own first evening, kept at a moment of rest. The scripted player

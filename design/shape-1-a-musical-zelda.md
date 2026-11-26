@@ -1,5 +1,12 @@
 # Shape 1: a Tears of the Kingdom ruled by music
 
+> **Status, 2026-11-26.** History: the first of three shapes for the game (2026-11-13). The
+> direction keeps its place seen from behind Hum with a page above, the wheel held on R1 with time
+> thickened, the rule that what happens between two things is the distance between them on the
+> wheel, and its three layers of sky, ground and underneath. Its voice wheel on L1, guard on L2,
+> wolves and Greys, and moods as fixed powers are not the direction's. What the game is:
+> `design/the-game.md`.
+
 Brainstorm, saved 2026-11-13 at Morgan's request ("I like all the ideas ... even as un-realized and
 un-thought-through-as-far-as-how-they-actually-all-connect as they are"). Nothing here is decided.
 It is the reply to Morgan's ask for a 3D, third-person game with a first-person focus view, combat

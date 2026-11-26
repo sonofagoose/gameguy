@@ -1,5 +1,8 @@
 # The wormhole
 
+> **Status, 2026-11-26: the direction,** with `the-game.md` and `the-depths.md` (Morgan: "this is
+> absolutely 100% the direction"). Read `the-game.md` first.
+
 _Part three of `the-game.md`, written 2026-11-25 by Claude. Morgan: "my absolute favorite teacher
 I've ever watched is Jaron Lopez, he talks about the 'wormhole' method and does the 'chords that
 vibe' serious and much more.. how much can you gain with this knowledge and where might it apply in
@@ -10,8 +13,8 @@ _I did not know this teaching, so I looked. I read the machine-made captions of 
 the Wormhole Method and its second episode, the 6 Places a Chord Can Go, Shapeshifter Notes, Twin
 Dominant Chords, Altered Chords, How to Make Chords Melodic, and three on melody that Morgan pointed
 at afterwards. I cannot hear or see the videos, and captions get names wrong, so what follows is my
-reading of his words. The ideas credited to him are his. What the design does with them is my call,
-and Morgan's to change or strike._
+reading of his words. The ideas credited to him are his. What the design does with them was my call;
+on 2026-11-26 Morgan made it part of the direction, and it stays his to change._
 
 ## What he teaches
 

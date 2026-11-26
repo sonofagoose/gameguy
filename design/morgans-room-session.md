@@ -1,5 +1,11 @@
 # Morgan's Room Session: Every Answer, Machine-Verified
 
+> **Status, 2026-11-26.** Morgan's answers in the room on 2026-11-21, read from the machine log. Its
+> yes and no columns are right. Its column of his written notes is filed 18 places off: his numbers
+> were the room's item numbers, so a note belongs to the clip numbered 18 less
+> (`design/brainstorm-2026-11-25.md`, part two, "A correction first"). Its themes and actions are
+> one reading by another model, made for the older design. What the game is: `design/the-game.md`.
+
 > _Played on the purple (unit 164), build `09e0366-dirty`, 2026-11-21._
 > _59 items: 1 ear check, 13 walks, 3 hand checks, 41 listening clips._
 > _Every answer below is Morgan's, pulled from `game/results/gameguy-20261121-101026.txt`._

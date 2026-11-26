@@ -1,5 +1,8 @@
 # Ash (26) and Bea (23), sisters
 
+> **Status, 2026-11-26.** History: an imagined player of the older thirteen-morning design
+> (2026-11-13). Not a real player, and not the design now. What the game is: `design/the-game.md`.
+
 > For six weeks on one couch we were each other's third, and the best notes in the room came from
 > neither console.
 

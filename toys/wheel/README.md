@@ -1,5 +1,8 @@
 # wheel
 
+> **Status, 2026-11-26.** A toy of the older design's wheel (`design/the-wheel.md`, history now).
+> What it measured stands. What the game is: `design/the-game.md`.
+
 A toy, not the game. It exists to answer one question before a game is designed around the
 answer: **does the wheel earn a place in a fight, in the hands, through this speaker, on this
 screen?** The idea it tests is in `design/the-wheel.md`.

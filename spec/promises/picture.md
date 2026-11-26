@@ -1,5 +1,10 @@
 # Promises of sound and picture
 
+> **Status, 2026-11-26.** History: part of the promise book, retired as a frame on 2026-11-25
+> (Morgan: other models "treated the experiments as settled commitments and built process machinery
+> on top of them"). The build still runs `spec/tools/promises.py --zig` to write the list the game's
+> witness code reads; nothing else uses it. Don't extend it. What the game is: `design/the-game.md`.
+
 _Part of the promise book (`../promises.md`). What `../../SPEC.md` section 15 says: how a sound is
 seen, and how the sound is made, sized before the stage that finishes them. `texture.md` holds the
 promises of the texture of the world, and `workshop.md` the beam and the hue the engine owes._

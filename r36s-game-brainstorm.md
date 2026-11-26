@@ -1,5 +1,10 @@
 # R36S Game Brainstorm — Exhaustive Working Document
 
+> **Status, 2026-11-26.** History and material: the first brainstorm (2026-11-10 to 12). Morgan's
+> favourite games, his poem (Appendix A), noodles, wasatch and the hardware investigation are
+> material and stand. Its Part 0, the protocol for Fable sessions (an interview, a decided
+> `SPEC.md`, a build in stages), is history. What the game is: `design/the-game.md`.
+
 **Status of this entire document: BRAINSTORM. Nothing in here is invariant,
 decided, promised, or final.**
 

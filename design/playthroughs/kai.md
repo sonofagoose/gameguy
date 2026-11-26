@@ -1,5 +1,8 @@
 # Kai, 9 (with notes from his mum, Lena, 40)
 
+> **Status, 2026-11-26.** History: an imagined player of the older thirteen-morning design
+> (2026-11-13). Not a real player, and not the design now. What the game is: `design/the-game.md`.
+
 > It's the one where you sing at the scary stuff till it turns into puppies, and the river's mean
 > but it's sort of right.
 

@@ -1,5 +1,12 @@
 # Thirteenth Morning (working title; Morgan names the game)
 
+> **Status, 2026-11-26.** History: an imagined ultimate form of the older design (2026-11-13), and
+> the source of most of `SPEC.md`. The direction keeps Hum, Drip, the garden, the opening, twelve
+> lands round a lake and the river at night. It drops the thirteen mornings each a fifth higher, the
+> mood wheel of seven fixed powers, the voice wheel on L1, lock-on and guard on L2, and past selves
+> as the spine. Where each piece of the older design stands now is in `design/the-game.md`, "What
+> the older notes had, and where each stands".
+
 _A small plaster creature who can sing one note walks a ring of twelve lands around a draining lake,
 each morning a fifth higher than the last, learning to sing beside its own past and the one who
 remembers it, until the thirteenth morning brings it home and not home._

@@ -1,5 +1,9 @@
 # What the seven playthroughs reveal
 
+> **Status, 2026-11-26.** History: what seven imagined players of the older thirteen-morning design
+> revealed (2026-11-13). Its findings were about that design. What the game is:
+> `design/the-game.md`.
+
 These players are imagined and all seven finish. Trust the diaries on what the canon makes vivid and
 where it contradicts itself, not on how it sounds or sits in the hand.
 

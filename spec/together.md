@@ -1,5 +1,9 @@
 # Two consoles
 
+> **Status, 2026-11-26.** History, from the specification of 2026-11-19: two consoles. The direction
+> says the game is whole alone, and that with JJ's console the second player is the other voice on
+> the same wheel (`the-game.md`, "Two consoles"). The rest is material.
+
 _Part of the specification (`../SPEC.md`, section 14). `design/together.md` holds the first design
 and its reasons, and stands wherever this file is silent. Morgan, 2026-11-19: "we can't count on two
 unconnected console's speakers or two untrained people's ears to carry the weight of the multiplayer

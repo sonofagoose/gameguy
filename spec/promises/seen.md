@@ -1,5 +1,10 @@
 # Frames that were looked at
 
+> **Status, 2026-11-26.** History: part of the promise book, retired as a frame on 2026-11-25
+> (Morgan: other models "treated the experiments as settled commitments and built process machinery
+> on top of them"). The build still runs `spec/tools/promises.py --zig` to write the list the game's
+> witness code reads; nothing else uses it. Don't extend it. What the game is: `design/the-game.md`.
+
 _Part of the promise book (`../promises.md`). A frame counts only when someone has looked at it with
 the promise's words beside it and written down the weakest thing in it. The copy that was looked at
 is in `seen/`. If a later build draws something else, the rung falls until the new frame is looked

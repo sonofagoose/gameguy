@@ -1,5 +1,8 @@
 # Walt, 71
 
+> **Status, 2026-11-26.** History: an imagined player of the older thirteen-morning design
+> (2026-11-13). Not a real player, and not the design now. What the game is: `design/the-game.md`.
+
 > It gave me something to keep time with in the evenings, and at the end it asked me to hold the one
 > sound I'd spent fifty years tuning out.
 

@@ -1,5 +1,8 @@
 # Review: Claude's status report and the light-pictures draft
 
+> **Status, 2026-11-26.** History: a review of 2026-11-21, by another model, of a status report and
+> a draft. Not the plan now: see `PROGRESS.md`. What the game is: `design/the-game.md`.
+
 ## What this document is
 
 Morgan asked for a fresh eye on two things:

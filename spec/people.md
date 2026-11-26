@@ -1,5 +1,11 @@
 # The people
 
+> **Status, 2026-11-26.** History, from the specification of 2026-11-19: ninety-six lives, the
+> voices, the one who remembers, the travellers. The direction keeps people with lives and a note
+> each, a voice for the band in most lands, the white cat and the caravan. The counts and rounds
+> here are not decided, and who first sings the third with Hum is Morgan's. What the game is:
+> `design/the-game.md`.
+
 _Part of the specification (`../SPEC.md`, section 11): who lives round the lake. Ninety-six lives in
 twelve lands, the voices that travel with you, the one who remembers you, and the travellers. A
 land's score, written when its stage is built, fills each life in; it may add to this but not take

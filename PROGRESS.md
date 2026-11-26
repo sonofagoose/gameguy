@@ -1,9 +1,83 @@
 # Progress
 
-Where the build stands, so a new session can pick it up. Newest first. The plan is in `SPEC.md`,
-section 20, and `spec/stages.md`.
+Where the build stands, so a new session can pick it up. Newest first.
 
-## Now: Piece 5 — Drip's Metronome Balance, Bar-Centric Timing & Procedural Animations (2026-11-23)
+## Now (2026-11-26)
+
+### The direction
+
+- **What the game is:** `design/the-game.md`, `design/the-depths.md`, `design/the-wormhole.md`.
+  Morgan, 2026-11-26: "this is absolutely 100% the direction".
+- **The order to build in:** `the-game.md`, "Where the game stands, and what I would build first".
+  Nothing past the first evening is built until the first evening is whole and Morgan likes playing
+  it. Each piece goes in alone, answers one row of "What is sure, and what is still a bet", and goes
+  to his hands or ears before the next.
+- **Everything below this section** was built to `SPEC.md` (2026-11-19 to 23), which is history
+  now. "Done" in those entries meant done as a work order described it, not reachable by playing.
+
+### What the game does when a person starts it
+
+Looked at on 2026-11-25 by running the laptop build headless and reading the code (part four of
+`design/brainstorm-2026-11-25.md`). The game's rules have not changed since `1b576b6` except for
+the try-out below, which is off unless asked for.
+
+- **In it:** the opening as a page in the dark (two drops, the call, Drip answering, four breaths,
+  "Oh. You're in.", the page standing up); Drip riding on Hum's head, asleep after two quiet bars,
+  leading over the hose's coil to the great aster and then to the first puddle, and then nowhere;
+  running, sprinting, skidding, a 3 m jump with a short hop on a tap, the dash; the garden (asters,
+  reeds, covers, the stopped hose with its held tone, the spigot, the bee, four puddles you can
+  walk across, the sky); the strike, which plays home's chord a note at a time, fuller on the tick;
+  the swell on R2, a voice a bar, with L1 and L2 stepping home in it; the wheel on R1, drawn on top,
+  where only two cells can be chosen (C, and the F to its left); the clap; the songbook; the view
+  all the way up to the page; takes and saves.
+- **Not in it:** any knot (`initEvening` sets `knot_count = 0`, since `81d9b1e` on 2026-11-22), so
+  no fight, no dodge and nothing to bring home; the hose can never open, because it needs every
+  knot home; dusk, the river and night; anything pulled by home; the wheel's other cells; underneath;
+  the island.
+- **Tests:** 107 pass (`game/build.sh`), two of them for the try-out. Seven older tests switch knots
+  or cells on by hand, so they test a game that can't be reached by playing.
+
+### The try-out of the direction's first step
+
+- **What:** L1 and L2 step the chord among the lift (F), home (C) and the lean (G) wherever Hum is.
+  On the lift Hum is light (a held jump reaches 5.2 m), on the lean he runs 1.3 times as fast, and
+  stepping home off the lean throws him forward. What is kin to the chord near Hum lights and the
+  nearest four answer. Commit `90458c2`; `chordStep` and `wakeKin` in `game/src/world/world.zig`,
+  behind `--chords`. Its numbers are first guesses for Morgan's hands.
+- **Where:** on the purple as its own Ports entry, GameguyChords (`game/port/GameguyChords.sh`,
+  `gameguy/gameguy-chords-aarch64`, its start in `gameguy/tryout/stood.save`). It keeps a take in
+  `results/walks/` named `chords-tryout`. Select and Start together leave.
+- **Measured:** on the laptop, a scripted run is rough 16% of the time against 12% with the try-out
+  off; on the purple 39 of 1,330 frames late with 6.04 ms of work a frame
+  (`game/results/gameguy-chords-20261123-225843.txt`; the unit's clock is wrong).
+- **Not yet:** played by Morgan. As the direction now has it, L2 past the lean walks on into the
+  caves and L1 past the lift crosses the seam (`the-depths.md`); the try-out stops at the lean and
+  the lift.
+
+### On the handhelds
+
+- **The purple (unit 164):** GameguyChords as above. Its Gameguy is an older build than the source
+  at `1b576b6` (7,130,352 bytes against 7,151,344 for that build); which commit it came from is not
+  known. GameguyRoom's walk saves there were made by an older build still. The page, wheel and
+  remainder toys are there too.
+- **The black (unit 134):** not looked at since 2026-11-21. Never touched while Morgan is testing
+  on it.
+
+### Waiting on Morgan
+
+- His hands on GameguyChords.
+- His ears on sketches j, k, l and m (`design/listen/sketches/`).
+- The calls the direction leaves to him: `the-game.md`, "Yours", and every row marked open in "What
+  the older notes had, and where each stands".
+
+### Next
+
+The first evening made whole, in the direction's order: the three chords on the triggers everywhere;
+Drip showing each where it is needed; the well and the three chords underneath; the knots at dusk as
+things that lean with nothing under them, and the hose opening; the evening ending in the river and
+waking on the island.
+
+## Piece 5 — Drip's Metronome Balance, Bar-Centric Timing & Procedural Animations (2026-11-23)
 
 Work order Piece 5: Metronome Auditory Balance, Bar-Centric Timing, Sleep/Wake Cycle, Procedural Droplet Animations, and Separation of Concerns Architecture.
 
@@ -97,7 +171,7 @@ Work order: `gameguy-work-order-20261122.md`.
 | spec/doc files | done: BOARD.md, hands.md kept at HEAD, regenerated in gate run |
 | PROGRESS.md updated | done |
 
-## Now: Morgan's first room session, synthesis and actionable vision (2026-11-21)
+## Morgan's first room session, synthesis and actionable vision (2026-11-21)
 
 Morgan played GameguyRoom on the purple (unit 164), answering all 59 items (the ear check, 13
 walks, 3 hand checks, 41 listening clips).
@@ -182,7 +256,11 @@ past the deepest game he knows.
 | after the first plays: the view, the touch, the wheels, the room (stage 2) | planned 2026-11-21 from four research strands (`design/after-the-first-plays.md`) and built the same day. Part 1, the view: the dial round Hum, the eye over the ground, the cone, straight runs, the follow, L2's swing, the fight's lift, Hum facing the eye. Part 2, the legs: arcs, the two-stage start, the skid-turn, the curved stick, slopes, bursts, the early jump, the squash. Part 3, what is solid: one rule for the covers and the reeds shared by the world and the picture; reeds, clover stalks, crumbs, the flower head, the rim and Drip answer a touch; never ending a step inside a solid; leaves ring where they are drawn. Part 4, the wheels: home's ring, home's move sung, the wheel at 0.4 s, Hum slowed, the view nearer, asleep wedges a hairline, a snap-and-hold, a click, the preview hummed under Hum's breath, twelve threads, the swell's chord bands and the one coming, the knots coming to a call and turning by their beat. Part 5, the room: one walks file, 13 walks from saves of this build's own evening, plain words, X for "didn't happen", the player's memory left alone, the build named, clips cut every build, presses cleared when the songbook closes, a hum the world never took up ended within 0.1 s. Part 6 begun: one recipe for the call and the hum, col8 and the named colours once, Hum's shape once. Also: the hum 3 dB quieter, the tick mellow with a deeper one. Measured on the purple, Morgan's evening replayed on its screen: before the view, from 53 °C, 2,985 of 23,347 frames late and 7.29 ms of work a frame; after the solids and the wheels, from a hotter start, 3,433 of 22,663 late and 6.89 ms: less work, more frames missing the screen (the GPU, with the cone in the line's fragment shader the likeliest cost). Owed: a fair pair of that, and the cone made cheaper if it is the cause; lock-on, the lean in two phases, the hose's rail; blades bending and wearing paths, moss and low crumbs to stand on, leaves tipping, the step-up and coyote jump with them; every thing's shape against home and the preview re-forming shapes; the swell's steps (Morgan's call); the ground's light fading while the lake is low; fact lines in the log; one hands reader; the ground picture's extent worked out with a header |
 | the purple | connected again on 2026-11-20 (Morgan: it had been all along; it was not answering on USB before then). It has today's build. Its same-take file is stale: run it there when Morgan is not using it. It has a build from before the evening scene. Its same-take file no longer matches |
 
-## Next
+## The specification's plan, retired on 2026-11-25
+
+Kept as it stood on 2026-11-21. It is not the plan: the plan is under "Now" at the top.
+
+### Its next steps
 
 1. Morgan reads and edits `SPEC.md`, `spec/size.md`, `spec/years.md`, `spec/together.md`,
    `spec/sky.md`, `spec/shape.md` and `spec/texture.md`, and
@@ -193,7 +271,7 @@ past the deepest game he knows.
    Stage 2 begins by sizing a promise for each of its open claims
    (`python3 -I spec/tools/promises.py --open 2`).
 
-## Stages
+### Its stages
 
 | stage | state |
 |---|---|

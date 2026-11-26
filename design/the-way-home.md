@@ -1,5 +1,11 @@
 # The way home: mornings eight to twelve
 
+> **Status, 2026-11-26.** History: mornings eight to twelve of the older thirteen-morning design
+> (2026-11-14). The direction has no calendar of mornings, so these five days do not exist as
+> written. Their moments (a copy of the garden under glass, a pack across a valley, a cloud that
+> kept everything, a delta with no ground, the evening before) are material a land could use; none
+> is placed. What the game is: `design/the-game.md`.
+
 Brainstorm, 2026-11-14. Nothing here is decided. In the seven playthroughs of
 `thirteenth-morning.md`, the sun rises over five lands after the Seam with one voice among them and
 nothing to face (`playthroughs/what-they-reveal.md`). This document fills them. It leans on

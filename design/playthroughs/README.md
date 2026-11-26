@@ -1,5 +1,9 @@
 # Playthroughs
 
+> **Status, 2026-11-26.** History: seven imagined players of the older thirteen-morning design
+> (2026-11-13). They are not real players, and they played a design that is no longer the direction.
+> What the game is: `design/the-game.md`.
+
 Seven imagined players' diaries of `../thirteenth-morning.md`, written on 2026-11-13 by role-play
 agents, and a critic's report on what the diaries show. The players are imagined and all seven
 finish: trust the diaries on what the design makes vivid and where it contradicts itself, not on

@@ -1,5 +1,9 @@
 # The look: brainstorm
 
+> **Status, 2026-11-26.** History. Morgan chose the page toy's lines of light on 2026-11-17 (the
+> note below), and that look stands, with colour going round the wheel by fifths (`the-game.md`,
+> "The rules", rule 1). The rest is material. What the game is: `design/the-game.md`.
+
 > **2026-11-17:** Morgan chose the page toy's lines of light over the meadow's solid look ("the
 > style and feel of the gameguypage so far is VASTLY cooler than the meadow... scrap the meadow
 > style"). What follows from that is in `drawn-in-light.md`. From this document it keeps the inks,

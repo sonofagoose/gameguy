@@ -1,5 +1,9 @@
 # Drawn in light
 
+> **Status, 2026-11-26.** Material on the look, from Morgan's choice on 2026-11-17 of the page toy's
+> lines of light, which stands. Where it describes the game itself, it follows the older design, and
+> the direction wins. What the game is: `design/the-game.md`.
+
 _On 2026-11-17 Morgan said the page toy's look is "VASTLY cooler" than the meadow's: "scrap the
 meadow style lol. thoughts? be ambitious". This is what the look becomes if it is built on the page
 toy. The page toy now has a light that goes with it, the beam (`toys/page/`), and it runs on both

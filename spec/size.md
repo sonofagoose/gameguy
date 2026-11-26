@@ -1,5 +1,9 @@
 # How big
 
+> **Status, 2026-11-26.** History, from the specification of 2026-11-19: how big the world is and
+> what the card is for. Not decided by the direction. Morgan's words in it stand as his ambition.
+> What the game is: `design/the-game.md`.
+
 _Part of the specification (`../SPEC.md`, sections 12 and 13). Morgan, 2026-11-19: "we can be
 maximal instead of minimal... why shouldn't it take up all of 32GB/64GB? just trying to make the
 best game that will ever be made is all", and "I don't want anything to be held back just for the

@@ -1,5 +1,15 @@
 # Decisions
 
+> **Status, 2026-11-26.** History. These decisions were made with `SPEC.md` on 2026-11-19 and
+> added to while the code was built to it; the direction is now `design/the-game.md` and its parts
+> two and three (Morgan, 2026-11-26: "this is absolutely 100% the direction"). Where a row disagrees
+> with them, they win. Still standing: the calls marked **his** stay Morgan's (the name, the
+> beloved left blank, release, glossing "Two pins"); Morgan's own decisions of 2026-11-21 stand
+> (there is no glide; every creature is unique to its land), and the D-pad he left open has since
+> gone to the voices (`the-game.md`, "The hands"); the measured facts stand (no rumble, no
+> microphone, the clock is the sound card's, how the jack reads). What the direction keeps of the
+> rest is in `the-game.md`, "What the older notes had, and where each stands".
+
 _Every question the documents left open, decided, with the reason. Part 0 of the brainstorm asks for
 this file: "decide them yourself in line with the why below, and record each decision and its
 reason". Decided on 2026-11-19 with `SPEC.md`, and added to as the game is built, newest at the end.

@@ -1,5 +1,9 @@
 # The sky
 
+> **Status, 2026-11-26.** History and material, from the specification of 2026-11-19: the sky of the
+> older design. The direction keeps a sky over each land as the layer above (`the-game.md`, "The
+> wheel is the map"); this file's detail is not placed. What the game is: `design/the-game.md`.
+
 _Part of the specification (`../SPEC.md`, section 12), and the whole of what `world.md` says in
 brief under "The sky" and "The calendar". Morgan, 2026-11-19: "I wonder how the sky and it's colors
 and it's inhabitants and the topological shape of the different lands might be ideally experienced

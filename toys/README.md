@@ -1,5 +1,8 @@
 # Toys
 
+> **Status, 2026-11-26.** The toys tested ideas of the older design, and what they measured stands.
+> They are not the game. What the game is: `design/the-game.md`.
+
 Small, throwaway programs that each test one idea on the handheld before the game is designed
 around it. They are not the game and not a starting point for it.
 

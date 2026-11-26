@@ -1,5 +1,9 @@
 # Implementation Plan: What's Next (Morgan's Actionable Vision & Build Plan)
 
+> **Status, 2026-11-26.** History: a build plan of 2026-11-21 for the specification's stage 2,
+> written by another model. It is not the plan now: the order to build in is in
+> `design/the-game.md`, "Where the game stands, and what I would build first", and in `PROGRESS.md`.
+
 ## Goal Description
 
 Execute the next build cycle for Stage 2 of **gameguy** ("Oh. You're in.") on the purple R36S handheld (unit 164), targeting the 32 GB microSD cartridge ("TF2 GAME" slot). The immediate objective is to convert the 13 failed Room walk promises into passing promises (elevating the build from 64.9% to true felt consensus), eliminate the abrasive synth drone, make Hum's movement match the ambitious standard of Super Mario 64 × Link in Tears of the Kingdom, fix the circle of fifths render order, and establish the Garden as an intentional, safe, cinematic onboarding space before introducing conflict.

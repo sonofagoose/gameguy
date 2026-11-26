@@ -1,5 +1,9 @@
 # The stages
 
+> **Status, 2026-11-26.** History: the specification's stages and their proofs, retired on
+> 2026-11-25. The order to build in now is `design/the-game.md`, "Where the game stands, and what I
+> would build first", and `PROGRESS.md`.
+
 _Part of the specification (`../SPEC.md`, section 20): what each stage builds, and what proves it. A
 stage is done when its proof has been shown, not when its work looks finished. `../PROGRESS.md` says
 which stage is live._

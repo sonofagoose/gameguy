@@ -1,5 +1,11 @@
 # Experience fixes: what seven players broke, and what changes
 
+> **Status, 2026-11-26.** History: fixes to the older thirteen-morning design after seven imagined
+> playthroughs (2026-11-14). Most of what it fixes (the eleventh dusk, grey days, ageing past
+> selves) belongs to pieces the direction drops or parks. Two of its rules carry on in the
+> direction: out of tune is never shown as blur, and at most one line of words. What the game is:
+> `design/the-game.md`.
+
 Brainstorm, 2026-11-14. Nothing here is decided. Morgan's ask: "design experience fixes". The input
 is `playthroughs/what-they-reveal.md`, the critic's report on seven imagined playthroughs of
 `thirteenth-morning.md`. The order below is the report's ranking of flaws, worst first. Two fixes

@@ -1,3 +1,9 @@
+> **Status, 2026-11-26.** A brainstorm by another model (2026-11-22) with Morgan's answers written
+> inline. His answers are his and stand: rhythm as the first concept, Drip sleeping and waking, Drip
+> as the Tael, L1 and L2 stepping the swell, a real circle of fifths with its letters, the wheel
+> never under foliage, the view going all the way to the page, the world as a circle of fifths. The
+> rest is history. What the game is: `design/the-game.md`.
+
    Brainstorm: Drip, Rhythm, Movement, and the Whole First Touch
 
   │ "The first musical concept that the player is ever exposed to is rhythm." — Morgan

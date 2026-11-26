@@ -1,5 +1,12 @@
 # Shape 3: the circle, the lake and the lands
 
+> **Status, 2026-11-26.** History: the third shape (2026-11-13). The direction keeps its ring of
+> twelve lands round a lake, the lake's level deciding whether the music comes home, the rivers
+> running home, and Morgan's ear rules (Part 1). Its mood wheel of seven fixed powers and its tuning
+> that changes land by land are not the direction's: the wheel is the real circle of fifths with its
+> letters, and tuning lives in five places (`the-game.md`, "Tuning"). What the game is:
+> `design/the-game.md`.
+
 Brainstorm, saved 2026-11-13 at Morgan's request ("please preserve all the ideas you just brought
 forth"). Nothing here is decided. It gathers two rounds of conversation that came after
 `shape-2-volta.md`:

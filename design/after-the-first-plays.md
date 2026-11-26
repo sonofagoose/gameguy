@@ -1,5 +1,10 @@
 # After the first plays: the view, the touch, the wheels, the room
 
+> **Status, 2026-11-26.** History: plans made after Morgan's first plays (2026-11-21), and built
+> into the code that day. Morgan's words in it are evidence, and his asks stand: a camera that can
+> get above Hum, solid things, a strike like the page toy's. The plans themselves were for the older
+> design. What the game is: `design/the-game.md`. What the build does: `PROGRESS.md`.
+
 Morgan played the first evening twice and walked part of the room on 2026-11-21. He asked for
 five things. The camera should be like Tears of the Kingdom, Super Mario Odyssey or Hyper Light
 Drifter: able to get above Hum, not stuck to the ground. Things should be solid. The wheels should

@@ -1,5 +1,9 @@
 # The texture of the world
 
+> **Status, 2026-11-26.** History and material, from the specification of 2026-11-19: the texture of
+> the world. The renderer in `game/` follows it; it stands as material. What the game is:
+> `design/the-game.md`.
+
 _Part of the specification (`../SPEC.md`, section 15). Morgan, 2026-11-19: "and the 'texture' of the
 world... ought to be considered under the thesis as well". The thesis is that the world is literally
 made of sound, and one model drives what is heard, what is seen and what moves. So texture is not

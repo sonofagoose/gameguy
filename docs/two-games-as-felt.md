@@ -1,5 +1,8 @@
 # Two games, as people say they feel
 
+> **Status, 2026-11-26.** Material (2026-11-20): what players and critics say Majora's Mask and
+> Tears of the Kingdom feel like. Not the direction. What the game is: `design/the-game.md`.
+
 _Morgan, 2026-11-20: "maybe a web search/s about how the human experience actually is for Majora's
 mask and Tears of the Kingdom actually are... would help". Searched and read that day. This is what
 players and critics say those two games feel like, what the makers of one of them learned about

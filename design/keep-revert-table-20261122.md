@@ -1,5 +1,7 @@
 # Keep/Revert Table: Gate 0 Audit (FINAL)
 
+> **Status, 2026-11-26.** History: an audit of uncommitted code on 2026-11-22. A record only.
+
 **Date:** 2026-11-22  
 **Working tree:** uncommitted diff on top of commit 3c8a000  
 **Target:** purple R36S, unit 164  

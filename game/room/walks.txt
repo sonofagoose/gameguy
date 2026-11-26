@@ -16,7 +16,7 @@ walk|breathing-together|beside|Breathing together|You are beside a small light t
 ask|evening.breathe|When the shape between you stopped turning, did it feel like the two of you had fallen into step?
 ask|hands.voice-in-a-buffer|When you pressed R2, did your voice start the instant you pressed?
 ask|evening.in|When the flat picture stood up into a world around you, did you make a sound out loud? (X if it never stood up.)
-walk|running|stood|Running|Push the left stick to run, and let go to stop. Hold A while running to go faster. B jumps; press B again in the air to glide. Pull the right stick back to look down on yourself from above. Try running into a giant stalk.
+walk|running|stood|Running|Push the left stick to run, and let go to stop. Hold A while running to go faster. B jumps; hold it for a higher jump. Pull the right stick back to look down on yourself from above. Try running into a giant stalk.
 ask|checkpoint.moving|Did you go where you meant, as fast as you wanted?
 ask|hands.view|Could you always see what you wanted to see, without fighting the view?
 ask|hands.map|Did every button do what you expected?

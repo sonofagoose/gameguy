@@ -1,5 +1,10 @@
 # The laws
 
+> **Status, 2026-11-26.** History, from the specification of 2026-11-19: the seven laws of sound the
+> world was to obey, and their numbers. The code built so far uses some of them (sympathy, travel,
+> standing waves, building up). The direction's own rules are `the-game.md`, "The rules"; the laws
+> are material for building them, and where they disagree the direction wins.
+
 _Part of the specification (`../SPEC.md`, section 7). What every thing in the world is made of, the
 seven laws it obeys, and the numbers. The numbers marked "to tune" are starting values for hands and
 ears to change; the forms of the laws are decided._

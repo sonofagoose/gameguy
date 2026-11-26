@@ -1,10 +1,27 @@
 # game
 
-The game. Its specification is `../SPEC.md`; where the build stands is `../PROGRESS.md`.
+The game's code.
+
+- **What the game is to become:** `../design/the-game.md`, with its parts two and three,
+  `../design/the-depths.md` and `../design/the-wormhole.md`. Morgan, 2026-11-26: "this is
+  absolutely 100% the direction".
+- **What this code is:** it was built to `../SPEC.md` between 2026-11-19 and 23, and that
+  specification is history now. Its comments cite `SPEC.md`, `spec/` and older design documents for
+  where an idea came from, not for what the game is. Names in it come from the older design: the
+  wheel's `Mood` values (lift, bind, drive, flow, remember, strike, darkest) are the old mood wheel's
+  seven powers.
+- **What it does today, and what is next:** `../PROGRESS.md`, "Now".
 
 ## What is here so far
 
-The workshop, and the first evening.
+The workshop, and the first evening as it was built to the specification. The code also holds
+knots, a fight, the hose opening and the four ways home, but knots are switched off, so none of
+that can be reached by playing (`../PROGRESS.md`, "Now").
+
+- **The chords try-out** (`--chords`, `chordStep` and `wakeKin` in `src/world/world.zig`): the
+  direction's first step. L1 and L2 step the chord among the lift, home and the lean wherever Hum
+  is, and Hum's body follows. Off unless asked for. On the purple it has its own launcher,
+  `port/GameguyChords.sh`.
 
 - **The first evening** (`src/dark.zig`, `--scene evening`, the default). It opens as a page in the
   dark. R1 calls: a ring of light runs out and lights what it passes, and kin answer late by their
@@ -86,8 +103,9 @@ SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy game/build/gameguy-x86_64 --head
 3. Ten minutes of the dark and the walk to the great aster give the same fingerprints as the
    handheld's last run (`results/same-take-aarch64.txt`). After a change to the rules or the sound,
    run `same-take-aarch64 10` on the handheld again and keep its lines there.
-4. The promise book (`../spec/promises.md`): every sentence of the specification is read as a claim,
-   every promise's rungs are worked out from this build, and the build fails on anything refused.
+4. The promise book (`../spec/promises.md`) was retired as a frame on 2026-11-25. The build still
+   runs `promises.py --zig` to write `src/world/promise_list.zig`, the list the world's witness code
+   reads.
 
 ## Measured on the purple, 2026-11-19
 
@@ -114,4 +132,5 @@ SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy game/build/gameguy-x86_64 --head
 - `tools/same_take.zig`: one take on every machine.
 - `bench/modes.zig`: how many overtones a core renders.
 - `port/Gameguy.sh`: the launcher. `port/GameguyRoom.sh`: the same, into the room.
+  `port/GameguyChords.sh`: the chords try-out, with its own program and start.
 - `results/`: what the handheld's runs left.

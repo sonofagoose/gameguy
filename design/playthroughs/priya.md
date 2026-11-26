@@ -1,5 +1,8 @@
 # Priya, 27
 
+> **Status, 2026-11-26.** History: an imagined player of the older thirteen-morning design
+> (2026-11-13). Not a real player, and not the design now. What the game is: `design/the-game.md`.
+
 > I came to find the bottom of it, and it handed me a proof that there isn't one.
 
 **Day 1**

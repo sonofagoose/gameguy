@@ -1,5 +1,10 @@
 # Every claim
 
+> **Status, 2026-11-26.** History: part of the promise book, retired as a frame on 2026-11-25
+> (Morgan: other models "treated the experiments as settled commitments and built process machinery
+> on top of them"). The build still runs `spec/tools/promises.py --zig` to write the list the game's
+> witness code reads; nothing else uses it. Don't extend it. What the game is: `design/the-game.md`.
+
 _Every sentence of the specification that promises a player something, read by
 `spec/tools/promises.py`: nobody lists these. **kept**: every promise that quotes it is kept.
 **spoken for**: a promise quotes it. **open**: no promise speaks for it yet._

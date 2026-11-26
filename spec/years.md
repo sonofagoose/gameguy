@@ -1,5 +1,9 @@
 # The years
 
+> **Status, 2026-11-26.** History and material, from the specification of 2026-11-19: lives over
+> years. Not part of the direction. Morgan's words in it stand as his ambition. What the game is:
+> `design/the-game.md`.
+
 _Part of the specification (`../SPEC.md`, section 11). Morgan, 2026-11-19: "I played in Majora's
 Mask for 7 years before 100% the game... what we're building should vastly vastly absolutely
 immensely surpass that game as far as content and design elegance and like everything and like the

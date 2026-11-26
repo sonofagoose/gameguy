@@ -1,5 +1,10 @@
 # Promises of the card
 
+> **Status, 2026-11-26.** History: part of the promise book, retired as a frame on 2026-11-25
+> (Morgan: other models "treated the experiments as settled commitments and built process machinery
+> on top of them"). The build still runs `spec/tools/promises.py --zig` to write the list the game's
+> witness code reads; nothing else uses it. Don't extend it. What the game is: `design/the-game.md`.
+
 _Part of the promise book (`../promises.md`). What `../size.md` says the card's room is for, sized
 before the stages that fill it. Takes and saves are in `workshop.md`; the loop and the book in
 `loop.md`._

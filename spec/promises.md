@@ -1,5 +1,10 @@
 # The promises
 
+> **Status, 2026-11-26.** History: part of the promise book, retired as a frame on 2026-11-25
+> (Morgan: other models "treated the experiments as settled commitments and built process machinery
+> on top of them"). The build still runs `spec/tools/promises.py --zig` to write the list the game's
+> witness code reads; nothing else uses it. Don't extend it. What the game is: `design/the-game.md`.
+
 _Part of the specification (`../SPEC.md`, section 21). Morgan, 2026-11-19: "would be wise to have
 something in place to make sure that all these wonderful specs/claims/ideas actually get implemented
 in a way that results in a human actually experiencing the claim/idea at its fantastical maximum",

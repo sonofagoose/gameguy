@@ -1,5 +1,10 @@
 # Memory in rhythm: the world remembers the way a brain does
 
+> **Status, 2026-11-26.** History and material (2026-11-13): fifteen ideas for memory and thought in
+> rhythm, with their science. The direction keeps the river as sleep with the day sung back, and
+> pools that show what happened (`the-game.md`, "Night, and what the river is"). The rest is
+> material, not placed. What the game is: `design/the-game.md`.
+
 Brainstorm, saved 2026-11-13 at Morgan's request. Nothing here is decided. It answers his question
 asking for creative, joyful and empowering ideas about memory and computation in the phase and
 cross-frequency coupling of oscillations. It builds on Part 4 of `shape-3-the-lake-ring.md`

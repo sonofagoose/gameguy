@@ -1,5 +1,11 @@
 # Together
 
+> **Status, 2026-11-26.** History and material (2026-11-17): what two consoles could do together.
+> The direction says the game is whole alone, and that with JJ's console the second player is the
+> other voice on the same wheel (`the-game.md`, "Two consoles"); the rest is material. Where it
+> disagrees with the direction (`design/the-game.md` and its parts two and three), the direction
+> wins.
+
 _What two consoles could do with each other, from a letter to a visit to a world you share. A
 brainstorm written on 2026-11-17, with a recommendation, the sizes the hardware allows, and the
 imagined players trying it. Nothing here is decided._

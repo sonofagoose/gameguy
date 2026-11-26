@@ -1,5 +1,9 @@
 # The card
 
+> **Status, 2026-11-26.** History and material (2026-11-17): what the game card could be for. The
+> direction does not yet say what the card holds beyond takes and saves. What the game is:
+> `design/the-game.md`.
+
 _On 2026-11-17 Morgan asked "what the best use of the game card is", and then: "the card is only
 32GB... think about the scope and size of the game in it's ultimate form... be realistic about the
 best use... ambitious and realistic. role play different humans playing the game". Both handhelds

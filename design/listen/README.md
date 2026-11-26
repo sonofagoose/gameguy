@@ -1,5 +1,10 @@
 # Listening tests
 
+> **Status, 2026-11-26.** The listening clips Morgan answered in the room on 2026-11-21 (his
+> answers: `design/morgans-room-session.md`, its yes and no column). Their questions were written
+> for the older design, but his answers stand as evidence of his ears, and the direction cites the
+> clips by number. The sketches made with the direction are in `sketches/`.
+
 Short sketches for Morgan's ears, made because Claude can't hear. Each clip settles one design
 question. `python3 -I design/listen/make.py` rebuilds every clip (pure Python, no packages; 22,050
 Hz mono WAV). The ideas behind them are in `../shape-2-volta.md` and `../shape-3-the-lake-ring.md`.

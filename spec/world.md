@@ -1,5 +1,13 @@
 # The world
 
+> **Status, 2026-11-26.** History, from the specification of 2026-11-19. The direction keeps from it
+> by name: the twelve lands and their names, each land's great instrument, its metre and its twelve
+> wonders (`the-depths.md`, "The great instruments", "Each land has a feel" and "Wonders"), and
+> "songs are places" (`the-depths.md`, "Endless composition"). Not the direction's: a morning for
+> each land on a thirteen-morning calendar, the deep as one world under the Mirror Pool, and each
+> land's own tuning, which is open (`the-game.md`, "Tuning"). What the game is:
+> `design/the-game.md`.
+
 _Part of the specification (`../SPEC.md`, section 12): the atlas. Every land, what it is made of,
 its great instrument and its twelve wonders; then the lake, the city, the sky, the deep and what
 lies past the thirteenth morning. Each land's lives are in `people.md`. A land's score, written when

@@ -1,5 +1,12 @@
 # The wheel in the hand
 
+> **Status, 2026-11-26.** History (2026-11-14). The direction keeps from it the four ways home
+> (`the-game.md`, "Coming home, four ways"), the walk home the long way, standing where a knot's
+> strands meet, and the rule that how far round the wheel a thing sits from home is what it is to
+> you. Its seven moods as fixed powers, its ring of twelve that turns each morning, and borrowing
+> that falls back after a phrase are not the direction's (`the-game.md`; `the-wormhole.md`, "Outside
+> the key is a wormhole").
+
 Brainstorm, 2026-11-14. Nothing here is decided. Morgan's ask, after the seven playthroughs: "use
 the wheel ;)". No diary opened the wheel in a fight, nobody used a borrowed chord, and the game the
 diaries describe is rhythm, voices and a river (`playthroughs/what-they-reveal.md`). This document

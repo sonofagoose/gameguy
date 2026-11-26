@@ -1,5 +1,9 @@
 # The shape of the lands
 
+> **Status, 2026-11-26.** History and material, from the specification of 2026-11-19: the shape of
+> each land and what its ground wears. The garden's covers in the code come from it. Not placed in
+> the direction beyond the garden. What the game is: `design/the-game.md`.
+
 _Part of the specification (`../SPEC.md`, section 12). Morgan, 2026-11-19: "I wonder how the sky and
 it's colors and it's inhabitants and the topological shape of the different lands might be ideally
 experienced considering the powerful laws of the world", and of the first proof field: "the whole
