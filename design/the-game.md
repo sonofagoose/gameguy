@@ -310,7 +310,7 @@ How you get back to home decides what happens to everything that was leaning.
 |---|---|---|
 | from the lean, home | the full close | things spring home and are thrown open; the launch |
 | from the lift, home | the amen | things settle and sleep; the soft landing |
-| from the lean, under home instead | the turn | things land somewhere they didn't expect and show their other side |
+| from the lean, to the cave under home (the wheel, or a step home and a click together) | the turn | things land somewhere they didn't expect and show their other side |
 | a walk of several steps, each a fifth falling | home the long way | each step adds to what the last one stored |
 
 Morgan's ears said yes to all four (clips 17, 36, 19 and 18). In theory's words they are the
@@ -420,7 +420,9 @@ wheel, and each is a body of theory.
 - **Before the third comes, your chords are open fifths.** Morgan called that sound "ANCIENT AND
   STRONG YES" in the room (by my reading of his misfiled notes, clip 10: a chant over an open
   fifth). The first hour begins in that sound. The first third is an event: you hear the whole world
-  change.
+  change. The two triggers walk the whole ring of seven from the start, because nothing is switched
+  off. Before the third, the three chords past the lean are bare fifths with nowhere to go. The
+  third is what opens a place under each.
 - **The third is found, not given.** It is already in Hum's one note, as its fifth overtone, too
   quiet to hear in a closed hum. He finds it the first time he sings with someone who has it. Who
   that someone is belongs to Morgan. (Corrected in part two. This first said no stack of fifths
@@ -553,6 +555,40 @@ Built the same day, so the design's first claim can be judged by hands and not b
   late frames. Nobody has heard it or held it.
 - **Where it lives.** `chordStep` and `wakeKin` in `game/src/world/world.zig`, behind `--chords`;
   the launcher is `game/port/GameguyChords.sh`.
+
+## What is sure, and what is still a bet
+
+Morgan, the same evening: "the-game.md is pretty damn good so far!", and then: "we should be
+absolutely sure of these kinds of things you know before we like really like go on development".
+
+A design on paper can be made sure of three things: that it agrees with itself, that its theory is
+right, and that it fits the machine. This one has been checked for all three, and the checks are in
+"The arithmetic" and in the try-out's measurements. Whether it feels good can only be found by hands
+and ears. So here is what the design rests on, what there is for each so far, and what would settle
+it.
+
+| the design rests on | what there is so far | what would settle it |
+|---|---|---|
+| stepping chords with L1 and L2 while running and jumping feels good | nothing: nobody has held it | Morgan's hands on the try-out (GameguyChords, on the purple) |
+| a change of chord can be seen and understood: you know why something answered | the old wheel failed this in the room; the try-out lights what is kin and names the chord | the try-out, and then one thing in the garden that needs a chord |
+| one note means different things over different chords | his ears: yes to clips 4 and 26 | settled for the ears |
+| the four ways home sound like four different landings | his ears: yes to clips 17, 18, 19 and 36; in his hands, letting go on the tick "felt like landing" | settled for the ears |
+| the six places sound like their six words | sketch j, unheard | his ears on sketch j |
+| trouble as something that leans with nothing under it makes a good fight | half: bringing them in "felt kinder than beating them", but he won a fight without knowing why | the knots at dusk, with the chord on the trigger |
+| underneath is worth going to | nothing | the well, and the cave under the garden |
+| the night gives the day back as a song worth keeping | nothing | eight bars made from one of his own takes, for his ears |
+| the game can hear where he puts the beat, and keeping that place is fun | his breaths landed 8 and 9 ms from the tick; nothing is built | measure how finely the triggers are timed on the purple; then the rut, as a try-out |
+| a day with a key, three lands and three caves awake, is a good shape for a world | paper only: it agrees with itself and its theory is exact | a second land beside the garden, visited on two different days |
+| it sounds good on this speaker at every step | each new sound is measured; the try-out measured 16% rough against 12% without it | his ears, every time |
+| the purple can draw and sound all of it | the try-out: 39 of 1,330 frames late, inside the range of the game's own sessions there | each new piece measured on the purple as it is built |
+| the whole of it can be built | unknown | the first evening made whole, which shows what one place costs |
+
+- **The first two rows are the ones everything else stands on.** If hands say no to either, the
+  hands change before anything else is built.
+- **My call on the order:** nothing past the first evening is built until the first evening is whole
+  and Morgan likes playing it. Each piece of it goes in alone and answers one row of this table.
+- **This table is not a gate and has no machinery.** It is the design saying which of its sentences
+  have been tested, so that nobody, including a later model, reads the rest as proven.
 
 ## What I am dropping or parking
 
