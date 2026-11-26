@@ -13,6 +13,10 @@ _Before writing it I reread the first brainstorm with the poem, his four pieces,
 playthroughs found, the toys' notes and his room session. What the game does when a person starts it
 today is in part four of `brainstorm-2026-11-25.md`._
 
+_Part two is `the-depths.md`: the third, what is underneath, what moves least, rhythm and the
+pocket, the great instruments, the wonders and endless composition. It corrects two things here, and
+both are marked where they stand._
+
 ## In one breath
 
 You are Hum, and you can hum one note. The world is the circle of fifths: an island in the middle of
@@ -54,9 +58,9 @@ In this design harmony is in every press. Tuning is a story and five places (see
    tick rings fuller and carries you further. It sounds like a song because it is one, and you are
    choosing the order.
 6. **Underneath.** By the stopped hose a well goes down. Under the garden it is dark, the roots of
-   the asters hang like pillars, and you see by calling. Someone is singing down there, a note your
-   own can never make. When you fall in with them your three plain chords turn warm, and three more
-   wake under them.
+   the asters hang like pillars, and you see by calling. Someone is singing down there, a note you
+   have never heard in your own voice. When you fall in with them you find it there, your three
+   plain chords turn warm, and three more wake under them.
 7. **Dusk.** The knots come out. Each is two things pulling against each other with nothing under
    them. You put the right chord under one, ring it until it leans, hold your breath and let go on
    the one, and it comes home. The hose opens and water runs to the pool, and over its lip, and down
@@ -192,8 +196,8 @@ central reality" is a dream or sleep.
 |---|---|
 | left stick | move |
 | right stick | look; all the way up is the page seen from above |
-| **L1** | **step the chord one cell flatward** (from home, to the chord that lifts) |
-| **L2** | **step the chord one cell sharpward** (from home, to the chord that leans) |
+| **L1** | **the chord falls a fifth, inside the day's key** (from home, to the chord that lifts) |
+| **L2** | **the chord rises a fifth, inside the day's key** (from home, to the chord that leans) |
 | **left stick, clicked** | **go under, or come back up** (a chord and its relative minor) |
 | right stick, clicked | lean in: Drip flies to what you are facing and ticks its time |
 | **R1, tapped** | **call:** a ring of light; everything it reaches rings in its own note |
@@ -214,10 +218,12 @@ central reality" is a dream or sleep.
 - **His thought, not yet a decision:** "d-pad could be used to cycle voices right? and then that
   would free up an l bumper". This design takes it.
 - **What I add:** the two left triggers step the chord all the time, not only in a swell, and
-  pressing the left stick down goes under. That puts the three chords everyone knows under one
-  finger while both thumbs are busy. The wheel is for everything further, and it thickens time
-  enough to think. If the stick's click is awkward on this handheld, both left triggers together is
-  the other way to go under; hands decide.
+  pressing the left stick down goes under. They walk the day's own ring of seven chords: past the
+  lean L2 goes on into the caves, and past the lift L1 crosses the seam. (Corrected in part two.
+  This first said they stepped from cell to cell round the wheel's outer ring.) That puts the three
+  chords everyone knows under one finger while both thumbs are busy. The wheel is for everything
+  further, and it thickens time enough to think. If the stick's click is awkward on this handheld,
+  both left triggers together is the other way to go under; hands decide.
 - **Why it is this way.** Super Mario Sunshine hangs a whole game on one device with a few nozzles.
   This is ours. Lift is the hover, lean is the turbo, and the step home is the launch.
 - **Thumbs.** Moving and going under are the left thumb. Jumping, striking and dashing are the right
@@ -312,8 +318,8 @@ authentic, plagal and deceptive cadences and the circle progression.
 
 ### Borrowing
 
-- **A dark cell is a chord from a sleeping place.** Point at it, or step off the end of the lit six,
-  and for one phrase it is under you.
+- **A dark cell is a chord from a sleeping place.** Point at it with the wheel, and for one phrase
+  it is under you.
 - **Flatward it is sweet.** The chords on B♭, E♭, A♭ and D♭ all sit well under the day's note: over
   them C is a second, a sixth, a third and a seventh. They are the chords songs borrow from the
   darker modes on the same note, and they sound like weather coming in. Each brings its land's
@@ -415,8 +421,11 @@ wheel, and each is a body of theory.
   STRONG YES" in the room (by my reading of his misfiled notes, clip 10: a chant over an open
   fifth). The first hour begins in that sound. The first third is an event: you hear the whole world
   change.
-- **The third comes from someone.** No stack of fifths makes it: powers of three never reach five.
-  So Hum can't find it alone. Who that someone is belongs to Morgan.
+- **The third is found, not given.** It is already in Hum's one note, as its fifth overtone, too
+  quiet to hear in a closed hum. He finds it the first time he sings with someone who has it. Who
+  that someone is belongs to Morgan. (Corrected in part two. This first said no stack of fifths
+  makes a third, so Hum could not find it alone. What is true is narrower: going round the ring of
+  fifths never arrives at the sweet third. It misses by 21.506 cents.)
 - **The band grows.** Each voice that joins adds a part to everything you play, for the rest of the
   game: time, a bass, a tune, an inside line, a light on top.
 - **The keys grow.** Each river adds a morning.
@@ -480,7 +489,7 @@ they are one thing.
 - **So the inside of the story is Hum finding his voice, and the outside is the world coming into
   harmony.** Each river is both.
 - **His voice opens.** It starts as a closed hum with nothing in it. It gains the fifth, then the
-  third from someone else, then the seventh. By the last river it is a voice.
+  third, found singing with someone, then the seventh. By the last river it is a voice.
 - **The ending is the remainder.** With every river running, the circle still does not close, and
   the poem says why: "twelve fifths overshoot home and miss forever". Three things can be done with
   the gap: freeze it shut, keep everything pure and let the lake drain, or hold it open with
@@ -567,7 +576,7 @@ Built the same day, so the design's first claim can be judged by hands and not b
 - **The name of the game.**
 - **Who the vine is, who sat on the pool's edge, who sat in the chair, and the odd and even
   passage.** Nothing here touches them.
-- **Who carries the third.**
+- **Who first sings the third with Hum.**
 - **Which of the three things at the gap are endings.**
 - **Every sound.** I can't hear. Each new sound gets measured for roughness and then goes to your
   ears before it is kept.
