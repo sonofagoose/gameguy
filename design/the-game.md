@@ -582,6 +582,7 @@ it.
 | the night gives the day back as a song worth keeping | nothing | eight bars made from one of his own takes, for his ears |
 | the game can hear where he puts the beat, and keeping that place is fun | his breaths landed 8 and 9 ms from the tick; nothing is built | measure how finely the triggers are timed on the purple; then the rut, as a try-out |
 | leaving the key and staying sounds good while Hum's note holds | sketch l, unheard | his ears on sketch l; then the dark cells in a try-out |
+| the right hand is the tune: the ground leaves out the third and the fork decides it | sketch m, unheard; the try-out's chords are already a root and a fifth | his ears on sketch m; then the fork following Hum's rise and fall, as a try-out |
 | a day with a key, three lands and three caves awake, is a good shape for a world | paper only: it agrees with itself and its theory is exact | a second land beside the garden, visited on two different days |
 | it sounds good on this speaker at every step | each new sound is measured; the try-out measured 16% rough against 12% without it | his ears, every time |
 | the purple can draw and sound all of it | the try-out: 39 of 1,330 frames late, inside the range of the game's own sessions there | each new piece measured on the purple as it is built |

@@ -6,12 +6,12 @@ vibe' serious and much more.. how much can you gain with this knowledge and wher
 a elegant way that compounds?" He sent a frame from one episode: C minor 11 and E♭ minor 11 on a
 piano roll, each note marked with what it is in its chord._
 
-_I did not know this teaching, so I looked. I read the machine-made captions of seven of his
-episodes: the Wormhole Method and its second episode, the 6 Places a Chord Can Go, Shapeshifter
-Notes, Twin Dominant Chords, Altered Chords, and How to Make Chords Melodic. I cannot hear or see
-the videos, and captions get names wrong, so what follows is my reading of his words. The ideas
-credited to him are his. What the design does with them is my call, and Morgan's to change or
-strike._
+_I did not know this teaching, so I looked. I read the machine-made captions of ten of his episodes:
+the Wormhole Method and its second episode, the 6 Places a Chord Can Go, Shapeshifter Notes, Twin
+Dominant Chords, Altered Chords, How to Make Chords Melodic, and three on melody that Morgan pointed
+at afterwards. I cannot hear or see the videos, and captions get names wrong, so what follows is my
+reading of his words. The ideas credited to him are his. What the design does with them is my call,
+and Morgan's to change or strike._
 
 ## What he teaches
 
@@ -162,6 +162,60 @@ on top.
 His point about the pattern detector applies to what the river sings back and to everything the
 world plays by itself. Two bars become four by one small change, and four become eight by another.
 
+### 8. Melody is the main character
+
+Morgan pointed at one more: "he even has one about making space for melody and the title has an
+image that says 'melody is the main character'". I read that episode's captions and two that go with
+it, on horizontal chords and on the melodies hidden in voicings.
+
+What he says:
+
+- **The listener follows the one in front,** with "the bass, chords, and drums supporting behind
+  them". When the band plays too much, the melody "is no longer just freely singing. It is now
+  trying to keep its balance on a musical tightrope."
+- **So he makes room, three ways.** In harmony he takes the third out of each chord, so that the
+  chord has "less pull on the melody". In time he keeps the drums plain, and lets a chord arrive
+  early and then wait. In texture he leaves gaps.
+- **Where a melody comes from.** "You don't need scales to make melodies. You just need to take your
+  chords and use them horizontally." Every chord already has one lying in it, its top note, and one
+  more note per chord is enough for the line to come away from the chord.
+- **His six safe notes.** Over a minor key he uses what he calls the vibe scale: the minor scale
+  without its sixth note, which is also the five-note minor scale with its second added.
+- **Three ways to use them:** a line that keeps moving the story on, a riff that repeats and changes
+  a little each time, and two notes at once a fourth apart.
+- **Question and answer.** Shorten a chord so that it leaves a gap, and answer in the gap. Or hold
+  one top note that he has "nod along" in steady notes while a lower line talks.
+
+What it changes here:
+
+- **Hum is the main character, so Hum is the melody, and the world is the band.** Part one made the
+  player mostly the one who chooses chords. That is the left hand. The right hand is the one in
+  front, and the design had given it one line. From here the rule for everything the world plays by
+  itself is that it leaves room.
+- **The ground never plays the third.** A land sounds its root and its fifth and nothing between.
+  The third is the main character's to add with the fork, or to leave out. That is his way of making
+  room. It is also the open sound Morgan's ears liked, and the first brainstorm had it as a spark:
+  "the world plays root and fifth, you are the third that decides major/minor". The try-out's chords
+  are already a root and a fifth only.
+- **In the cave under home he does not have to reach for it.** There the ground is A and E, and his
+  own held note is the third between them. The place is minor because he is in it. Sketch m is this
+  for the ears.
+- **The band listens.** When the player is busy, Drip and the friends thin out. When the player
+  leaves a gap, they answer in it. The game's first verb was already this: a call, and something
+  answering.
+- **The fork walks the chord sideways, and Hum's body is the shape of the tune.** A strike while he
+  is rising plays the next note up in the chord, and while he is falling the next note down. So a
+  climb is a run upward and a drop is a cascade, which is his word for it. This is a candidate, for
+  hands to judge. It would make moving the melody, the way the triggers make it the harmony.
+- **The hum and the fork are his two melodic characters.** The hum is the held note that nods along.
+  The fork is the line that talks.
+- **One more press per chord is enough.** His point about the top note says how little a newcomer
+  has to do to be the tune: hold the hum, and ring the fork once on each chord.
+- **His six safe notes are his favourite chord on its side.** The vibe scale on G is G, A, B♭, C, D
+  and F. Those are the notes of G minor 11, and on the wheel they are six cells in a row. So one
+  band of colour is the chord when it is stacked and the tune's safe notes when it is laid flat.
+  That observation is mine, not his.
+
 ## Why it compounds
 
 Each of these makes the others bigger. A wider voice makes a wider band. A wider band shares more
@@ -173,14 +227,16 @@ note was already the centre of the game.
 His stated aim for his own tools is that "when your musical tools know the rules, all you have to do
 is break them". That is also a fair description of what this game is for.
 
-## Sketch l
+## Two sketches
 
 | sketch | what it is | what the ears measured |
 |---|---|---|
 | l, the elevator (18 s) | one note on top, C, struck again with each chord, while the roots under it go flatward a cell at a time: C, F, B♭, E♭, A♭, D♭, and home. Each chord is tuned pure to its own root with the top C exactly where it was | rough 4.7% of the time; the longest stretch 0.43 s |
+| m, the third is yours (18 s) | the ground plays only a root and its fifth. Over C and G the fork adds E, then E♭. Over A and E, Hum's own held C. Over F and C, his C and then the fork's A. Then home | rough 6.7% of the time; the longest stretch 0.34 s |
 
-The question: does the one note change colour as the floor under it changes, and does it get more
-vivid as it goes? Nobody has heard it.
+The questions. In l: does the one note change colour as the floor under it changes, and does it get
+more vivid as it goes? In m: does the fork's one note feel like it decides what the chord is, and
+does the third phrase sound minor with nobody playing a third but Hum? Nobody has heard either.
 
 ## The arithmetic
 
@@ -197,6 +253,10 @@ Checked by script on 2026-11-25.
   G♭ the raised 11. Sharpward: G the 11, D the low 7, A the low 3, E the low 13, B the low 9.
 - **The twins.** G7 has B as its third and F as its seventh. D♭7 has F as its third and B, written
   C♭, as its seventh.
+- **The six safe notes.** G natural minor without its sixth note, E♭, is G, A, B♭, C, D and F. Those
+  are the notes of G minor 11, and the cells from three flatward of G to two sharpward.
+- **The third under home.** With A at 5/6 of C and E at 5/4, Hum's C is a pure minor third over A
+  (6/5) and the chord is A, C, E.
 - **The frame Morgan sent.** C minor 11 voiced C, G, B♭, D, E♭, F, B♭, then E♭ minor 11 voiced E♭,
   A♭, B♭, D♭, F, G♭, B♭. Both B♭s and the F stay. D and E♭ are a half step apart in the first, and F
   and G♭ in the second.
@@ -217,5 +277,10 @@ Checked by script on 2026-11-25.
   https://www.youtube.com/watch?v=GUBa2XJ_z00
 - Jaron Lopez, "How to Make Chords Melodic (Chromatic & Diatonic Progressions)":
   https://www.youtube.com/watch?v=53IiOwKh0ko
+- Jaron Lopez, "How to make space for melody while still creating groove and chords that vibe":
+  https://www.youtube.com/watch?v=OgVurfJmPaQ
+- Jaron Lopez, "Make Melodies with Horizontal Chords": https://www.youtube.com/watch?v=UmPqsHm3nnY
+- Jaron Lopez, "Hidden Melodies in Chord Voicings (and the Tools That Reveal Them)":
+  https://www.youtube.com/watch?v=YVmzc5p0-fM
 - The quotations are from those videos' automatic captions, read on 2026-11-25. His course pages and
   his site chordsthatvibe.com could not be opened, so nothing here comes from them.
