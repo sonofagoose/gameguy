@@ -8,9 +8,10 @@ The game's code.
 - **What this code is:** it was built to `../SPEC.md` between 2026-11-19 and 23, and that
   specification is history now. Its comments cite `SPEC.md`, `spec/` and older design documents for
   where an idea came from, not for what the game is. Names in it come from the older design: the
-  wheel's `Mood` values (lift, bind, drive, flow, remember, strike, darkest) are the old mood wheel's
-  seven powers.
-- **What it does today, and what is next:** `../PROGRESS.md`, "Now".
+  wheel's `Mood` values (lift, bind, drive, flow, remember, strike, darkest) are the old mood
+  wheel's seven powers.
+- **What it does today:** `../PROGRESS.md`, "Now". **What is built next, and in what order:**
+  `../ROADMAP.md`.
 
 ## What is here so far
 

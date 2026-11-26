@@ -5,7 +5,8 @@ exact hardware. The circle of fifths is the world and the main tool: you are Hum
 and the chord you put under it changes what you are and what the world does.
 
 On 2026-11-26 Morgan, who decides what the game is, said of its design: "this is absolutely 100% the
-direction". The build is at the start of that direction: `PROGRESS.md` says what it does today.
+direction". The build is at the start of that direction: `PROGRESS.md` says what it does today, and
+`ROADMAP.md` gives the order of everything still to build.
 
 Start here:
 
@@ -14,7 +15,8 @@ Start here:
 | `design/the-game.md` | what the game is: the world, the hands, the rules, a day, what grows, the story, what is tested and what is still a bet, and where every piece of the older design now stands |
 | `design/the-depths.md` | part two: the third, what is underneath, what moves least, rhythm and the pocket, the great instruments, wonders, endless composition |
 | `design/the-wormhole.md` | part three: what the teaching of Jaron Lopez adds; outside the key is a wormhole; melody is the main character |
-| `PROGRESS.md` | what the build does today, what is on the handhelds, what is next |
+| `ROADMAP.md` | the order the game gets built in: eight legs from the build as it stands to the whole game, and where every part of the design is built |
+| `PROGRESS.md` | what the build does today, what is on the handhelds, which steps of the road are in |
 | `CLAUDE.md` | the standing notes for a working session: which source wins, the hardware, the commands, the rules |
 | `game/` | the game's code (built to the older specification; see `game/README.md`) |
 | `docs/hardware-target.md` | measured hardware numbers to design against |

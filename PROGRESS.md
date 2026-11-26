@@ -8,10 +8,11 @@ Where the build stands, so a new session can pick it up. Newest first.
 
 - **What the game is:** `design/the-game.md`, `design/the-depths.md`, `design/the-wormhole.md`.
   Morgan, 2026-11-26: "this is absolutely 100% the direction".
-- **The order to build in:** `the-game.md`, "Where the game stands, and what I would build first".
-  Nothing past the first evening is built until the first evening is whole and Morgan likes playing
-  it. Each piece goes in alone, answers one row of "What is sure, and what is still a bet", and goes
-  to his hands or ears before the next.
+- **The order to build in:** `ROADMAP.md`, written 2026-11-26 at Morgan's asking: "we just gotta
+  build the damn thing eh? let's build out an exhaustive development roadmap". Eight legs and 110
+  numbered steps, from the build as it stands to the whole game. The build goes forward along it
+  without waiting for a verdict on each step; each step still goes in alone and is measured.
+- **Steps of the road that are in:** none yet.
 - **Everything below this section** was built to `SPEC.md` (2026-11-19 to 23), which is history
   now. "Done" in those entries meant done as a work order described it, not reachable by playing.
 
@@ -32,8 +33,8 @@ the try-out below, which is off unless asked for.
   all the way up to the page; takes and saves.
 - **Not in it:** any knot (`initEvening` sets `knot_count = 0`, since `81d9b1e` on 2026-11-22), so
   no fight, no dodge and nothing to bring home; the hose can never open, because it needs every
-  knot home; dusk, the river and night; anything pulled by home; the wheel's other cells; underneath;
-  the island.
+  knot home; dusk, the river and night; anything pulled by home; the wheel's other cells;
+  underneath; the island.
 - **Tests:** 107 pass (`game/build.sh`), two of them for the try-out. Seven older tests switch knots
   or cells on by hand, so they test a game that can't be reached by playing.
 
@@ -50,9 +51,12 @@ the try-out below, which is off unless asked for.
 - **Measured:** on the laptop, a scripted run is rough 16% of the time against 12% with the try-out
   off; on the purple 39 of 1,330 frames late with 6.04 ms of work a frame
   (`game/results/gameguy-chords-20261123-225843.txt`; the unit's clock is wrong).
-- **Not yet:** played by Morgan. As the direction now has it, L2 past the lean walks on into the
-  caves and L1 past the lift crosses the seam (`the-depths.md`); the try-out stops at the lean and
-  the lift.
+- **Played:** by Morgan on 2026-11-26: "played GameguyChords for a minute... kinda see what you're
+  saying about how the lift/lean can be used as actual player
+  mechanic/movement/interaction/physics". His take and his session's log are still on the purple,
+  which was not on the cable that day: pulling and reading them is step 1.1 of the road.
+- **Not yet:** as the direction now has it, L2 past the lean walks on into the caves and L1 past
+  the lift crosses the seam (`the-depths.md`); the try-out stops at the lean and the lift.
 
 ### On the handhelds
 
@@ -65,17 +69,16 @@ the try-out below, which is off unless asked for.
 
 ### Waiting on Morgan
 
-- His hands on GameguyChords.
 - His ears on sketches j, k, l and m (`design/listen/sketches/`).
-- The calls the direction leaves to him: `the-game.md`, "Yours", and every row marked open in "What
-  the older notes had, and where each stands".
+- The purple on the cable, so that his try-out take can be read (step 1.1).
+- The calls the direction leaves to him. `ROADMAP.md`, "Morgan's calls", lists each with the step
+  that reaches it and what stands in until he says. None of them stops the road.
 
 ### Next
 
-The first evening made whole, in the direction's order: the three chords on the triggers everywhere;
-Drip showing each where it is needed; the well and the three chords underneath; the knots at dusk as
-things that lean with nothing under them, and the hose opening; the evening ending in the river and
-waking on the island.
+`ROADMAP.md`, leg 1, "An evening": the first evening made whole, in forty steps. First step 1.2,
+the bench (a page where Morgan sets the body's numbers with his own hands), and step 1.3, the
+try-out becoming the game's rule. Step 1.1 waits for the purple.
 
 ## Piece 5 — Drip's Metronome Balance, Bar-Centric Timing & Procedural Animations (2026-11-23)
 

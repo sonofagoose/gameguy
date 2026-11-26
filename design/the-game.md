@@ -6,7 +6,8 @@
 > what of it the direction keeps. Within the direction, "What is sure, and what is still a bet" says
 > which parts his hands and ears have tested, and anything marked a candidate or a proposal is to be
 > tried before it is built as settled. The game's code was built to the older specification and has
-> not yet been changed to match: building it is the work ahead.
+> not yet been changed to match: building it is the work ahead, and the order of that work is in
+> `ROADMAP.md`.
 
 _Written 2026-11-25 by Claude. That day Morgan said: "we need to settle on what this game actually
 is ASAP. I give you Express permission to design it! I want the circle of fifths and moving and
@@ -544,6 +545,11 @@ In order:
 
 That is the first evening, whole. Everything after it is more places with the same hands.
 
+(Added 2026-11-26. Morgan, after his first go on the try-out: "in order to fully feel what this game
+could be and feel the world... we just gotta build the damn thing eh? let's build out an exhaustive
+development roadmap". The whole road, from these five steps to the last river and past it, is in
+`ROADMAP.md`. Its first leg is these five steps, in this order.)
+
 ### Step one, as a try-out on the purple
 
 Built the same day, so the design's first claim can be judged by hands and not by reading.
@@ -570,7 +576,8 @@ Built the same day, so the design's first claim can be judged by hands and not b
   purple. On the purple the same run made the same twelve steps and drew 1,330 frames, 39 of them
   late, with 6.04 ms of work a frame (`game/results/gameguy-chords-20261123-225843.txt`; the unit's
   clock is two days slow). The game's own last four sessions on that unit had between 10 and 526
-  late frames. Nobody has heard it or held it.
+  late frames. Nobody has heard it or held it. (Since held: on 2026-11-26 Morgan "played
+  GameguyChords for a minute". His words are in the table below.)
 - **Where it lives.** `chordStep` and `wakeKin` in `game/src/world/world.zig`, behind `--chords`;
   the launcher is `game/port/GameguyChords.sh`.
 
@@ -587,7 +594,7 @@ it.
 
 | the design rests on | what there is so far | what would settle it |
 |---|---|---|
-| stepping chords with L1 and L2 while running and jumping feels good | nothing: nobody has held it | Morgan's hands on the try-out (GameguyChords, on the purple) |
+| stepping chords with L1 and L2 while running and jumping feels good | a first look. Morgan, 2026-11-26, having "played GameguyChords for a minute": "kinda see what you're saying about how the lift/lean can be used as actual player mechanic/movement/interaction/physics". Not a verdict yet; his take is still on the purple, unread | his hands on the chords in a garden that needs them (`ROADMAP.md`, steps 1.4 to 1.15) |
 | a change of chord can be seen and understood: you know why something answered | the old wheel failed this in the room; the try-out lights what is kin and names the chord | the try-out, and then one thing in the garden that needs a chord |
 | one note means different things over different chords | his ears: yes to clips 4 and 26 | settled for the ears |
 | the four ways home sound like four different landings | his ears: yes to clips 17, 18, 19 and 36; in his hands, letting go on the tick "felt like landing" | settled for the ears |
@@ -607,6 +614,9 @@ it.
   hands change before anything else is built.
 - **My call on the order:** nothing past the first evening is built until the first evening is whole
   and Morgan likes playing it. Each piece of it goes in alone and answers one row of this table.
+  (Changed by Morgan on 2026-11-26: "we just gotta build the damn thing eh?" The build now goes
+  forward along `ROADMAP.md` without waiting for a verdict on each step. Each step still goes in
+  alone, and this table still says what has been tested: building a thing does not make it proven.)
 - **This table is not a gate and has no machinery.** It is the design saying which of its sentences
   have been tested, so that nobody, including a later model, reads the rest as proven.
 

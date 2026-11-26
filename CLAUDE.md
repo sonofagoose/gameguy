@@ -1,8 +1,8 @@
 # gameguy
 
 An original musical game for two R36S-clone handhelds. What the game is: `design/the-game.md`, then
-its parts two and three, `design/the-depths.md` and `design/the-wormhole.md`. What the build does
-today: `PROGRESS.md`.
+its parts two and three, `design/the-depths.md` and `design/the-wormhole.md`. The order it gets
+built in: `ROADMAP.md`. What the build does today: `PROGRESS.md`.
 
 ## The direction
 
@@ -33,11 +33,16 @@ On 2026-11-26 Morgan said of those three documents: "this is absolutely 100% the
 
 - The code in `game/` was built to `SPEC.md` (2026-11-19 to 23). Its comments cite `SPEC.md`,
   `spec/` and older design documents; those are history now. Building the direction is the work
-  ahead, in the order `the-game.md` gives under "Where the game stands, and what I would build
-  first".
-- Nothing past the first evening is built until the first evening is whole and Morgan likes playing
-  it. Each piece goes in alone, answers one row of the "What is sure" table, and goes to his hands
-  or ears before the next.
+  ahead, in the order `ROADMAP.md` gives: eight legs, each a list of numbered steps.
+- On 2026-11-26, after his first go on the try-out, Morgan said: "in order to fully feel what this
+  game could be and feel the world... we just gotta build the damn thing eh?" So the build goes
+  forward along the road without waiting for a verdict on each step. Each step still goes in alone,
+  is measured, and reaches the purple playable, and what his hands and ears say can change anything
+  after it. Building a thing does not make it tested: `the-game.md`, "What is sure, and what is
+  still a bet", still says which parts are.
+- `ROADMAP.md` gives the order and never says what the game is. Where it and the direction
+  disagree, the direction wins and the roadmap is corrected. What stands in for each of Morgan's
+  open calls until he makes it is in the roadmap's "Morgan's calls".
 - Before saying what the game does, run it and read the path in the code. "Done" in `PROGRESS.md`'s
   older entries meant done as a work order described it, not reachable by playing.
 
@@ -98,7 +103,8 @@ python3 spec/tools/wrapmd.py FILE FILE                # wrap a document to 100 c
 
 ## Working
 
-- Commit and push each finished piece. Keep `PROGRESS.md` true.
+- Commit and push each finished step. Keep `PROGRESS.md` true: it says which steps of the road are
+  in, by number.
 - Every few tool calls, one line on where things stand.
 - Documents are in plain words, wrapped at 100 columns. A number is either measured, with its
   source, or marked as an estimate.
