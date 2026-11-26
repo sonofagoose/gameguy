@@ -875,6 +875,8 @@ Every section of the three documents, and where the road builds it.
 
 | section | where |
 |---|---|
+| What he teaches | nothing to build: it is where part three comes from |
+| What the design already had, under other names | nothing to build |
 | 1. Outside the key is a wormhole | 1.18, 1.19, 2.9 |
 | 2. The elevator | 1.20 |
 | 3. A wide chord is a band of colour | 1.21 |
@@ -886,6 +888,7 @@ Every section of the three documents, and where the road builds it.
 | Why it compounds | 1.17 to 1.21, and every friend who joins |
 | Two sketches | sketches l and m, still for his ears; 1.19, 1.16 |
 | The arithmetic | "The theory, checked" |
+| Sources | nothing to build |
 
 ## The next step
 
