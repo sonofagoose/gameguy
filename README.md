@@ -15,7 +15,8 @@ Start here:
 | `design/the-game.md` | what the game is: the world, the hands, the rules, a day, what grows, the story, what is tested and what is still a bet, and where every piece of the older design now stands |
 | `design/the-depths.md` | part two: the third, what is underneath, what moves least, rhythm and the pocket, the great instruments, wonders, endless composition |
 | `design/the-wormhole.md` | part three: what the teaching of Jaron Lopez adds; outside the key is a wormhole; melody is the main character |
-| `ROADMAP.md` | the order the game gets built in: eight legs from the build as it stands to the whole game, and where every part of the design is built |
+| `ROADMAP.md` | the order the game gets built in: nine legs from the build as it stands to the whole game, and where every part of the design is built |
+| `docs/engine.md` | the engine: an audit of what is built (why things are see-through and can be walked through, how the world reacts), what the field of data sonification adds, and the shape the engine takes |
 | `PROGRESS.md` | what the build does today, what is on the handhelds, which steps of the road are in |
 | `CLAUDE.md` | the standing notes for a working session: which source wins, the hardware, the commands, the rules |
 | `game/` | the game's code (built to the older specification; see `game/README.md`) |

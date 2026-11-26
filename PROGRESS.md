@@ -9,9 +9,12 @@ Where the build stands, so a new session can pick it up. Newest first.
 - **What the game is:** `design/the-game.md`, `design/the-depths.md`, `design/the-wormhole.md`.
   Morgan, 2026-11-26: "this is absolutely 100% the direction".
 - **The order to build in:** `ROADMAP.md`, written 2026-11-26 at Morgan's asking: "we just gotta
-  build the damn thing eh? let's build out an exhaustive development roadmap". Eight legs and 110
-  numbered steps, from the build as it stands to the whole game. The build goes forward along it
-  without waiting for a verdict on each step; each step still goes in alone and is measured.
+  build the damn thing eh? let's build out an exhaustive development roadmap". Nine legs, numbered
+  0 to 8, and 122 numbered steps, from the build as it stands to the whole game. The build goes
+  forward along it without waiting for a verdict on each step; each step still goes in alone and is
+  measured.
+- **How the engine is shaped:** `docs/engine.md`, written the same day at his asking ("audit and
+  design the ultimate engine shape for this endeavor"). Leg 0 of the road builds it.
 - **Steps of the road that are in:** none yet.
 - **Everything below this section** was built to `SPEC.md` (2026-11-19 to 23), which is history
   now. "Done" in those entries meant done as a work order described it, not reachable by playing.
@@ -37,6 +40,23 @@ the try-out below, which is off unless asked for.
   underneath; the island.
 - **Tests:** 107 pass (`game/build.sh`), two of them for the try-out. Seven older tests switch knots
   or cells on by hand, so they test a game that can't be reached by playing.
+
+### What the audit of the engine found (2026-11-26)
+
+Run with no screen on the laptop and read in the code; the whole of it is in `docs/engine.md`.
+
+- **See-through:** only asters nearer than 230 m and the ground's covers have black shapes. The
+  hose, the spigot, the reeds, Hum, Drip, the bee and the knots have none, and nothing that moves
+  can hide anything. On a scripted run the garden picks about 20,000 lines and under 4,000 black
+  triangles, with 2 or 3 of its 68 asters near enough to hide. A rule also makes whatever is near
+  the eye see-through on purpose: switched off, it changes up to 5.2% of a frame. The 16-bit depth
+  buffer is a small part: 0.3% to 0.4% of a frame.
+- **Walked through:** solid means a circle on the ground, written once for each kind. Nothing has a
+  top or an underside, blades are let through by rule, and the eye is kept clear of the ground only.
+- **Reacting:** things answer sound in one shared way (sympathy, kin, the ring of a call), and that
+  stays. Nothing answers the chord in a shared way: the chord is one frequency, and each kind of
+  thing is its own code.
+- **Sound, the clock, takes, the lines themselves:** right, and staying.
 
 ### The try-out of the direction's first step
 
@@ -76,9 +96,11 @@ the try-out below, which is off unless asked for.
 
 ### Next
 
-`ROADMAP.md`, leg 1, "An evening": the first evening made whole, in forty steps. First step 1.2,
-the bench (a page where Morgan sets the body's numbers with his own hands), and step 1.3, the
-try-out becoming the game's rule. Step 1.1 waits for the purple.
+`ROADMAP.md`, leg 0, "Solid ground": the engine of `docs/engine.md`, in twelve steps, so that
+nothing is see-through, nothing is walked through, and every kind of thing answers the chord by one
+law. First step 0.1, the music as its own module with the direction's arithmetic as its tests, and
+beside it step 1.2, the bench (a page where Morgan sets the body's numbers with his own hands). Step
+1.1 waits for the purple. Leg 1, "An evening", follows.
 
 ## Piece 5 — Drip's Metronome Balance, Bar-Centric Timing & Procedural Animations (2026-11-23)
 

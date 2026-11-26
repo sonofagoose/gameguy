@@ -11,7 +11,8 @@ The game's code.
   wheel's `Mood` values (lift, bind, drive, flow, remember, strike, darkest) are the old mood
   wheel's seven powers.
 - **What it does today:** `../PROGRESS.md`, "Now". **What is built next, and in what order:**
-  `../ROADMAP.md`.
+  `../ROADMAP.md`. **The shape this code is being moved to,** with an audit of how it is laid out
+  now: `../docs/engine.md`.
 
 ## What is here so far
 

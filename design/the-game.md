@@ -548,7 +548,9 @@ That is the first evening, whole. Everything after it is more places with the sa
 (Added 2026-11-26. Morgan, after his first go on the try-out: "in order to fully feel what this game
 could be and feel the world... we just gotta build the damn thing eh? let's build out an exhaustive
 development roadmap". The whole road, from these five steps to the last river and past it, is in
-`ROADMAP.md`. Its first leg is these five steps, in this order.)
+`ROADMAP.md`. Its leg 1 is these five steps, in this order. Before them it has a leg 0, added the
+same day when he asked that the world itself be "established and solid": the engine, whose shape is
+in `docs/engine.md`.)
 
 ### Step one, as a try-out on the purple
 

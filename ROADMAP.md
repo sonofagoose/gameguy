@@ -1,12 +1,13 @@
 # The road
 
 > **Status, 2026-11-26.** The order the game gets built in, from the build as it stands to the whole
-> game. Morgan, that day: "we just gotta build the damn thing eh? let's build out an exhaustive
-> development roadmap in whichever way you deem most impactful and fun and musical!" This is that
-> roadmap. What the game is stays in `design/the-game.md`, `design/the-depths.md` and
-> `design/the-wormhole.md`: where this file and they disagree, they win and this file is corrected.
-> What the build does today, and which steps of this road are in, stays in `PROGRESS.md`. The order
-> was my call, made at his asking, and it is his to change.
+> game. (Corrected the same day: leg 0 was added. Its first lines say why.) Morgan, that day: "we
+> just gotta build the damn thing eh? let's build out an exhaustive development roadmap in whichever
+> way you deem most impactful and fun and musical!" This is that roadmap. What the game is stays in
+> `design/the-game.md`, `design/the-depths.md` and `design/the-wormhole.md`: where this file and
+> they disagree, they win and this file is corrected. What the build does today, and which steps of
+> this road are in, stays in `PROGRESS.md`. The order was my call, made at his asking, and it is his
+> to change.
 
 _Written by Claude. Before writing it I reread the three parts of the direction in full and read how
 the code is laid out and what it holds (`game/`, about 22,000 lines with its tools and tests). I did
@@ -16,8 +17,8 @@ still on the unit, unread._
 
 ## What this is
 
-- **A road, in order.** Eight legs. Each ends with something Morgan can pick up and play from waking
-  to sleeping, with more music in it than the leg before.
+- **A road, in order.** Nine legs, numbered 0 to 8. Each ends with something Morgan can pick up and
+  play, with more in it than the leg before.
 - **Each leg is a list of steps.** A step goes in alone, is measured, and reaches the purple
   playable. Steps are numbered by leg: 1.6 is the sixth step of the first leg.
 - **It is not a promise book.** Nothing here is a gate and no tool enforces it. It will be wrong in
@@ -140,6 +141,7 @@ From `docs/hardware-target.md` and `game/README.md`. Every leg is sized against 
 
 | leg | at its end you can | the music it puts in your hands | what it settles |
 |---|---|---|---|
+| **0. Solid ground** | play the try-out's three chords in a Garden where nothing is see-through, nothing is walked through, and every thing answers the chord by one law | what is in the chord is awake; lift, lean and home as things you can see move | whether the purple can draw a world that hides |
 | **1. An evening** | play the first evening from the first drop to waking on the island, and then play it again | the pulse; call and answer; the three chords and the two closes; open fifths, and then the third; the three chords underneath; the turn and the long way home; three against five; your own place against the beat; eight bars | the first eleven rows of "What is sure, and what is still a bet", and the two about the speaker and the purple |
 | **2. A morning** | wake on the island, choose the day, and walk the whole world: twelve lands and twelve caves, six awake and eighteen asleep, the low lake, the ice, the gap | a key as a place, and a border as one colour changing; the order of sharps and flats as a walk; the modes as six places; chords from outside the key as weather; the treaty heard on the ice; the comma seen as a ledge | whether a day with a key is a good shape for a world; the world's size; whether the purple can hold all of it |
 | **3. Three days** | free two more rivers, wake in three keys, find the Garden floating and leaning, sing with a second voice, and read your verses back | what is underneath: a chord standing, sliding, hanging; what moves least; register and the bass; the ladder of overtones; three, and a slow two; laying back | what one land costs to build; underneath; the wonders; lives |
@@ -148,6 +150,57 @@ From `docs/hardware-target.md` and `game/README.md`. Every leg is sized against 
 | **6. The gap** | cross the ice, meet the wolf, and, when the twelfth river runs, choose what to do with the remainder | temperament: pure, the treaty, the wolf; the comma as the end of a story; the pocket as the same thing in time | the ending |
 | **7. Past the lake** | go on: by thirds, to lands no one has seen; write songs, carry them, send them | composition; a phrase as a walk; loops that miss | that it does not end |
 | **8. Out of the house** | hand it to someone who has never seen it | all of it, from nothing | that a newcomer needs no name and a master is rewarded |
+
+## Leg 0. Solid ground
+
+_Nothing in the Garden is see-through. The hose is a dark tube with light along its edges, and what
+is behind it is behind it. Hum can't walk through a blade of grass: it bends out of his way. He can
+stand on a leaf and bump his head on one. And when he changes the chord, every thing in the Garden
+answers by one law._
+
+- **Added on 2026-11-26,** the day this road was written, after Morgan read it and said: "the world
+  itself... the (ideally canon/shared/modular) way the world and it's parts react to changes and the
+  player and each other and different harmonic relationships... must be established and solid - ya?
+  and like... objects in the world shouldn't be see-through/clippy right?" The road as first written
+  had no step for either. This leg comes before the evening because every later step stands on it.
+- **In the engine's design:** `docs/engine.md`, which holds the audit this leg answers and the shape
+  these steps build.
+- **It is whole when** the try-out's three chords can be played in a Garden where nothing is
+  see-through, nothing is walked through, the eye is never inside anything, and every kind of thing
+  is data made from shared reactions; and the measures hold on the purple.
+- **It settles:** whether the purple can draw a world that hides; and, as far as an engine can,
+  whether a change of chord can be seen and understood.
+
+- **0.1 The music, as its own module.** The note as fifths, thirds, sevenths and octaves. The day,
+  the chord, the ground and the change. Every table of the three documents' arithmetic as a test:
+  the script that checked them comes into the repository here. Nothing in the game changes yet.
+- **0.2 Forms.** One description of a shape that gives its solid, its black shape and its lines:
+  stalk, plate, ball, block, shell, ground, strand.
+- **0.3 The Garden's kinds, as data.** Aster, bell, reed, blade, clover, crumb, leaf, puddle, hose,
+  spigot, drop: each a form, a material, its reactions and its voice. As each is written, its own
+  code leaves the rules file.
+- **0.4 Everything solid hides.** A black shape for every form. A second list for what moves, with
+  Hum and Drip in it. 24 bits of depth. Lines that stand proud of their own solids.
+- **0.5 Everything solid stops.** Solids with tops, undersides and sides, found through a grid. Hum
+  moved by one routine: he can stand on a leaf and hit his head on one. He can also walk along the
+  top of the hose, which is new, and for his feet to judge.
+- **0.6 Soft things part.** Blades and reeds bend round Hum. Nothing is walked through.
+- **0.7 The eye.** Never inside anything. When something big is in the way it moves in, then up.
+  When something thin is in the way, the thing parts. Then the rule that makes near things
+  see-through is taken out.
+- **0.8 The world moves by table.** A second table beside the one that says how bright each body is:
+  how each is lifted, tilted or slid. Lines, black shapes and solids all follow it.
+- **0.9 The standing, and the first reactions.** What each note is to the chord, worked out once for
+  each note in the place. Then wake and rest, rise, tilt and wind, land, settle and ring, on the
+  try-out's three chords, for every kind in the Garden. This is rules 2 and 3 as one law. Steps 1.6
+  and 1.7 then lay the Garden out to use it.
+- **0.10 Touches, the table of meaning, streams and the mix.** The five ways the world is touched.
+  One table for what every sound and every light means. A count of streams and of roughness, kept by
+  the engine.
+- **0.11 The rules file split by the order of a step,** and the scene loop made blind to kinds.
+- **0.12 All of it on the purple.** Black triangles together with lines; the second table; parting;
+  the mix; the path from a press to its sound. Each is measured, and the same-take check is run
+  again.
 
 ## Leg 1. An evening
 
@@ -179,10 +232,9 @@ You wake on an island, and your day is a song._
 - **1.3 The try-out becomes the rule.** Stepping the chord stops being a switch (`--chords`) and
   becomes what the game is. In the code the two left triggers are still named for the older design's
   voice wheel and guard, and L2 also swings the view round behind Hum. The names go, and so does the
-  swing. The day and the chord take the direction's names in the code. The script that checked the
-  direction's arithmetic comes into the repository and runs with the tests. The seven tests that
-  switch knots or cells on by hand are replaced by tests of what the scripted player can reach. Once
-  this is on the purple, the try-out's own entry there is retired.
+  swing. The day and the chord take the direction's names in the code. The seven tests that switch
+  knots or cells on by hand are replaced by tests of what the scripted player can reach. Once this
+  is on the purple, the try-out's own entry there is retired.
 - **1.4 The day's ring on one finger.** L2 rises a fifth inside the key and L1 falls one, all the
   way round the seven. From home, L2 goes to the lean, the cave that runs, the cave that remembers,
   the cave that aches, the seam, the lift, and home. The seam can't be stood on: one beat there, and
@@ -193,14 +245,16 @@ You wake on an island, and your day is a song._
   never held. What the last chord and this one share keeps sounding, and what leaves moves to the
   nearest note. It is measured as the try-out was (16% rough, against 12% for the same hands without
   it).
-- **1.6 What is in the chord is awake.** Rule 2, for everything in the garden. A thing whose note is
-  in the chord brightens, firms up and answers. A thing whose note is not dims and goes soft. The
-  try-out lights what is kin; this makes it the world's law, so that a chord is a set of colours and
-  changing it changes what the world is made of. What firm and soft are under Hum's feet is for the
-  bench: my first guess is that a firm thing bears his weight and a soft one gives way slowly.
-- **1.7 Which way things go.** Rule 3. On the lift, what belongs to the chord rises. On the lean, it
-  tilts toward home and winds up. At home it holds, and what was leaning lands. The garden's own
-  things do it: leaves on water, grass, seeds, the asters' heads.
+- **1.6 What is in the chord is awake.** Rule 2, for everything in the garden. (The law itself is
+  step 0.9. This is the Garden's things given their notes so that each chord wakes a different set.)
+  A thing whose note is in the chord brightens, firms up and answers. A thing whose note is not dims
+  and goes soft. The try-out lights what is kin; this makes it the world's law, so that a chord is a
+  set of colours and changing it changes what the world is made of. What firm and soft are under
+  Hum's feet is for the bench: my first guess is that a firm thing bears his weight and a soft one
+  gives way slowly.
+- **1.7 Which way things go.** Rule 3, on the reactions of step 0.9. On the lift, what belongs to
+  the chord rises. On the lean, it tilts toward home and winds up. At home it holds, and what was
+  leaning lands. The garden's own things do it: leaves on water, grass, seeds, the asters' heads.
 - **1.8 Hum's three bodies above ground.** Light on the lift, sure-footed and heavy at home, drawn
   forward on the lean. The try-out's two numbers (the ground pulls 0.55 as hard; the legs run 1.3
   times as fast) go on the bench beside the design's own (two thirds and four thirds), and his hands
@@ -652,7 +706,7 @@ These are not legs. Each grows at nearly every step.
   `Gameguy`. The bench holds whatever is being tried. Sounds go to him as sketches before they go
   in. When he says he has played, his take and his log are pulled and read.
 - **The theory, checked.** The arithmetic of the three documents was checked by a script outside the
-  repository. It comes in with 1.3. The game's own tables (the ring, the modes, the floors, the
+  repository. It comes in with 0.1. The game's own tables (the ring, the modes, the floors, the
   shared notes, the tunings) are made from one source, so they can't drift apart, and every one is
   stated at the size it is true.
 - **Playthroughs.** Before a leg goes to Morgan it is walked as a newcomer would walk it and as
@@ -747,6 +801,7 @@ and it never builds anything new out of the older notes.
 | the call | the road reaches it at | until he says |
 |---|---|---|
 | every sound; every number in the body | every step | measured first; then his ears, and the bench |
+| what soft does under Hum; whether grass parts for the line of sight; whether Hum's light shows on what hides him | 0.5 to 0.7 | as `docs/engine.md` proposes: a soft thing sags or parts and is never passed through; thin things part for the eye; his light shows as a dim ring |
 | the clap, now that L1 steps the chord | 1.4 | L1 and R1 together as built, and a clap takes back the chord step that came with it, as it already takes back a call (proposal) |
 | the sprint | 1.8 | as built: the right face held |
 | the breath: what spends it | 1.17, 1.18 | a swell stores it and rests give it back; the wheel costs nothing; the sprint as built |
@@ -761,7 +816,7 @@ and it never builds anything new out of the older notes.
 | what a creature leaves | 3.4 | nothing |
 | who the friends are, their names, and which land each lives in | 3.6, 5.6 | the notebook met them in the Alfalfa, the Glass Hills, the Highway and the Rain Steps; in 3.6 the second voice is a low one with no name |
 | who sat in the chair | 3.9 | the chair rocks, and it is empty |
-| the sky's detail | 3.10 | a first cut: the layer above, reached when a land floats |
+| the sky's detail | 3.10 | a first cut: the layer above, reached when a land floats (a proposal for its planets is in `docs/engine.md`) |
 | the caravan, the white cat and the fly: their parts | 3.11 | they are in the world, and have no part yet |
 | how many lives there are, and their rounds | 3.11 | as many as each land needs, kept by the day's key only |
 | whether every line is sung; the seven answers | 3.11 | at most one line of words, as now |
@@ -788,6 +843,10 @@ These are mine, new on 2026-11-26, and none is decided. Each is marked where it 
 8. **Two consoles come before the other nine lands** (leg 4), so that every land after is built for
    two.
 
+The engine's own proposals are in `docs/engine.md`: what soft does, parting for the line of sight,
+Hum's light on what hides him, the mix's count of roughness, and three for the game from the field
+of data sonification.
+
 ## What could go wrong, and what would show it early
 
 | what | what would show it early | where the road meets it |
@@ -803,9 +862,10 @@ These are mine, new on 2026-11-26, and none is decided. Each is marked where it 
 | half a push of the stick is hard to hold: the stick is read 56 to 58 times a second | his thumb on 1.18; the thresholds on the bench | leg 1 |
 | two consoles can't be in time at their speakers | nothing is built to need it (4.3) | leg 4 |
 | the link drops, or needs the port's 5 V | 4.4; never without his word | leg 4 |
-| all the rules are one file of 6,888 lines with the Garden built into it | 1.24 and 2.2 take the place out of the rules | legs 1 and 2 |
+| all the rules are one file of 6,888 lines with the Garden built into it | 0.3 and 0.11 take the kinds out of the rules, and 1.24 and 2.2 take the place out | legs 0, 1 and 2 |
+| a world that hides and moves by table costs the purple more than the sums say | 0.12, before the evening is built on it | leg 0 |
 | I can't hear | the ears, sketches, and Morgan | every step |
-| a theory table goes wrong as it is turned into code | the checks run with the tests | 1.3 |
+| a theory table goes wrong as it is turned into code | the checks run with the tests | 0.1 |
 | two things done together need the same digit | the digits are named before a control is called done | every control |
 
 ## Nothing left out
@@ -827,7 +887,7 @@ Every section of the three documents, and where the road builds it.
 | Night, and what the river is | 1.35 to 1.40 |
 | The hands | leg 1; the D-pad in 3.6; the top face in 3.2 and 3.11 |
 | What holding R1 does | 1.18; carrying the day in 5.7 |
-| The rules, 1 to 7 | 1.5 to 1.10, 1.18; rule 7 at the size of a place in 2.9 |
+| The rules, 1 to 7 | 0.9; 1.5 to 1.10, 1.18; rule 7 at the size of a place in 2.9 |
 | One note, six bodies | 1.8, 1.20, 1.28 |
 | Coming home, four ways | 1.9, 1.29 |
 | Outside the key | 1.18, 1.19, 2.9 |
@@ -892,4 +952,5 @@ Every section of the three documents, and where the road builds it.
 
 ## The next step
 
-1.2, the bench, and 1.3, the try-out becoming the rule. 1.1 waits for the purple to be on the cable.
+0.1, the music as its own module, with 1.2, the bench, beside it, since every number after needs it.
+1.1 waits for the purple to be on the cable.

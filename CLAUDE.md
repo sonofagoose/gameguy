@@ -2,7 +2,8 @@
 
 An original musical game for two R36S-clone handhelds. What the game is: `design/the-game.md`, then
 its parts two and three, `design/the-depths.md` and `design/the-wormhole.md`. The order it gets
-built in: `ROADMAP.md`. What the build does today: `PROGRESS.md`.
+built in: `ROADMAP.md`. How its engine is shaped: `docs/engine.md`. What the build does today:
+`PROGRESS.md`.
 
 ## The direction
 
@@ -33,7 +34,8 @@ On 2026-11-26 Morgan said of those three documents: "this is absolutely 100% the
 
 - The code in `game/` was built to `SPEC.md` (2026-11-19 to 23). Its comments cite `SPEC.md`,
   `spec/` and older design documents; those are history now. Building the direction is the work
-  ahead, in the order `ROADMAP.md` gives: eight legs, each a list of numbered steps.
+  ahead, in the order `ROADMAP.md` gives: nine legs, numbered 0 to 8, each a list of numbered
+  steps. Leg 0 makes the world solid before anything is built on it.
 - On 2026-11-26, after his first go on the try-out, Morgan said: "in order to fully feel what this
   game could be and feel the world... we just gotta build the damn thing eh?" So the build goes
   forward along the road without waiting for a verdict on each step. Each step still goes in alone,
@@ -43,6 +45,9 @@ On 2026-11-26 Morgan said of those three documents: "this is absolutely 100% the
 - `ROADMAP.md` gives the order and never says what the game is. Where it and the direction
   disagree, the direction wins and the roadmap is corrected. What stands in for each of Morgan's
   open calls until he makes it is in the roadmap's "Morgan's calls".
+- `docs/engine.md` is the engine's shape, with the audit of 2026-11-26 it answers. Its technical
+  calls are Claude's to make and explain. Measured facts outrank it, and it never says what the game
+  is.
 - Before saying what the game does, run it and read the path in the code. "Done" in `PROGRESS.md`'s
   older entries meant done as a work order described it, not reachable by playing.
 
@@ -82,6 +87,14 @@ python3 spec/tools/wrapmd.py FILE FILE                # wrap a document to 100 c
 
 - **Maximal, not minimal.** Morgan: "I don't want anything to be held back just for the sake of
   optimization". Never present smallness as a virtue.
+- **Solid things hide and stop.** Morgan, 2026-11-26: "objects in the world shouldn't be
+  see-through/clippy right?" A thing is a strand of light or a solid. A solid hides what is behind
+  it and is never passed through, by Hum or by the eye (`docs/engine.md`, 7 to 10).
+- **One way of reacting.** Morgan, the same day: the way the world's parts react must be
+  "canon/shared/modular" and "established and solid". A kind of thing is data made from the shared
+  reactions. No kind gets code of its own (`docs/engine.md`, 4 to 6).
+- **Never start the game with a window by accident.** Every run from a session takes
+  `SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy` and `--headless`. `--help` starts the game.
 - **Never call a thing done, or written, that isn't.**
 - **Nothing rests on rumble, a microphone, or two unlinked speakers.** There is no motor.
 - **Thumbs.** Nothing may need the right stick and a face button at once. Before calling a control
