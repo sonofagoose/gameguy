@@ -14,8 +14,9 @@ playthroughs found, the toys' notes and his room session. What the game does whe
 today is in part four of `brainstorm-2026-11-25.md`._
 
 _Part two is `the-depths.md`: the third, what is underneath, what moves least, rhythm and the
-pocket, the great instruments, the wonders and endless composition. It corrects two things here, and
-both are marked where they stand._
+pocket, the great instruments, the wonders and endless composition. Part three is `the-wormhole.md`:
+what the teaching of Jaron Lopez, Morgan's favourite teacher, adds. Between them they correct three
+things here, and each is marked where it stands._
 
 ## In one breath
 
@@ -274,8 +275,10 @@ These are few on purpose. What makes Tears of the Kingdom deep is a handful of r
    letting go on the one releases all of it.
 6. **Near on the wheel is kin.** A step away shares almost everything and moving there is smooth.
    Far away shares almost nothing and moving there throws things.
-7. **Outside the key is borrowed.** It costs breath, it lasts a phrase, and it always falls back
-   into the key. The fall is the reward.
+7. **Outside the key is a wormhole.** Point the wheel at any cell and go there, and stay as long as
+   you like. What comes with you is whatever the two chords share, and Hum's own note always can.
+   (Changed in part three. This first said a chord outside the key was borrowed: that it cost
+   breath, lasted a phrase and always fell back.)
 
 ### One note, six bodies
 
@@ -318,8 +321,8 @@ authentic, plagal and deceptive cadences and the circle progression.
 
 ### Borrowing
 
-- **A dark cell is a chord from a sleeping place.** Point at it with the wheel, and for one phrase
-  it is under you.
+- **A dark cell is a chord from a sleeping place.** Point at it with the wheel and it is under you,
+  for as long as you stay (part three).
 - **Flatward it is sweet.** The chords on B♭, E♭, A♭ and D♭ all sit well under the day's note: over
   them C is a second, a sixth, a third and a seventh. They are the chords songs borrow from the
   darker modes on the same note, and they sound like weather coming in. Each brings its land's
@@ -578,6 +581,7 @@ it.
 | underneath is worth going to | nothing | the well, and the cave under the garden |
 | the night gives the day back as a song worth keeping | nothing | eight bars made from one of his own takes, for his ears |
 | the game can hear where he puts the beat, and keeping that place is fun | his breaths landed 8 and 9 ms from the tick; nothing is built | measure how finely the triggers are timed on the purple; then the rut, as a try-out |
+| leaving the key and staying sounds good while Hum's note holds | sketch l, unheard | his ears on sketch l; then the dark cells in a try-out |
 | a day with a key, three lands and three caves awake, is a good shape for a world | paper only: it agrees with itself and its theory is exact | a second land beside the garden, visited on two different days |
 | it sounds good on this speaker at every step | each new sound is measured; the try-out measured 16% rough against 12% without it | his ears, every time |
 | the purple can draw and sound all of it | the try-out: 39 of 1,330 frames late, inside the range of the game's own sessions there | each new piece measured on the purple as it is built |
