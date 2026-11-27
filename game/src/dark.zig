@@ -27,12 +27,15 @@ const Script = @import("bot/script.zig").Script;
 const Walker = @import("bot/walker.zig").Walker;
 const take = @import("keep/take.zig");
 const save = @import("keep/save.zig");
+const progress_mod = @import("keep/progress.zig");
+const feel = @import("feel.zig");
 const card_mod = @import("plat/card.zig");
 const presses_mod = @import("plat/presses.zig");
 const keys_mod = @import("plat/keys.zig");
 const jack_mod = @import("plat/jack.zig");
 const Type = @import("room.zig").Type;
 const songbook = @import("draw/songbook.zig");
+const pause_menu = @import("draw/pause_menu.zig");
 const c = plat.c;
 const sdl = plat.sdl;
 const gl = plat.gl;
@@ -624,6 +627,24 @@ const Pad = struct {
         if (sdl.GameControllerGetAxis(handle, c.SDL_CONTROLLER_AXIS_TRIGGERLEFT) > 16000) h.buttons |= Hands.guard;
         return h;
     }
+
+    /// Pause-menu navigation only (never alters `Hands` or `.take` recordings).
+    fn readMenu(self: *const Pad) pause_menu.Input {
+        const handle = self.handle orelse return .{};
+        const lx = stick(handle, c.SDL_CONTROLLER_AXIS_LEFTX);
+        const ly = stick(handle, c.SDL_CONTROLLER_AXIS_LEFTY);
+        return .{
+            .up = sdl.GameControllerGetButton(handle, c.SDL_CONTROLLER_BUTTON_DPAD_UP) != 0 or ly < -75,
+            .down = sdl.GameControllerGetButton(handle, c.SDL_CONTROLLER_BUTTON_DPAD_DOWN) != 0 or ly > 75,
+            .left = sdl.GameControllerGetButton(handle, c.SDL_CONTROLLER_BUTTON_DPAD_LEFT) != 0 or lx < -75,
+            .right = sdl.GameControllerGetButton(handle, c.SDL_CONTROLLER_BUTTON_DPAD_RIGHT) != 0 or lx > 75,
+            .tab_prev = sdl.GameControllerGetButton(handle, c.SDL_CONTROLLER_BUTTON_LEFTSHOULDER) != 0,
+            .tab_next = sdl.GameControllerGetButton(handle, c.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER) != 0,
+            .confirm = self.faces.down(handle, .bottom),
+            .reset = self.faces.down(handle, .left),
+            .close = self.faces.down(handle, .right),
+        };
+    }
 };
 
 fn noteColour(hz: f32) [3]f32 {
@@ -972,6 +993,45 @@ fn saveGround() void {
     if (wrote == ground.len) _ = c.rename(ground_file ++ ".new", ground_file);
 }
 
+const progress_file = "keep/progress.txt";
+var prog_state: progress_mod.Progress = .{};
+
+fn loadProgress() bool {
+    const file = c.fopen(progress_file, "rb") orelse return false;
+    defer _ = c.fclose(file);
+    var buf: [4096]u8 = undefined;
+    const got = c.fread(&buf, 1, buf.len, file);
+    prog_state = progress_mod.read(buf[0..got]);
+    feel.now = prog_state.bench;
+    var dbuf: [256]u8 = undefined;
+    const diff = feel.formatDiff(feel.now, &dbuf);
+    if (diff.len > 0) {
+        log("progress: loaded {s} (bench: {s})", .{ progress_file, diff });
+    } else {
+        log("progress: loaded {s} (all feel defaults)", .{progress_file});
+    }
+    return true;
+}
+
+fn saveProgress(hud_on: bool) bool {
+    _ = c.mkdir("keep", 0o755);
+    prog_state.bench = feel.now;
+    prog_state.hud_overlay = hud_on;
+    var buf: [4096]u8 = undefined;
+    const text = progress_mod.write(prog_state, &buf) orelse return false;
+    const file = c.fopen(progress_file ++ ".new", "wb") orelse return false;
+    const wrote = c.fwrite(text.ptr, 1, text.len, file);
+    _ = c.fclose(file);
+    if (wrote != text.len) return false;
+    return c.rename(progress_file ++ ".new", progress_file) == 0;
+}
+
+fn logBenchDiff(when: []const u8) void {
+    var buf: [256]u8 = undefined;
+    const diff = feel.formatDiff(feel.now, &buf);
+    if (diff.len > 0) log("bench ({s}): {s}", .{ when, diff });
+}
+
 /// What sounded this step, and so what light it leaves: Hum where it walks, calls and hums, and
 /// every bell that is ringing, on the ground beneath it.
 fn groundStep(w: *const World, called: bool) void {
@@ -1004,6 +1064,10 @@ pub const Options = struct {
     without_trail: bool = false,
     /// Draw every page of the songbook into this folder and stop, to look at them.
     songbook_dump: ?[*:0]const u8 = null,
+    /// Draw all four pause/workbench tabs and the corner HUD over the Garden and stop.
+    pause_dump: ?[*:0]const u8 = null,
+    /// Show the live 1-line corner telemetry HUD during play.
+    hud: bool = false,
     without_ground: bool = false,
     half_land: bool = false,
     headless: bool = false,
@@ -1216,27 +1280,6 @@ fn logTeaching(w: *const World) void {
     log("teaching: first jump at {d:.0} s, first sprint at {d:.0} s, the wheel first opened at {d:.0} s, the place stood at {d:.0} s", .{ s.at(w.first_jump_at), s.at(w.first_sprint_at), s.at(w.first_wheel_at), s.at(w.stand_from) });
 }
 
-/// The page the songbook opens on when the moment asks for none: the last thing learned.
-fn lastLearned(w: *const World) songbook.Page {
-    var last: songbook.Page = .call;
-    for (songbook.pages) |p| {
-        if (songbook.learned(w, p)) last = p;
-    }
-    return last;
-}
-
-/// The next page to turn to, forward or back: the pages learned, and the one the moment asks for.
-fn nextPage(w: *const World, from: songbook.Page, forward: bool) songbook.Page {
-    const n = songbook.pages.len;
-    var i: usize = @intFromEnum(from);
-    for (0..n) |_| {
-        i = if (forward) (i + 1) % n else (i + n - 1) % n;
-        const p: songbook.Page = @enumFromInt(i);
-        if (songbook.learned(w, p) or songbook.needed(w) == p) return p;
-    }
-    return from;
-}
-
 /// Every page of the songbook drawn into `dir`, whole and half drawn, to be looked at.
 fn dumpSongbook(dir: [*:0]const u8) void {
     for (songbook.pages) |p| {
@@ -1250,6 +1293,30 @@ fn dumpSongbook(dir: [*:0]const u8) void {
             dumpNamed(dir, "songbook-{s}-{s}", .{ @tagName(p), if (whole >= 1.0) "learned" else "asked" });
         }
     }
+}
+
+/// Keyboard mirror for the Pause/Start menu on a laptop.
+fn menuWithKeys(pad_in: pause_menu.Input) pause_menu.Input {
+    var numkeys: c_int = 0;
+    const raw = sdl.GetKeyboardState(&numkeys) orelse return pad_in;
+    const keys = raw[0..@intCast(numkeys)];
+    const down = struct {
+        fn f(k: []const u8, code: c_int) bool {
+            const i: usize = @intCast(code);
+            return i < k.len and k[i] != 0;
+        }
+    }.f;
+    var m_in = pad_in;
+    if (down(keys, c.SDL_SCANCODE_W) or down(keys, c.SDL_SCANCODE_UP)) m_in.up = true;
+    if (down(keys, c.SDL_SCANCODE_S) or down(keys, c.SDL_SCANCODE_DOWN)) m_in.down = true;
+    if (down(keys, c.SDL_SCANCODE_A) or down(keys, c.SDL_SCANCODE_LEFT)) m_in.left = true;
+    if (down(keys, c.SDL_SCANCODE_D) or down(keys, c.SDL_SCANCODE_RIGHT)) m_in.right = true;
+    if (down(keys, c.SDL_SCANCODE_Q)) m_in.tab_prev = true;
+    if (down(keys, c.SDL_SCANCODE_E)) m_in.tab_next = true;
+    if (down(keys, c.SDL_SCANCODE_SPACE) or down(keys, c.SDL_SCANCODE_RETURN)) m_in.confirm = true;
+    if (down(keys, c.SDL_SCANCODE_F) or down(keys, c.SDL_SCANCODE_BACKSPACE)) m_in.reset = true;
+    if (down(keys, c.SDL_SCANCODE_LSHIFT) or down(keys, c.SDL_SCANCODE_RSHIFT)) m_in.close = true;
+    return m_in;
 }
 
 /// The keyboard as a handheld, for playing on a laptop: the left stick on W A S D (Ctrl held, half
@@ -1408,12 +1475,88 @@ pub fn run(window: plat.Window, options: Options) bool {
     if (options.load) |path| {
         if (!openSave(path)) return false;
     }
+    feel.reset();
+    prog_state = .{};
+    const interactive = !options.headless and !options.bot and options.replay == null and options.walk == null and options.check_take == null and options.pause_dump == null;
+    if (interactive) _ = loadProgress();
     world_mod.chords_tryout = options.chords;
     world_mod.tryout = .{};
     if (options.chords) {
         // the lean wakes beside the lift and home; nothing else in the world is changed
         world.awake |= @as(u8, 1) << @intFromEnum(world_mod.Mood.drive);
         log("the chords try-out (design/the-game.md): L1 steps the chord flatward and L2 sharpward among the lift (F), home (C) and the lean (G); on the lift Hum is light, on the lean it is fast, and stepping home off the lean throws it forward", .{});
+    }
+    if (options.pause_dump) |dir| {
+        // Render all four pause/workbench tabs and the corner HUD over a live Garden frame
+        if (options.scene == .dark) {
+            world.initAsters();
+            aster_lines.build(&world);
+            garden_lines.build();
+            aster_lines.liftModels(&world_mod.ground.heightAt);
+            garden_lines.liftModels(&world_mod.ground.heightAt);
+        }
+        world.warpTo(world_mod.land.wake[0], world_mod.land.wake[1], 0.0);
+        world.setDaylight(.full_day);
+        world_mod.chords_tryout = true;
+        world.setChordDirect(-1);
+        var dump_cues: [world_mod.max_cues]sound_mod.Cue = undefined;
+        for (0..35) |_| _ = world.stepOnce(.{}, &dump_cues);
+
+        const picked0 = aster_lines.pick(world.hum_x, world.hum_z, static_lines[0..26_000], static_occ[0..24_000], static_occ_tags[0..24_000]);
+        var p_lines = picked0.lines;
+        var p_occ = picked0.occ;
+        const half_side: i32 = @divTrunc(aster_lines.cover_side, 2);
+        const grid_now = [2]i32{ @as(i32, @intFromFloat(@floor(world.hum_x / 16.0))) - half_side, @as(i32, @intFromFloat(@floor(world.hum_z / 16.0))) - half_side };
+        var garden_occ = black_shapes.Tris{ .out = static_occ[p_occ..], .tags = static_occ_tags[p_occ..] };
+        p_lines += garden_lines.pick(world.hum_x, world.hum_z, grid_now, static_lines[p_lines..], &garden_occ);
+        p_occ += garden_occ.n;
+        var g_occ = black_shapes.Tris{ .out = static_occ[p_occ..], .tags = static_occ_tags[p_occ..] };
+        var dummy_grid = [2]i32{ 0, 0 };
+        const made_from = p_lines;
+        const occ_from = p_occ;
+        p_lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[p_lines..], &g_occ, &dummy_grid);
+        p_occ += g_occ.n;
+        lines.lift(static_lines[made_from..p_lines], &world_mod.ground.heightAt);
+        lines.liftPoints(static_occ[occ_from..p_occ], &world_mod.ground.heightAt);
+        renderer.setLand(static_lines[0..p_lines], static_lines[0..0], static_occ[0..p_occ], static_occ_tags[0..p_occ]);
+        renderer.setDynamic(moving[0..0]);
+        renderer.setMovingOcc(moving_occ[0..0]);
+        var dump_loud: [lines.max_bodies]lines.Shine = @splat(.{ .lit = 140, .spread = 255, .gives = 255 });
+        dump_loud[0] = .{ .lit = 255 };
+        const cam = world.camera();
+        renderer.stand = cam.stand;
+        renderer.setParting(cam.eye, .{ world.hum_x, world.hum_ground + world.hum_y + world_mod.hum_mid, world.hum_z }, cam.stand);
+        renderer.setReact(world.react.awake, world.react.rise, world.react.tilt, world_mod.harmony.home(&world));
+        const vp = m.mul(m.perspective(cam.fov, aspect, 0.4, 9000.0), m.lookAt(cam.eye, cam.at, cam.up));
+
+        const sample_tel = pause_menu.Telemetry{
+            .fps = 60.0,
+            .avg_ms = 11.42,
+            .worst_ms = 13.64,
+            .late = 0,
+            .lines_now = p_lines,
+            .lines_peak = p_lines,
+            .black_now = p_occ / 3,
+            .black_peak = p_occ / 3,
+            .audio_worst_ms = 0.18,
+            .hud_on = true,
+        };
+        // 1. Live corner HUD over the 3D Garden
+        renderer.frame(&vp, &dump_loud);
+        pause_menu.drawHud(&sketch, &words, &world, &sample_tel);
+        dumpNamed(dir, "pause-hud", .{});
+        // 2. All four pause tabs
+        var pm = pause_menu.State{};
+        pm.openAt(&world, 0.0);
+        feel.now.lift_pull = 2.0 / 3.0; // show a live modified knob indicator in BENCH preview
+        for ([_]pause_menu.Tab{ .songbook, .status, .bench, .arena }) |tab| {
+            pm.tab = tab;
+            renderer.frame(&vp, &dump_loud);
+            pm.draw(&sketch, &words, &world, &sample_tel, 1.3);
+            dumpNamed(dir, "pause-{s}", .{@tagName(tab)});
+        }
+        feel.reset();
+        return true;
     }
     if (options.check_take) |path| {
         var player = loadTake(path) orelse {
@@ -1534,13 +1677,16 @@ pub fn run(window: plat.Window, options: Options) bool {
     var shown_last: ?[2]f32 = null;
     var stepped_last: ?[2]f32 = null;
     var steady = Steady{};
-    // the songbook (SPEC.md 8): open, which page, since when; Start's edge; the world's wait
-    var book_open = false;
-    var book_page: songbook.Page = .call;
-    var book_from: f64 = 0.0;
+    // the Start/Pause Menu & Development Workbench (ROADMAP.md, step 1.2)
+    var menu = pause_menu.State{};
+    var telemetry = pause_menu.Telemetry{
+        .hud_on = options.hud or prog_state.hud_overlay,
+        .without_trail = options.without_trail,
+        .without_ground = options.without_ground,
+    };
+    var want_snap = false;
     var start_was = false;
     var select_seen = false;
-    var flip_ready = true;
 
     while (running) : (frame += 1) {
         const began = plat.now();
@@ -1601,37 +1747,62 @@ pub fn run(window: plat.Window, options: Options) bool {
             const held = withKeys(pad.read());
             if (held.held(Hands.select) and held.held(Hands.start)) leaving += 1 else leaving = 0;
             if (leaving > 30) running = false;
-            // Start let go, Select not pressed with it: the songbook opens, and the world waits; Start
-            // again closes it, and the world goes on from where it waited
+            // Start let go, Select not pressed with it: the Pause/Start Menu opens and the world
+            // waits; Start again closes it and the world goes on from where it waited
             const start_now = held.held(Hands.start);
             if (start_now and held.held(Hands.select)) select_seen = true;
             if (start_was and !start_now) {
                 if (!select_seen and !scripted and replay == null) {
-                    if (!book_open and !world.singing) {
-                        book_open = true;
-                        book_from = plat.now();
-                        book_page = songbook.needed(&world) orelse lastLearned(&world);
+                    if (!menu.open and !world.singing) {
+                        menu.openAt(&world, plat.now());
                         @atomicStore(u8, &ready_paused, 1, .monotonic);
-                        log("the songbook opened at step {d} on its page for {s}", .{ world.step, @tagName(book_page) });
-                    } else if (book_open) {
-                        book_open = false;
-                        // the book closed: nothing is held that was let go while it was open
+                        log("pause menu opened at step {d} on {s}", .{ world.step, menu.tab.label() });
+                    } else if (menu.open) {
+                        menu.open = false;
                         forgetPresses();
                         @atomicStore(u8, &ready_paused, 0, .monotonic);
+                        logBenchDiff("pause close");
                     }
                 }
                 select_seen = false;
             }
             start_was = start_now;
-            if (book_open) {
-                // the left stick turns the pages: those learned, and the one the moment asks for
-                if (flip_ready and (held.lx > 80 or held.lx < -80)) {
-                    book_page = nextPage(&world, book_page, held.lx > 0);
-                    flip_ready = false;
+            if (menu.open) {
+                const minp = menuWithKeys(pad.readMenu());
+                const act = menu.update(minp, &world, &telemetry, plat.now());
+                switch (act) {
+                    .none => {},
+                    .close => {
+                        forgetPresses();
+                        @atomicStore(u8, &ready_paused, 0, .monotonic);
+                        logBenchDiff("pause close");
+                    },
+                    .warped => {
+                        picked_x = 1e9;
+                        picked_z = 1e9;
+                        pose_before = Pose.of(&world);
+                        shown_last = null;
+                        stepped_last = null;
+                        forgetPresses();
+                        @atomicStore(u8, &ready_paused, 0, .monotonic);
+                        log("arena warp: ({d:.1}, {d:.1})", .{ world.hum_x, world.hum_z });
+                    },
+                    .save_bench => {
+                        if (saveProgress(telemetry.hud_on)) {
+                            menu.say(plat.now(), "SAVED keep/progress.txt");
+                            logBenchDiff("saved");
+                        } else {
+                            menu.say(plat.now(), "SAVE FAILED");
+                        }
+                    },
+                    .capture_png => {
+                        want_snap = true;
+                        forgetPresses();
+                        @atomicStore(u8, &ready_paused, 0, .monotonic);
+                    },
                 }
-                if (held.lx < 30 and held.lx > -30) flip_ready = true;
             }
-            const due = if (book_open) world.step else snd.played() / world_mod.samples_per_step;
+            const due = if (menu.open) world.step else snd.played() / world_mod.samples_per_step;
             // what the hands started, read after the count: every edge before it is here
             takeEdges();
             @atomicStore(u8, &ready_cover, @intFromEnum(world.cover), .monotonic);
@@ -1917,9 +2088,15 @@ pub fn run(window: plat.Window, options: Options) bool {
         if (options.scene != .dark) sendGround();
         const vp = m.mul(proj, view);
         parts[3] = (plat.now() - began) * 1000.0;
-        renderer.without_trail = options.without_trail;
-        renderer.without_ground = options.without_ground;
+        renderer.without_trail = telemetry.without_trail;
+        renderer.without_ground = telemetry.without_ground;
         renderer.frame(&vp, &loud);
+        if (want_snap) {
+            _ = c.mkdir("results", 0o755);
+            dumpNamed("results", "snap-{d}", .{world.step});
+            log("arena snap: results/snap-{d}.png", .{world.step});
+            want_snap = false;
+        }
         if (options.scene == .evening and world.step >= world.stand_from and world.step < world.stand_from + 330) {
             // the first words anyone says in it, as the page stands up: the one line of text
             const since: f32 = @floatFromInt(world.step - world.stand_from);
@@ -1930,7 +2107,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             words.line((@as(f32, @floatFromInt(window.width)) - wide) * 0.5, @as(f32, @floatFromInt(window.height)) * 0.17, scale, .{ 0.886 * shown, 0.839 * shown, 0.784 * shown, shown }, line);
             words.flush();
         }
-        if (options.chords and world.stand >= 1.0 and !world.wheel_open) {
+        if (world_mod.chords_tryout and world.stand >= 1.0 and !world.wheel_open and !menu.open) {
             // the try-out's one line of words: what the two triggers are until they have been found,
             // and for two seconds after each change the chord's letter and what it is
             const t = world_mod.tryout;
@@ -1949,10 +2126,25 @@ pub fn run(window: plat.Window, options: Options) bool {
                 words.flush();
             }
         }
-        if (book_open) {
-            const whole: f32 = if (songbook.learned(&world, book_page)) 1.0 else 0.55;
-            songbook.draw(&sketch, book_page, @floatCast(plat.now() - book_from), whole);
-            sketch.flush();
+        telemetry.lines_now = picked.lines + moving_n;
+        telemetry.lines_peak = most_lines;
+        telemetry.black_now = picked.occ / 3 + moving_tris.count();
+        telemetry.black_peak = most_black;
+        telemetry.avg_ms = @floatCast(work_sum / @as(f64, @floatFromInt(@max(frame, 1))));
+        telemetry.worst_ms = @floatCast(work_worst);
+        telemetry.late = late;
+        telemetry.audio_worst_ms = @as(f32, @floatFromInt(@atomicLoad(u32, &audio_slowest_us, .monotonic))) / 1000.0;
+        telemetry.refused = refused;
+        telemetry.dropped = world.dropped;
+        if (frame > 35 and last_swap > first_swap) {
+            const avg_gap = (last_swap - first_swap) / @as(f64, @floatFromInt(frame - 31));
+            if (avg_gap > 0.001) telemetry.fps = @floatCast(1.0 / avg_gap);
+        }
+        if (telemetry.hud_on and !menu.open) {
+            pause_menu.drawHud(&sketch, &words, &world, &telemetry);
+        }
+        if (menu.open) {
+            menu.draw(&sketch, &words, &world, &telemetry, plat.now());
         }
         parts[4] = (plat.now() - began) * 1000.0;
         // the backlight is the sun: down in the dark, where only what sounds is lit, and up with the day
@@ -2039,7 +2231,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         most_black,
     });
     if (garden_lines.lost_black > 0) log("the garden's models lost {d} black triangles for want of room", .{garden_lines.lost_black});
-    if (options.chords) {
+    if (world_mod.chords_tryout) {
         const t = world_mod.tryout;
         log("the chords try-out: {d} steps of the chord, {d} of them on the tick, {d} knocks at the end of what is awake, {d} throws home off the lean; highest {d:.1} m, fastest {d:.1} m/s; ended on {s}", .{ t.steps, t.timed, t.knocks, t.launches, t.highest, t.fastest, switch (world.home_k) {
             -1 => "the lift",
@@ -2047,6 +2239,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             else => "home",
         } });
     }
+    logBenchDiff("exit");
     if (presses.fd >= 0) {
         // how soon Hum answered the hands: from the kernel seeing a press to the buffer that began
         // the sound, the most of any press this scene

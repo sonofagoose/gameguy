@@ -50,25 +50,26 @@ pub const State = struct {
 /// One step of the world. `standings` is what every colour is to the chord now; `axis` is whether
 /// the chord holds, leans or lifts; `way` is which way home this step came, if it did.
 pub fn step(s: *State, standings: *const [12]Standing, axis: wheel.Axis, way: music.change.Way) void {
+    const f = feel.now;
     for (&s.awake, standings) |*a, st| {
         const want: f32 = if (st.awake()) 1.0 else 0.0;
-        a.* += (want - a.*) * feel.wake_ease;
+        a.* += (want - a.*) * f.wake_ease;
     }
     // the lift raises; coming home from it is the amen, and things come down softly
     const rise_to: f32 = if (axis == .lift) 1.0 else 0.0;
-    const rise_ease: f32 = if (rise_to > s.rise) feel.rise_ease else feel.settle_ease;
+    const rise_ease: f32 = if (rise_to > s.rise) f.rise_ease else f.settle_ease;
     s.rise += (rise_to - s.rise) * rise_ease;
     // the lean tilts toward home and winds up
     if (axis == .lean) {
         s.wound = @min(1.0, s.wound + 1.0 / feel.wind_steps);
     } else if (way == .full_close) {
         // the full close: what leaned springs home, thrown the harder for what it had stored
-        s.tilt_v -= feel.land_kick * (1.0 + s.wound);
+        s.tilt_v -= f.land_kick * (1.0 + s.wound);
         s.wound = 0.0;
     } else {
         s.wound = 0.0;
     }
-    const tilt_to: f32 = if (axis == .lean) feel.tilt_full * (1.0 + feel.wind_more * s.wound) else 0.0;
+    const tilt_to: f32 = if (axis == .lean) f.tilt_full * (1.0 + f.wind_more * s.wound) else 0.0;
     s.tilt_v += (tilt_to - s.tilt) * feel.tilt_spring;
     s.tilt_v -= s.tilt_v * feel.tilt_damp;
     s.tilt += s.tilt_v;

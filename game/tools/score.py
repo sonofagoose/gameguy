@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""Turn a land's score into its tables (spec/engine.md, "Places and scores").
+"""Turn a land's score into its tables, plus inspect budgets and export top-down maps
+(spec/engine.md, "Places and scores"; ROADMAP.md, "The Workbench & Cohesion Guard").
 
     python3 -I tools/score.py scores/garden.txt src/world/land.zig
+    python3 -I tools/score.py scores/garden.txt --inspect [--map out.png]
+    python3 -I tools/score.py scores/garden.txt src/world/land.zig --inspect --map out.png
 
 A score is a text file, one thing to a line: a word saying what it is, then its numbers and named
 numbers. A note is written as a ratio over the land's own note (4/3). The tables are a Zig file the
@@ -10,7 +13,11 @@ makes the same world on every machine. Nothing in the output is computed here: a
 as its numerator and denominator, or as the division the code always made, so its rounding is
 exactly what it was.
 """
+import math
+import os
+import struct
 import sys
+import zlib
 
 
 def fail(line_no, text):
@@ -209,7 +216,304 @@ def write(land, src, out):
     open(out, 'w', encoding='utf-8').write(text)
 
 
+# ------------------------------------------------------------ Place Inspector & Top-Down Map
+
+
+def _hose_length(pts):
+    total = 0.0
+    for i in range(1, len(pts)):
+        dx = float(pts[i][0]) - float(pts[i - 1][0])
+        dz = float(pts[i][1]) - float(pts[i - 1][1])
+        total += math.hypot(dx, dz)
+    return total
+
+
+def _hose_dist(pts, x, z):
+    best = 1e18
+    for i in range(1, len(pts)):
+        ax, az = float(pts[i - 1][0]), float(pts[i - 1][1])
+        bx, bz = float(pts[i][0]), float(pts[i][1])
+        dx, dz = bx - ax, bz - az
+        l2 = dx * dx + dz * dz
+        t = max(0.0, min(1.0, ((x - ax) * dx + (z - az) * dz) / l2)) if l2 > 0 else 0.0
+        d = math.hypot(x - (ax + dx * t), z - (az + dz * t))
+        if d < best:
+            best = d
+    return best
+
+
+def _hose_back_from_end(pts, dist_back):
+    rem = dist_back
+    for i in range(len(pts) - 1, 0, -1):
+        ax, az = float(pts[i - 1][0]), float(pts[i - 1][1])
+        bx, bz = float(pts[i][0]), float(pts[i][1])
+        seg = math.hypot(bx - ax, bz - az)
+        if rem <= seg and seg > 1e-6:
+            t = rem / seg
+            return bx + (ax - bx) * t, bz + (az - bz) * t
+        rem -= seg
+    return float(pts[0][0]), float(pts[0][1])
+
+
+def _aster_positions(land):
+    """Mirror world/asters.zig `field()` layout from the score's AsterRule and keep-outs."""
+    a = land['asters']
+    cells = int(a['cells'])
+    across = float(a['across'])
+    from_z = float(a['from'])
+    jitter = float(a['jitter'])
+    skip = int(a['skip'])
+    seed = int(a['seed'], 0)
+    rim_x, rim_z, rim_r = float(land['rim'][0]), float(land['rim'][1]), float(land['rim'][2])
+    pool_x, pool_z, pool_r, reeds_w = [float(v) for v in land['pool']]
+    wake_x, wake_z = float(land['wake'][0]), float(land['wake'][1])
+    great_x, great_z = float(land['great'][0]), float(land['great'][1])
+    clear_x, clear_z = float(land['clear'][0]), float(land['clear'][1])
+    spig_x, spig_z = float(land['spigot'][0]), float(land['spigot'][1])
+    k = {key: float(val) for key, val in land['keep'].items()}
+    puddles = [(float(p[0]), float(p[1])) for p in land['puddles']]
+
+    def rng_u32(s):
+        s = (s ^ ((s << 13) & 0xFFFFFFFF)) & 0xFFFFFFFF
+        s = (s ^ (s >> 17)) & 0xFFFFFFFF
+        s = (s ^ ((s << 5) & 0xFFFFFFFF)) & 0xFFFFFFFF
+        return s
+
+    pts = [(great_x, great_z)]
+    s = seed
+    cell = across / max(cells, 1)
+    pool_keep = pool_r + reeds_w + k['pool']
+    for iz in range(cells):
+        for ix in range(cells):
+            cx = -across * 0.5 + (ix + 0.5) * cell
+            cz = from_z - (iz + 0.5) * cell
+            s = rng_u32(s)
+            ux = (s >> 8) / 16777216.0
+            s = rng_u32(s)
+            uz = (s >> 8) / 16777216.0
+            s = rng_u32(s)  # tall
+            s = rng_u32(s)  # skip
+            if skip > 0 and (s % skip) == 0:
+                continue
+            x = cx + (ux - 0.5) * jitter
+            z = cz + (uz - 0.5) * jitter
+            if math.hypot(x - rim_x, z - rim_z) > rim_r:
+                continue
+            if math.hypot(x - pool_x, z - pool_z) < pool_keep:
+                continue
+            if math.hypot(x - wake_x, z - wake_z) < k['wake']:
+                continue
+            if math.hypot(x - great_x, z - great_z) < k['great']:
+                continue
+            if math.hypot(x - clear_x, z - clear_z) < k['clear']:
+                continue
+            if math.hypot(x - spig_x, z - spig_z) < k['spigot']:
+                continue
+            if _hose_dist(land['hose'], x, z) < k['hose']:
+                continue
+            if any(math.hypot(x - px, z - pz) < (50.0 + k['puddle']) for px, pz in puddles):
+                continue
+            pts.append((x, z))
+    return pts
+
+
+def inspect(land, src):
+    rim_r = float(land['rim'][2])
+    pool_r = float(land['pool'][2])
+    reeds_band = float(land['pool'][3])
+    bowl_depth = float(land['bowl'][0])
+    rise_h = float(land['rise'][2])
+    hose_len = _hose_length(land['hose'])
+    asters = _aster_positions(land)
+    diam = rim_r * 2.0
+    run_cross = diam / 12.0
+    sprint_cross = diam / 20.0
+    wake_to_great = math.hypot(float(land['great'][0]) - float(land['wake'][0]), float(land['great'][1]) - float(land['wake'][1]))
+    wake_to_clear = math.hypot(float(land['clear'][0]) - float(land['wake'][0]), float(land['clear'][1]) - float(land['wake'][1]))
+
+    # Conservative Mali-G31 peak estimate from measured Garden ratios (docs/engine.md)
+    est_lines = 14500 + len(asters) * 95 + len(land['puddles']) * 220 + int(hose_len * 2.2)
+    est_black = 3200 + len(asters) * 38 + int(hose_len * 2.0)
+
+    print(f'=== PLACE INSPECTOR: {src} ===')
+    print(f'  Note:        {float(land["note"]):.2f} Hz')
+    print(f'  Bowl:        diameter {diam:.0f} m (rim r={rim_r:.0f} m), pool r={pool_r:.0f} m (+{reeds_band:.0f} m reeds)')
+    print(f'  Elevation:   bowl {bowl_depth:.0f} m + spigot rise {rise_h:.0f} m = {bowl_depth + rise_h:.0f} m span')
+    print(f'  Travel time: across bowl {run_cross:.0f} s @ 12 m/s run ({sprint_cross:.0f} s @ 20 m/s sprint)')
+    print(f'  Key sights:  wake->Drip {wake_to_clear:.0f} m ({wake_to_clear/12.0:.1f} s), wake->great {wake_to_great:.0f} m ({wake_to_great/12.0:.1f} s), hose ~{hose_len:.0f} m')
+    print(f'  Entities:    ~{len(asters)} asters, {len(land["puddles"])} puddles, {len(land["knots"])} knots, {len(land["hose"])} hose pts')
+    line_flag = 'OK' if est_lines <= 24000 else 'WATCH (over 24k target)'
+    tri_flag = 'OK' if est_black <= 12000 else 'WATCH (over 12k target)'
+    print(f'  Mali-G31 est: ~{est_lines:,} lines / 24,000 [{line_flag}]  |  ~{est_black:,} black tris / 12,000 [{tri_flag}]')
+
+
+def _write_png(path, width, height, rgb_bytes):
+    def chunk(tag, data):
+        return struct.pack('>I', len(data)) + tag + data + struct.pack('>I', zlib.crc32(tag + data) & 0xFFFFFFFF)
+
+    raw = bytearray()
+    stride = width * 3
+    for y in range(height):
+        raw.append(0)
+        raw.extend(rgb_bytes[y * stride:(y + 1) * stride])
+    ihdr = struct.pack('>IIBBBBB', width, height, 8, 2, 0, 0, 0)
+    png = b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', ihdr) + chunk(b'IDAT', zlib.compress(bytes(raw), 6)) + chunk(b'IEND', b'')
+    parent = os.path.dirname(path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+    with open(path, 'wb') as f:
+        f.write(png)
+
+
+def render_map(land, out_path, size=512):
+    """Render a crisp top-down PNG layout preview using Python stdlib only."""
+    buf = bytearray([10, 12, 16] * (size * size))
+    rim_x, rim_z, rim_r = float(land['rim'][0]), float(land['rim'][1]), float(land['rim'][2])
+    span = rim_r * 2.25
+    scale = (size - 32) / span
+    cx0, cz0 = rim_x, rim_z
+
+    def to_px(wx, wz):
+        return int(round(size * 0.5 + (wx - cx0) * scale)), int(round(size * 0.5 + (wz - cz0) * scale))
+
+    def put(x, y, col, alpha=1.0):
+        if 0 <= x < size and 0 <= y < size:
+            i = (y * size + x) * 3
+            if alpha >= 0.999:
+                buf[i], buf[i + 1], buf[i + 2] = col
+            else:
+                inv = 1.0 - alpha
+                buf[i] = int(buf[i] * inv + col[0] * alpha)
+                buf[i + 1] = int(buf[i + 1] * inv + col[1] * alpha)
+                buf[i + 2] = int(buf[i + 2] * inv + col[2] * alpha)
+
+    def circle_fill(wx, wz, wr, col, alpha=1.0):
+        px, py = to_px(wx, wz)
+        pr = max(1, int(round(wr * scale)))
+        r2 = pr * pr
+        for dy in range(-pr, pr + 1):
+            for dx in range(-pr, pr + 1):
+                if dx * dx + dy * dy <= r2:
+                    put(px + dx, py + dy, col, alpha)
+
+    def circle_ring(wx, wz, wr, col, thick=1.5):
+        px, py = to_px(wx, wz)
+        pr = max(2, int(round(wr * scale)))
+        steps = max(48, int(pr * 6.5))
+        for i in range(steps):
+            a = 2.0 * math.pi * i / steps
+            x = int(round(px + pr * math.cos(a)))
+            y = int(round(py + pr * math.sin(a)))
+            r_t = int(thick)
+            for oy in range(-r_t, r_t + 1):
+                for ox in range(-r_t, r_t + 1):
+                    if ox * ox + oy * oy <= thick * thick:
+                        put(x + ox, y + oy, col)
+
+    def line(x0, y0, x1, y1, col, thick=1):
+        steps = max(1, int(math.hypot(x1 - x0, y1 - y0) * 1.5))
+        for i in range(steps + 1):
+            t = i / steps
+            x = int(round(x0 + (x1 - x0) * t))
+            y = int(round(y0 + (y1 - y0) * t))
+            for oy in range(-thick, thick + 1):
+                for ox in range(-thick, thick + 1):
+                    put(x + ox, y + oy, col)
+
+    # 100 m subtle grid
+    for g in range(-800, 900, 100):
+        gx, _ = to_px(g, 0)
+        _, gz = to_px(0, g)
+        for p in range(16, size - 16):
+            put(gx, p, (28, 34, 42), 0.35)
+            put(p, gz, (28, 34, 42), 0.35)
+
+    # Bowl interior, rim, reed band, Mirror Pool, spigot rise
+    circle_fill(rim_x, rim_z, rim_r, (18, 24, 22), 0.85)
+    circle_ring(rim_x, rim_z, rim_r, (150, 140, 120), 1.6)
+    px, pz, pr, reeds_w = [float(v) for v in land['pool']]
+    circle_fill(px, pz, pr + reeds_w, (38, 72, 56), 0.55)
+    circle_fill(px, pz, pr, (22, 68, 92), 0.95)
+    circle_ring(px, pz, pr, (64, 210, 200), 1.4)
+
+    rx, rz, _, ra = [float(v) for v in land['rise']]
+    circle_fill(rx, rz, ra * 0.5, (90, 68, 42), 0.35)
+
+    # Asters
+    for ax, az in _aster_positions(land)[1:]:
+        circle_fill(ax, az, 9.0, (92, 185, 115), 0.78)
+
+    # Puddles (cyan/teal)
+    for pud in land['puddles']:
+        circle_fill(float(pud[0]), float(pud[1]), 14.0, (55, 205, 225), 0.9)
+
+    # Hose polyline (bright green)
+    hpts = [to_px(float(x), float(z)) for x, z in land['hose']]
+    for i in range(1, len(hpts)):
+        line(hpts[i - 1][0], hpts[i - 1][1], hpts[i][0], hpts[i][1], (115, 245, 130), 1)
+
+    # Knots (amber), placed relative to the hose's knot point
+    hkx, hkz = _hose_back_from_end(land['hose'], float(land['hose_knot']))
+    for kx, kz in land['knots']:
+        circle_fill(hkx + float(kx), hkz + float(kz), 11.0, (255, 175, 65), 0.95)
+
+    # Key landmarks: Great Aster (gold ring), Spigot (orange), Drip clearing (teal), Wake (bone)
+    gx, gz = float(land['great'][0]), float(land['great'][1])
+    circle_fill(gx, gz, 16.0, (255, 235, 130), 0.95)
+    circle_ring(gx, gz, 26.0, (255, 235, 130), 1.4)
+
+    sx, sz = float(land['spigot'][0]), float(land['spigot'][1])
+    circle_fill(sx, sz, 15.0, (255, 145, 70), 0.95)
+
+    cx, cz = float(land['clear'][0]), float(land['clear'][1])
+    circle_fill(cx, cz, 12.0, (65, 225, 210), 0.95)
+
+    wx, wz = float(land['wake'][0]), float(land['wake'][1])
+    circle_fill(wx, wz, 11.0, (245, 238, 224), 1.0)
+    circle_ring(wx, wz, 20.0, (245, 238, 224), 1.2)
+
+    # 100 m scale bar at bottom-left + North arrow at top-left
+    bar_px = int(round(100.0 * scale))
+    line(20, size - 22, 20 + bar_px, size - 22, (235, 225, 205), 2)
+    line(20, size - 27, 20, size - 17, (235, 225, 205), 1)
+    line(20 + bar_px, size - 27, 20 + bar_px, size - 17, (235, 225, 205), 1)
+    # North arrow
+    line(28, 42, 28, 18, (235, 225, 205), 1)
+    line(28, 18, 22, 26, (235, 225, 205), 1)
+    line(28, 18, 34, 26, (235, 225, 205), 1)
+
+    _write_png(out_path, size, size, buf)
+    print(f'  Map written: {out_path} ({size}x{size}, 100 m bar = {bar_px} px)')
+
+
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
+    args = sys.argv[1:]
+    if not args:
         sys.exit(__doc__)
-    write(read(sys.argv[1]), sys.argv[1], sys.argv[2])
+    src = args[0]
+    out_zig = None
+    do_inspect = False
+    map_out = None
+    i = 1
+    while i < len(args):
+        if args[i] == '--inspect':
+            do_inspect = True
+            i += 1
+        elif args[i] == '--map' and i + 1 < len(args):
+            map_out = args[i + 1]
+            i += 2
+        elif out_zig is None and not args[i].startswith('--'):
+            out_zig = args[i]
+            i += 1
+        else:
+            sys.exit(__doc__)
+
+    land_data = read(src)
+    if out_zig is not None:
+        write(land_data, src, out_zig)
+    if do_inspect:
+        inspect(land_data, src)
+    if map_out is not None:
+        render_map(land_data, map_out)
+    if out_zig is None and not do_inspect and map_out is None:
+        sys.exit(__doc__)

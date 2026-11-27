@@ -126,14 +126,19 @@ pub const Sketch = struct {
 
     /// The whole screen darkened, so nothing but the page is seen.
     pub fn veil(self: *Sketch, alpha: f32) void {
-        if (self.used + 6 * 7 > self.verts.len) return;
-        const col = [4]f32{ 0.0, 0.0, 0.0, alpha };
-        self.vert(0, 0, 0, col);
-        self.vert(self.w, 0, 0, col);
-        self.vert(self.w, self.h, 0, col);
-        self.vert(0, 0, 0, col);
-        self.vert(self.w, self.h, 0, col);
-        self.vert(0, self.h, 0, col);
+        self.rect(0, 0, self.w, self.h, .{ 0.0, 0.0, 0.0 }, alpha);
+    }
+
+    /// A solid rectangle at (x, y) of size (w, h), in screen pixels.
+    pub fn rect(self: *Sketch, x: f32, y: f32, w: f32, h: f32, rgb: [3]f32, alpha: f32) void {
+        if (self.used + 6 * 7 > self.verts.len or alpha <= 0.0 or w <= 0.0 or h <= 0.0) return;
+        const col = [4]f32{ rgb[0], rgb[1], rgb[2], alpha };
+        self.vert(x, y, 0.0, col);
+        self.vert(x + w, y, 0.0, col);
+        self.vert(x + w, y + h, 0.0, col);
+        self.vert(x, y, 0.0, col);
+        self.vert(x + w, y + h, 0.0, col);
+        self.vert(x, y + h, 0.0, col);
     }
 
     pub fn flush(self: *Sketch) void {

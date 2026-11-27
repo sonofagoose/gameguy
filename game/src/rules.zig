@@ -11,9 +11,12 @@ pub const pages = @import("world/pages.zig");
 pub const colour = @import("draw/colour.zig");
 pub const take = @import("keep/take.zig");
 pub const save = @import("keep/save.zig");
+pub const progress = @import("keep/progress.zig");
+pub const feel = @import("feel.zig");
 
 test {
     _ = music;
+    _ = feel;
     _ = world;
     _ = world.asters;
     _ = world.cues_mod;
@@ -44,4 +47,5 @@ test {
     _ = colour;
     _ = take;
     _ = save;
+    _ = progress;
 }

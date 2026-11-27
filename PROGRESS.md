@@ -94,6 +94,29 @@ Where the build stands, so a new session can pick it up. Newest first.
     `game/build.sh laptop` passes (`1.04 ms/frame` evening, `stood.save` now 389,512 bytes);
     `aarch64` built into `dist/ports/gameguy/`, ready to push to unit 164 and re-verify
     `same-take-aarch64` once back on USB.
+  - **Compact Cohesive Whole roadmap & Start/Pause Workbench (steps 1.2 & 1.38 foundation)**
+    (2026-11-27): formalized Principle 11 in `ROADMAP.md` (Full-Depth Engine in legs 0–1 -> Compact
+    Cohesive 12-Land Whole at Essence Density through leg 6 -> Parametric Scale-Up in Stage C) plus
+    the four force-multiplier workbench pillars. Built: (1) `game/src/feel.zig` live runtime bench
+    table (`feel.now` with exact current defaults, `reset`, `diffCount`, `formatDiff`) wired into
+    `law/react.zig` and `world/world.zig`, plus dev arena helpers (`warpTo`, `setDaylight`,
+    `setChordDirect`, `resetCamera`); (2) `game/src/keep/progress.zig` (`v1` plain-text cross-build
+    durable progress and bench overrides file `keep/progress.txt`, surviving `World` layout changes
+    and never written during active frames); (3) `game/src/draw/pause_menu.zig` + `dark.zig` +
+    `main.zig` 4-tab Start/Pause Menu (`SONGBOOK`, `STATUS` with Mali-G31 frame/line/tri/audio
+    budgets & live 12-cell Circle-of-Fifths awake strip, `BENCH` with live sliders and 1.8 A/B
+    snaps + Corner Telemetry HUD toggle, and `ARENA` with 8 landmark warps, chord/daylight
+    switches, trail/ground toggles, and PNG frame snap; opens on `SONGBOOK` first and remembers the
+    last active tab; menu D-pad/stick/face inputs read outside `Hands` so `.take` stays unchanged;
+    added `--pause-dump DIR` and `--hud`); (4) `game/tools/score.py` upgraded with `--inspect`
+    (scale, travel-time, and Mali-G31 line/tri budget report) and `--map OUT.png` (pure stdlib
+    top-down map exporter) while keeping `land.zig` output byte-identical. **Verified (laptop):**
+    199/199 rules tests (+3 new: `feel.zig`, `keep/progress.zig`, `world.zig` arena/bench) and 3/3
+    ears tests pass; full `game/build.sh laptop` passes (`--scene evening` 0.90 ms/frame, `ears`
+    0.0481 rough / 1.88 s longest, `beauty.py`, exact replay & 389,512-byte save round-trips, and
+    bit-identical `same-take-x86_64` fingerprints `2f2f29db6dcc4db9` / `ce641ebfbf6e128d`); all 5
+    headless 640x480 Pause/HUD dumps and Garden map PNG visually verified; `game/build.sh handheld`
+    built `aarch64` cleanly (55 s), ready to sync once purple unit 164 appears on USB.
   - **1.1, read Morgan's pulled try-out takes** (2026-11-27): decoded `chords-tryout-001.take`
     (136.0 s, 1,392 changes) and `chords-tryout-002.take` (707.5 s / 11.8 min, 12,592 changes) with
     their logs. Key findings for step 1.2 (the bench) and leg 1: in take 2 Morgan split his time

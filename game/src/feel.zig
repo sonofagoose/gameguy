@@ -1,9 +1,11 @@
 //! Feel: every number a hand, an eye or an ear will want changed, in one place (docs/engine.md,
-//! "Feel in one table"). The bench will show these on the pause screen and let Morgan set them
-//! (ROADMAP.md, step 1.2). Until then they are first guesses, each said to be one.
+//! "Feel in one table"). The bench shows these on the pause screen and lets Morgan set them live
+//! while playing (ROADMAP.md, step 1.2).
 //!
-//! Numbers that were in the rules before this file was begun are still where they were; they move
-//! here as each part of the rules is taken up.
+//! Compile-time constants remain for GPU vertex shaders (`rise_unit`, `part_*`) and as the exact
+//! defaults of `Table`. Runtime gameplay and reaction loops read `now`, so default runs stay
+//! bit-for-bit identical for `same-take` and all tests while live bench tweaks take effect at once.
+const std = @import("std");
 
 // ------------------------------------------------------------ how the world answers the chord
 
@@ -51,3 +53,83 @@ pub const part_sight_reach: f32 = 2.1;
 pub const part_sight_push: f32 = 1.55;
 pub const part_flex_height: f32 = 2.5;
 pub const part_droop: f32 = 0.22;
+
+// ------------------------------------------------------------ live bench table (ROADMAP step 1.2)
+
+/// Every number the Pause/Start Bench can nudge live. Defaults match the compiled constants so
+/// untouched runs keep exact `same-take` determinism.
+pub const Table = struct {
+    /// On the lift Hum is light: ground pull multiplier (try-out 0.55 vs design 2/3 = 0.667).
+    lift_pull: f32 = 0.55,
+    /// On the lean Hum is drawn forward: leg speed multiplier (try-out 1.30 vs design 4/3 = 1.333).
+    lean_speed: f32 = 1.3,
+    /// Metres thrown forward by a full close off a wound-up lean.
+    launch_far: f32 = 6.0,
+    /// Full-stick run speed (m/s) and sprint speed (m/s).
+    run_speed: f32 = 12.0,
+    sprint_speed: f32 = 20.0,
+    /// Full held jump height (m).
+    jump_height: f32 = 3.0,
+    /// Camera speed-pullback easing per step (prevents rock-impact camera snap).
+    view_run_ease: f32 = 0.08,
+
+    /// World harmonic reaction timing and strength (law/react.zig).
+    wake_ease: f32 = wake_ease,
+    rise_ease: f32 = rise_ease,
+    settle_ease: f32 = settle_ease,
+    tilt_full: f32 = tilt_full,
+    wind_more: f32 = wind_more,
+    land_kick: f32 = land_kick,
+};
+
+pub const defaults = Table{};
+pub var now: Table = defaults;
+
+/// Restore every bench parameter to its exact default.
+pub fn reset() void {
+    now = defaults;
+}
+
+/// How many fields differ from `defaults`.
+pub fn diffCount(t: Table) usize {
+    var n: usize = 0;
+    inline for (@typeInfo(Table).@"struct".field_names) |name| {
+        if (@field(t, name) != @field(defaults, name)) n += 1;
+    }
+    return n;
+}
+
+pub fn isDefault(t: Table) bool {
+    return diffCount(t) == 0;
+}
+
+/// Format only modified fields as `name=val ...` for the session log. Empty when all are default.
+pub fn formatDiff(t: Table, out: []u8) []const u8 {
+    var pos: usize = 0;
+    inline for (@typeInfo(Table).@"struct".field_names) |name| {
+        const cur = @field(t, name);
+        const def = @field(defaults, name);
+        if (cur != def) {
+            const sep: []const u8 = if (pos > 0) " " else "";
+            const piece = std.fmt.bufPrint(out[pos..], "{s}{s}={d:.3}", .{ sep, name, cur }) catch return out[0..pos];
+            pos += piece.len;
+        }
+    }
+    return out[0..pos];
+}
+
+test "feel defaults start unchanged, track diffs, and reset cleanly" {
+    reset();
+    try std.testing.expect(isDefault(now));
+    try std.testing.expectEqual(@as(usize, 0), diffCount(now));
+    now.lift_pull = 2.0 / 3.0;
+    now.lean_speed = 4.0 / 3.0;
+    try std.testing.expect(!isDefault(now));
+    try std.testing.expectEqual(@as(usize, 2), diffCount(now));
+    var buf: [256]u8 = undefined;
+    const text = formatDiff(now, &buf);
+    try std.testing.expect(std.mem.indexOf(u8, text, "lift_pull=0.667") != null);
+    try std.testing.expect(std.mem.indexOf(u8, text, "lean_speed=1.333") != null);
+    reset();
+    try std.testing.expect(isDefault(now));
+}

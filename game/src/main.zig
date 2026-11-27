@@ -40,6 +40,8 @@ const Args = struct {
     without_ground: bool = false,
     half_land: bool = false,
     songbook: ?[*:0]const u8 = null,
+    pause_dump: ?[*:0]const u8 = null,
+    hud: bool = false,
     check_take: ?[*:0]const u8 = null,
     room: ?[*:0]const u8 = null,
     /// The try-out of design/the-game.md: L1 and L2 step the chord among the lift, home and the lean.
@@ -88,6 +90,12 @@ fn parseArgs(argc: c_int, argv: [*][*:0]u8) Args {
             // draw every page of the songbook into a folder, to look at
             i += 1;
             args.songbook = argv[i];
+        } else if (std.mem.eql(u8, a, "--pause-dump") and i + 1 < n) {
+            // draw all four pause/workbench tabs and the corner HUD into a folder, to look at
+            i += 1;
+            args.pause_dump = argv[i];
+        } else if (std.mem.eql(u8, a, "--hud")) {
+            args.hud = true;
         } else if (std.mem.eql(u8, a, "--without") and i + 1 < n) {
             // for measuring what a part of the picture costs on the handheld: draw it without
             i += 1;
@@ -452,7 +460,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
     } else if (args.bench_lines) {
         ok = benchLines(window, args);
     } else {
-        ok = dark.run(window, .{ .scene = args.scene, .replay = args.replay, .load = args.load, .keep = args.keep, .resume_only = args.resume_only, .picture = args.picture, .without_trail = args.without_trail, .without_ground = args.without_ground, .half_land = args.half_land, .songbook_dump = args.songbook, .check_take = args.check_take, .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot, .walk_starts = args.walk_starts, .chords = args.chords, .walk = if (args.walk) |w| std.mem.span(w) else null });
+        ok = dark.run(window, .{ .scene = args.scene, .replay = args.replay, .load = args.load, .keep = args.keep, .resume_only = args.resume_only, .picture = args.picture, .without_trail = args.without_trail, .without_ground = args.without_ground, .half_land = args.half_land, .songbook_dump = args.songbook, .pause_dump = args.pause_dump, .hud = args.hud, .check_take = args.check_take, .headless = args.headless, .frames = args.frames, .dump = args.dump, .dump_every = args.dump_every, .wav = args.wav, .bot = args.bot, .walk_starts = args.walk_starts, .chords = args.chords, .walk = if (args.walk) |w| std.mem.span(w) else null });
     }
     if (plat.log_file) |file| _ = c.fclose(file);
     return if (ok) 0 else 1;

@@ -77,6 +77,18 @@ eh?"
 9. **What is his stays his, and never stops the road.** Where a step reaches something that is
    Morgan's to decide, it says so and says what stands in until he does.
 10. **Maximal.** Where there are two ways to build a thing, the fuller one.
+11. **Compact cohesive whole before maximal scale-up** (settled 2026-11-27). Never shrink the
+    systemic depth (harmony, reactions, forms, sound mix, local-origin places, deterministic
+    keeping): build those at 100% in legs 0 and 1. Keep spatial and content scale tight and
+    parametric first: stand up all twelve lands, twelve caves, the lake, the ice, the Wolf and the
+    Comma ending at **Essence Density** (each land big enough to house its three above/below faces,
+    three cave links, Great Instrument, 1–2 signature wonders placing all 18 core theory wonders
+    across the wheel, 1–2 land-native creatures, metre/timbre/weather, and island voice — starting
+    around a 400–600 m lake and 150–250 m per land, validated by legs in 2.1). Once the entire
+    12-land game plays cohesively from the first drop to the ending, scale up parametrically:
+    stretch any land that asks for more room, fill out the remaining ~120 wonders and 96 lives /
+    multi-year arcs, and spend the 32/64 GB TF2 card on zero-stall between-day artifacts (dawn
+    archives, WAV night albums/stems, printable pages, friend worlds, baked echoes).
 
 ### How one step is done
 
@@ -399,10 +411,13 @@ place where one bank stands a little higher than the other._
   world's size (2.1); whether the purple can draw and sound all of it (2.16).
 
 - **2.1 How big the world is, by his legs.** The world's size is open. So the first step is a
-  try-out: the island, the lake bed and the Garden's shore at the notebook's size and at one or two
-  smaller ones, for him to run. The notebook's lake is 3.7 km across (`spec/size.md`, history). At
-  Hum's run of 12 m/s that is about 154 seconds from the island to the shore, by arithmetic and not
-  by measurement.
+  try-out: the island, the lake bed and the Garden's shore at a **compact sightline-rich starting
+  scale** (target ~400–600 m lake diameter, ~15–25 s island-to-shore at 12 m/s, and ~150–250 m per
+  land — sized cleanly to fit all three faces, cave links, Great Instrument, wonders and sightlines
+  without vast empty ground) beside larger variants, for his legs to choose. Because every place
+  uses local-origin scores (`2.2`), scaling any land up later is pure score/data work rather than
+  an engine rewrite. (The older notebook's 3.7 km lake in `spec/size.md` is 154 s island-to-shore
+  and waits for Stage C scale-up if the legs ever ask for it.)
 - **2.2 A world of places.** One score for each place: twelve lands, twelve caves, the island and
   the lake. The world holds the place Hum is in in full and what he can see of the others in
   outline, and it steps only what is near him. On the surface nothing loads behind a door. A picture
@@ -515,9 +530,14 @@ evening is floating._
 - **3.13 The page as a tool.** One wonder that can only be read from straight above. Morgan's
   thought is that this view will solve things the standing view can't. The direction keeps that
   open, and this is its try-out.
-- **3.14 What a land costs.** Counted, not guessed: how many steps of this road it took, how long
-  its score is, how many things it holds, and its lines a frame and overtones at their fullest. The
-  nine to come are laid out from that count.
+- **3.14 What a land costs — and the Essence Pass.** Counted, not guessed: how many steps of this
+  road one land took, how long its score is, how many things it holds, and its lines a frame and
+  overtones at their fullest. Rather than stuffing all 12 notebook wonders and 8 lives into the
+  first three lands before building lands 4–12, legs 3 and 5 bring **all twelve lands through
+  Essence Density first** (3 above/below faces, 3 cave links, Great Instrument / River Stop, 1–2
+  signature wonders covering all 18 core theory wonders across the wheel, 1–2 land-native creatures,
+  metre/timbre/weather, and island voice) straight through leg 6's ending. Expanding every land to
+  full 12-wonder / 96-life maximal density follows once the complete 12-land arc plays cohesively.
 
 ## Leg 4. Two consoles
 
@@ -696,8 +716,17 @@ These are not legs. Each grows at nearly every step.
   soft; rising, tilting, landing; each land's material drawn in lines; caves you see by calling; the
   sky; water and ice; the wheel with its thread; Hum's rings, which stay or slide; the songbook's
   pages drawn by the beam; and the island growing.
-- **Places as data.** A score for each place, and the tools that turn a score into a place, a map
-  picture and a count of what it costs.
+- **Places as data.** A score for each place, and the tools (`game/tools/score.py --inspect --map`)
+  that turn a score into a place, a top-down PNG map picture, travel-time estimates, and a
+  build-time
+  count of lines and black triangles against the Mali-G31 budget (`24,000` lines / `12,000` black
+  triangles).
+- **The Workbench & Cohesion Guard.** Four force multipliers kept live across every leg: (1) the
+  Start/Pause Menu Workbench (`1.2`: Songbook, live GPU/audio/harmony Status, live `feel.now` Bench
+  sliders + optional corner HUD, and dev Arena warps/toggles); (2) `score.py` Place Inspector & Map
+  Exporter; (3) Durable Cross-Build Progress (`1.38`, `keep/progress.txt` surviving struct changes);
+  and (4) Per-Land Automated Cohesion Checks (GPU ceiling, `ears` roughness, bot reachability, and
+  `same-take` determinism).
 - **Keeping.** Takes, saves, and the file that lasts. A take from any step of the road must still be
   readable for what the hands did, even when the world it was played in is gone.
 - **Measuring.** The ears; the purple's frames and buffers; the same-take check; the scripted player

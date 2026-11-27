@@ -28,6 +28,7 @@ pub const spigot = @import("spigot.zig");
 pub const footing = @import("footing.zig");
 pub const harmony = @import("harmony.zig");
 pub const react_mod = @import("../law/react.zig");
+pub const feel = @import("../feel.zig");
 const eye_mod = @import("../body/eye.zig");
 const garden_place = @import("../place/garden.zig");
 pub const form = @import("../form/shape.zig");
@@ -152,6 +153,18 @@ pub const jump_height: f32 = 3.0;
 pub const jump_air_s: f32 = 0.68;
 pub const fall_pull: f32 = 8.0 * jump_height / (jump_air_s * jump_air_s);
 pub const jump_speed: f32 = 4.0 * jump_height / jump_air_s;
+
+/// Live jump gravity and launch velocity derived from `feel.now.jump_height`, preserving exact
+/// compile-time rounding when untouched so `same-take` stays bit-identical.
+pub fn fallPullNow() f32 {
+    if (feel.now.jump_height == jump_height) return fall_pull;
+    return 8.0 * feel.now.jump_height / (jump_air_s * jump_air_s);
+}
+
+pub fn jumpSpeedNow() f32 {
+    if (feel.now.jump_height == jump_height) return jump_speed;
+    return 4.0 * feel.now.jump_height / jump_air_s;
+}
 /// A try-out of design/the-game.md, off unless the game is started with --chords: L1 and L2 step
 /// the chord between the lift, home and the lean wherever Hum is, at once, and Hum's body follows
 /// the chord. Its switch and its counts are kept out of the world itself, so the game's saves and
@@ -1628,7 +1641,7 @@ pub const World = struct {
             self.airborne = true;
             self.jump_held = true;
             self.jump_steps = 0;
-            self.hum_vy = jump_speed;
+            self.hum_vy = jumpSpeedNow();
             self.jump_from = self.hum_y;
             self.jumps += 1;
             self.stood_ago = jump_late + 1;
@@ -1642,7 +1655,7 @@ pub const World = struct {
                 self.jump_held = false;
                 const rem = jump_tap_height - (self.hum_y - self.jump_from);
                 if (rem > 0.0) {
-                    const v_needed = @sqrt(2.0 * fall_pull * rem);
+                    const v_needed = @sqrt(2.0 * fallPullNow() * rem);
                     if (self.hum_vy > v_needed) self.hum_vy = v_needed;
                 } else if (self.hum_vy > 0.0) {
                     self.hum_vy = 0.0;
@@ -1679,8 +1692,8 @@ pub const World = struct {
         }
         if (size > stick_dead) {
             const push = std.math.clamp((size - stick_dead) / (stick_full - stick_dead), 0.0, 1.0);
-            var top: f32 = if (self.sprinting) sprint_speed else run_speed;
-            if (chords_tryout and self.home_k == 1) top *= lean_speed;
+            var top: f32 = if (self.sprinting) feel.now.sprint_speed else feel.now.run_speed;
+            if (chords_tryout and self.home_k == 1) top *= feel.now.lean_speed;
             var wx = mx;
             var wz = mz;
             if (self.view == .place) {
@@ -2221,7 +2234,7 @@ pub const World = struct {
             const going = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
             const dx = if (going > 1.0) self.hum_vx / going else @sin(self.hum_face);
             const dz = if (going > 1.0) self.hum_vz / going else -@cos(self.hum_face);
-            const speed = launch_far * wound * (if (timed) @as(f32, 1.25) else 1.0) / (@as(f32, @floatFromInt(launch_steps)) * dt);
+            const speed = feel.now.launch_far * wound * (if (timed) @as(f32, 1.25) else 1.0) / (@as(f32, @floatFromInt(launch_steps)) * dt);
             self.burst_x = dx * speed;
             self.burst_z = dz * speed;
             self.burst_left = launch_steps;
@@ -3260,8 +3273,8 @@ pub const World = struct {
 
     /// In the air: the ground pulls, and the ground is met.
     fn flyStep(self: *World, height_was: f32, roof: f32) void {
-        var pull = fall_pull;
-        if (chords_tryout and self.home_k == -1) pull *= lift_pull;
+        var pull = fallPullNow();
+        if (chords_tryout and self.home_k == -1) pull *= feel.now.lift_pull;
         if (@abs(self.hum_vy) < 2.5) {
             pull *= 0.75; // TotK apex float at peak of arc
         } else if (self.hum_vy < 0.0) {
@@ -4034,8 +4047,10 @@ pub const World = struct {
             self.gaze *= 0.90;
         }
         // ease the camera's speed pullback so hitting a solid head-on never snaps the camera forward
-        const want_run = std.math.clamp(@sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz) / run_speed, 0.0, sprint_speed / run_speed);
-        self.view_run += (want_run - self.view_run) * view_run_ease;
+        const run_now = @max(feel.now.run_speed, 1.0);
+        const sprint_now = @max(feel.now.sprint_speed, run_now);
+        const want_run = std.math.clamp(@sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz) / run_now, 0.0, sprint_now / run_now);
+        self.view_run += (want_run - self.view_run) * feel.now.view_run_ease;
         if (want_run == 0.0 and self.view_run < 1e-4) self.view_run = 0.0;
         // what stands between the eye and Hum: the eye moves in along its line and up over
         // whatever solid or steep ground lies between them (docs/engine.md, "The eye")
@@ -4087,6 +4102,97 @@ pub const World = struct {
         back += self.lean * (lean_back - back);
         up += self.lean * ((lean_up - hum_mid) - up);
         return .{ .back = back, .up = up, .pitch = orbitAt(u, 4) - phi, .fov = orbitAt(u, 3) + run * run_wider };
+    }
+
+    pub const Daylight = enum(u8) { dark, dawn, full_day };
+
+    /// Dev arena warp: place Hum cleanly at `(x, z)` facing `face` radians (0 = north / -z),
+    /// standing on the ground with camera and motion settled.
+    pub fn warpTo(self: *World, x: f32, z: f32, face: f32) void {
+        self.hum_x = x;
+        self.hum_z = z;
+        self.hum_face = face;
+        self.look_yaw = face;
+        self.hum_vx = 0.0;
+        self.hum_vz = 0.0;
+        self.hum_vy = 0.0;
+        self.burst_x = 0.0;
+        self.burst_z = 0.0;
+        self.burst_left = 0;
+        self.airborne = false;
+        self.skidding = false;
+        self.jump_held = false;
+        self.jump_wanted = 0;
+        self.view_run = 0.0;
+        self.eye_lift = 0.0;
+        self.eye_pull = 1.0;
+        self.orbit = 0.0;
+        self.yaw_v = 0.0;
+        self.orbit_v = 0.0;
+        self.lean = 0.0;
+        self.gaze = 0.0;
+        self.view = .place;
+        self.stand = 1.0;
+        if (self.stand_from == never) self.stand_from = 0;
+        self.drip_met = true;
+        self.hum_ground = self.groundAt(x, z);
+        self.hum_floor = 0.0;
+        self.hum_y = 0.0;
+        self.view_base = self.hum_ground;
+        self.view_based = true;
+        self.cover = ground.underfootAt(x, z);
+    }
+
+    /// Dev arena lighting switch: dark opening, rising dawn, or full morning light.
+    pub fn setDaylight(self: *World, mode: Daylight) void {
+        switch (mode) {
+            .dark => {
+                self.dawn_from = never;
+                self.dawn_age0 = 0.0;
+                self.dawn = 0.0;
+            },
+            .dawn => {
+                self.dawn_from = self.step;
+                self.dawn_age0 = 12.0;
+                self.sun_x = self.hum_x;
+                self.sun_z = self.hum_z;
+                self.dawn = self.dayAt(self.hum_x, self.hum_z);
+            },
+            .full_day => {
+                self.dawn_from = 0;
+                self.dawn_age0 = 180.0;
+                self.dawn = 1.0;
+                self.view = .place;
+                self.stand = 1.0;
+                if (self.stand_from == never) self.stand_from = 0;
+            },
+        }
+    }
+
+    /// Dev arena chord switch: jumps directly to lift (-1), home (0) or lean (+1) and steps reactions.
+    pub fn setChordDirect(self: *World, k: i8) void {
+        const clamped = std.math.clamp(k, @as(i8, -1), @as(i8, 1));
+        self.awake |= (@as(u8, 1) << @intFromEnum(Mood.lift)) |
+            (@as(u8, 1) << @intFromEnum(Mood.bind)) |
+            (@as(u8, 1) << @intFromEnum(Mood.drive));
+        self.home_k = clamped;
+        self.home_hz = wedgeHz(self.day_hz, clamped);
+        harmony.step(self);
+    }
+
+    /// Reset camera orbit and eye pull cleanly behind Hum.
+    pub fn resetCamera(self: *World) void {
+        self.look_yaw = self.hum_face;
+        self.orbit = 0.0;
+        self.yaw_v = 0.0;
+        self.orbit_v = 0.0;
+        self.eye_lift = 0.0;
+        self.eye_pull = 1.0;
+        self.view_run = 0.0;
+        self.lean = 0.0;
+        self.gaze = 0.0;
+        self.view_base = self.hum_ground;
+        self.view_based = true;
     }
 
     const EyeClear = struct { lift: f32, pull: f32, solid_blocked: bool };
@@ -7057,4 +7163,37 @@ test "running into a tall rock never jolts the camera, and low rocks step smooth
     }
     try std.testing.expect(stood_on_low);
     try std.testing.expect(w.hum_x > lc.x);
+}
+
+test "dev arena warp, daylight, chord switch, and live feel bench changes work cleanly" {
+    const a = std.testing.allocator;
+    const w = try a.create(World);
+    defer a.destroy(w);
+    defer feel.reset();
+
+    w.initEvening();
+    w.warpTo(land.great[0], land.great[1] + 18.0, 0.0);
+    try std.testing.expectEqual(View.place, w.view);
+    try std.testing.expectEqual(@as(f32, 1.0), w.stand);
+    try std.testing.expectApproxEqAbs(land.great[0], w.hum_x, 1e-4);
+    try std.testing.expectApproxEqAbs(land.great[1] + 18.0, w.hum_z, 1e-4);
+    try std.testing.expectEqual(@as(f32, 0.0), w.hum_vx);
+    try std.testing.expectEqual(@as(f32, 1.0), w.eye_pull);
+
+    w.setDaylight(.full_day);
+    try std.testing.expectEqual(@as(f32, 1.0), w.dawn);
+    w.setDaylight(.dark);
+    try std.testing.expectEqual(@as(f32, 0.0), w.dawn);
+
+    w.setChordDirect(-1);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expect(w.react.rise > 0.0);
+
+    // Live bench knob changes jump launch velocity and resets cleanly
+    const base_v = jumpSpeedNow();
+    feel.now.jump_height = 4.5;
+    try std.testing.expect(jumpSpeedNow() > base_v * 1.4);
+    feel.reset();
+    try std.testing.expectEqual(jump_speed, jumpSpeedNow());
+    try std.testing.expectEqual(fall_pull, fallPullNow());
 }
