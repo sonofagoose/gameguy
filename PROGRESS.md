@@ -15,7 +15,12 @@ Where the build stands, so a new session can pick it up. Newest first.
   measured.
 - **How the engine is shaped:** `docs/engine.md`, written the same day at his asking ("audit and
   design the ultimate engine shape for this endeavor"). Leg 0 of the road builds it.
-- **Steps of the road that are in:** none yet.
+- **Steps of the road that are in:**
+  - **0.1, the music as its own module** (2026-11-26): `game/src/music/`. The note as fifths,
+    thirds, sevenths and octaves; the wheel's twenty-four cells; the day, its ring of seven chords,
+    the faces of places and every cell's chord tuned against Hum's note; what stays and what moves
+    in a change of chord; the four ways home. `direction.zig` is the arithmetic of the three design
+    documents as 26 tests. 52 new tests, 159 in all. Nothing in the game uses it yet.
 - **Everything below this section** was built to `SPEC.md` (2026-11-19 to 23), which is history
   now. "Done" in those entries meant done as a work order described it, not reachable by playing.
 

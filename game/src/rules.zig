@@ -1,5 +1,6 @@
 //! The parts of the game with no platform in them: the rules, the sound, and the arithmetic.
 //! Tests and the same-take tool start here, so they can run with no screen and no sound card.
+pub const music = @import("music/music.zig");
 pub const world = @import("world/world.zig");
 pub const sound = @import("sound/sound.zig");
 pub const m = @import("m.zig");
@@ -12,6 +13,7 @@ pub const take = @import("keep/take.zig");
 pub const save = @import("keep/save.zig");
 
 test {
+    _ = music;
     _ = world;
     _ = world.asters;
     _ = world.cues_mod;
