@@ -116,7 +116,15 @@ Where the build stands, so a new session can pick it up. Newest first.
     0.0481 rough / 1.88 s longest, `beauty.py`, exact replay & 389,512-byte save round-trips, and
     bit-identical `same-take-x86_64` fingerprints `2f2f29db6dcc4db9` / `ce641ebfbf6e128d`); all 5
     headless 640x480 Pause/HUD dumps and Garden map PNG visually verified; `game/build.sh handheld`
-    built `aarch64` cleanly (55 s), ready to sync once purple unit 164 appears on USB.
+    built `aarch64` cleanly (55 s). **Verified & deployed on purple unit 164 (build `7c85272`,
+    2026-11-27):** synced `gameguy-aarch64`, `gameguy-chords-aarch64`, `same-take-aarch64`,
+    `room/build.txt`, and refreshed `389,512`-byte `tryout/stood.save`. Live `GameguyChords`
+    replay (`game/results/gameguy-chords-20261127-104114.txt`): **400 frames, 0 late, locked 60.02
+    Hz (16.66 ms cadence), 6.58 ms avg / 8.56 ms worst work, 0.20 ms slowest sound buffer, 0
+    refused cues**, 21,747 max lines, 6,940 max black triangles. `same-take-aarch64 10`
+    (`game/results/same-take-aarch64.txt`): **77/77 lines bit-identical** to `same-take-x86_64.txt`
+    (`minute 10: 2f2f29db6dcc4db9 / 62c4bef2bf9441eb`; `evening end: ce641ebfbf6e128d /
+    06edc2cab21434e4`).
   - **1.1, read Morgan's pulled try-out takes** (2026-11-27): decoded `chords-tryout-001.take`
     (136.0 s, 1,392 changes) and `chords-tryout-002.take` (707.5 s / 11.8 min, 12,592 changes) with
     their logs. Key findings for step 1.2 (the bench) and leg 1: in take 2 Morgan split his time
