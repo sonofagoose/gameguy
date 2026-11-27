@@ -80,6 +80,20 @@ Where the build stands, so a new session can pick it up. Newest first.
     `same-take-aarch64`, and `room/build.txt`). **Verified:** 194 rules tests (+6 eye tests) and 3
     ears tests pass; laptop `game/build.sh laptop` drops `--scene evening` to 1.03 ms/frame (from
     1.20 ms) and `--lines` 29,996+20,000 tris to 2.94 ms (from 4.67 ms).
+  - **Rock impact jolt & step-up polish** (2026-11-27, commit `0a86b51`, from Morgan's hands on
+    `4195628`): eliminated four interlocking causes of the Hum/camera jolt and bounce-back on soil
+    crumbs ("rocks"): (1) added eased `World.view_run` (`view_run_ease = 0.08`) so `orbitView()`
+    no longer snaps `run_back` (3–5 m) and `run_wider` (3–5 deg) in one frame when velocity drops
+    on contact; (2) added `solid.steppable()` in `body/solid.zig` so low crumbs/plates (`<=
+    step_up`, 0.30 m) let Hum walk smoothly onto their edge instead of acting as brick walls; (3)
+    switched `Pose.between()` in `dark.zig` from forward extrapolation to strict convex
+    interpolation (`a in [-1, 0]`) so neither Hum nor `eye_pull`/`eye_lift`/`view_run` ever
+    overshoots into a rock and snaps back; (4) softened `eye_pull` solid ease (`0.65 -> 0.35`) and
+    stopped ankle-high crumbs (`< 1.2 m`) and moss from yanking the sight ray (eye ball still keeps
+    0.6 m clear of every solid). 196 rules tests (+2 new rock tests) and 3 ears tests pass;
+    `game/build.sh laptop` passes (`1.04 ms/frame` evening, `stood.save` now 389,512 bytes);
+    `aarch64` built into `dist/ports/gameguy/`, ready to push to unit 164 and re-verify
+    `same-take-aarch64` once back on USB.
   - **1.1, read Morgan's pulled try-out takes** (2026-11-27): decoded `chords-tryout-001.take`
     (136.0 s, 1,392 changes) and `chords-tryout-002.take` (707.5 s / 11.8 min, 12,592 changes) with
     their logs. Key findings for step 1.2 (the bench) and leg 1: in take 2 Morgan split his time
