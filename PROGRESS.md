@@ -65,32 +65,54 @@ Where the build stands, so a new session can pick it up. Newest first.
     29,023 max lines, 7,951 max black triangles). Frame dumps of `chords-check-0.9.take` (Home ->
     Lift -> Home -> Lean -> Full Close from `stood.save`) visually checked: risen C-leaf and tilted
     G/D blades and reeds move in lockstep with their black shapes.
-  - **Measured and deployed on the purple (unit 164, 2026-11-27):**
+  - **0.6 and 0.7, parting blades, solid eye, no fade cone, and Mali-G31 60 fps recovery**
+    (2026-11-27): `game/src/body/eye.zig` keeps the camera eye as a 0.6 m solid sphere clear of
+    Garden solids (in along its line first, then up), wired into `World.clearance` via
+    `footing.gatherForEye` (no save-format change; `eye_pull` now interpolated in `dark.zig`
+    `Pose`). `game/src/draw/lines.zig` drops the near-eye fade cone (`inCone`, `u_cone`, `v_rel`,
+    and `occ_fs` `discard`, restoring hardware Early-Z on both depth-only occlusion passes), trims
+    vertex shader work on `measures == 0`, and adds GPU parting (`setParting`, measures in
+    `feel.zig`) so thin grass blades (`tilt >= 8`) and their black shapes bend smoothly in lockstep
+    around Hum and out of the line of sight while roots stay planted. `--lines` (`main.zig`) calls
+    `setParting` every frame. `game/build.sh` gains `test`, `check`, `clips`, `release`
+    (`KILLS=100`, routine full builds `KILLS=10`), keeps tracked `design/listen/*.wav` clean unless
+    `CLIPS=1`, and pins `push` to unit 164 (syncing `gameguy-aarch64`, `gameguy-chords-aarch64`,
+    `same-take-aarch64`, and `room/build.txt`). **Verified:** 194 rules tests (+6 eye tests) and 3
+    ears tests pass; laptop `game/build.sh laptop` drops `--scene evening` to 1.03 ms/frame (from
+    1.20 ms) and `--lines` 29,996+20,000 tris to 2.94 ms (from 4.67 ms).
+  - **1.1, read Morgan's pulled try-out takes** (2026-11-27): decoded `chords-tryout-001.take`
+    (136.0 s, 1,392 changes) and `chords-tryout-002.take` (707.5 s / 11.8 min, 12,592 changes) with
+    their logs. Key findings for step 1.2 (the bench) and leg 1: in take 2 Morgan split his time
+    evenly across all three chords (Lift 31.4%, Home 41.7%, Lean 26.9%), stepped the chord roughly
+    every two beats (median gap 1.83 s, 48/113 steps on Drip's tick, 31 throws home off the lean,
+    14.5 m peak height, 26.0 m/s peak speed), and knocked past the try-out's Lift/Lean boundaries
+    24 times across the two sessions (9 past Lift on L1, 15 past Lean on L2 — his thumb naturally
+    reaches for step 1.4's full ring of seven). He used dash/sprint heavily (161 A-taps in take 2,
+    median 83 ms), played 139 strikes across chords, studied the R1 wheel (up to 33.5 s held), and
+    pressed X (`grab`) and `clap` 0 times. Removing L2's legacy camera-recentre swing in step 1.3
+    will clean up all 69 L2 lean presses.
+  - **Measured and deployed on the purple (unit 164, 2026-11-27, build `4195628`):**
     - `same-take-aarch64 10` (`game/results/same-take-aarch64.txt`) matches `same-take-x86_64`
       line-for-line across all 10 dark minutes (`world 5c549a2dcf9310f9 sound 62c4bef2bf9441eb`) and
       all 15 evening minutes (`world 6fa6473c453f6da3 sound 06edc2cab21434e4`).
-    - `--lines` with all lines and black triangles tagged
-      (`game/results/gameguy-20261127-045641.txt`,
-      Mali-G31 at 60 Hz): 9,924 lines + 5,000 black tris drawn in 13.17 ms (0/240 late); 19,960 +
-      5,000 in 17.76 ms (0/240 late, frame 20.77 ms); 29,996 + 5,000 in 22.04 ms (111/240 late,
-      frame 25.01 ms, vs 11.14 ms on 2026-11-19); 29,996 + 0 black tris in 17.94 ms (vs 10.74 ms);
-      29,996 + 20,000 black tris in 25.20 ms (240/240 late, vs 13.29 ms).
+    - `--lines` with all lines/triangles tagged, chord reactions and parting active
+      (`game/results/gameguy-20261127-082520.txt`, Mali-G31 at 60 Hz): 9,924 lines + 5,000 black
+      tris drawn in 7.44 ms (0/240 late, was 13.17 ms); 19,960 + 5,000 in 10.66 ms (0/240 late, was
+      17.76 ms); 29,996 + 5,000 in 13.64 ms (0/240 late, frame 16.66 ms, vs 22.04 ms / 111 late
+      earlier today); 29,996 + 0 black tris in 13.36 ms (5,000 black tris now add +0.28 ms vs +4.10
+      ms with `occ_fs` `discard`); 29,996 + 20,000 black tris in 16.17 ms (0/240 late, was 25.20 ms
+      / 240 late).
     - `GameguyChords` scripted replay (`tryout/chords-check-0.9.take`,
-      `game/results/gameguy-chords-20261127-045748.txt`): boots cleanly from the refreshed
-      `tryout/stood.save` (previous save kept on unit 164 as `tryout/stood.save.20261123`), 267
-      frames, 118 late, 6.16 ms CPU work/frame (worst 7.00 ms; 0 frames over 8 ms), 0.33 ms worst
-      sound buffer (real-time sound yes), 21,747 max lines, 6,940 max black triangles, average
-      screen cadence 24.99 ms (`waiting for the screen` 19.09 ms — GPU-bound on Mali-G31, vs
-      18.57 ms / 39 of 1,330 late on 2026-11-23 before leg 0's 24-bit depth, extra black shapes and
-      chord vertex shaders). This shader cost on Mali-G31 is the main performance finding to address
-      as leg 0 continues (starting with step 0.7 removing the cone fade and tightening shader work).
-    - **Pulled from unit 164:** `/roms/ports/gameguy/results/` pulled into `game/results/`
-      (including Morgan's two try-out sessions `walks/chords-tryout-001.take` /
-      `gameguy-chords-20261124-062745.txt` and `walks/chords-tryout-002.take` /
-      `gameguy-chords-20261124-154946.txt`, ready for step 1.1); `/roms/ports/gameguy/keep/` backed
-      up locally to `game/results/purple-keep-20261127/` (untracked). Both `Gameguy` and
-      `GameguyChords` on unit 164 now run today's build (`d484ed9` source, stamped `3f66d98-dirty`
-      from the build run right before the final commit).
+      `game/results/gameguy-chords-20261127-082611.txt`): **399 frames, 0 late, locked 16.66 ms
+      (60.02 Hz)** average screen cadence (down from 118/267 late and 24.99 ms earlier today, and
+      better than pre-leg-0's 39/1,330 late and 18.57 ms on 2026-11-23), 6.42 ms CPU work/frame
+      (worst 7.32 ms; 0 frames over 8 ms), 0.18 ms worst sound buffer (real-time sound yes), 21,747
+      max lines, 6,940 max black triangles.
+    - **Pulled & backed up from unit 164:** `/roms/ports/gameguy/results/` pulled into
+      `game/results/`; `/roms/ports/gameguy/keep/` backed up locally to
+      `game/results/purple-keep-20261127/` (untracked). Both `Gameguy` and `GameguyChords` on unit
+      164 run clean build `4195628` with refreshed `tryout/stood.save` (previous save preserved on
+      unit 164 as `tryout/stood.save.20261123`).
   - **The full build runs to its end again** (`game/build.sh`). It had been stopping since the
     knots were switched off, at a room walk whose start can no longer be reached; such walks are
     now left out of the built room and named (four of them, all among the knots). The retired
@@ -161,29 +183,29 @@ Run with no screen on the laptop and read in the code; the whole of it is in `do
 
 ### On the handhelds
 
-- **The purple (unit 164):** updated 2026-11-27 with the leg 0 (through step 0.9) build for both
-  `Gameguy` (`gameguy-aarch64`) and `GameguyChords` (`gameguy-chords-aarch64` with refreshed
-  `tryout/stood.save`; previous `stood.save` preserved as `stood.save.20261123`). Clock synced,
-  `same-take-aarch64` verified against laptop, `--lines` and scripted `--chords` measured on screen.
-  The page, wheel and remainder toys remain untouched.
+- **The purple (unit 164):** updated 2026-11-27 with build `4195628` (leg 0 through steps 0.6, 0.7,
+  0.8 and 0.9) for both `Gameguy` (`gameguy-aarch64`) and `GameguyChords`
+  (`gameguy-chords-aarch64` with refreshed `tryout/stood.save`; previous `stood.save` preserved as
+  `stood.save.20261123`). Clock synced, `same-take-aarch64` matched line-for-line, `--lines` and
+  scripted `--chords` verified at locked 60.02 Hz (0 late frames). The page, wheel and remainder
+  toys remain untouched.
 - **The black (unit 134):** not looked at since 2026-11-21. Never touched while Morgan is testing
   on it.
 
 ### Waiting on Morgan
 
 - His ears on sketches j, k, l and m (`design/listen/sketches/`).
-- His hands on the updated `GameguyChords` on unit 164 (now with risen leaves, tilting blades/reeds
-  and chord-lit asters/covers).
+- His hands on the updated 60 fps `GameguyChords` on unit 164 (solid eye, parting grass blades,
+  risen leaves, tilting blades/reeds and chord-lit asters/covers).
 - The calls the direction leaves to him. `ROADMAP.md`, "Morgan's calls", lists each with the step
   that reaches it and what stands in until he says. None of them stops the road.
 
 ### Next
 
-Finish the remaining steps of `ROADMAP.md` leg 0 ("Solid ground"): remaining hiding shapes (0.2/0.4:
-Drip, bee, fallen flower head, knots; asters from shared shapes), step 0.7 (remove the near-eye
-fade cone and address the Mali-G31 GPU cost measured in `gameguy-20261127-045641.txt`), step 0.10+
-and leg 1 ("An evening"), starting with reading Morgan's pulled try-out takes (step 1.1) and the
-bench (step 1.2).
+Step 1.2 (the pause-menu bench for `feel.zig` numbers, informed by step 1.1's try-out analysis) and
+step 1.3 (making `--chords` the default game and removing L2's legacy camera-recentre swing), along
+with the remaining leg 0 cleanup steps (0.2/0.4 black shapes for Drip/bee/fallen head, 0.10 touches
+& mix, 0.11 split).
 
 ## Piece 5 — Drip's Metronome Balance, Bar-Centric Timing & Procedural Animations (2026-11-23)
 
