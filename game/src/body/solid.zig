@@ -12,7 +12,7 @@ const form = @import("../form/shape.zig");
 const V3 = form.V3;
 
 /// Whose a solid is, so that touching it can sound it. The world knows what each kind means.
-pub const Kind = enum(u8) { tower, reed, hose, spigot, fallen, clover, crumb, moss, drip, other };
+pub const Kind = enum(u8) { tower, reed, hose, spigot, fallen, clover, crumb, moss, leaf, drip, other };
 
 pub const Solid = struct {
     shape: form.Shape,

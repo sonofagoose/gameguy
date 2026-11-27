@@ -30,6 +30,7 @@ test {
     _ = @import("place/garden.zig");
     _ = @import("law/standing.zig");
     _ = @import("law/react.zig");
+    _ = world.harmony;
     _ = world.covers;
     _ = world.home;
     _ = world.drip;

@@ -26,6 +26,8 @@ pub const hose = @import("hose.zig");
 pub const reeds = @import("reeds.zig");
 pub const spigot = @import("spigot.zig");
 pub const footing = @import("footing.zig");
+pub const harmony = @import("harmony.zig");
+pub const react_mod = @import("../law/react.zig");
 const garden_place = @import("../place/garden.zig");
 pub const form = @import("../form/shape.zig");
 pub const covers = @import("covers.zig");
@@ -916,6 +918,10 @@ pub const World = struct {
     /// jumps, and when it last landed. Whether the jump button is still held (for variable height).
     hum_y: f32 = 0.0,
     hum_vy: f32 = 0.0,
+    /// How the world is answering the chord (law/react.zig), and where on the day's ring the
+    /// chord stood when it last answered, so that a change is known for what it was.
+    react: react_mod.State = .{},
+    react_k: i8 = 0,
     /// How high above the ground whatever Hum stands on is: nought on the ground itself, more on
     /// a leaf, a crumb or the hose. And how high it was when its jump began.
     hum_floor: f32 = 0.0,
@@ -1563,6 +1569,10 @@ pub const World = struct {
         const pressed = hands.buttons & ~self.was;
         const released = self.was & ~hands.buttons;
         self.was = hands.buttons;
+
+        // the world answers the chord as it stands (harmony.zig): before anything moves, so that
+        // what has risen is where Hum's feet find it
+        harmony.step(self);
 
         // Hum walks. Stood in as a place, "up" on the stick is away from the eye.
         const mx = @as(f32, @floatFromInt(hands.lx)) * (1.0 / 127.0);
@@ -2233,7 +2243,6 @@ pub const World = struct {
             const rec = sound.recipe(thing.family);
             const kin = sympathy(self.home_hz, thing.hz, rec.mult, rec.gain);
             if (kin < chord_kin_least) continue;
-            thing.lit = 1.0;
             // keep the nearest few, nearest first
             var at: usize = chord_kin_sound;
             while (at > 0 and far < nearest_far[at - 1]) at -= 1;
@@ -3565,7 +3574,7 @@ pub const World = struct {
         // a fallen leaf rings as it is stepped onto, wherever it lies: each its own note
         if (self.newLeaf()) {
             const at = Place{ .x = self.hum_x, .y = 0.2, .z = self.hum_z };
-            const note = ground.hash32(self.leaf_cell[0], self.leaf_cell[1], 23) % 5;
+            const note = covers.leafNote(self.leaf_cell[0], self.leaf_cell[1]);
             self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .bar, .hz = garden_hz * ground.five[note], .strength = 0.3, .ring = 0.7 }, .glow));
         }
     }
@@ -4309,6 +4318,10 @@ pub const World = struct {
         mixIn(&h, @as(u32, @bitCast(self.breath)));
         mixIn(&h, self.breath_most);
         mixIn(&h, @as(u32, @bitCast(self.hum_y)));
+        mixIn(&h, @as(u32, @bitCast(self.react.rise)));
+        mixIn(&h, @as(u32, @bitCast(self.react.tilt)));
+        mixIn(&h, @as(u32, @bitCast(self.react.wound)));
+        for (self.react.awake) |a| mixIn(&h, @as(u32, @bitCast(a)));
         mixIn(&h, @truncate(self.clock));
         if (self.bee.thing != no_thing) {
             mixIn(&h, @as(u32, @bitCast(self.things[self.bee.thing].x)));
@@ -6742,4 +6755,135 @@ test "the chords try-out: on the lift a held jump goes higher; on the lean Hum r
     }
     try std.testing.expect(fastest[0] <= run_speed + 0.001);
     try std.testing.expect(fastest[1] > fastest[0] * 1.2 and fastest[1] <= run_speed * lean_speed + 0.001);
+}
+
+test "the world answers the chord: colours wake and rest, the lift raises and the amen settles, the lean tilts and the full close kicks back" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    w.in_garden = false;
+    w.hum_ground = 0.0;
+    chords_tryout = true;
+    defer chords_tryout = false;
+    tryout = .{};
+    w.awake |= @as(u8, 1) << @intFromEnum(Mood.drive);
+    var cues: [max_cues]sound.Cue = undefined;
+    // at home in C: C (0) and G (1) wake; D (2) and F (11) rest
+    for (0..120) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectApproxEqAbs(@as(f32, 1.0), w.react.awake[0], 0.01);
+    try std.testing.expectApproxEqAbs(@as(f32, 1.0), w.react.awake[1], 0.01);
+    try std.testing.expectApproxEqAbs(@as(f32, 0.0), w.react.awake[2], 0.01);
+    try std.testing.expectApproxEqAbs(@as(f32, 0.0), w.react.awake[11], 0.01);
+    // L1: lift (F) wakes F (11) and keeps C (0), rests G (1), and raises rise toward 1
+    _ = w.stepOnce(.{ .buttons = Hands.voice }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    var up_steps: u32 = 0;
+    while (w.react.rise < 0.9 and up_steps < 200) : (up_steps += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.react.rise >= 0.9);
+    for (0..120) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectApproxEqAbs(@as(f32, 1.0), w.react.awake[11], 0.01);
+    try std.testing.expectApproxEqAbs(@as(f32, 1.0), w.react.awake[0], 0.01);
+    try std.testing.expectApproxEqAbs(@as(f32, 0.0), w.react.awake[1], 0.01);
+    // L2: amen back to home settles slower than it rose
+    _ = w.stepOnce(.{ .buttons = Hands.guard }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    var down_steps: u32 = 0;
+    while (w.react.rise > 0.1 and down_steps < 400) : (down_steps += 1) _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(down_steps > up_steps);
+    // L2 again: lean (G) wakes G (1) and D (2), tilts and winds up
+    _ = w.stepOnce(.{ .buttons = Hands.guard }, &cues);
+    try std.testing.expectEqual(@as(i8, 1), w.home_k);
+    for (0..240) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectApproxEqAbs(@as(f32, 1.0), w.react.awake[1], 0.01);
+    try std.testing.expectApproxEqAbs(@as(f32, 1.0), w.react.awake[2], 0.01);
+    try std.testing.expect(w.react.tilt > 0.3 and w.react.wound > 0.99);
+    // L1: full close back to home kicks tilt past upright before settling to zero
+    _ = w.stepOnce(.{ .buttons = Hands.voice }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    var least_tilt: f32 = w.react.tilt;
+    for (0..400) |_| {
+        _ = w.stepOnce(.{}, &cues);
+        least_tilt = @min(least_tilt, w.react.tilt);
+    }
+    try std.testing.expect(least_tilt < -0.01);
+    try std.testing.expectApproxEqAbs(@as(f32, 0.0), w.react.tilt, 0.005);
+}
+
+test "a fallen leaf in the chord rises on the lift as a plate: Hum rides it up, hits its underside from below, and comes softly down on the amen; a leaf out of the chord stays flat" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    chords_tryout = true;
+    defer chords_tryout = false;
+    tryout = .{};
+    var cues: [max_cues]sound.Cue = undefined;
+    // find one fallen leaf in C (cell 0, awake in F's open-fifth lift) and one in D (cell 2, asleep)
+    var c_leaf: ?covers.Leaf = null;
+    var d_leaf: ?covers.Leaf = null;
+    var cz: i32 = -80;
+    while (cz <= 80 and (c_leaf == null or d_leaf == null)) : (cz += 1) {
+        var cx: i32 = -80;
+        while (cx <= 80) : (cx += 1) {
+            const lf = covers.leafAt(cx, cz) orelse continue;
+            const dx = lf.x - land.pool[0];
+            const dz = lf.z - land.pool[1];
+            if (dx * dx + dz * dz > 600.0 * 600.0) continue;
+            if (w.solidAt(lf.x, lf.z)) continue;
+            const cell = covers.leafCell(cx, cz);
+            if (cell == 0 and c_leaf == null) c_leaf = lf;
+            if (cell == 2 and d_leaf == null) d_leaf = lf;
+        }
+    }
+    const lf_c = c_leaf orelse return error.TestUnexpectedResult;
+    const lf_d = d_leaf orelse return error.TestUnexpectedResult;
+    // settle awake colours at home on the C leaf
+    w.hum_x = lf_c.x;
+    w.hum_z = lf_c.z;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.hum_y = 0.0;
+    w.hum_vy = 0.0;
+    w.airborne = false;
+    for (0..120) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(f32, 0.0), w.hum_y);
+    // L1 to lift: Hum rides the C leaf smoothly up to ~2.45 m
+    _ = w.stepOnce(.{ .buttons = Hands.voice }, &cues);
+    for (0..160) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(!w.airborne);
+    try std.testing.expectApproxEqAbs(@as(f32, 2.45), w.hum_y, 0.12);
+    try std.testing.expectApproxEqAbs(w.hum_y, w.hum_floor, 1e-4);
+    // standing on the ground underneath the risen leaf and jumping: Hum hits its underside
+    w.hum_y = 0.0;
+    w.hum_vy = 0.0;
+    w.airborne = false;
+    w.hum_floor = 0.0;
+    var under_top: f32 = 0.0;
+    _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+    for (0..40) |_| {
+        _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+        under_top = @max(under_top, w.hum_y);
+    }
+    try std.testing.expect(under_top > 0.5 and under_top < 1.6);
+    // back on top, then L2 (amen): Hum rides the settling leaf softly all the way back to the ground
+    w.hum_y = 2.45;
+    w.hum_vy = 0.0;
+    w.airborne = false;
+    _ = w.stepOnce(.{ .buttons = Hands.guard }, &cues);
+    var fell = false;
+    for (0..300) |_| {
+        _ = w.stepOnce(.{}, &cues);
+        if (w.airborne) fell = true;
+    }
+    try std.testing.expect(!fell);
+    try std.testing.expectApproxEqAbs(@as(f32, 0.0), w.hum_y, 1e-4);
+    // on the D leaf (asleep in F's chord): stepping to lift leaves Hum on the ground
+    w.hum_x = lf_d.x;
+    w.hum_z = lf_d.z;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.hum_y = 0.0;
+    w.hum_vy = 0.0;
+    w.airborne = false;
+    _ = w.stepOnce(.{ .buttons = Hands.voice }, &cues);
+    for (0..160) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(!w.airborne);
+    try std.testing.expectApproxEqAbs(@as(f32, 0.0), w.hum_y, 1e-4);
 }

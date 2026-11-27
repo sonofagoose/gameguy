@@ -183,6 +183,52 @@ pub fn leafAt(cx: i32, cz: i32) ?Leaf {
     };
 }
 
+/// Which of the garden's five notes a fallen leaf rings when it is stepped on, and its colour.
+pub fn leafNote(cx: i32, cz: i32) u8 {
+    return @intCast(ground.hash32(cx, cz, 23) % 5);
+}
+pub fn leafCell(cx: i32, cz: i32) u8 {
+    return ground.five_cells[leafNote(cx, cz)];
+}
+
+/// A leaf's outline, round it in order: a tip, three points down one side, the other tip, three
+/// back up the other side. Its tips curl up. The picture draws this, and the leaf's solid is the
+/// same outline laid flat.
+pub const leaf_lies: f32 = 0.05;
+pub fn leafOutline(leaf: Leaf) [8]form.V3 {
+    const ax = @cos(leaf.turn);
+    const az = @sin(leaf.turn);
+    const along = form.V3{ ax, 0.0, az };
+    const across = form.V3{ -az, 0.0, ax };
+    const c = form.V3{ leaf.x, leaf_lies, leaf.z };
+    const half = form.scale(along, leaf.len * 0.5);
+    const side = form.scale(across, leaf.wide * 0.8);
+    return .{
+        form.add(form.sub(c, form.scale(along, leaf.len)), .{ 0.0, leaf.curl, 0.0 }),
+        form.add(form.sub(c, half), side),
+        form.add(c, form.scale(across, leaf.wide)),
+        form.add(form.add(c, half), side),
+        form.add(form.add(c, form.scale(along, leaf.len)), .{ 0.0, leaf.curl * 0.7, 0.0 }),
+        form.sub(form.add(c, half), side),
+        form.sub(c, form.scale(across, leaf.wide)),
+        form.sub(form.sub(c, half), side),
+    };
+}
+
+/// A leaf as a shape, lifted `up` off the ground: its outline laid flat, to stand on.
+pub const leaf_thick: f32 = 0.15;
+pub fn leafShape(leaf: Leaf, up: f32, sink: *form.Sink) void {
+    var flat = leafOutline(leaf);
+    for (&flat) |*p| p[1] = leaf_lies + up;
+    sink.plate(&flat, leaf_thick);
+}
+
+/// The colour of a body on the ground: its note is one of the garden's five, by its own number.
+/// A pebble has none.
+pub fn cellOf(b: Body) u8 {
+    return if (b.kind == .pebble) 255 else ground.five_cells[b.s % 5];
+}
+
 /// Whether a place is on the leaf: inside the oval its outline makes.
 pub fn onLeaf(leaf: Leaf, x: f32, z: f32) bool {
     const dx = x - leaf.x;

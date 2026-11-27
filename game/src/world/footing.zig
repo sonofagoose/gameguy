@@ -9,16 +9,19 @@ const world_mod = @import("world.zig");
 const World = world_mod.World;
 const solid = @import("../body/solid.zig");
 const form = @import("../form/shape.zig");
+const feel = @import("../feel.zig");
 const garden = @import("../place/garden.zig");
 const covers = world_mod.covers;
 const ground = world_mod.ground;
+const harmony = world_mod.harmony;
+const react = world_mod.react_mod;
 const hose = world_mod.hose;
 const cues_mod = world_mod.cues_mod;
 
 /// How far round Hum solids are gathered: its own reach, the furthest one step takes it, and room.
 const gather_reach: f32 = 4.0;
 const most_placed = 80;
-const most_made = 40;
+const most_made = 48;
 
 /// Something Hum is against now, so that a touch sounds only as it begins.
 pub const Touch = struct {
@@ -92,6 +95,25 @@ pub fn gather(w: *const World, x: f32, z: f32, near: *Near) void {
                         };
                         for (sink.slice()) |shape| near.make(shape, kind, b.s);
                     }
+                }
+            }
+        }
+        // fallen leaves that have risen off the ground: plates to stand on or bump a head under
+        if (w.stand > 0.0 and w.react.rise > 0.01) {
+            const lcx: i32 = @intFromFloat(@floor(x / covers.leaf_cell));
+            const lcz: i32 = @intFromFloat(@floor(z / covers.leaf_cell));
+            const leaf_reacts = react.Reacts{ .rise = feel.leaf_rises };
+            var liz = lcz - 1;
+            while (liz <= lcz + 1) : (liz += 1) {
+                var lix = lcx - 1;
+                while (lix <= lcx + 1) : (lix += 1) {
+                    const leaf = covers.leafAt(lix, liz) orelse continue;
+                    const up = harmony.moved(w, covers.leafCell(lix, liz), leaf_reacts, 0.0, leaf.x, leaf.z)[1];
+                    if (up <= 0.05) continue;
+                    var room: [1]form.Shape = undefined;
+                    var sink = form.Sink{ .out = &room };
+                    covers.leafShape(leaf, up, &sink);
+                    for (sink.slice()) |shape| near.make(shape, .leaf, leaf.s);
                 }
             }
         }
@@ -219,7 +241,7 @@ fn touched(w: *World, t: Touch) void {
         .crumb => if (firmly) w.tell(.{ .at = at_hum }, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = world_mod.garden_hz * 0.5 * ground.five[t.id % 5], .strength = 0.04 + 0.08 * hard, .ring = 0.06 }, .glow)),
         // Drip, before the two have met, sounds its own note softly
         .drip => if (t.came > 0.3 and w.drip < w.thing_count) w.tell(.{ .thing = w.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = w.dripHz(), .strength = 0.05, .ring = 0.2 }, .glow)),
-        .moss, .other => {},
+        .moss, .leaf, .other => {},
     }
 }
 

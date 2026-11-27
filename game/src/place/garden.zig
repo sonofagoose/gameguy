@@ -79,7 +79,7 @@ pub fn solids() *const grid.Store {
 test "the Garden's solids: every aster, reed, stretch of hose and the spigot, with room to spare" {
     const s = solids();
     try std.testing.expectEqual(@as(u32, 0), s.lost);
-    var counts: [10]u32 = @splat(0);
+    var counts: [@typeInfo(solid.Kind).@"enum".field_names.len]u32 = @splat(0);
     for (s.solids[0..s.n]) |sol| counts[@intFromEnum(sol.kind)] += 1;
     var plans: [asters.max_towers]asters.Plan = undefined;
     const towers = asters.field(&plans, land.note);

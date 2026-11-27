@@ -44,6 +44,17 @@ pub fn coverAt(x: f32, z: f32) Cover {
 
 /// The pure garden's five-note scale, for things that are tuned to it: dew, and fallen leaves.
 pub const five = [5]f32{ 1.0, 9.0 / 8.0, 5.0 / 4.0, 3.0 / 2.0, 5.0 / 3.0 };
+/// The colour of each of the five: its place on the wheel, counted clockwise from the land's own
+/// note. C, D, E, G and A in the Garden.
+pub const five_cells = [5]u8{ 0, 2, 4, 1, 3 };
+
+test "the five notes' colours are their places on the wheel" {
+    for (five, five_cells) |ratio, cell| {
+        // how many of the treaty's half steps up, and a fifth is seven of them
+        const half_steps: u32 = @intFromFloat(@round(12.0 * @log2(ratio)));
+        try std.testing.expectEqual(@as(u32, cell), (half_steps * 7) % 12);
+    }
+}
 
 
 const pools = @import("pools.zig");

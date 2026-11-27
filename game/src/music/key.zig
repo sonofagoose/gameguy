@@ -56,6 +56,16 @@ pub const Ring = struct {
     pub fn below(pos: i8) bool {
         return pos >= runs and pos <= aches;
     }
+
+    /// Whether the chord at a place on the ring holds, lifts or leans. A cave does the job of the
+    /// land over it, and the seam leans, being the top of the lean.
+    pub fn axis(pos: i8) wheel.Axis {
+        return switch (pos) {
+            lift, runs => .lift,
+            lean, aches, seam => .lean,
+            else => .hold,
+        };
+    }
 };
 
 /// What Hum's note is over a root that stands so many cells clockwise of home: the interval from
@@ -231,6 +241,11 @@ test "the ring of seven, on one finger" {
     try expectEqual(@as(?i8, Ring.remembers), Ring.other(Ring.home));
     try expectEqual(@as(?i8, Ring.lift), Ring.other(Ring.runs));
     try expect(Ring.other(Ring.seam) == null);
+    // each place's job: and it agrees with counting cells in threes round the wheel
+    const day = Day{};
+    var p: i8 = Ring.least;
+    while (p < Ring.seam) : (p += 1) try expectEqual(day.axis(day.ringCell(p).?), Ring.axis(p));
+    try expectEqual(wheel.Axis.lean, Ring.axis(Ring.seam));
 }
 
 test "the six chords of a day in C, and its seam" {
