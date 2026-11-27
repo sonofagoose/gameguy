@@ -58,10 +58,10 @@ pub const default_step: f32 = 0.3;
 /// low branch. A steeper one is a post, with only its top end to stand on.
 const lies_within: f32 = 1.0;
 
-const Pair = struct { s: f32, t: f32 };
+pub const Pair = struct { s: f32, t: f32 };
 
 /// Where two lines come nearest: how far along each, from nought to one.
-fn nearest(p1: V3, q1: V3, p2: V3, q2: V3) Pair {
+pub fn nearest(p1: V3, q1: V3, p2: V3, q2: V3) Pair {
     const tiny: f32 = 1e-9;
     const d1 = form.sub(q1, p1);
     const d2 = form.sub(q2, p2);
@@ -151,7 +151,7 @@ fn endOf(s: form.Stalk, x: f32, z: f32, upper: bool) ?f32 {
 }
 
 /// Where the plate's top is over a place inside its outline; null outside it.
-fn onPlate(p: form.Plate, x: f32, z: f32) ?f32 {
+pub fn onPlate(p: form.Plate, x: f32, z: f32) ?f32 {
     if (p.n < 3) return null;
     // inside if the place is on the same side of every edge, seen from above
     var side: f32 = 0.0;
@@ -170,7 +170,7 @@ fn onPlate(p: form.Plate, x: f32, z: f32) ?f32 {
 }
 
 /// The nearest point of a plate's outline to a place, level.
-fn nearestOnOutline(p: form.Plate, x: f32, z: f32) V3 {
+pub fn nearestOnOutline(p: form.Plate, x: f32, z: f32) V3 {
     var best = p.corners[0];
     var best_d: f32 = std.math.floatMax(f32);
     for (0..p.n) |i| {

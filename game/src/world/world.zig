@@ -28,6 +28,7 @@ pub const spigot = @import("spigot.zig");
 pub const footing = @import("footing.zig");
 pub const harmony = @import("harmony.zig");
 pub const react_mod = @import("../law/react.zig");
+const eye_mod = @import("../body/eye.zig");
 const garden_place = @import("../place/garden.zig");
 pub const form = @import("../form/shape.zig");
 pub const covers = @import("covers.zig");
@@ -4027,17 +4028,18 @@ pub const World = struct {
         } else {
             self.gaze *= 0.90;
         }
-        // what stands between the eye and Hum: the eye rises over the ground between, and past a
-        // steep rise comes in instead
+        // what stands between the eye and Hum: the eye moves in along its line and up over
+        // whatever solid or steep ground lies between them (docs/engine.md, "The eye")
         if (self.stand > 0.0 and self.view == .place) {
             const clear = self.clearance();
-            self.eye_lift += (clear[0] - self.eye_lift) * (if (clear[0] > self.eye_lift) lift_rise else lift_fall);
-            if (clear[1] < self.eye_pull) {
-                self.eye_pull += (clear[1] - self.eye_pull) * lift_rise;
+            const rise_rate_eye: f32 = if (clear.solid_blocked) 0.65 else lift_rise;
+            self.eye_lift += (clear.lift - self.eye_lift) * (if (clear.lift > self.eye_lift) rise_rate_eye else lift_fall);
+            if (clear.pull < self.eye_pull) {
+                self.eye_pull += (clear.pull - self.eye_pull) * rise_rate_eye;
             } else {
                 const o = self.orbitView();
                 const step_part = pull_back_speed * dt / @max(o.back, 1.0);
-                self.eye_pull = @min(clear[1], self.eye_pull + step_part);
+                self.eye_pull = @min(clear.pull, self.eye_pull + step_part);
             }
         } else {
             self.eye_lift = 0.0;
@@ -4078,31 +4080,51 @@ pub const World = struct {
         return .{ .back = back, .up = up, .pitch = orbitAt(u, 4) - phi, .fov = orbitAt(u, 3) + run * run_wider };
     }
 
-    /// How far the eye must rise over the ground between it and Hum, and how far in it must come.
-    fn clearance(self: *const World) [2]f32 {
+    const EyeClear = struct { lift: f32, pull: f32, solid_blocked: bool };
+
+    /// How far the eye must rise over the ground and solids between it and Hum, and how far in
+    /// it must come (docs/engine.md, "The eye").
+    fn clearance(self: *const World) EyeClear {
         const o = self.orbitView();
         const fx = @sin(self.look_yaw);
         const fz = -@cos(self.look_yaw);
         const tx = self.hum_x;
         const ty = self.view_base + hum_mid;
         const tz = self.hum_z;
-        var best = [2]f32{ 0.0, 1.0 };
-        for (pull_parts) |p| {
+
+        var solid_pull: f32 = 1.0;
+        var solid_lift: f32 = 0.0;
+        var solid_blocked = false;
+        if (self.in_garden and self.stand > 0.0 and self.orbitNow() < 0.85 and o.back > 0.5) {
+            const desired = [3]f32{ tx - fx * o.back, ty + o.up, tz - fz * o.back };
+            var near: footing.Near = undefined;
+            footing.gatherForEye(self, tx, tz, desired[0], desired[2], &near);
+            const min_pull = pull_parts[pull_parts.len - 1];
+            const res = eye_mod.clearEye(near.slice(), .{ tx, ty, tz }, desired, min_pull);
+            solid_pull = res.pull;
+            solid_lift = res.lift;
+            solid_blocked = res.blocked;
+        }
+
+        var best = EyeClear{ .lift = solid_lift, .pull = solid_pull, .solid_blocked = solid_blocked };
+        for (pull_parts) |cand| {
+            const p = @min(cand, solid_pull);
             const bx = -fx * o.back * p;
             const by = o.up * p;
             const bz = -fz * o.back * p;
             const ex = tx + bx;
             const ez = tz + bz;
             const over: f32 = if (self.in_garden and ground.wet(ex, ez)) eye_over_water else eye_over_ground;
-            var lift = @max(0.0, self.groundAt(ex, ez) + over - (ty + by));
+            var lift = @max(solid_lift, self.groundAt(ex, ez) + over - (ty + by));
             for ([4]f32{ 0.2, 0.4, 0.6, 0.8 }) |f| {
                 const need = self.groundAt(tx + bx * f, tz + bz * f) + line_over_ground - (ty + by * f);
                 lift = @max(lift, need / f);
             }
-            best = .{ lift, p };
-            if (lift <= 0.0) break;
+            best = .{ .lift = lift, .pull = p, .solid_blocked = solid_blocked };
+            if (lift <= solid_lift + 1e-4) break;
             const rise = std.math.atan2(by + lift, o.back * p);
             if (rise <= @max(lift_most_rise, std.math.atan2(by, o.back * p))) break;
+            if (p <= pull_parts[pull_parts.len - 1]) break;
         }
         return best;
     }
@@ -6886,4 +6908,53 @@ test "a fallen leaf in the chord rises on the lift as a plate: Hum rides it up, 
     for (0..160) |_| _ = w.stepOnce(.{}, &cues);
     try std.testing.expect(!w.airborne);
     try std.testing.expectApproxEqAbs(@as(f32, 0.0), w.hum_y, 1e-4);
+}
+
+test "the eye stays clear of the great aster stalk and the hose (step 0.7)" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    w.stand = 1.0;
+    // Place Hum 5 m north of the great aster, facing north so the stalk stands directly behind Hum
+    // between Hum and the camera eye (at z = great_z + 6 m when unpulled).
+    w.hum_x = asters.great_x;
+    w.hum_z = asters.great_z - 5.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.look_yaw = 0.0;
+    w.orbit = 0.0;
+    w.view_based = false;
+    w.eye_lift = 0.0;
+    w.eye_pull = 1.0;
+    for (0..30) |_| w.look(.{}, 0);
+    try std.testing.expect(w.eye_pull < 0.55);
+    const cam_aster = w.camera();
+    var near_aster: footing.Near = undefined;
+    footing.gatherForEye(w, w.hum_x, w.hum_z, cam_aster.eye[0], cam_aster.eye[2], &near_aster);
+    for (near_aster.slice()) |s| {
+        if (s.kind == .tower) try std.testing.expect(eye_mod.distPoint(s, cam_aster.eye) >= eye_mod.eye_reach - 0.05);
+    }
+    // Place Hum beside a straight stretch of the hose, with the camera looking across the hose.
+    const hp = hose.at(hose.length * 0.5);
+    const hp_next = hose.at(hose.length * 0.5 + 2.0);
+    const tx = hp_next[0] - hp[0];
+    const tz = hp_next[1] - hp[1];
+    const tl = @sqrt(tx * tx + tz * tz);
+    const nx = -tz / tl;
+    const nz = tx / tl;
+    w.hum_x = hp[0] + nx * 3.0;
+    w.hum_z = hp[1] + nz * 3.0;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    // look away from the hose so the camera sits across the hose behind Hum
+    w.look_yaw = std.math.atan2(nx, -nz);
+    w.orbit = -0.3;
+    w.view_based = false;
+    w.eye_lift = 0.0;
+    w.eye_pull = 1.0;
+    for (0..30) |_| w.look(.{}, 0);
+    const cam_hose = w.camera();
+    var near_hose: footing.Near = undefined;
+    footing.gatherForEye(w, w.hum_x, w.hum_z, cam_hose.eye[0], cam_hose.eye[2], &near_hose);
+    for (near_hose.slice()) |s| {
+        if (s.kind == .hose) try std.testing.expect(eye_mod.distPoint(s, cam_hose.eye) >= eye_mod.eye_reach - 0.05);
+    }
 }

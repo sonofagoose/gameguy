@@ -27,6 +27,7 @@ test {
     _ = @import("draw/hum_figure.zig");
     _ = @import("body/solid.zig");
     _ = @import("body/grid.zig");
+    _ = @import("body/eye.zig");
     _ = @import("place/garden.zig");
     _ = @import("law/standing.zig");
     _ = @import("law/react.zig");

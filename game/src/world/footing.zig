@@ -20,8 +20,8 @@ const cues_mod = world_mod.cues_mod;
 
 /// How far round Hum solids are gathered: its own reach, the furthest one step takes it, and room.
 const gather_reach: f32 = 4.0;
-const most_placed = 80;
-const most_made = 48;
+const most_placed = 128;
+const most_made = 96;
 
 /// Something Hum is against now, so that a touch sounds only as it begins.
 pub const Touch = struct {
@@ -55,12 +55,12 @@ pub const Near = struct {
     }
 };
 
-/// Gather what is solid round a place.
-pub fn gather(w: *const World, x: f32, z: f32, near: *Near) void {
+/// Gather what is solid round a place within `reach` metres.
+pub fn gatherRadius(w: *const World, x: f32, z: f32, reach: f32, near: *Near) void {
     near.n = 0;
     near.made_n = 0;
     if (w.in_garden) {
-        near.n = garden.solids().near(x, z, gather_reach, near.list[0..most_placed]);
+        near.n = garden.solids().near(x, z, reach, near.list[0..most_placed]);
         // on the page the hose is a drawn line, walked over; stood up, it is a tube
         if (w.stand < 1.0) {
             var kept: usize = 0;
@@ -76,12 +76,15 @@ pub fn gather(w: *const World, x: f32, z: f32, near: *Near) void {
         for ([2]bool{ false, true }) |close| {
             const size: f32 = if (close) covers.near_size else covers.far_size;
             const salt: u32 = if (close) covers.near_salt else 0;
-            const cx: i32 = @intFromFloat(@floor(x / size));
-            const cz: i32 = @intFromFloat(@floor(z / size));
-            var iz = cz - 1;
-            while (iz <= cz + 1) : (iz += 1) {
-                var ix = cx - 1;
-                while (ix <= cx + 1) : (ix += 1) {
+            const pad: f32 = reach + 3.0;
+            const x0: i32 = @intFromFloat(@floor((x - pad) / size));
+            const x1: i32 = @intFromFloat(@floor((x + pad) / size));
+            const z0: i32 = @intFromFloat(@floor((z - pad) / size));
+            const z1: i32 = @intFromFloat(@floor((z + pad) / size));
+            var iz = z0;
+            while (iz <= z1) : (iz += 1) {
+                var ix = x0;
+                while (ix <= x1) : (ix += 1) {
                     const n = covers.patch(ix, iz, size, close, salt, &bodies);
                     for (bodies[0..n]) |b| {
                         var room: [2]form.Shape = undefined;
@@ -100,13 +103,16 @@ pub fn gather(w: *const World, x: f32, z: f32, near: *Near) void {
         }
         // fallen leaves that have risen off the ground: plates to stand on or bump a head under
         if (w.stand > 0.0 and w.react.rise > 0.01) {
-            const lcx: i32 = @intFromFloat(@floor(x / covers.leaf_cell));
-            const lcz: i32 = @intFromFloat(@floor(z / covers.leaf_cell));
+            const pad: f32 = reach + covers.leaf_cell;
+            const lx0: i32 = @intFromFloat(@floor((x - pad) / covers.leaf_cell));
+            const lx1: i32 = @intFromFloat(@floor((x + pad) / covers.leaf_cell));
+            const lz0: i32 = @intFromFloat(@floor((z - pad) / covers.leaf_cell));
+            const lz1: i32 = @intFromFloat(@floor((z + pad) / covers.leaf_cell));
             const leaf_reacts = react.Reacts{ .rise = feel.leaf_rises };
-            var liz = lcz - 1;
-            while (liz <= lcz + 1) : (liz += 1) {
-                var lix = lcx - 1;
-                while (lix <= lcx + 1) : (lix += 1) {
+            var liz = lz0;
+            while (liz <= lz1) : (liz += 1) {
+                var lix = lx0;
+                while (lix <= lx1) : (lix += 1) {
                     const leaf = covers.leafAt(lix, liz) orelse continue;
                     const up = harmony.moved(w, covers.leafCell(lix, liz), leaf_reacts, 0.0, leaf.x, leaf.z)[1];
                     if (up <= 0.05) continue;
@@ -123,6 +129,89 @@ pub fn gather(w: *const World, x: f32, z: f32, near: *Near) void {
         const th = w.things[w.drip];
         near.make(.{ .ball = .{ .at = .{ th.x, th.y, th.z }, .r = th.tall * 0.5 } }, .drip, 0);
     }
+}
+
+/// Gather what is solid along the camera's line of sight (`target -> desired`): static big solids
+/// from the grid across the whole stretch, plus covers near the eye point itself and risen leaves
+/// when lifted. Keeps `World.clearance()` cheap on every step.
+pub fn gatherForEye(w: *const World, tx: f32, tz: f32, ex: f32, ez: f32, near: *Near) void {
+    near.n = 0;
+    near.made_n = 0;
+    if (!w.in_garden) return;
+    const mid_x = (tx + ex) * 0.5;
+    const mid_z = (tz + ez) * 0.5;
+    const dx = ex - tx;
+    const dz = ez - tz;
+    const half_reach = @sqrt(dx * dx + dz * dz) * 0.5 + 2.0;
+    near.n = garden.solids().near(mid_x, mid_z, half_reach, near.list[0..most_placed]);
+    if (w.stand < 1.0) {
+        var kept: usize = 0;
+        for (near.list[0..near.n]) |s| {
+            if (s.kind == .hose) continue;
+            near.list[kept] = s;
+            kept += 1;
+        }
+        near.n = kept;
+    }
+    // covers (crumbs, moss, clover) near the eye itself so the eye ball never clips inside them
+    var bodies: [covers.most_in_patch]covers.Body = undefined;
+    for ([2]bool{ false, true }) |close| {
+        const size: f32 = if (close) covers.near_size else covers.far_size;
+        const salt: u32 = if (close) covers.near_salt else 0;
+        const pad: f32 = 3.5;
+        const x0: i32 = @intFromFloat(@floor((ex - pad) / size));
+        const x1: i32 = @intFromFloat(@floor((ex + pad) / size));
+        const z0: i32 = @intFromFloat(@floor((ez - pad) / size));
+        const z1: i32 = @intFromFloat(@floor((ez + pad) / size));
+        var iz = z0;
+        while (iz <= z1) : (iz += 1) {
+            var ix = x0;
+            while (ix <= x1) : (ix += 1) {
+                const n = covers.patch(ix, iz, size, close, salt, &bodies);
+                for (bodies[0..n]) |b| {
+                    var room: [2]form.Shape = undefined;
+                    var sink = form.Sink{ .out = &room };
+                    covers.shapes(b, &sink);
+                    const kind: solid.Kind = switch (b.kind) {
+                        .clover => .clover,
+                        .crumb => .crumb,
+                        .moss => .moss,
+                        else => .other,
+                    };
+                    for (sink.slice()) |shape| near.make(shape, kind, b.s);
+                }
+            }
+        }
+    }
+    if (w.stand > 0.0 and w.react.rise > 0.01) {
+        const min_x = @min(tx, ex) - covers.leaf_cell;
+        const max_x = @max(tx, ex) + covers.leaf_cell;
+        const min_z = @min(tz, ez) - covers.leaf_cell;
+        const max_z = @max(tz, ez) + covers.leaf_cell;
+        const lx0: i32 = @intFromFloat(@floor(min_x / covers.leaf_cell));
+        const lx1: i32 = @intFromFloat(@floor(max_x / covers.leaf_cell));
+        const lz0: i32 = @intFromFloat(@floor(min_z / covers.leaf_cell));
+        const lz1: i32 = @intFromFloat(@floor(max_z / covers.leaf_cell));
+        const leaf_reacts = react.Reacts{ .rise = feel.leaf_rises };
+        var liz = lz0;
+        while (liz <= lz1) : (liz += 1) {
+            var lix = lx0;
+            while (lix <= lx1) : (lix += 1) {
+                const leaf = covers.leafAt(lix, liz) orelse continue;
+                const up = harmony.moved(w, covers.leafCell(lix, liz), leaf_reacts, 0.0, leaf.x, leaf.z)[1];
+                if (up <= 0.05) continue;
+                var room: [1]form.Shape = undefined;
+                var sink = form.Sink{ .out = &room };
+                covers.leafShape(leaf, up, &sink);
+                for (sink.slice()) |shape| near.make(shape, .leaf, leaf.s);
+            }
+        }
+    }
+}
+
+/// Gather what is solid round a place.
+pub fn gather(w: *const World, x: f32, z: f32, near: *Near) void {
+    gatherRadius(w, x, z, gather_reach, near);
 }
 
 fn bodyAt(w: *const World, x: f32, z: f32, feet: f32) solid.Body {
