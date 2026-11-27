@@ -90,9 +90,9 @@ fn tri(model: *Model, a: V, b: V, c: V) void {
     model.occ_n += 3;
 }
 
-/// How thick the stalk is at a height: a metre through at the foot, a third of that at the top.
+/// How thick the stalk is at a height: the plan's own measure, which what stops Hum reads too.
 fn girth(p: *const asters.Plan, h: f32) f32 {
-    return 0.5 * (1.0 - 0.62 * h / p.tall) + 0.04;
+    return p.girth(h);
 }
 
 fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
@@ -428,8 +428,8 @@ fn clover(x: f32, z: f32, s: u32, out: Out) void {
     const tall = covers.cloverTall(s);
     const r = 1.1 + 0.7 * unit01(s *% 40503);
     const turn = unit01(s *% 69069) * 6.2831853;
-    const lean = V{ @cos(turn) * tall * 0.12, 0.0, @sin(turn) * tall * 0.12 };
-    const top = V{ x + lean[0], tall, z + lean[2] };
+    // its stalk leans as the rules say it does: what stops Hum is this same line
+    const top = covers.cloverTop(x, z, s);
     out.line(.{ x, 0.0, z }, top, 1.0, rib);
     for (0..3) |k| {
         const a = turn + @as(f32, @floatFromInt(k)) * 2.0943951;
@@ -451,8 +451,9 @@ fn moss(x: f32, z: f32, s: u32, near: bool, out: Out) void {
     if (world_mod.ground.wet(x, z)) return;
     const tint = col8(.{ 0.30, 0.58, 0.36 }, 0.20);
     const fine = col8(.{ 0.52, 0.70, 0.40 }, 0.16);
-    const r = 2.0 + 3.0 * unit01(s *% 2654435761);
-    const high = 0.5 + 0.9 * unit01(s *% 40503);
+    const size = covers.moss(s);
+    const r = size.r;
+    const high = size.high;
     const turn = unit01(s *% 69069) * 6.2831853;
     const top = V{ x, high, z };
     const sides: usize = if (near) 7 else 5;

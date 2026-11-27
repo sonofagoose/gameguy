@@ -125,10 +125,11 @@ pub fn distance(x: f32, z: f32) f32 {
 /// middle line is that high.
 pub const reach: f32 = land.hose_bore * 0.5;
 /// One straight stretch of tube stands for a piece of the curve no longer than this, that turns no
-/// more than this (the cosine of a fifth of a radian). So a long run is few stretches and the coil
+/// more than this (the cosine of six hundredths of a radian), which keeps each within about two
+/// centimetres of the curve. So a long run is few stretches and the coil
 /// is many short ones.
 const stretch_long: f32 = 3.0;
-const stretch_turn: f32 = 0.98;
+const stretch_turn: f32 = 0.9982;
 /// Each stretch is this much longer than its piece at either end, so that no gap opens on the
 /// outside of a bend.
 const stretch_laps: f32 = reach * 0.12;

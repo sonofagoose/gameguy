@@ -4,6 +4,7 @@
 //! can't disagree. Fallen leaves lie on their own six-metre grid (`leafAt`). No platform.
 
 const ground = @import("ground.zig");
+const form = @import("../form/shape.zig");
 
 pub const Kind = enum { blade, clover, moss, crumb, pebble };
 
@@ -84,6 +85,17 @@ pub fn cloverTall(s: u32) f32 {
     return 3.0 + 4.0 * ground.unit01(s *% 2654435761);
 }
 pub const clover_stalk: f32 = 0.08;
+/// Its stalk leans: where its top is, over which its three leaflets open.
+pub fn cloverTop(x: f32, z: f32, s: u32) form.V3 {
+    const tall = cloverTall(s);
+    const turn = ground.unit01(s *% 69069) * 6.2831853;
+    return .{ x + @cos(turn) * tall * 0.12, tall, z + @sin(turn) * tall * 0.12 };
+}
+/// A cushion of moss: a few metres across and a metre or so high.
+pub const Moss = struct { r: f32, high: f32 };
+pub fn moss(s: u32) Moss {
+    return .{ .r = 2.0 + 3.0 * ground.unit01(s *% 2654435761), .high = 0.5 + 0.9 * ground.unit01(s *% 40503) };
+}
 
 /// A crumb of soil: from half a metre to three across, and as high as its own shape makes it.
 pub const Crumb = struct { r: f32, high: f32 };
@@ -95,6 +107,28 @@ pub fn crumb(s: u32) Crumb {
 /// How far a crumb's foot reaches from its middle, on the whole: its corners reach from 0.65 to
 /// 1.2 of its size.
 pub const crumb_reach: f32 = 0.9;
+
+/// What a body on the ground is made of, for whatever stops Hum and whatever hides. A clover is
+/// its stalk. A crumb is a drum as wide as its foot and as high as it stands: low ones are stepped
+/// onto, high ones are walked round or jumped on. A cushion of moss is a mound to walk over. A
+/// blade and a pebble are nothing solid: a blade parts.
+pub fn shapes(b: Body, sink: *form.Sink) void {
+    switch (b.kind) {
+        .clover => sink.stalk(.{ b.x, 0.0, b.z }, cloverTop(b.x, b.z, b.s), clover_stalk, clover_stalk),
+        .crumb => {
+            const c = crumb(b.s);
+            sink.stalk(.{ b.x, 0.0, b.z }, .{ b.x, c.high, b.z }, c.r * crumb_reach, c.r * crumb_reach);
+        },
+        .moss => {
+            // the cap of a ball sunk in the ground: as wide as the cushion at the ground, as high
+            // as it in the middle
+            const m = moss(b.s);
+            const round = (m.r * m.r + m.high * m.high) / (2.0 * m.high);
+            sink.ball(.{ b.x, m.high - round, b.z }, round);
+        },
+        .blade, .pebble => {},
+    }
+}
 
 const std = @import("std");
 

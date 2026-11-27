@@ -25,6 +25,8 @@ pub const land = @import("land.zig");
 pub const hose = @import("hose.zig");
 pub const reeds = @import("reeds.zig");
 pub const spigot = @import("spigot.zig");
+pub const footing = @import("footing.zig");
+const garden_place = @import("../place/garden.zig");
 pub const form = @import("../form/shape.zig");
 pub const covers = @import("covers.zig");
 pub const home = @import("home.zig");
@@ -914,6 +916,10 @@ pub const World = struct {
     /// jumps, and when it last landed. Whether the jump button is still held (for variable height).
     hum_y: f32 = 0.0,
     hum_vy: f32 = 0.0,
+    /// How high above the ground whatever Hum stands on is: nought on the ground itself, more on
+    /// a leaf, a crumb or the hose. And how high it was when its jump began.
+    hum_floor: f32 = 0.0,
+    jump_from: f32 = 0.0,
     airborne: bool = false,
     jump_held: bool = false,
     jump_steps: u32 = 0,
@@ -928,9 +934,6 @@ pub const World = struct {
     /// Hum is against the hose (the scripted player jumps it), and was the step before: a touch
     /// sounds only as it begins.
     at_hose: bool = false,
-    was_at_hose: bool = false,
-    /// Hum is against the spigot.
-    at_spigot: bool = false,
     /// Sprinting now, how many sprints, how many times the breath ran out and grew.
     sprinting: bool = false,
     sprints: u32 = 0,
@@ -974,10 +977,9 @@ pub const World = struct {
     /// so each answers only as the touch begins.
     reed_first: u32 = 0,
     reed_count: u32 = 0,
-    touching_reed: u32 = no_thing,
-    touching_cover: u32 = 0,
-    touching_fallen: bool = false,
-    touching_drip: bool = false,
+    /// Whatever solid things Hum is against now (footing.zig), so each answers only as the touch
+    /// begins.
+    touches: [footing.most_touches]footing.Touch = @splat(.{}),
     touching_rim: bool = false,
     /// The wheel: when the pointed wedge was entered, and the wedge being hummed under Hum's breath.
     wheel_point_since: u64 = 0,
@@ -1338,7 +1340,7 @@ pub const World = struct {
         // one flower head has fallen by the great aster's foot, so a bell is met at Hum's own
         // size before a crown of them is seen from a hundred and fifty metres below
         self.fallen = at;
-        self.things[at] = .{ .x = asters.great_x + 7.5, .y = 1.5, .z = asters.great_z + 6.0, .tall = 2.2, .hz = garden_hz * 0.5, .ring = 5.5 };
+        self.things[at] = .{ .x = garden_place.fallen_x, .y = garden_place.fallen_y, .z = garden_place.fallen_z, .tall = garden_place.fallen_tall, .hz = garden_hz * 0.5, .ring = 5.5 };
         at += 1;
         // Drip: a drop 40 cm across
         self.drip = at;
@@ -1597,7 +1599,7 @@ pub const World = struct {
 
         // the bottom face: on the ground a jump (SM64 x TotK standard: snappy, weighty, non-floaty)
         if (self.jump_wanted > 0) self.jump_wanted -= 1;
-        const landing_soon = self.airborne and self.hum_vy < 0.0 and self.hum_y < jump_early_height;
+        const landing_soon = self.airborne and self.hum_vy < 0.0 and self.hum_y - self.hum_floor < jump_early_height;
         const can_coyote = self.stood_ago > 0 and self.stood_ago <= jump_late and self.hum_vy <= 0.0;
         const wants_jump = (pressed & Hands.jump != 0 and self.jump_can_retrigger) or (self.jump_wanted > 0 and !self.airborne);
         if (pressed & Hands.jump != 0 and self.jump_can_retrigger and self.view == .place and self.stand >= 1.0 and landing_soon) {
@@ -1611,6 +1613,7 @@ pub const World = struct {
             self.jump_held = true;
             self.jump_steps = 0;
             self.hum_vy = jump_speed;
+            self.jump_from = self.hum_y;
             self.jumps += 1;
             self.stood_ago = jump_late + 1;
             if (self.first_jump_at == never) self.first_jump_at = self.step;
@@ -1621,7 +1624,7 @@ pub const World = struct {
         if (self.jump_held) {
             if (hands.buttons & Hands.jump == 0) {
                 self.jump_held = false;
-                const rem = jump_tap_height - self.hum_y;
+                const rem = jump_tap_height - (self.hum_y - self.jump_from);
                 if (rem > 0.0) {
                     const v_needed = @sqrt(2.0 * fall_pull * rem);
                     if (self.hum_vy > v_needed) self.hum_vy = v_needed;
@@ -1795,37 +1798,29 @@ pub const World = struct {
         if (self.view == .place and self.pool_count > 0) self.onWater(&go_x, &go_z);
         if (self.view == .place) self.atShore(&go_x, &go_z);
         if (self.view == .place) self.atRim(&go_x, &go_z);
-        if (self.view == .place) self.atStalks(&go_x, &go_z);
-        if (self.view == .place) self.atHose(&go_x, &go_z);
-        if (self.view == .place) self.atSpigot(&go_x, &go_z);
-        if (self.view == .place) {
-            self.atReeds(&go_x, &go_z);
-            self.atCovers(&go_x, &go_z);
-            self.atFallen(&go_x, &go_z);
-            self.atDrip(&go_x, &go_z);
-            // pushed out of one solid into another, the step is not taken: Hum never ends a step
-            // inside anything (unless it began inside, when it may walk out)
-            if (!(self.airborne and self.hum_y > step_up) and self.solidAt(self.hum_x + go_x, self.hum_z + go_z) and !self.solidAt(self.hum_x, self.hum_z)) {
-                go_x = 0.0;
-                go_z = 0.0;
-            }
-        }
+        // whatever is solid stops the step, whatever kind of thing it is (footing.zig)
+        if (self.view == .place) footing.against(self, &go_x, &go_z);
         const height_was = self.hum_ground + self.hum_y;
         self.hum_x += go_x;
         self.hum_z += go_z;
         self.hum_ground = self.groundAt(self.hum_x, self.hum_z);
-        if (!self.airborne and height_was - self.hum_ground > step_up) {
+        // what is under its feet here and over its head: the ground, or something solid on it
+        const footed: footing.Stand = if (self.view == .place) footing.under(self, height_was) else .{ .floor = self.hum_ground, .roof = footing.no_roof };
+        self.hum_floor = @max(0.0, footed.floor - self.hum_ground);
+        if (!self.airborne and height_was - (self.hum_ground + self.hum_floor) > step_up) {
             // walked off an edge: begin falling with coyote time
             self.airborne = true;
             self.hum_y = height_was - self.hum_ground;
             self.hum_vy = 0.0;
             self.stood_ago = 1;
         } else if (!self.airborne) {
+            // on its feet it follows what it stands on, up a step or down one
+            self.hum_y = self.hum_floor;
             self.stood_ago = 0;
         } else if (self.stood_ago > 0) {
             self.stood_ago += 1;
         }
-        if (self.airborne) self.flyStep(height_was);
+        if (self.airborne) self.flyStep(height_was, footed.roof);
         const moved = if (self.airborne) 0.0 else @sqrt(go_x * go_x + go_z * go_z);
         if (moved > 0.0005 and self.view == .place and self.stand >= 1.0) self.underfoot(moved);
         if (self.view == .place and self.pool_count > 0) self.crossings();
@@ -3249,7 +3244,7 @@ pub const World = struct {
     }
 
     /// In the air: the ground pulls, and the ground is met.
-    fn flyStep(self: *World, height_was: f32) void {
+    fn flyStep(self: *World, height_was: f32, roof: f32) void {
         var pull = fall_pull;
         if (chords_tryout and self.home_k == -1) pull *= lift_pull;
         if (@abs(self.hum_vy) < 2.5) {
@@ -3260,17 +3255,24 @@ pub const World = struct {
         self.hum_vy -= pull * dt;
         // its height over the ground under it now, which may have risen or fallen beneath it
         self.hum_y = height_was + self.hum_vy * dt - self.hum_ground;
-        if (self.hum_y > 0.0) return;
+        if (self.hum_vy > 0.0 and self.hum_ground + self.hum_y + hum_tall > roof) {
+            // its head has met the underside of something: it rises no further, and the knock is told
+            self.hum_y = roof - hum_tall - self.hum_ground;
+            const knock = Place{ .x = self.hum_x, .y = self.hum_y + hum_tall, .z = self.hum_z };
+            self.tell(.{ .at = knock }, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = self.home_hz, .strength = std.math.clamp(self.hum_vy / 40.0, 0.03, 0.3), .ring = 0.08 }, .glow));
+            self.hum_vy = 0.0;
+        }
+        if (self.hum_y > self.hum_floor) return;
         // landed: a thud as hard as the fall, where Hum came down, and its light there
         const fall = -self.hum_vy;
-        self.hum_y = 0.0;
+        self.hum_y = self.hum_floor;
         self.hum_vy = 0.0;
         self.airborne = false;
         self.jump_held = false;
         self.jump_steps = 0;
         self.jump_cooldown = 4;
         self.landed_at = self.step;
-        const at = Place{ .x = self.hum_x, .y = 0.1, .z = self.hum_z };
+        const at = Place{ .x = self.hum_x, .y = self.hum_floor + 0.1, .z = self.hum_z };
         self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = self.home_hz, .strength = std.math.clamp(fall / 30.0, 0.04, 0.4), .ring = 0.15 }, .glow));
     }
 
@@ -3290,60 +3292,6 @@ pub const World = struct {
     /// The wedge the wind's note stands on: the day's own.
     pub fn windWedge(self: *const World) i8 {
         return wedgeOfHz(self.day_hz, self.day_hz);
-    }
-
-    /// The hose is a tube lying on the ground, 1.8 m through: Hum goes round it or over it.
-    fn atHose(self: *World, go_x: *f32, go_z: *f32) void {
-        self.was_at_hose = self.at_hose;
-        self.at_hose = false;
-        if (!self.in_garden or self.hose_thing == no_thing) return;
-        // on the page the hose is a drawn line, walked over; stood up, it is a tube
-        if (self.stand < 1.0) return;
-        const reach = land.hose_bore * 0.5 + hum_body;
-        const tx = self.hum_x + go_x.*;
-        const tz = self.hum_z + go_z.*;
-        const near = hose.nearest(tx, tz);
-        if (near.d >= reach) return;
-        // in the air it is a round tube: over its side Hum need only be half its height up, over its
-        // top all of it
-        if (self.airborne) {
-            const r = land.hose_bore * 0.5;
-            const across = @max(near.d - hum_body, 0.0);
-            const top = r + @sqrt(@max(r * r - across * across, 0.0));
-            if (self.hum_y >= top) return;
-        }
-        self.at_hose = true;
-        var nx = tx - near.p[0];
-        var nz = tz - near.p[1];
-        var d = @sqrt(nx * nx + nz * nz);
-        if (d < 0.01) {
-            // on its line: out to the side Hum came from
-            nx = self.hum_x - near.p[0];
-            nz = self.hum_z - near.p[1];
-            d = @max(@sqrt(nx * nx + nz * nz), 0.01);
-        }
-        nx /= d;
-        nz /= d;
-        go_x.* = near.p[0] + nx * reach - self.hum_x;
-        go_z.* = near.p[1] + nz * reach - self.hum_z;
-        const v_in = self.hum_vx * nx + self.hum_vz * nz;
-        if (v_in < 0.0) {
-            self.hum_vx -= v_in * nx;
-            self.hum_vz -= v_in * nz;
-            // run into, the hose sounds, in its own voice
-            if (-v_in > bump_least and !self.was_at_hose) self.touch(self.hose_thing, -v_in, .{ .x = near.p[0], .y = land.hose_bore * 0.5, .z = near.p[1] });
-        }
-    }
-
-    /// The spigot stands on its rise, solid: Hum goes round it, and touched it rings.
-    fn atSpigot(self: *World, go_x: *f32, go_z: *f32) void {
-        if (self.spigot_thing == no_thing) return;
-        if (self.airborne and self.hum_y > land.spigot[2]) return;
-        var touching = false;
-        defer self.at_spigot = touching;
-        const came = self.pushOut(go_x, go_z, land.spigot[0], land.spigot[1], spigot_body + hum_body) orelse return;
-        touching = true;
-        if (came > bump_least and !self.at_spigot) self.touch(self.spigot_thing, came, .{ .x = self.hum_x, .y = 0.5, .z = self.hum_z });
     }
 
     /// Whether something threatens Hum: a knot near that is not home. Then the right face dodges;
@@ -3426,183 +3374,17 @@ pub const World = struct {
         self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .stopped_pipe, .hz = self.home_hz, .strength = 0.12, .ring = 0.5 }, .dims));
     }
 
-    /// An aster's stalk is solid: a step into it goes round it instead, and a step that comes at it
-    /// fast enough brushes it, and it rings.
-    /// Hum's step against a round body standing at (cx, cz), reaching `reach` from it with Hum's
-    /// own body: the step is moved out to its side, so Hum slides round it, and what of Hum's going
-    /// was into it is taken off. The return is how fast Hum came into it, or null if the step does
-    /// not reach it. Every round solid goes through here: stalks, reeds, clover stalks, crumbs, the
-    /// spigot, the fallen flower head, Drip.
-    fn pushOut(self: *World, go_x: *f32, go_z: *f32, cx: f32, cz: f32, reach: f32) ?f32 {
-        const px = self.hum_x + go_x.* - cx;
-        const pz = self.hum_z + go_z.* - cz;
-        const d2 = px * px + pz * pz;
-        if (d2 >= reach * reach) return null;
-        const d = @max(@sqrt(d2), 0.01);
-        const nx = px / d;
-        const nz = pz / d;
-        go_x.* = cx + nx * reach - self.hum_x;
-        go_z.* = cz + nz * reach - self.hum_z;
-        const v_in = self.hum_vx * nx + self.hum_vz * nz;
-        if (v_in >= 0.0) return 0.0;
-        self.hum_vx -= v_in * nx;
-        self.hum_vz -= v_in * nz;
-        return -v_in;
-    }
-
-    fn atStalks(self: *World, go_x: *f32, go_z: *f32) void {
-        var touched: u16 = no_tower;
-        defer self.touching = touched;
-        for (self.towers[0..self.tower_count], 0..) |tw, t| {
-            const came = self.pushOut(go_x, go_z, tw.x, tw.z, stalk_foot + hum_body) orelse continue;
-            touched = @intCast(t);
-            if (came > bump_least and self.touching != t) self.brushStalk(@intCast(t), came);
-        }
-    }
-
-    /// The reeds' stems stop Hum, and a reed touched sounds its pipe (law 1 carries it on).
-    fn atReeds(self: *World, go_x: *f32, go_z: *f32) void {
-        var touched: u32 = no_thing;
-        defer self.touching_reed = touched;
-        if (!self.in_garden or (self.airborne and self.hum_y > 30.0)) return;
-        for (self.reed_first..self.reed_first + self.reed_count) |i| {
-            const th = self.things[i];
-            // the stem's thickness from its height, as the reed rule gives it
-            const came = self.pushOut(go_x, go_z, th.x, th.z, th.tall / 300.0 + hum_body) orelse continue;
-            touched = @intCast(i);
-            if (came > bump_least and self.touching_reed != i) self.touch(@intCast(i), came, .{ .x = self.hum_x, .y = 0.5, .z = self.hum_z });
-        }
-    }
-
-    /// The cover's bodies round Hum, the same ones the picture draws (covers.zig): a clover stalk
-    /// stops Hum and its roof shivers; a crumb higher than a step stops Hum with a dull knock.
-    /// Blades, moss and pebbles let Hum through.
-    fn atCovers(self: *World, go_x: *f32, go_z: *f32) void {
-        var touched: u32 = 0;
-        defer self.touching_cover = touched;
-        if (!self.in_garden) return;
-        const tx = self.hum_x + go_x.*;
-        const tz = self.hum_z + go_z.*;
-        var bodies: [covers.most_in_patch]covers.Body = undefined;
-        for ([2]bool{ false, true }) |near| {
-            const size: f32 = if (near) covers.near_size else covers.far_size;
-            const salt: u32 = if (near) covers.near_salt else 0;
-            const cx: i32 = @intFromFloat(@floor(tx / size));
-            const cz: i32 = @intFromFloat(@floor(tz / size));
-            var iz = cz - 1;
-            while (iz <= cz + 1) : (iz += 1) {
-                var ix = cx - 1;
-                while (ix <= cx + 1) : (ix += 1) {
-                    const n = covers.patch(ix, iz, size, near, salt, &bodies);
-                    for (bodies[0..n]) |b| {
-                        switch (b.kind) {
-                            .clover => {
-                                const came = self.pushOut(go_x, go_z, b.x, b.z, covers.clover_stalk + hum_body) orelse continue;
-                                touched = b.s;
-                                if (came > bump_least and self.touching_cover != b.s) {
-                                    // the roof above it trembles, a drum skin, heard late by its height
-                                    const tall = covers.cloverTall(b.s);
-                                    const hard = std.math.clamp((came - bump_least) / (run_speed - bump_least), 0.0, 1.0);
-                                    self.tell(.{ .at = .{ .x = b.x, .y = tall, .z = b.z } }, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = garden_hz * 2.0 * ground.five[b.s % 5], .strength = 0.03 + 0.07 * hard, .ring = 0.3 }, .glow));
-                                }
-                            },
-                            .crumb => {
-                                const c = covers.crumb(b.s);
-                                if (c.high <= step_up) continue;
-                                if (self.airborne and self.hum_y > c.high) continue;
-                                const came = self.pushOut(go_x, go_z, b.x, b.z, c.r * covers.crumb_reach + hum_body) orelse continue;
-                                touched = b.s;
-                                if (came > bump_least and self.touching_cover != b.s) {
-                                    const hard = std.math.clamp((came - bump_least) / (run_speed - bump_least), 0.0, 1.0);
-                                    self.tell(.{ .at = .{ .x = self.hum_x, .y = c.high * 0.5, .z = self.hum_z } }, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = garden_hz * 0.5 * ground.five[b.s % 5], .strength = 0.04 + 0.08 * hard, .ring = 0.06 }, .glow));
-                                }
-                            },
-                            .blade, .moss, .pebble => {},
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /// Whether Hum standing at (x, z) on the ground would be inside something solid: a stalk, a
-    /// reed, the spigot, the fallen flower head, a clover stalk, or a crumb higher than a step.
+    /// Whether Hum standing at (x, z) on the ground would be inside something solid, whatever kind
+    /// of thing it is (footing.zig).
     pub fn solidAt(self: *const World, x: f32, z: f32) bool {
-        const Near = struct {
-            fn in(px: f32, pz: f32, cx: f32, cz: f32, reach: f32) bool {
-                const dx = px - cx;
-                const dz = pz - cz;
-                return dx * dx + dz * dz < (reach - 0.005) * (reach - 0.005);
-            }
-        };
-        for (self.towers[0..self.tower_count]) |tw| {
-            if (Near.in(x, z, tw.x, tw.z, stalk_foot + hum_body)) return true;
-        }
-        if (!self.in_garden) return false;
-        for (self.reed_first..self.reed_first + self.reed_count) |i| {
-            const th = self.things[i];
-            if (Near.in(x, z, th.x, th.z, th.tall / 300.0 + hum_body)) return true;
-        }
-        if (self.spigot_thing != no_thing and Near.in(x, z, land.spigot[0], land.spigot[1], spigot_body + hum_body)) return true;
-        if (self.fallen < self.thing_count) {
-            const th = self.things[self.fallen];
-            if (Near.in(x, z, th.x, th.z, th.tall * 0.9 + hum_body)) return true;
-        }
-        var bodies: [covers.most_in_patch]covers.Body = undefined;
-        for ([2]bool{ false, true }) |near| {
-            const size: f32 = if (near) covers.near_size else covers.far_size;
-            const salt: u32 = if (near) covers.near_salt else 0;
-            const cx: i32 = @intFromFloat(@floor(x / size));
-            const cz: i32 = @intFromFloat(@floor(z / size));
-            var iz = cz - 1;
-            while (iz <= cz + 1) : (iz += 1) {
-                var ix = cx - 1;
-                while (ix <= cx + 1) : (ix += 1) {
-                    const n = covers.patch(ix, iz, size, near, salt, &bodies);
-                    for (bodies[0..n]) |b| {
-                        switch (b.kind) {
-                            .clover => if (Near.in(x, z, b.x, b.z, covers.clover_stalk + hum_body)) return true,
-                            .crumb => {
-                                const c = covers.crumb(b.s);
-                                if (c.high > step_up and Near.in(x, z, b.x, b.z, c.r * covers.crumb_reach + hum_body)) return true;
-                            },
-                            else => {},
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /// The fallen flower head is a bell lying at Hum's own size: it stops Hum, and touched it rings
-    /// its low C, which every C bell in the crowns answers (law 1).
-    fn atFallen(self: *World, go_x: *f32, go_z: *f32) void {
-        var touching = false;
-        defer self.touching_fallen = touching;
-        if (self.fallen >= self.thing_count) return;
-        const th = self.things[self.fallen];
-        const came = self.pushOut(go_x, go_z, th.x, th.z, th.tall * 0.9 + hum_body) orelse return;
-        touching = true;
-        if (came > bump_least and !self.touching_fallen) self.touch(self.fallen, came, .{ .x = self.hum_x, .y = 0.5, .z = self.hum_z });
-    }
-
-    /// Before the two of you meet, Drip holds Hum off softly, and sounds its own note softly.
-    fn atDrip(self: *World, go_x: *f32, go_z: *f32) void {
-        var touching = false;
-        defer self.touching_drip = touching;
-        if (self.drip_met or self.drip >= self.thing_count) return;
-        const th = self.things[self.drip];
-        const came = self.pushOut(go_x, go_z, th.x, th.z, th.tall * 0.5 + hum_body) orelse return;
-        touching = true;
-        if (came > 0.3 and !self.touching_drip) self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.dripHz(), .strength = 0.05, .ring = 0.2 }, .glow));
+        return footing.solidAt(self, x, z);
     }
 
     /// Touching a thing strikes it (SPEC.md 7: every thing has a tune, and what you do to the thing
     /// you do to the tune): a short knock where Hum touched it, at the thing's own note brought into
     /// what the speaker says; the thing struck in its own voice, harder the faster Hum came; and law
     /// 1 carries it on, so whatever shares its overtones answers when the sound reaches it.
-    fn touch(self: *World, index: u32, speed: f32, at: Place) void {
+    pub fn touch(self: *World, index: u32, speed: f32, at: Place) void {
         self.bumps += 1;
         self.bumped_at = self.step;
         const th = &self.things[index];
@@ -3620,7 +3402,7 @@ pub const World = struct {
 
     /// Brushing a stalk (spec/shape.md, "Brushing a stalk rings its bells"): the shake runs up it,
     /// lit from the foot, to its crown, and the touch is the crown's bell's: its kin answer by law 1.
-    fn brushStalk(self: *World, t: u16, speed: f32) void {
+    pub fn brushStalk(self: *World, t: u16, speed: f32) void {
         self.bumped_tower = t;
         const tw = self.towers[t];
         const hard = std.math.clamp((speed - bump_least) / (run_speed - bump_least), 0.0, 1.0);
@@ -6250,7 +6032,14 @@ test "the hose is solid: walked at, Hum stops at its side; jumped, Hum goes over
     // walked at it, it is still on the near side
     const side = (w.hum_x - p[0]) * cx + (w.hum_z - p[1]) * cz;
     try std.testing.expect(side > 0.0);
-    try std.testing.expect(hose.distance(w.hum_x, w.hum_z) >= land.hose_bore * 0.5 + hum_body - 0.01);
+    // and no nearer than their skins allow: the tube is roundest at half its height, above the
+    // top of Hum's round middle, so Hum's feet come a little nearer than the two widths together.
+    // The solid is the curve cut into short straight stretches, which is where the last few
+    // centimetres go.
+    const both = hose.reach + hum_body;
+    const drop = hose.reach - (hum_tall - hum_body);
+    try std.testing.expect(hose.distance(w.hum_x, w.hum_z) >= @sqrt(both * both - drop * drop) - 0.04);
+    try std.testing.expect(!w.solidAt(w.hum_x, w.hum_z));
     // a run and a jump: over
     w.hum_x = p[0] + cx * 10.0;
     w.hum_z = p[1] + cz * 10.0;
@@ -6272,6 +6061,49 @@ test "the hose is solid: walked at, Hum stops at its side; jumped, Hum goes over
     }
     const after = (w.hum_x - p[0]) * cx + (w.hum_z - p[1]) * cz;
     try std.testing.expect(after < 0.0);
+}
+
+test "everything solid has a top: Hum lands on the hose, stands a bore above the ground, jumps from there, and falls off its side" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    // over the hose's middle line, in the air
+    const p = hose.backFromEnd(450.0);
+    const q = hose.backFromEnd(448.0);
+    var ax = q[0] - p[0];
+    var az = q[1] - p[1];
+    const al = @sqrt(ax * ax + az * az);
+    ax /= al;
+    az /= al;
+    w.hum_x = p[0];
+    w.hum_z = p[1];
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.hum_y = 4.0;
+    w.hum_vy = 0.0;
+    w.airborne = true;
+    for (0..80) |_| _ = w.stepOnce(.{}, &cues);
+    // it came down onto the hose's top, not through it to the ground
+    try std.testing.expect(!w.airborne);
+    try std.testing.expectApproxEqAbs(land.hose_bore, w.hum_y, 0.1);
+    try std.testing.expectApproxEqAbs(w.hum_y, w.hum_floor, 1e-4);
+    // a jump from there goes as high over the hose as a jump from the ground goes over the ground
+    var top: f32 = 0.0;
+    for (0..50) |_| {
+        _ = w.stepOnce(.{ .buttons = Hands.jump }, &cues);
+        top = @max(top, w.hum_y);
+    }
+    try std.testing.expectApproxEqAbs(land.hose_bore + jump_height, top, 0.25);
+    for (0..60) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(!w.airborne);
+    try std.testing.expectApproxEqAbs(land.hose_bore, w.hum_y, 0.1);
+    // walked across it, Hum comes off its shoulder, falls, and stands on the ground beyond
+    w.look_yaw = std.math.atan2(az, ax);
+    for (0..90) |_| _ = w.stepOnce(.{ .ly = -127 }, &cues);
+    try std.testing.expect(!w.airborne);
+    try std.testing.expectEqual(@as(f32, 0.0), w.hum_y);
+    try std.testing.expect(hose.distance(w.hum_x, w.hum_z) > hose.reach + hum_body);
+    try std.testing.expect(!w.solidAt(w.hum_x, w.hum_z));
 }
 
 test "the hose's coil round Drip's clearing: walked over on the page, a wall once stood, cleared by a jump" {
@@ -6634,8 +6466,22 @@ test "what stands on the ground is felt: a reed's stem stops Hum and sounds its 
         while (ix < 60) : (ix += 1) {
             const n = covers.patch(ix, iz, covers.near_size, true, covers.near_salt, &bodies);
             for (bodies[0..n]) |b| {
+                // well inside the garden's rim, so that Hum can come at it
+                const from_pool_x = b.x - land.pool[0];
+                const from_pool_z = b.z - land.pool[1];
+                if (from_pool_x * from_pool_x + from_pool_z * from_pool_z > 600.0 * 600.0) continue;
+                if (b.kind != .clover and b.kind != .crumb) continue;
+                if (b.kind == .crumb and covers.crumb(b.s).high <= step_up + 0.2) continue;
+                // with a clear run at it from the west: nothing else solid on the way
+                const b_reach: f32 = if (b.kind == .clover) covers.clover_stalk + hum_body else covers.crumb(b.s).r * covers.crumb_reach + hum_body;
+                var clear = true;
+                var back: f32 = b_reach + 0.5;
+                while (back <= b_reach + 5.5) : (back += 0.25) {
+                    if (w.solidAt(b.x - back, b.z)) clear = false;
+                }
+                if (!clear) continue;
                 if (b.kind == .clover and found_clover == null) found_clover = b;
-                if (b.kind == .crumb and found_crumb == null and covers.crumb(b.s).high > step_up + 0.2) found_crumb = b;
+                if (b.kind == .crumb and found_crumb == null) found_crumb = b;
             }
         }
     }
@@ -6656,8 +6502,12 @@ test "what stands on the ground is felt: a reed's stem stops Hum and sounds its 
             const dx = w.hum_x - b.x;
             const dz = w.hum_z - b.z;
             nearest = @min(nearest, @sqrt(dx * dx + dz * dz));
+            // Hum never ends a step inside it
+            try std.testing.expect(!w.solidAt(w.hum_x, w.hum_z));
         }
-        try std.testing.expect(nearest >= reach - 0.01);
+        // it came against it (a clover's stalk leans, so its foot is not quite where Hum met it)
+        try std.testing.expect(nearest < reach + 0.5);
+        try std.testing.expect(nearest >= reach - 0.12);
         try std.testing.expect(w.told > told);
     }
     // the fallen flower head: Hum stops at it, and it rings
@@ -6674,7 +6524,12 @@ test "what stands on the ground is felt: a reed's stem stops Hum and sounds its 
         const dz = w.hum_z - fallen.z;
         nearest = @min(nearest, @sqrt(dx * dx + dz * dz));
     }
-    try std.testing.expect(nearest >= fallen.tall * 0.9 + hum_body - 0.01);
+    // it is round, and its widest is above Hum's head: Hum's feet come in under its bulge, and
+    // no nearer than their two skins allow
+    const both = fallen.tall * 0.9 + hum_body;
+    const drop = fallen.y - (hum_tall - hum_body);
+    try std.testing.expect(nearest >= @sqrt(both * both - drop * drop) - 0.02);
+    try std.testing.expect(!w.solidAt(w.hum_x, w.hum_z));
     try std.testing.expect(w.things[w.fallen].rung_at > 0);
 }
 

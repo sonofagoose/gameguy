@@ -25,6 +25,9 @@ test {
     _ = world.form;
     _ = @import("draw/black.zig");
     _ = @import("draw/hum_figure.zig");
+    _ = @import("body/solid.zig");
+    _ = @import("body/grid.zig");
+    _ = @import("place/garden.zig");
     _ = world.covers;
     _ = world.home;
     _ = world.drip;

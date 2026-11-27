@@ -10,6 +10,7 @@
 //! The Garden's own asters will come from its score (stage 2). This field is a proof piece.
 const std = @import("std");
 const pools = @import("pools.zig");
+const form = @import("../form/shape.zig");
 
 pub const segments = 12;
 pub const max_leaves = 56;
@@ -65,7 +66,28 @@ pub const Plan = struct {
         const t = h / self.tall;
         return .{ self.x + self.bow_x * t * t, h, self.z + self.bow_z * t * t };
     }
+
+    /// How far the stalk's flat sides are from its middle at a height: a metre through at the
+    /// foot, a third of that at the top. It is drawn four-square, so its corners reach further.
+    pub fn girth(self: *const Plan, h: f32) f32 {
+        return 0.5 * (1.0 - 0.62 * h / self.tall) + 0.04;
+    }
+
+    /// The stalk as shapes: one round stretch for each of its parts, following its bow. Round
+    /// where the picture is four-square, so it reaches between the picture's sides and its corners.
+    pub fn shapes(self: *const Plan, sink: *form.Sink) void {
+        const part = self.tall / @as(f32, segments);
+        for (0..segments) |k| {
+            const h0 = @as(f32, @floatFromInt(k)) * part;
+            const h1 = h0 + part;
+            sink.stalk(self.mast(h0), self.mast(h1), self.girth(h0) * stalk_round, self.girth(h1) * stalk_round);
+        }
+    }
 };
+
+/// A round stalk that stands for a four-square one reaches this much further than its flat sides:
+/// between them (1) and its corners (1.41).
+pub const stalk_round: f32 = 1.2;
 
 const Rand = struct {
     s: u32,

@@ -32,6 +32,25 @@ Where the build stands, so a new session can pick it up. Newest first.
     bee, the fallen flower head and the knots; the asters' shapes still come from their own code;
     the rule that fades what is near the eye is still on (it goes with step 0.7); nothing is
     measured on the purple.
+  - **0.5, everything solid stops** (2026-11-26): `game/src/body/` (a solid has sides, a top and
+    an underside; a grid finds the ones near), `game/src/place/garden.zig` (the Garden's 1,900 or so
+    solids, made once from each kind's own shapes) and `game/src/world/footing.zig` (the one routine
+    that stops a step, finds what Hum stands on and what is over its head, and the one table of what
+    each kind sounds like when touched). The seven functions that each stopped Hum at one kind of
+    thing are gone from the rules. New: Hum lands on the hose and stands a bore above the ground,
+    jumps from there, and falls off its side; a crumb is a drum to step or jump onto; a cushion of
+    moss is walked over; a head meets the underside of what is above it. Hum now comes a few
+    centimetres nearer to round things than before, because it is a round body against round
+    things and no longer a circle against circles. 178 tests. The scripted run costs the same on
+    the laptop (0.87 ms of work a frame).
+  - **Owed to the purple:** the rules changed in 0.5, so the laptop's fingerprints no longer match
+    the handheld's last run (`game/results/same-take-aarch64.txt`). `same-take-aarch64 10` has to be
+    run there again, and the try-out's start (`tryout/stood.save`) made again, before anything new
+    goes onto it. Nothing from leg 0 is on the purple yet: the laptop has not seen it on the cable.
+  - **The full build runs to its end again** (`game/build.sh`). It had been stopping since the
+    knots were switched off, at a room walk whose start can no longer be reached; such walks are
+    now left out of the built room and named (four of them, all among the knots). The retired
+    promise guard no longer runs at the end of it.
 - **Everything below this section** was built to `SPEC.md` (2026-11-19 to 23), which is history
   now. "Done" in those entries meant done as a work order described it, not reachable by playing.
 
