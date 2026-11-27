@@ -1,0 +1,13 @@
+build 3f66d98-dirty, 2026-11-27
+display: switched from its 59 Hz mode to its 60 Hz mode
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+lines bench: 240 frames for each size; a third of the lines belong to things that sound, all tagged for the chord
+lines   9924 ( 3324 sounding,  6600 lit), black triangles  5000: frame 16.65 ms (worst 16.81), 0 late; drawn in 13.17 ms (worst 13.61)
+lines  19960 ( 6660 sounding, 13300 lit), black triangles  5000: frame 20.77 ms (worst 21.75), 0 late; drawn in 17.76 ms (worst 18.42)
+lines  29996 ( 9996 sounding, 20000 lit), black triangles  5000: frame 25.01 ms (worst 33.04), 111 late; drawn in 22.04 ms (worst 29.96)
+lines  39932 (13332 sounding, 26600 lit), black triangles  5000: frame 28.60 ms (worst 29.85), 240 late; drawn in 25.62 ms (worst 26.76)
+lines  59992 (19992 sounding, 40000 lit), black triangles  5000: frame 37.36 ms (worst 38.65), 240 late; drawn in 34.37 ms (worst 35.58)
+lines  79964 (26664 sounding, 53300 lit), black triangles  5000: frame 45.75 ms (worst 52.01), 240 late; drawn in 42.76 ms (worst 48.88)
+lines  29996 ( 9996 sounding, 20000 lit), black triangles     0: frame 20.93 ms (worst 22.11), 0 late; drawn in 17.94 ms (worst 18.37)
+lines  29996 ( 9996 sounding, 20000 lit), black triangles 20000: frame 28.17 ms (worst 29.59), 240 late; drawn in 25.20 ms (worst 26.50)

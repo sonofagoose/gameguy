@@ -2,7 +2,7 @@
 
 Where the build stands, so a new session can pick it up. Newest first.
 
-## Now (2026-11-26)
+## Now (2026-11-27)
 
 ### The direction
 
@@ -43,26 +43,54 @@ Where the build stands, so a new session can pick it up. Newest first.
     centimetres nearer to round things than before, because it is a round body against round
     things and no longer a circle against circles. 178 tests. The scripted run costs the same on
     the laptop (0.87 ms of work a frame).
-  - **0.8 and 0.9, begun and not yet seen** (2026-11-26): the law is written and tested, and the
-    picture can obey it, but nothing in the Garden has been told its note yet, so nothing moves.
-    In: `game/src/feel.zig` (the numbers a hand or eye will want changed, as first guesses);
-    `game/src/law/standing.zig` (what each of the twelve colours is to the chord);
-    `game/src/law/react.zig` (wake and rest, rise, tilt and wind, land, settle: sixteen numbers of
-    state for the whole world, and `moved`, the one place a reaction becomes a thing's place);
-    and in `game/src/draw/lines.zig` each line and each corner of a black shape can now carry its
-    note's colour, its kind's measures and its height up its own thing, and both vertex shaders
-    move and light it by the chord from the same copied sum. With nothing tagged the picture is
-    the same to the dot. Changed from `docs/engine.md`: the mass of things is moved by colour from
-    twelve numbers, not by a row for each body; a row for each body is still to come for single
-    movers. **Left to do in 0.9:** step the world's reactions each step from the chord (a `react`
-    field on the world, from `home_k`); tag the asters by note, the blades to tilt, the fallen
-    leaves to rise and the reeds (the working notes for this are in the engine design, part 11,
-    and in the commit before this one's message); make a risen leaf a plate in
-    `world/footing.zig`; send the state to the renderer each frame (`setReact`); tests.
-  - **Owed to the purple:** the rules changed in 0.5, so the laptop's fingerprints no longer match
-    the handheld's last run (`game/results/same-take-aarch64.txt`). `same-take-aarch64 10` has to be
-    run there again, and the try-out's start (`tryout/stood.save`) made again, before anything new
-    goes onto it. Nothing from leg 0 is on the purple yet: the laptop has not seen it on the cable.
+  - **0.8 and 0.9, the world answering the chord** (2026-11-26 to 2026-11-27): the law, the
+    shaders, the Garden's tags, and risen-leaf footing are all in and measured. In:
+    `game/src/feel.zig` (first-guess measures); `game/src/law/standing.zig` (what each of the twelve
+    colours is to the chord); `game/src/law/react.zig` (wake and rest, rise, tilt and wind, land,
+    settle, and `moved`); `game/src/music/key.zig` (`cellOf`, `cellFromHz`);
+    `game/src/world/harmony.zig` (`step`, `home`, `moved`); `World.react` stepped each step in
+    `world/world.zig` (and mixed into `World.fingerprint`); `.leaf` plates lifted into
+    `world/footing.zig` when awake fallen leaves rise (supporting Hum on top, bumping Hum's head
+    underneath, settling on an amen); `draw/lines.zig` and `draw/black.zig` carrying per-thing
+    colour, reaction measures and height through both vertex shaders; `draw/aster_lines.zig` and
+    `draw/garden_lines.zig` tagging asters by degree and bell note, fallen flower head by note,
+    reeds (`reed_tilts`), grass blades (`blade_tilts`), fallen leaves (`leaf_rises`), and
+    clover/moss/crumbs via `covers.cellOf` (pebbles, stopped hose and spigot left untagged);
+    `dark.zig` calling `renderer.setReact` each frame; and `--lines` (`main.zig`) tagging all lines
+    and black triangles and calling `setReact` each frame. Changed from `docs/engine.md`: the mass
+    of things is moved by colour from twelve numbers, not by a row for each body; a row for each
+    body is still to come for single movers. **Verified (laptop):** 188 rules tests and 3 ears tests
+    pass; full `game/build.sh` passes (100/100 kill tests, `beauty.py`, `ears` rough_share 0.0481 /
+    longest 1.88 s, replay and save round-trips; scripted `--scene evening` 1.20 ms/frame work,
+    29,023 max lines, 7,951 max black triangles). Frame dumps of `chords-check-0.9.take` (Home ->
+    Lift -> Home -> Lean -> Full Close from `stood.save`) visually checked: risen C-leaf and tilted
+    G/D blades and reeds move in lockstep with their black shapes.
+  - **Measured and deployed on the purple (unit 164, 2026-11-27):**
+    - `same-take-aarch64 10` (`game/results/same-take-aarch64.txt`) matches `same-take-x86_64`
+      line-for-line across all 10 dark minutes (`world 5c549a2dcf9310f9 sound 62c4bef2bf9441eb`) and
+      all 15 evening minutes (`world 6fa6473c453f6da3 sound 06edc2cab21434e4`).
+    - `--lines` with all lines and black triangles tagged
+      (`game/results/gameguy-20261127-045641.txt`,
+      Mali-G31 at 60 Hz): 9,924 lines + 5,000 black tris drawn in 13.17 ms (0/240 late); 19,960 +
+      5,000 in 17.76 ms (0/240 late, frame 20.77 ms); 29,996 + 5,000 in 22.04 ms (111/240 late,
+      frame 25.01 ms, vs 11.14 ms on 2026-11-19); 29,996 + 0 black tris in 17.94 ms (vs 10.74 ms);
+      29,996 + 20,000 black tris in 25.20 ms (240/240 late, vs 13.29 ms).
+    - `GameguyChords` scripted replay (`tryout/chords-check-0.9.take`,
+      `game/results/gameguy-chords-20261127-045748.txt`): boots cleanly from the refreshed
+      `tryout/stood.save` (previous save kept on unit 164 as `tryout/stood.save.20261123`), 267
+      frames, 118 late, 6.16 ms CPU work/frame (worst 7.00 ms; 0 frames over 8 ms), 0.33 ms worst
+      sound buffer (real-time sound yes), 21,747 max lines, 6,940 max black triangles, average
+      screen cadence 24.99 ms (`waiting for the screen` 19.09 ms — GPU-bound on Mali-G31, vs
+      18.57 ms / 39 of 1,330 late on 2026-11-23 before leg 0's 24-bit depth, extra black shapes and
+      chord vertex shaders). This shader cost on Mali-G31 is the main performance finding to address
+      as leg 0 continues (starting with step 0.7 removing the cone fade and tightening shader work).
+    - **Pulled from unit 164:** `/roms/ports/gameguy/results/` pulled into `game/results/`
+      (including Morgan's two try-out sessions `walks/chords-tryout-001.take` /
+      `gameguy-chords-20261124-062745.txt` and `walks/chords-tryout-002.take` /
+      `gameguy-chords-20261124-154946.txt`, ready for step 1.1); `/roms/ports/gameguy/keep/` backed
+      up locally to `game/results/purple-keep-20261127/` (untracked). Both `Gameguy` and
+      `GameguyChords` on unit 164 now run today's build (`d484ed9` source, stamped `3f66d98-dirty`
+      from the build run right before the final commit).
   - **The full build runs to its end again** (`game/build.sh`). It had been stopping since the
     knots were switched off, at a room walk whose start can no longer be reached; such walks are
     now left out of the built room and named (four of them, all among the knots). The retired
@@ -124,38 +152,43 @@ Run with no screen on the laptop and read in the code; the whole of it is in `do
   (`game/results/gameguy-chords-20261123-225843.txt`; the unit's clock is wrong).
 - **Played:** by Morgan on 2026-11-26: "played GameguyChords for a minute... kinda see what you're
   saying about how the lift/lean can be used as actual player
-  mechanic/movement/interaction/physics". His take and his session's log are still on the purple,
-  which was not on the cable that day: pulling and reading them is step 1.1 of the road.
+  mechanic/movement/interaction/physics". His two takes and session logs were pulled from unit 164
+  on 2026-11-27 (`game/results/walks/chords-tryout-001.take` + `gameguy-chords-20261124-062745.txt`,
+  6,576 frames; and `chords-tryout-002.take` + `gameguy-chords-20261124-154946.txt`, 34,202 frames,
+  113 chord steps, highest 14.5 m, fastest 26.0 m/s): reading them is step 1.1 of the road.
 - **Not yet:** as the direction now has it, L2 past the lean walks on into the caves and L1 past
   the lift crosses the seam (`the-depths.md`); the try-out stops at the lean and the lift.
 
 ### On the handhelds
 
-- **The purple (unit 164):** GameguyChords as above. Its Gameguy is an older build than the source
-  at `1b576b6` (7,130,352 bytes against 7,151,344 for that build); which commit it came from is not
-  known. GameguyRoom's walk saves there were made by an older build still. The page, wheel and
-  remainder toys are there too.
+- **The purple (unit 164):** updated 2026-11-27 with the leg 0 (through step 0.9) build for both
+  `Gameguy` (`gameguy-aarch64`) and `GameguyChords` (`gameguy-chords-aarch64` with refreshed
+  `tryout/stood.save`; previous `stood.save` preserved as `stood.save.20261123`). Clock synced,
+  `same-take-aarch64` verified against laptop, `--lines` and scripted `--chords` measured on screen.
+  The page, wheel and remainder toys remain untouched.
 - **The black (unit 134):** not looked at since 2026-11-21. Never touched while Morgan is testing
   on it.
 
 ### Waiting on Morgan
 
 - His ears on sketches j, k, l and m (`design/listen/sketches/`).
-- The purple on the cable, so that his try-out take can be read (step 1.1).
+- His hands on the updated `GameguyChords` on unit 164 (now with risen leaves, tilting blades/reeds
+  and chord-lit asters/covers).
 - The calls the direction leaves to him. `ROADMAP.md`, "Morgan's calls", lists each with the step
   that reaches it and what stands in until he says. None of them stops the road.
 
 ### Next
 
-`ROADMAP.md`, leg 0, "Solid ground": the engine of `docs/engine.md`, in twelve steps, so that
-nothing is see-through, nothing is walked through, and every kind of thing answers the chord by one
-law. First step 0.1, the music as its own module with the direction's arithmetic as its tests, and
-beside it step 1.2, the bench (a page where Morgan sets the body's numbers with his own hands). Step
-1.1 waits for the purple. Leg 1, "An evening", follows.
+Finish the remaining steps of `ROADMAP.md` leg 0 ("Solid ground"): remaining hiding shapes (0.2/0.4:
+Drip, bee, fallen flower head, knots; asters from shared shapes), step 0.7 (remove the near-eye
+fade cone and address the Mali-G31 GPU cost measured in `gameguy-20261127-045641.txt`), step 0.10+
+and leg 1 ("An evening"), starting with reading Morgan's pulled try-out takes (step 1.1) and the
+bench (step 1.2).
 
 ## Piece 5 — Drip's Metronome Balance, Bar-Centric Timing & Procedural Animations (2026-11-23)
 
-Work order Piece 5: Metronome Auditory Balance, Bar-Centric Timing, Sleep/Wake Cycle, Procedural Droplet Animations, and Separation of Concerns Architecture.
+Work order Piece 5: Metronome Auditory Balance, Bar-Centric Timing, Sleep/Wake Cycle, Procedural
+Droplet Animations, and Separation of Concerns Architecture.
 
 | piece | state |
 |---|---|
@@ -168,7 +201,8 @@ Work order Piece 5: Metronome Auditory Balance, Bar-Centric Timing, Sleep/Wake C
 
 ## Piece 4 — The Wheel as the True Circle of Fifths (2026-11-23)
 
-Work order Piece 4: Concentric Circle of Fifths with Outer Major & Inner Relative Minor Rings, Deflection Cursor, Audio Preview, and 68% Background Dim.
+Work order Piece 4: Concentric Circle of Fifths with Outer Major & Inner Relative Minor Rings,
+Deflection Cursor, Audio Preview, and 68% Background Dim.
 
 | piece | state |
 |---|---|
@@ -184,7 +218,8 @@ Work order Piece 4: Concentric Circle of Fifths with Outer Major & Inner Relativ
 
 ## Piece 3 — The Strike (2026-11-23)
 
-Work order Piece 3: Wholesale port of GameguyPage strike (`toys/page/src/main.zig` and `toys/wheel/src/world.zig`).
+Work order Piece 3: Wholesale port of GameguyPage strike (`toys/page/src/main.zig` and
+`toys/wheel/src/world.zig`).
 
 | piece | state |
 |---|---|
@@ -199,7 +234,8 @@ Work order Piece 3: Wholesale port of GameguyPage strike (`toys/page/src/main.zi
 
 ## Piece 2 — The Jump (2026-11-23)
 
-Work order Piece 2: SM64 by way of TotK standard jump (3.0 m height, snappy air time, variable height, coyote time, landing buffer).
+Work order Piece 2: SM64 by way of TotK standard jump (3.0 m height, snappy air time, variable
+height, coyote time, landing buffer).
 
 | piece | state |
 |---|---|
@@ -213,7 +249,8 @@ Work order Piece 2: SM64 by way of TotK standard jump (3.0 m height, snappy air 
 
 ## Piece 1 — The page at the top of the dial (2026-11-22)
 
-Work order Piece 1: Continuous fold from 3D place into 2D top-down page at dial top (`orbit == 1.0`).
+Work order Piece 1: Continuous fold from 3D place into 2D top-down page at dial top (`orbit ==
+1.0`).
 
 | piece | state |
 |---|---|

@@ -1,0 +1,85 @@
+clocks as started: cpu performance, gpu performance, memory performance
+clocks now: cpu performance, gpu performance, memory performance
+priority: nice 0, real-time limit 40; storage interrupts on core(s) 3 ; run with: taskset -c 0-2
+backlight as started: 200
+build 7ad393b-dirty, 2026-11-21
+Failed to create secure directory (/run/user/1000//pulse): No such file or directory
+display: switched from its 59 Hz mode to its 60 Hz mode
+video: KMSDRM, 640x480, Mali-G31 / OpenGL ES 3.2 v1.r13p0-01rel0.8747d14aec16ec21ac2b2da252c4ec5f
+lines: light 640x480, trail 320x240 in half floats
+the ground: black: nothing has been sung on it yet
+the evening: 68 asters, 2811 things; R1 calls (held, the wheel: point with the right stick, let go to move home), R2 hums, the left stick walks, the right stick looks; stand still at a foot and the gaze climbs; Select and Start together leave
+opened from a save at step 1746: tryout/stood.save
+the chords try-out (design/the-game.md): L1 steps the chord flatward and L2 sharpward among the lift (F), home (C) and the lean (G); on the lift Hum is light, on the lean it is fast, and stepping home off the lean throws it forward
+the take: written as it is played, into results/walks/chords-tryout-001.take
+sound: alsa, 48000 Hz, 2 channels, 128-frame buffer (2.67 ms)
+controls: GO-Super Gamepad; face buttons by the kernel's codes: bottom 0, right 1, left 3, top 2
+controls: the shoulders and face buttons read from the kernel on the sound's own thread (/dev/input/event2); the clap and the timed strike found there
+sound strike-timed at sample 1703934 hz 784.89
+sound strike-timed at sample 1757600 hz 348.84
+sound strike-timed at sample 1918400 hz 261.63
+sound strike-timed at sample 2032000 hz 654.08
+sound strike-timed at sample 2117600 hz 654.08
+sound strike-timed at sample 2236800 hz 784.89
+sound strike-timed at sample 2258400 hz 348.84
+sound strike-timed at sample 2322400 hz 1046.52
+sound strike-timed at sample 2345600 hz 261.63
+sound strike-timed at sample 2405600 hz 784.89
+sound strike-timed at sample 2424000 hz 196.22
+sound strike-timed at sample 2482400 hz 588.67
+sound strike-timed at sample 2501600 hz 261.63
+sound strike-timed at sample 2558400 hz 784.89
+sound strike-timed at sample 2576000 hz 196.22
+sound strike-timed at sample 2624000 hz 261.63
+sound strike-timed at sample 2659200 hz 196.22
+sound strike-timed at sample 2680800 hz 490.56
+sound strike-timed at sample 2922400 hz 261.63
+sound strike-timed at sample 2966400 hz 348.84
+sound strike-timed at sample 3002400 hz 261.63
+sound strike-timed at sample 3024000 hz 348.84
+sound strike-timed at sample 3704000 hz 261.63
+sound strike-timed at sample 3772800 hz 196.22
+sound strike-timed at sample 4505600 hz 261.63
+sound strike-timed at sample 5127200 hz 196.22
+sound strike-timed at sample 5217600 hz 490.56
+sound strike-timed at sample 5248000 hz 392.45
+sound strike-timed at sample 5293600 hz 490.56
+sound strike-timed at sample 5337600 hz 392.45
+sound strike-timed at sample 5469600 hz 261.63
+sound strike-timed at sample 5564800 hz 523.26
+sound strike-timed at sample 5605600 hz 348.84
+sound strike-timed at sample 5840800 hz 261.63
+sound strike-timed at sample 5864800 hz 196.22
+sound strike-timed at sample 6221600 hz 261.63
+sound strike-timed at sample 6260000 hz 196.22
+sound strike-timed at sample 6372000 hz 490.56
+sound strike-timed at sample 6512000 hz 261.63
+sound strike-timed at sample 6620800 hz 196.22
+sound strike-timed at sample 6970400 hz 261.63
+sound strike-timed at sample 7010400 hz 348.84
+sound strike-timed at sample 7093600 hz 261.63
+sound strike-timed at sample 7188800 hz 196.22
+sound strike-timed at sample 7260000 hz 261.63
+sound strike-timed at sample 7314400 hz 196.22
+sound strike-timed at sample 7336800 hz 261.63
+sound strike-timed at sample 7384000 hz 348.84
+sound strike-timed at sample 7480800 hz 261.63
+the take: closed, 1392 changes of the hands over 9907 steps
+the evening: 6576 frames, 731 late, 6.82 ms of work a frame (worst 24.61); 8161 steps, 1575 frames ran two; 15 calls, 3457 answers; cues late 768, refused 9; slowest sound buffer 1.44 ms; real-time sound yes; most lines in a frame 27630
+the chords try-out: 31 steps of the chord, 10 of them on the tick, 3 knocks at the end of what is awake, 8 throws home off the lean; highest 5.9 m, fastest 26.0 m/s; ended on home
+the hands: 23 presses of R1 and R2 and claps (0 of them claps) started Hum's own sound on the buffer after them, the latest 2.64 ms after the kernel saw the press; 41 strikes timed by the hands started there too; the world found 24 of them already sounding; 0 calls choked by a clap just after; 14 strikes timed and 27 placed in all
+the screen: a frame shown every 20.73 ms on average
+teaching: beside Drip first at 13 s, the view leaned in at 14 s, first hummed beside it at 14 s, Drip showed its breath 0 times; breaths tried 4, on the tick 4, locked at 21 s; presses with no verb yet 5; knocked before the place stood 0 (-1 s: never)
+teaching: each breath let go from the tick, in ms (after it above nought): -81 -81 -81 -81
+teaching: first jump at 34 s, first sprint at 134 s, the wheel first opened at 84 s, the place stood at 24 s
+a frame's work: under 8 ms 4773, under 12 1317, under 16 431, over 16 24; of those over 14 ms the most was the steps in 63, the land 25, the moving lines 1, sending 1, drawing 4
+the moving lines on average: the sky 0.14 ms, halos 0.06, Drip and sparks and the bee 0.03, pools 0.98, the wheel and the fight 0.00, the hose's water 0.12, rings and Hum 0.05, lifting them onto the ground 0.13; at most 6828 lines
+a frame's parts on average: the steps 1.87 ms, the land 0.64, the moving lines 1.52, sent to the GPU 0.31, drawn 2.19, waiting for the screen 13.91
+the picture between steps: while Hum walked it moved 19.0 cm a frame, varying by 5.3 cm as shown, and by 6.3 cm as it would have been by whole steps (1242 frames)
+the slowest frame was 5131 (step 8063): steps done by 2.52 ms, the land by 16.83, the moving lines by 19.11, sent to the GPU by 19.60, drawn by 24.28, the backlight set by 24.61; the land was picked again
+witness evening.call first=368 held=5491
+witness evening.breathe first=1254 held=562
+witness sky.bee first=5876 held=0
+witness whole.law1 first=133 held=0
+witness whole.law6 first=133 held=0
+exit code 0
