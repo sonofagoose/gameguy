@@ -242,10 +242,27 @@ pub fn floorTo(solid: *const Solid, body: Body, step: f32) bool {
     return body.feet >= t - step;
 }
 
+/// Whether the entire top of a low drum or plate sits within `step` above the body's feet, so
+/// the body may walk smoothly onto its edge rather than bouncing off its side like a wall.
+pub fn steppable(solid: *const Solid, body: Body, step: f32) bool {
+    const limit = body.feet + step;
+    switch (solid.shape) {
+        .stalk => |s| return !lies(s) and @max(s.a[1], s.b[1]) <= limit,
+        .plate => |p| {
+            if (p.n < 3) return false;
+            for (p.slice()) |c| {
+                if (c[1] > limit) return false;
+            }
+            return true;
+        },
+        .ball => return false,
+    }
+}
+
 /// How a body must move, level, to stand clear of a solid's sides; null if it is clear already, or
-/// if the solid is a floor to it. `from` is where the body stood before this step.
+/// if the solid is a floor or low step to it. `from` is where the body stood before this step.
 pub fn meet(solid: *const Solid, body: Body, step: f32, from_x: f32, from_z: f32) ?Meet {
-    if (floorTo(solid, body, step)) return null;
+    if (floorTo(solid, body, step) or steppable(solid, body, step)) return null;
     switch (solid.shape) {
         .stalk => |s| {
             const pair = nearest(body.low(), body.high(), s.a, s.b);
@@ -443,4 +460,13 @@ test "lifting a shape adds the ground under each of its points" {
     const s = lifted(.{ .stalk = .{ .a = .{ 0.0, 1.0, 0.0 }, .b = .{ 4.0, 1.0, 0.0 }, .ra = 1.0, .rb = 1.0 } }, &slope);
     try approx(@as(f32, 1.0), s.stalk.a[1], 1e-6);
     try approx(@as(f32, 3.0), s.stalk.b[1], 1e-6);
+}
+
+test "a low drum within step height lets a body step onto its edge instead of blocking it" {
+    const low = post(0.0, 0.0, 0.25, 0.8);
+    // touching the outer rim (center outside 0.8, skin overlapping 0.8 + 0.36 = 1.16): stepped onto
+    try expect(meet(&low, hum(0.95, 0.0, 0.0), default_step, 2.0, 0.0) == null);
+    // taller than step_up: still stops at the rim
+    const tall = post(0.0, 0.0, 0.6, 0.8);
+    try expect(meet(&tall, hum(0.95, 0.0, 0.0), default_step, 2.0, 0.0) != null);
 }

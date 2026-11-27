@@ -270,10 +270,12 @@ pub const turn_most: f32 = 0.2;
 pub const follow_rate: f32 = 1.1;
 pub const follow_after: u32 = 45;
 pub const follow_within: f32 = 2.2;
-/// At a run the view pulls back this far, rises this much and widens this many degrees.
+/// At a run the view pulls back this far, rises this much and widens this many degrees, eased
+/// by `view_run_ease` each step so stopping against a solid never snaps the camera forward.
 pub const run_back: f32 = 3.0;
 pub const run_up: f32 = 0.4;
 pub const run_wider: f32 = 3.0;
+pub const view_run_ease: f32 = 0.08;
 /// The garden's note: middle C.
 pub const garden_hz: f32 = land.note;
 /// Every cue is stamped at least this many samples after its step begins, so the sound thread
@@ -1039,6 +1041,9 @@ pub const World = struct {
     /// (1 is not at all).
     eye_lift: f32 = 0.0,
     eye_pull: f32 = 1.0,
+    /// Eased run factor (0 at rest, 1 at run_speed, up to sprint_speed/run_speed) for camera
+    /// pullback and FOV so bumping a solid never jolts the camera.
+    view_run: f32 = 0.0,
     /// The view lifted over a fight and over a long fall, 0 to 1; steps left before the fight's
     /// lift comes down.
     fight_view: f32 = 0.0,
@@ -4028,11 +4033,15 @@ pub const World = struct {
         } else {
             self.gaze *= 0.90;
         }
+        // ease the camera's speed pullback so hitting a solid head-on never snaps the camera forward
+        const want_run = std.math.clamp(@sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz) / run_speed, 0.0, sprint_speed / run_speed);
+        self.view_run += (want_run - self.view_run) * view_run_ease;
+        if (want_run == 0.0 and self.view_run < 1e-4) self.view_run = 0.0;
         // what stands between the eye and Hum: the eye moves in along its line and up over
         // whatever solid or steep ground lies between them (docs/engine.md, "The eye")
         if (self.stand > 0.0 and self.view == .place) {
             const clear = self.clearance();
-            const rise_rate_eye: f32 = if (clear.solid_blocked) 0.65 else lift_rise;
+            const rise_rate_eye: f32 = if (clear.solid_blocked) 0.35 else lift_rise;
             self.eye_lift += (clear.lift - self.eye_lift) * (if (clear.lift > self.eye_lift) rise_rate_eye else lift_fall);
             if (clear.pull < self.eye_pull) {
                 self.eye_pull += (clear.pull - self.eye_pull) * rise_rate_eye;
@@ -4072,7 +4081,7 @@ pub const World = struct {
         const phi = orbitAt(u, 1);
         const wv = self.water_view * self.water_view * (3.0 - 2.0 * self.water_view);
         const d = orbitAt(u, 2) + wv * water_further;
-        const run = std.math.clamp(@sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz) / run_speed, 0.0, sprint_speed / run_speed);
+        const run = self.view_run;
         var back = d * @cos(phi) + run * run_back;
         var up = d * @sin(phi) + run * run_up;
         back += self.lean * (lean_back - back);
@@ -4297,6 +4306,7 @@ pub const World = struct {
         mixIn(&h, @as(u32, @bitCast(self.view_base)));
         mixIn(&h, @as(u32, @bitCast(self.eye_lift)));
         mixIn(&h, @as(u32, @bitCast(self.eye_pull)));
+        mixIn(&h, @as(u32, @bitCast(self.view_run)));
         mixIn(&h, @as(u32, @bitCast(self.stick_yaw)));
         mixIn(&h, @as(u32, @bitCast(self.lean)));
         mixIn(&h, @as(u32, @bitCast(self.gaze)));
@@ -6957,4 +6967,94 @@ test "the eye stays clear of the great aster stalk and the hose (step 0.7)" {
     for (near_hose.slice()) |s| {
         if (s.kind == .hose) try std.testing.expect(eye_mod.distPoint(s, cam_hose.eye) >= eye_mod.eye_reach - 0.05);
     }
+}
+
+test "running into a tall rock never jolts the camera, and low rocks step smoothly underfoot" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    afterTheLock(w);
+    var cues: [max_cues]sound.Cue = undefined;
+    var bodies: [covers.most_in_patch]covers.Body = undefined;
+    var tall_crumb: ?covers.Body = null;
+    var low_crumb: ?covers.Body = null;
+    var iz: i32 = -60;
+    while (iz < 60 and (tall_crumb == null or low_crumb == null)) : (iz += 1) {
+        var ix: i32 = -60;
+        while (ix < 60) : (ix += 1) {
+            const n = covers.patch(ix, iz, covers.near_size, true, covers.near_salt, &bodies);
+            for (bodies[0..n]) |b| {
+                if (b.kind != .crumb) continue;
+                const from_pool_x = b.x - land.pool[0];
+                const from_pool_z = b.z - land.pool[1];
+                if (from_pool_x * from_pool_x + from_pool_z * from_pool_z > 600.0 * 600.0) continue;
+                const c_ = covers.crumb(b.s);
+                const reach = c_.r * covers.crumb_reach + hum_body;
+                var clear = true;
+                var back: f32 = reach + 0.5;
+                while (back <= reach + 10.0) : (back += 0.5) {
+                    if (w.solidAt(b.x - back, b.z)) clear = false;
+                }
+                if (!clear) continue;
+                if (c_.high > step_up + 0.4 and tall_crumb == null) tall_crumb = b;
+                if (c_.high >= 0.12 and c_.high <= step_up - 0.02 and low_crumb == null) low_crumb = b;
+            }
+        }
+    }
+    // 1. Running head-on into a tall rock at speed: camera eye and FOV must glide smoothly, never snap
+    const tc = tall_crumb orelse return error.TestUnexpectedResult;
+    const t_reach = covers.crumb(tc.s).r * covers.crumb_reach + hum_body;
+    w.hum_x = tc.x - t_reach - 8.0;
+    w.hum_z = tc.z;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.hum_y = 0.0;
+    w.hum_vx = 0.0;
+    w.hum_vz = 0.0;
+    w.airborne = false;
+    w.look_yaw = std.math.pi * 0.5;
+    w.orbit = 0.0;
+    w.view_based = false;
+    w.eye_lift = 0.0;
+    w.eye_pull = 1.0;
+    w.view_run = 0.0;
+    for (0..5) |_| _ = w.stepOnce(.{}, &cues);
+    var prev_cam = w.camera();
+    var worst_jump: f32 = 0.0;
+    var worst_fov: f32 = 0.0;
+    var hit_rock = false;
+    for (0..90) |_| {
+        _ = w.stepOnce(.{ .ly = -127 }, &cues);
+        const cam = w.camera();
+        const dx = cam.eye[0] - prev_cam.eye[0];
+        const dy = cam.eye[1] - prev_cam.eye[1];
+        const dz = cam.eye[2] - prev_cam.eye[2];
+        worst_jump = @max(worst_jump, @sqrt(dx * dx + dy * dy + dz * dz));
+        worst_fov = @max(worst_fov, @abs(cam.fov - prev_cam.fov));
+        prev_cam = cam;
+        const rx = w.hum_x - tc.x;
+        const rz = w.hum_z - tc.z;
+        if (@sqrt(rx * rx + rz * rz) < t_reach + 0.15) hit_rock = true;
+    }
+    try std.testing.expect(hit_rock);
+    try std.testing.expect(worst_jump < 0.6);
+    try std.testing.expect(worst_fov < 0.4);
+
+    // 2. Walking across a low rock (<= step_up): steps cleanly up onto its top without blocking
+    const lc = low_crumb orelse return error.TestUnexpectedResult;
+    const l_high = covers.crumb(lc.s).high;
+    const l_reach = covers.crumb(lc.s).r * covers.crumb_reach + hum_body;
+    w.hum_x = lc.x - l_reach - 3.0;
+    w.hum_z = lc.z;
+    w.hum_ground = w.groundAt(w.hum_x, w.hum_z);
+    w.hum_y = 0.0;
+    w.hum_vx = 0.0;
+    w.hum_vz = 0.0;
+    w.airborne = false;
+    w.look_yaw = std.math.pi * 0.5;
+    var stood_on_low = false;
+    for (0..60) |_| {
+        _ = w.stepOnce(.{ .ly = -127 }, &cues);
+        if (w.hum_y >= l_high - 0.05) stood_on_low = true;
+    }
+    try std.testing.expect(stood_on_low);
+    try std.testing.expect(w.hum_x > lc.x);
 }

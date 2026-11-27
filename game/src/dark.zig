@@ -91,10 +91,11 @@ const Pose = struct {
     base: f32,
     lift: f32,
     pull: f32,
+    run: f32,
     face: f32,
 
     fn of(w: *const World) Pose {
-        return .{ .x = w.hum_x, .z = w.hum_z, .ground = w.hum_ground, .height = w.hum_y, .yaw = w.look_yaw, .orbit = w.orbit, .base = w.view_base, .lift = w.eye_lift, .pull = w.eye_pull, .face = w.hum_face };
+        return .{ .x = w.hum_x, .z = w.hum_z, .ground = w.hum_ground, .height = w.hum_y, .yaw = w.look_yaw, .orbit = w.orbit, .base = w.view_base, .lift = w.eye_lift, .pull = w.eye_pull, .run = w.view_run, .face = w.hum_face };
     }
 
     fn put(p: Pose, w: *World) void {
@@ -107,11 +108,12 @@ const Pose = struct {
         w.view_base = p.base;
         w.eye_lift = p.lift;
         w.eye_pull = p.pull;
+        w.view_run = p.run;
         w.hum_face = p.face;
     }
 
-    /// `a` steps on from `now`, at the pace from `before` to `now` (back toward `before` when `a` is
-    /// below nought). A jump, as when the place is set somewhere new, is shown as it is.
+    /// Strictly convex blend between `before` (`a = -1`) and `now` (`a = 0`), never extrapolating
+    /// past `now` so Hum and the camera can never overshoot into a solid and snap back.
     fn between(before: Pose, now: Pose, a: f32) Pose {
         const dx = now.x - before.x;
         const dz = now.z - before.z;
@@ -120,17 +122,19 @@ const Pose = struct {
         if (turn > std.math.pi) turn -= 2.0 * std.math.pi;
         if (turn < -std.math.pi) turn += 2.0 * std.math.pi;
         if (@abs(turn) > 0.5) turn = 0.0;
+        const k = std.math.clamp(a, -1.0, 0.0);
         return .{
-            .x = now.x + dx * a,
-            .z = now.z + dz * a,
-            .ground = now.ground + (now.ground - before.ground) * a,
-            .height = @max(0.0, now.height + (now.height - before.height) * a),
-            .yaw = now.yaw + (now.yaw - before.yaw) * a,
-            .orbit = now.orbit + (now.orbit - before.orbit) * a,
-            .base = now.base + (now.base - before.base) * a,
-            .lift = now.lift + (now.lift - before.lift) * a,
-            .pull = std.math.clamp(now.pull + (now.pull - before.pull) * a, 0.05, 1.0),
-            .face = now.face + turn * a,
+            .x = now.x + dx * k,
+            .z = now.z + dz * k,
+            .ground = now.ground + (now.ground - before.ground) * k,
+            .height = @max(0.0, now.height + (now.height - before.height) * k),
+            .yaw = now.yaw + (now.yaw - before.yaw) * k,
+            .orbit = now.orbit + (now.orbit - before.orbit) * k,
+            .base = now.base + (now.base - before.base) * k,
+            .lift = now.lift + (now.lift - before.lift) * k,
+            .pull = std.math.clamp(now.pull + (now.pull - before.pull) * k, 0.05, 1.0),
+            .run = @max(0.0, now.run + (now.run - before.run) * k),
+            .face = now.face + turn * k,
         };
     }
 };
@@ -1690,7 +1694,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                 }
                 const gap_ms = (began - view_from) * 1000.0;
                 view_from = began;
-                const a: f32 = @floatCast(std.math.clamp(view_t - @as(f64, @floatFromInt(world.step)), -1.0, 1.25));
+                const a: f32 = @floatCast(std.math.clamp(view_t - @as(f64, @floatFromInt(world.step)) - 1.0, -1.0, 0.0));
                 const real = Pose.of(&world);
                 pose_real = real;
                 const shown = Pose.between(pose_before, real, a);

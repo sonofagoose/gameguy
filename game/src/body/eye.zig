@@ -25,10 +25,16 @@ pub const hard_min_dist: f32 = 1.1;
 pub const max_solid_lift: f32 = 4.5;
 
 /// Whether a solid is big enough to pull the eye in when it stands along the line of sight.
-/// Drip is small and moves beside Hum; clover stalks are thread-thin (0.08 m radius).
+/// Drip, thread-thin clover stalks, low moss mounds and low soil crumbs (< 1.2 m) do not yank
+/// `eye_pull` along the sight ray; every solid except Drip still enforces `eye_reach` around the
+/// eye ball itself so the near plane never clips into anything.
 pub fn blocksSight(s: *const solid.Solid) bool {
     return switch (s.kind) {
-        .drip, .clover => false,
+        .drip, .clover, .moss => false,
+        .crumb => switch (s.shape) {
+            .stalk => |st| @abs(st.b[1] - st.a[1]) >= 1.2,
+            else => true,
+        },
         else => true,
     };
 }
