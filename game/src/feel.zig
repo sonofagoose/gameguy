@@ -38,3 +38,16 @@ pub const wind_more: f32 = 0.45;
 pub const tilt_spring: f32 = 0.055;
 pub const tilt_damp: f32 = 0.16;
 pub const land_kick: f32 = 0.11;
+
+// ------------------------------------------------------------ soft things parting (steps 0.6 & 0.7)
+
+/// Thin soft grass blades bend out of Hum's path within `part_hum_reach` metres (pushing up to
+/// `part_hum_push` m sideways), and out of the camera's line of sight within `part_sight_reach`
+/// (pushing up to `part_sight_push` m sideways). Their roots stay planted at height 0 and reach
+/// full flexibility by `part_flex_height`, drooping gently by `part_droop` of sideways bend.
+pub const part_hum_reach: f32 = 2.4;
+pub const part_hum_push: f32 = 1.65;
+pub const part_sight_reach: f32 = 2.1;
+pub const part_sight_push: f32 = 1.55;
+pub const part_flex_height: f32 = 2.5;
+pub const part_droop: f32 = 0.22;

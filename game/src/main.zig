@@ -353,6 +353,9 @@ fn benchLines(window: plat.Window, args: Args) bool {
             awake[(root + 1) % 12] = 1.0;
             awake[(root + 4) % 12] = 0.8;
             renderer.setReact(awake, 0.5 + 0.5 * @sin(t * 1.1), feel.tilt_full * @sin(t * 0.9), .{ 0.0, 0.0 });
+            const hx = 138.0 * @cos(angle);
+            const hz = 138.0 * @sin(angle);
+            renderer.setParting(eye, .{ hx, ground(hx, hz) + 0.5, hz }, 1.0);
 
             const began = plat.now();
             renderer.frame(&vp, &loud);

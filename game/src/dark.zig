@@ -90,10 +90,11 @@ const Pose = struct {
     orbit: f32,
     base: f32,
     lift: f32,
+    pull: f32,
     face: f32,
 
     fn of(w: *const World) Pose {
-        return .{ .x = w.hum_x, .z = w.hum_z, .ground = w.hum_ground, .height = w.hum_y, .yaw = w.look_yaw, .orbit = w.orbit, .base = w.view_base, .lift = w.eye_lift, .face = w.hum_face };
+        return .{ .x = w.hum_x, .z = w.hum_z, .ground = w.hum_ground, .height = w.hum_y, .yaw = w.look_yaw, .orbit = w.orbit, .base = w.view_base, .lift = w.eye_lift, .pull = w.eye_pull, .face = w.hum_face };
     }
 
     fn put(p: Pose, w: *World) void {
@@ -105,6 +106,7 @@ const Pose = struct {
         w.orbit = p.orbit;
         w.view_base = p.base;
         w.eye_lift = p.lift;
+        w.eye_pull = p.pull;
         w.hum_face = p.face;
     }
 
@@ -127,6 +129,7 @@ const Pose = struct {
             .orbit = now.orbit + (now.orbit - before.orbit) * a,
             .base = now.base + (now.base - before.base) * a,
             .lift = now.lift + (now.lift - before.lift) * a,
+            .pull = std.math.clamp(now.pull + (now.pull - before.pull) * a, 0.05, 1.0),
             .face = now.face + turn * a,
         };
     }
@@ -1709,6 +1712,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         var brightest: f32 = 0.0;
         if (options.scene == .dark) {
             renderer.setReact(@splat(0.0), 0.0, 0.0, .{ 0.0, 0.0 });
+            renderer.setParting(.{ 0.0, 0.0, 0.0 }, .{ 0.0, 0.0, 0.0 }, 0.0);
             for (world.things[0..world.thing_count], 0..) |thing, i| {
                 brightest = @max(brightest, World.light(thing));
                 loud[i + 1] = shine(thing.loud, thing.lit * 0.55, 1.0, 1.0);
@@ -1772,10 +1776,10 @@ pub fn run(window: plat.Window, options: Options) bool {
             cam = world.camera();
             renderer.stand = cam.stand;
             eye = cam.eye;
-            // what stands between the eye and Hum is see-through: a cone round the line from the
-            // eye to Hum's middle (spec/engine.md, "What stands between the eye and Hum")
-            const hum_at = [3]f32{ world.hum_x, (world.hum_ground + world.hum_y + world_mod.hum_mid) * cam.stand, world.hum_z };
-            renderer.setCone(cam.eye, hum_at, cam.stand);
+            // thin grass blades part around Hum and out of the line of sight (steps 0.6 & 0.7),
+            // using pre-hinge world heights to match the vertex shaders before `u_stand`
+            const hum_world = [3]f32{ world.hum_x, world.hum_ground + world.hum_y + world_mod.hum_mid, world.hum_z };
+            renderer.setParting(cam.eye, hum_world, cam.stand);
             renderer.setReact(world.react.awake, world.react.rise, world.react.tilt, world_mod.harmony.home(&world));
             const fx = @sin(world.look_yaw);
             const fz = -@cos(world.look_yaw);

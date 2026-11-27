@@ -93,28 +93,81 @@ pub const body_cols = 256;
 pub const body_rows = 64;
 pub const max_bodies = body_cols * body_rows;
 
-/// How a point answers the chord, for both vertex shaders: the copy of law/react.zig's `moved`.
-/// The one number they share is written in from feel.zig, so the two cannot drift apart.
+/// How a point answers the chord (law/react.zig) and parts around Hum and the line of sight
+/// (steps 0.6 & 0.7), shared by both vertex shaders so lines and black shapes stay locked together.
+/// Every measure comes from feel.zig at compile time so world and picture cannot drift apart.
 const react_glsl = std.fmt.comptimePrint(
     \\uniform float u_awake[12];
     \\uniform vec4 u_react;
-    \\// tag: a point's colour, and its kind's measures (rise in the low four bits, tilt in the high).
-    \\// u_react: how far what rises has risen, how far what tilts leans, and where home is.
-    \\vec3 reacted(vec3 p, float up, vec2 tag, out float awake) {{
-    \\    int cell = int(tag.x);
-    \\    awake = 0.0;
-    \\    if (cell >= 12) return p;
-    \\    awake = u_awake[cell];
-    \\    int measures = int(tag.y);
-    \\    float dy = {d:.4} * float(measures & 15) * u_react.x * awake;
-    \\    float lean = float(measures >> 4) * (1.0 / 15.0) * u_react.y * awake * up;
-    \\    vec2 h = u_react.zw - p.xz;
-    \\    float far = length(h);
-    \\    vec2 dir = far > 0.001 ? h / far : vec2(0.0);
-    \\    return vec3(p.x + dir.x * lean, p.y + dy, p.z + dir.y * lean);
+    \\uniform vec4 u_hum;
+    \\uniform vec3 u_eye;
+    \\uniform vec4 u_sight;
+    \\// measures: rise in low 4 bits, tilt in high 4 bits.
+    \\// u_react: rise, tilt, home.x, home.z.
+    \\// u_hum: hum.x, hum.y, hum.z, stand (0 on flat page).
+    \\// u_sight: unit dir from eye to hum (xyz), distance (w).
+    \\vec3 displace(vec3 p, float up, int measures, float awake) {{
+    \\    if (measures == 0) return p;
+    \\    float dy = 0.0;
+    \\    int r = measures & 15;
+    \\    if (r != 0) dy = {d:.4} * float(r) * u_react.x * awake;
+    \\    int t = measures >> 4;
+    \\    if (t == 0 || up <= 0.001) return vec3(p.x, p.y + dy, p.z);
+    \\    vec2 chord_shift = vec2(0.0);
+    \\    float lean = float(t) * (1.0 / 15.0) * u_react.y * awake * up;
+    \\    if (abs(lean) > 0.0005) {{
+    \\        vec2 h = u_react.zw - p.xz;
+    \\        float far = length(h);
+    \\        if (far > 0.001) chord_shift = (h / far) * lean;
+    \\    }}
+    \\    vec2 part_shift = vec2(0.0);
+    \\    if (t >= 8 && u_hum.w > 0.05) {{
+    \\        float flex = clamp(up * {d:.5}, 0.0, 1.0) * u_hum.w;
+    \\        vec2 dh = p.xz - u_hum.xz;
+    \\        float d2 = dot(dh, dh);
+    \\        if (d2 < {d:.4}) {{
+    \\            float ydiff = p.y - u_hum.y;
+    \\            if (ydiff > -1.0 && ydiff < 9.0) {{
+    \\                float d = sqrt(d2);
+    \\                float push = (1.0 - d * {d:.5}) * {d:.4} * flex;
+    \\                vec2 away = d > 0.01 ? dh / d : vec2(1.0, 0.0);
+    \\                part_shift += away * push;
+    \\            }}
+    \\        }}
+    \\        vec3 rel = p - u_eye;
+    \\        float along = dot(rel, u_sight.xyz);
+    \\        if (along > 0.2 && along < u_sight.w - 0.4) {{
+    \\            vec3 perp = rel - u_sight.xyz * along;
+    \\            float p2 = dot(perp, perp);
+    \\            if (p2 < {d:.4}) {{
+    \\                float pd = sqrt(p2);
+    \\                float push = (1.0 - pd * {d:.5}) * {d:.4} * flex;
+    \\                vec2 side = vec2(-u_sight.z, u_sight.x);
+    \\                float sl = length(side);
+    \\                if (sl > 0.001) {{
+    \\                    side /= sl;
+    \\                    float sgn = dot(perp.xz, side) >= 0.0 ? 1.0 : -1.0;
+    \\                    part_shift += side * (sgn * push);
+    \\                }}
+    \\            }}
+    \\        }}
+    \\        float ps = length(part_shift);
+    \\        if (ps > 0.001) dy -= min(ps * {d:.4}, up * 0.45);
+    \\    }}
+    \\    return vec3(p.x + chord_shift.x + part_shift.x, p.y + dy, p.z + chord_shift.y + part_shift.y);
     \\}}
     \\
-, .{feel.rise_unit});
+, .{
+    feel.rise_unit,
+    1.0 / feel.part_flex_height,
+    feel.part_hum_reach * feel.part_hum_reach,
+    1.0 / feel.part_hum_reach,
+    feel.part_hum_push,
+    feel.part_sight_reach * feel.part_sight_reach,
+    1.0 / feel.part_sight_reach,
+    feel.part_sight_push,
+    feel.part_droop,
+});
 
 const line_vs_head =
     \\#version 300 es
@@ -131,13 +184,10 @@ const line_vs_head =
     \\uniform vec2 u_far;
     \\uniform float u_stand;
     \\uniform float u_emit;
-    \\uniform vec3 u_eye;
-    \\uniform float u_cone;
     \\uniform vec3 u_hue[12];
     \\uniform vec3 u_wake;
     \\out vec2 v_uv;
     \\out vec3 v_col;
-    \\out highp vec3 v_rel;
     \\
 ;
 
@@ -146,10 +196,16 @@ const line_vs_main =
     \\    int id = gl_VertexID;
     \\    float e = (id >= 2) ? 1.0 : 0.0;
     \\    float s = ((id & 1) == 1) ? 1.0 : -1.0;
-    \\    // how the chord has moved each end
-    \\    float awake;
-    \\    vec3 wa = reacted(a_a, a_up.x * 0.1, a_tag, awake);
-    \\    vec3 wb = reacted(a_b, a_up.y * 0.1, a_tag, awake);
+    \\    // unpack chord tag once; skip displacement on the ~85% of lines with measures == 0
+    \\    int cell = int(a_tag.x);
+    \\    int measures = int(a_tag.y);
+    \\    float awake = cell < 12 ? u_awake[cell] : 0.0;
+    \\    vec3 wa = a_a;
+    \\    vec3 wb = a_b;
+    \\    if (measures != 0) {
+    \\        wa = displace(a_a, a_up.x * 0.1, measures, awake);
+    \\        wb = displace(a_b, a_up.y * 0.1, measures, awake);
+    \\    }
     \\    // the hinge: on the page everything lies flat, and it stands up from where it lies
     \\    vec4 pa = u_vp * vec4(wa.x, wa.y * u_stand, wa.z, 1.0);
     \\    vec4 pb = u_vp * vec4(wb.x, wb.y * u_stand, wb.z, 1.0);
@@ -181,20 +237,14 @@ const line_vs_main =
     \\    // its own sound, spread over its lines; and the light that falls on it, given back
     \\    float shine = t.r * t.b * u_emit + t.g * t.a;
     \\    v_uv = vec2(e, s);
-    \\    // where it is from the eye, for the cone (line_fs); and within a few metres of the eye
-    \\    // everything fades
-    \\    vec3 q = e > 0.5 ? wb : wa;
-    \\    v_rel = sky ? vec3(0.0, 1.0e6, 0.0) : vec3(q.x, q.y * u_stand, q.z) - u_eye;
-    \\    float clear = sky ? 1.0 : 1.0 - u_cone * (1.0 - smoothstep(3.0, 6.0, length(v_rel)));
     \\    // what is in the chord is awake: brighter, and in its note's own colour; what is not rests
     \\    vec3 tint = a_col.rgb;
     \\    float gain = 1.0;
-    \\    int cell = int(a_tag.x);
     \\    if (cell < 12) {
     \\        gain = mix(u_wake.x, u_wake.y, awake);
     \\        tint = mix(tint, u_hue[cell], u_wake.z * awake);
     \\    }
-    \\    v_col = tint * (a_col.a * shine * nearness * clear * gain);
+    \\    v_col = tint * (a_col.a * shine * nearness * gain);
     \\}
 ;
 
@@ -205,24 +255,9 @@ const line_fs =
     \\precision mediump float;
     \\in vec2 v_uv;
     \\in vec3 v_col;
-    \\in highp vec3 v_rel;
-    \\uniform highp vec3 u_cdir;
-    \\uniform highp float u_clen;
-    \\uniform highp float u_cone;
-    \\// what stands between the eye and Hum (spec/engine.md): inside a cone round the line from the
-    \\// eye to Hum's middle, 1.5 m across at Hum and widening toward the eye, everything is
-    \\// see-through, but not Hum itself nor anything beyond it; 1 inside, 0 outside
-    \\float inCone(highp vec3 v) {
-    \\    highp float t = dot(v, u_cdir);
-    \\    highp float rho = length(v - u_cdir * t);
-    \\    highp float s = u_clen - t;
-    \\    highp float r = 0.75 + 0.175 * s;
-    \\    return (1.0 - smoothstep(0.6 * r, r, rho)) * smoothstep(0.6, 1.6, s) * step(0.0, t);
-    \\}
     \\out vec4 o;
     \\void main() {
     \\    float a = 1.0 - smoothstep(0.30, 1.0, abs(v_uv.y));
-    \\    a *= 1.0 - u_cone * inCone(v_rel);
     \\    o = vec4(v_col * a, 0.0);
     \\}
 ;
@@ -233,46 +268,30 @@ const occ_vs_head =
     \\layout(location = 1) in vec4 a_tag;
     \\uniform mat4 u_vp;
     \\uniform float u_stand;
-    \\uniform vec3 u_eye;
-    \\out highp vec3 v_rel;
     \\
 ;
 
 const occ_vs_main =
     \\void main() {
-    \\    // a black shape is moved by the chord exactly as its thing's lines are
-    \\    float awake;
-    \\    vec3 p = reacted(a_pos, (a_tag.x + a_tag.y * 256.0) * 0.1, a_tag.zw, awake);
+    \\    // a black shape is moved by the chord and parting exactly as its thing's lines are
+    \\    int measures = int(a_tag.w);
+    \\    vec3 p = a_pos;
+    \\    if (measures != 0) {
+    \\        int cell = int(a_tag.z);
+    \\        float awake = cell < 12 ? u_awake[cell] : 0.0;
+    \\        p = displace(a_pos, (a_tag.x + a_tag.y * 256.0) * 0.1, measures, awake);
+    \\    }
     \\    gl_Position = u_vp * vec4(p.x, p.y * u_stand, p.z, 1.0);
-    \\    v_rel = vec3(p.x, p.y * u_stand, p.z) - u_eye;
     \\}
 ;
 
 const occ_vs = occ_vs_head ++ react_glsl ++ occ_vs_main;
 
+// Depth-only black shapes (ColorMask is FALSE, no discard -> keeps Mali-G31 Early-Z active).
 const occ_fs =
     \\#version 300 es
-    \\precision highp float;
-    \\in vec3 v_rel;
-    \\uniform vec3 u_cdir;
-    \\uniform float u_clen;
-    \\uniform float u_cone;
-    \\// what stands between the eye and Hum (spec/engine.md): inside a cone round the line from the
-    \\// eye to Hum's middle, 1.5 m across at Hum and widening toward the eye, everything is
-    \\// see-through, but not Hum itself nor anything beyond it; 1 inside, 0 outside
-    \\float inCone(vec3 v) {
-    \\    float t = dot(v, u_cdir);
-    \\    float rho = length(v - u_cdir * t);
-    \\    float s = u_clen - t;
-    \\    float r = 0.75 + 0.175 * s;
-    \\    return (1.0 - smoothstep(0.6 * r, r, rho)) * smoothstep(0.6, 1.6, s) * step(0.0, t);
-    \\}
-    \\out vec4 o;
-    \\void main() {
-    \\    // what stands between the eye and Hum hides nothing
-    \\    if (u_cone * max(inCone(v_rel), 1.0 - smoothstep(3.0, 6.0, length(v_rel))) > 0.5) discard;
-    \\    o = vec4(0.0, 0.0, 0.0, 1.0);
-    \\}
+    \\precision lowp float;
+    \\void main() {}
 ;
 
 // The ground: one picture of the light that has been left on it, drawn flat under everything.
@@ -401,20 +420,17 @@ pub const Renderer = struct {
     sky_u_sky: c.GLint = -1,
     sky_u_dawn: c.GLint = -1,
     line_u_emit: c.GLint = -1,
+    line_u_hum: c.GLint = -1,
     line_u_eye: c.GLint = -1,
-    line_u_cone: c.GLint = -1,
-    line_u_cdir: c.GLint = -1,
-    line_u_clen: c.GLint = -1,
+    line_u_sight: c.GLint = -1,
+    occ_u_hum: c.GLint = -1,
     occ_u_eye: c.GLint = -1,
-    occ_u_cdir: c.GLint = -1,
-    occ_u_clen: c.GLint = -1,
-    occ_u_cone: c.GLint = -1,
-    /// The cone round the line from the eye to Hum inside which everything is see-through
-    /// (setCone): the eye, the way to Hum, how far, and how much (0 on the page).
-    cone_eye: [3]f32 = .{ 0.0, 0.0, 0.0 },
-    cone_dir: [3]f32 = .{ 0.0, 0.0, 1.0 },
-    cone_len: f32 = 0.0,
-    cone_on: f32 = 0.0,
+    occ_u_sight: c.GLint = -1,
+    /// Parting around Hum and the sight line (steps 0.6 & 0.7): Hum's un-hinged middle + stand,
+    /// the eye's position, and the unit sight direction + distance from eye to Hum.
+    part_hum: [4]f32 = .{ 0.0, 0.0, 0.0, 0.0 },
+    part_eye: [3]f32 = .{ 0.0, 0.0, 0.0 },
+    part_sight: [4]f32 = .{ 0.0, 0.0, 1.0, 0.0 },
     /// How bright a thing's own sound makes it, against the light that falls on it.
     emit: f32 = 1.3,
     /// How faint a line may get with distance, and how much heavier a near line is drawn.
@@ -552,14 +568,12 @@ pub const Renderer = struct {
         self.sky_u_sky = gl.GetUniformLocation(self.sky_prog, "u_sky");
         self.sky_u_dawn = gl.GetUniformLocation(self.sky_prog, "u_dawn");
         self.line_u_emit = gl.GetUniformLocation(self.line_prog, "u_emit");
+        self.line_u_hum = gl.GetUniformLocation(self.line_prog, "u_hum");
         self.line_u_eye = gl.GetUniformLocation(self.line_prog, "u_eye");
-        self.line_u_cone = gl.GetUniformLocation(self.line_prog, "u_cone");
-        self.line_u_cdir = gl.GetUniformLocation(self.line_prog, "u_cdir");
-        self.line_u_clen = gl.GetUniformLocation(self.line_prog, "u_clen");
+        self.line_u_sight = gl.GetUniformLocation(self.line_prog, "u_sight");
+        self.occ_u_hum = gl.GetUniformLocation(self.occ_prog, "u_hum");
         self.occ_u_eye = gl.GetUniformLocation(self.occ_prog, "u_eye");
-        self.occ_u_cdir = gl.GetUniformLocation(self.occ_prog, "u_cdir");
-        self.occ_u_clen = gl.GetUniformLocation(self.occ_prog, "u_clen");
-        self.occ_u_cone = gl.GetUniformLocation(self.occ_prog, "u_cone");
+        self.occ_u_sight = gl.GetUniformLocation(self.occ_prog, "u_sight");
         self.line_u_awake = gl.GetUniformLocation(self.line_prog, "u_awake");
         self.line_u_react = gl.GetUniformLocation(self.line_prog, "u_react");
         self.line_u_hue = gl.GetUniformLocation(self.line_prog, "u_hue");
@@ -935,15 +949,20 @@ pub const Renderer = struct {
         gl.BindBuffer(c.GL_ARRAY_BUFFER, 0);
     }
 
-    /// The cone of see-through round the line from the eye to Hum's middle; `on` is how much (the
-    /// hinge: nothing is cleared on the page).
-    pub fn setCone(self: *Renderer, eye: [3]f32, hum: [3]f32, on: f32) void {
+    /// Tell the vertex shaders where Hum and the eye are so thin blades bend out of Hum's path
+    /// and out of the line of sight (steps 0.6 & 0.7). `on` is 0 on the flat page.
+    pub fn setParting(self: *Renderer, eye: [3]f32, hum: [3]f32, on: f32) void {
         const d = [3]f32{ hum[0] - eye[0], hum[1] - eye[1], hum[2] - eye[2] };
         const len = @sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
-        self.cone_eye = eye;
-        self.cone_len = len;
-        self.cone_dir = if (len > 0.001) .{ d[0] / len, d[1] / len, d[2] / len } else .{ 0.0, 0.0, 1.0 };
-        self.cone_on = on;
+        self.part_hum = .{ hum[0], hum[1], hum[2], on };
+        self.part_eye = eye;
+        self.part_sight = if (len > 0.001) .{ d[0] / len, d[1] / len, d[2] / len, len } else .{ 0.0, 0.0, 1.0, 0.0 };
+    }
+
+    fn sendParting(self: *const Renderer, u_hum: c.GLint, u_eye: c.GLint, u_sight: c.GLint) void {
+        gl.Uniform4f(u_hum, self.part_hum[0], self.part_hum[1], self.part_hum[2], self.part_hum[3]);
+        gl.Uniform3f(u_eye, self.part_eye[0], self.part_eye[1], self.part_eye[2]);
+        gl.Uniform4f(u_sight, self.part_sight[0], self.part_sight[1], self.part_sight[2], self.part_sight[3]);
     }
 
     fn drawOcc(self: *Renderer, vp: *const m.M4) void {
@@ -951,11 +970,8 @@ pub const Renderer = struct {
         gl.UseProgram(self.occ_prog);
         gl.UniformMatrix4fv(self.occ_u_vp, 1, c.GL_FALSE, vp);
         gl.Uniform1f(self.occ_u_stand, self.stand);
-        gl.Uniform3f(self.occ_u_eye, self.cone_eye[0], self.cone_eye[1], self.cone_eye[2]);
-        gl.Uniform3f(self.occ_u_cdir, self.cone_dir[0], self.cone_dir[1], self.cone_dir[2]);
-        gl.Uniform1f(self.occ_u_clen, self.cone_len);
-        gl.Uniform1f(self.occ_u_cone, self.cone_on);
         self.sendReact(self.occ_u_awake, self.occ_u_react);
+        self.sendParting(self.occ_u_hum, self.occ_u_eye, self.occ_u_sight);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_TRUE);
@@ -987,11 +1003,8 @@ pub const Renderer = struct {
         gl.Uniform2f(self.line_u_far, self.far_floor, self.heft);
         gl.Uniform1f(self.line_u_stand, self.stand);
         gl.Uniform1f(self.line_u_emit, self.emit);
-        gl.Uniform3f(self.line_u_eye, self.cone_eye[0], self.cone_eye[1], self.cone_eye[2]);
-        gl.Uniform1f(self.line_u_cone, self.cone_on);
-        gl.Uniform3f(self.line_u_cdir, self.cone_dir[0], self.cone_dir[1], self.cone_dir[2]);
-        gl.Uniform1f(self.line_u_clen, self.cone_len);
         self.sendReact(self.line_u_awake, self.line_u_react);
+        self.sendParting(self.line_u_hum, self.line_u_eye, self.line_u_sight);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_FALSE);
@@ -1027,11 +1040,8 @@ pub const Renderer = struct {
         gl.Uniform2f(self.line_u_far, self.far_floor, self.heft);
         gl.Uniform1f(self.line_u_stand, self.stand);
         gl.Uniform1f(self.line_u_emit, self.emit);
-        gl.Uniform3f(self.line_u_eye, self.cone_eye[0], self.cone_eye[1], self.cone_eye[2]);
-        gl.Uniform1f(self.line_u_cone, 0.0);
-        gl.Uniform3f(self.line_u_cdir, self.cone_dir[0], self.cone_dir[1], self.cone_dir[2]);
-        gl.Uniform1f(self.line_u_clen, self.cone_len);
         self.sendReact(self.line_u_awake, self.line_u_react);
+        self.sendParting(self.line_u_hum, self.line_u_eye, self.line_u_sight);
         gl.Disable(c.GL_DEPTH_TEST);
         gl.DepthMask(c.GL_FALSE);
         gl.Enable(c.GL_BLEND);
