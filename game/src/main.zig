@@ -7,6 +7,9 @@ const std = @import("std");
 const plat = @import("plat/plat.zig");
 const png = @import("plat/png.zig");
 const lines = @import("draw/lines.zig");
+const black = @import("draw/black.zig");
+const feel = @import("feel.zig");
+const react = @import("law/react.zig");
 const dark = @import("dark.zig");
 const room = @import("room.zig");
 const m = @import("m.zig");
@@ -177,9 +180,11 @@ const Land = struct {
         self.occ_n = 0;
         var rand = Rand{ .s = 0x9e3779b9 };
 
-        // A third of the lines belong to things that sound: stalks with a ring for a head.
+        // A third of the lines belong to things that sound: stalks with a ring for a head, tagged
+        // for the chord so the shaders run their real path.
         const per_stalk = 12;
         const stalks = want_lines / 3 / per_stalk;
+        const stalk_reacts = (react.Reacts{ .tilt = feel.blade_tilts }).byte();
         var body: usize = 1;
         for (0..stalks) |_| {
             const x = (rand.unit() * 2.0 - 1.0) * half_field * 0.95;
@@ -195,7 +200,8 @@ const Land = struct {
                 255,
             };
             const b: f32 = @floatFromInt(body % lines.max_bodies);
-            self.sounding[self.sounding_n] = .{ .a = .{ x, y0, z }, .b = .{ x, y0 + tall, z }, .half_width = 1.4, .body = b, .col = col };
+            const cell: u8 = @intCast(body % 12);
+            self.sounding[self.sounding_n] = .{ .a = .{ x, y0, z }, .b = .{ x, y0 + tall, z }, .half_width = 1.4, .body = b, .col = col, .up = .{ 0, lines.tenths(tall) }, .cell = cell, .reacts = stalk_reacts };
             self.sounding_n += 1;
             for (0..8) |k| {
                 const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 8.0);
@@ -206,6 +212,9 @@ const Land = struct {
                     .half_width = 1.4,
                     .body = b,
                     .col = col,
+                    .up = .{ lines.tenths(tall + r * @sin(a0)), lines.tenths(tall + r * @sin(a1)) },
+                    .cell = cell,
+                    .reacts = stalk_reacts,
                 };
                 self.sounding_n += 1;
             }
@@ -217,6 +226,9 @@ const Land = struct {
                     .half_width = 1.2,
                     .body = b,
                     .col = col,
+                    .up = .{ lines.tenths(tall), lines.tenths(tall + r * @sin(a0)) },
+                    .cell = cell,
+                    .reacts = stalk_reacts,
                 };
                 self.sounding_n += 1;
             }
@@ -235,14 +247,15 @@ const Land = struct {
             for (0..per_row) |k| {
                 const x0 = -half_field + piece * @as(f32, @floatFromInt(k));
                 const x1 = x0 + piece;
-                self.lit[self.lit_n] = .{ .a = .{ x0, ground(x0, z), z }, .b = .{ x1, ground(x1, z), z }, .half_width = 1.1, .body = 0.0, .col = ground_col };
+                const cell: u8 = @intCast((row + k) % 12);
+                self.lit[self.lit_n] = .{ .a = .{ x0, ground(x0, z), z }, .b = .{ x1, ground(x1, z), z }, .half_width = 1.1, .body = 0.0, .col = ground_col, .cell = cell };
                 self.lit_n += 1;
-                self.lit[self.lit_n] = .{ .a = .{ z, ground(z, x0), x0 }, .b = .{ z, ground(z, x1), x1 }, .half_width = 1.1, .body = 0.0, .col = ground_col };
+                self.lit[self.lit_n] = .{ .a = .{ z, ground(z, x0), x0 }, .b = .{ z, ground(z, x1), x1 }, .half_width = 1.1, .body = 0.0, .col = ground_col, .cell = cell };
                 self.lit_n += 1;
             }
         }
 
-        // The ground as black triangles.
+        // The ground as black triangles, tagged with a colour so occ_vs runs the full chord path.
         if (occ_cell > 0.0) {
             const cells: usize = @intFromFloat(2.0 * half_field / occ_cell);
             for (0..cells) |iz| {
@@ -256,6 +269,7 @@ const Land = struct {
                     const p01 = [3]f32{ x0, ground(x0, z1), z1 };
                     const p11 = [3]f32{ x1, ground(x1, z1), z1 };
                     self.occ[self.occ_n..][0..6].* = .{ p00, p10, p11, p00, p11, p01 };
+                    bench_tags[self.occ_n..][0..6].* = @splat(black.tagOf(0.0, @intCast((ix + iz) % 12), 0));
                     self.occ_n += 6;
                 }
             }
@@ -273,7 +287,7 @@ fn dumpFrame(renderer: *lines.Renderer, dir: [*:0]const u8, name: []const u8, pi
 }
 
 const Bench = struct { lines: usize, occ_cell: f32 };
-/// The bench's black shapes say nothing to the chord.
+/// Beside each corner of the bench's black shapes, its chord tag (filled in Land.make).
 var bench_tags: [90_000]lines.OccTag = @splat(lines.no_tag);
 
 /// How many lines a frame holds: the same land at several sizes, a camera circling it, every
@@ -302,7 +316,7 @@ fn benchLines(window: plat.Window, args: Args) bool {
     const frames_each: u32 = if (args.frames > 0) args.frames else 240;
     const aspect = @as(f32, @floatFromInt(window.width)) / @as(f32, @floatFromInt(window.height));
     const proj = m.perspective(50.0, aspect, 0.3, 900.0);
-    log("lines bench: {d} frames for each size; a third of the lines belong to things that sound", .{frames_each});
+    log("lines bench: {d} frames for each size; a third of the lines belong to things that sound, all tagged for the chord", .{frames_each});
 
     for (runs, 0..) |run, run_index| {
         land.make(run.lines, run.occ_cell);
@@ -331,6 +345,14 @@ fn benchLines(window: plat.Window, args: Args) bool {
                 v.* = .{ .sounding = @intFromFloat(140.0 + 115.0 * @sin(phase)), .lit = 0 };
             }
             loud[0] = .{ .lit = 255 };
+            // a chord cycling round the wheel, lifting and leaning, so every line and black shape
+            // runs the shaders' real chord path
+            var awake: [12]f32 = @splat(0.0);
+            const root: usize = @intFromFloat(@mod(t * 0.5, 12.0));
+            awake[root] = 1.0;
+            awake[(root + 1) % 12] = 1.0;
+            awake[(root + 4) % 12] = 0.8;
+            renderer.setReact(awake, 0.5 + 0.5 * @sin(t * 1.1), feel.tilt_full * @sin(t * 0.9), .{ 0.0, 0.0 });
 
             const began = plat.now();
             renderer.frame(&vp, &loud);
