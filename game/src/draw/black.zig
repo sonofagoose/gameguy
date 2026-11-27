@@ -14,12 +14,38 @@ const V3 = form.V3;
 /// How much of a round thing's width its black shape takes.
 pub const inside: f32 = 0.9;
 
+/// A thing with no note has no colour of the wheel's, and the chord neither moves nor lights it.
+pub const no_note: u8 = 255;
+
+/// A height in tenths of a metre, as a line and a black shape's corner carry it.
+pub fn tenths(metres: f32) u16 {
+    return @intFromFloat(std.math.clamp(metres * 10.0, 0.0, 65535.0));
+}
+
+/// What a corner of a black shape is to the chord, as a line says it of itself (draw/lines.zig,
+/// `Inst`): how high up its own thing in tenths of a metre (two bytes, the low one first), its
+/// note's colour, and its kind's measures (law/react.zig). The chord moves a black shape exactly
+/// as it moves the thing's lines.
+pub const Tag = [4]u8;
+pub const no_tag = Tag{ 0, 0, no_note, 0 };
+
+pub fn tagOf(up: f32, cell: u8, reacts: u8) Tag {
+    const t = tenths(up);
+    return .{ @truncate(t), @truncate(t >> 8), cell, reacts };
+}
+
 /// Where black triangles go: three points to each.
 pub const Tris = struct {
     out: []V3,
     n: usize = 0,
     /// How many triangles did not fit.
     lost: usize = 0,
+    /// Beside the points, what each is to the chord, if anyone is keeping that; and what the
+    /// triangles now being added are: their colour and their kind's measures. A point's height is
+    /// taken as it stands, so triangles are added before the ground is put under them.
+    tags: []Tag = &.{},
+    cell: u8 = no_note,
+    reacts: u8 = 0,
 
     pub fn tri(self: *Tris, a: V3, b: V3, c: V3) void {
         if (self.n + 3 > self.out.len) {
@@ -29,7 +55,18 @@ pub const Tris = struct {
         self.out[self.n] = a;
         self.out[self.n + 1] = b;
         self.out[self.n + 2] = c;
+        if (self.n + 3 <= self.tags.len) {
+            self.tags[self.n] = tagOf(a[1], self.cell, self.reacts);
+            self.tags[self.n + 1] = tagOf(b[1], self.cell, self.reacts);
+            self.tags[self.n + 2] = tagOf(c[1], self.cell, self.reacts);
+        }
         self.n += 3;
+    }
+
+    /// From here on, the triangles added are of this colour and these measures.
+    pub fn of(self: *Tris, cell: u8, reacts: u8) void {
+        self.cell = cell;
+        self.reacts = reacts;
     }
 
     pub fn slice(self: *const Tris) []const V3 {
@@ -134,4 +171,17 @@ test "a plate of five corners is three triangles, a ball eight" {
     ball(.{ .at = .{ 0.0, 1.0, 0.0 }, .r = 1.0 }, &tris);
     try expectEqual(@as(usize, 12), tris.count());
     try expectEqual(@as(usize, 7), tris.lost);
+}
+
+test "a black shape's corners say what they are to the chord, and how high up their own thing" {
+    var room: [6]V3 = undefined;
+    var tags: [6]Tag = @splat(no_tag);
+    var tris = Tris{ .out = &room, .tags = &tags };
+    tris.tri(.{ 0.0, 0.0, 0.0 }, .{ 1.0, 0.0, 0.0 }, .{ 0.0, 0.0, 1.0 });
+    try expectEqual(no_tag, tags[0]);
+    tris.of(1, 0xf0);
+    tris.tri(.{ 0.0, 0.0, 0.0 }, .{ 1.0, 0.0, 0.0 }, .{ 0.5, 30.0, 0.0 });
+    try expectEqual(Tag{ 0, 0, 1, 0xf0 }, tags[3]);
+    // thirty metres up is three hundred tenths: forty-four and one two-hundred-and-fifty-six
+    try expectEqual(Tag{ 44, 1, 1, 0xf0 }, tags[5]);
 }

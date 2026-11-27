@@ -43,6 +43,22 @@ Where the build stands, so a new session can pick it up. Newest first.
     centimetres nearer to round things than before, because it is a round body against round
     things and no longer a circle against circles. 178 tests. The scripted run costs the same on
     the laptop (0.87 ms of work a frame).
+  - **0.8 and 0.9, begun and not yet seen** (2026-11-26): the law is written and tested, and the
+    picture can obey it, but nothing in the Garden has been told its note yet, so nothing moves.
+    In: `game/src/feel.zig` (the numbers a hand or eye will want changed, as first guesses);
+    `game/src/law/standing.zig` (what each of the twelve colours is to the chord);
+    `game/src/law/react.zig` (wake and rest, rise, tilt and wind, land, settle: sixteen numbers of
+    state for the whole world, and `moved`, the one place a reaction becomes a thing's place);
+    and in `game/src/draw/lines.zig` each line and each corner of a black shape can now carry its
+    note's colour, its kind's measures and its height up its own thing, and both vertex shaders
+    move and light it by the chord from the same copied sum. With nothing tagged the picture is
+    the same to the dot. Changed from `docs/engine.md`: the mass of things is moved by colour from
+    twelve numbers, not by a row for each body; a row for each body is still to come for single
+    movers. **Left to do in 0.9:** step the world's reactions each step from the chord (a `react`
+    field on the world, from `home_k`); tag the asters by note, the blades to tilt, the fallen
+    leaves to rise and the reeds (the working notes for this are in the engine design, part 11,
+    and in the commit before this one's message); make a risen leaf a plate in
+    `world/footing.zig`; send the state to the renderer each frame (`setReact`); tests.
   - **Owed to the purple:** the rules changed in 0.5, so the laptop's fingerprints no longer match
     the handheld's last run (`game/results/same-take-aarch64.txt`). `same-take-aarch64 10` has to be
     run there again, and the try-out's start (`tryout/stood.save`) made again, before anything new

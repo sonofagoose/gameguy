@@ -273,6 +273,8 @@ fn dumpFrame(renderer: *lines.Renderer, dir: [*:0]const u8, name: []const u8, pi
 }
 
 const Bench = struct { lines: usize, occ_cell: f32 };
+/// The bench's black shapes say nothing to the chord.
+var bench_tags: [90_000]lines.OccTag = @splat(lines.no_tag);
 
 /// How many lines a frame holds: the same land at several sizes, a camera circling it, every
 /// body's loudness changing every frame.
@@ -304,7 +306,7 @@ fn benchLines(window: plat.Window, args: Args) bool {
 
     for (runs, 0..) |run, run_index| {
         land.make(run.lines, run.occ_cell);
-        renderer.setLand(land.sounding[0..land.sounding_n], land.lit[0..land.lit_n], land.occ[0..land.occ_n]);
+        renderer.setLand(land.sounding[0..land.sounding_n], land.lit[0..land.lit_n], land.occ[0..land.occ_n], bench_tags[0..land.occ_n]);
         var work_sum: f64 = 0.0;
         var work_worst: f64 = 0.0;
         var gap_sum: f64 = 0.0;

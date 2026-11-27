@@ -125,6 +125,7 @@ pub const gl = struct {
     pub var DrawElements: GlFn("DrawElements") = undefined;
     pub var UniformMatrix4fv: GlFn("UniformMatrix4fv") = undefined;
     pub var Uniform3fv: GlFn("Uniform3fv") = undefined;
+    pub var Uniform1fv: GlFn("Uniform1fv") = undefined;
     pub var GenerateMipmap: GlFn("GenerateMipmap") = undefined;
     pub var GenRenderbuffers: GlFn("GenRenderbuffers") = undefined;
     pub var BindRenderbuffer: GlFn("BindRenderbuffer") = undefined;

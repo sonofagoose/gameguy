@@ -28,6 +28,8 @@ test {
     _ = @import("body/solid.zig");
     _ = @import("body/grid.zig");
     _ = @import("place/garden.zig");
+    _ = @import("law/standing.zig");
+    _ = @import("law/react.zig");
     _ = world.covers;
     _ = world.home;
     _ = world.drip;

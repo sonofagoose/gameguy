@@ -1084,6 +1084,8 @@ fn shine(sounding: f32, lit: f32, share: f32, gives: f32) lines.Shine {
 var static_occ: [60_000][3]f32 = undefined;
 /// And those of what moves, rebuilt each frame.
 var moving_occ: [1_500][3]f32 = undefined;
+/// Beside each corner of the land's black shapes, what it is to the chord (draw/black.zig).
+var static_occ_tags: [60_000]lines.OccTag = @splat(lines.no_tag);
 var moving: [16_000]lines.Inst = undefined;
 /// A person's hands, as they play: room for an hour of a thumb that never rests.
 var take_bytes: [take.header_size + 216_000 * take.change_size]u8 = undefined;
@@ -1362,7 +1364,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             renderer.sky = .{ 0.0, 0.0, 0.0 };
             proj = m.perspective(50.0, aspect, 0.3, 400.0);
             const static_n = thingLines(&world, &static_lines);
-            renderer.setLand(static_lines[0..static_n], static_lines[0..0], &.{});
+            renderer.setLand(static_lines[0..static_n], static_lines[0..0], &.{}, &.{});
             renderer.setGround(0, .{ 0.0, 0.0 }, .{ 0.0, 0.0 }, null);
             log("the dark: R1 calls, R2 hums, the left stick walks; Select and Start together leave", .{});
         },
@@ -1820,7 +1822,7 @@ pub fn run(window: plat.Window, options: Options) bool {
                     lines.liftPoints(static_occ[occ_from..picked.occ], &world_mod.ground.heightAt);
                 }
                 spreadLight(static_lines[0..picked.lines]);
-                renderer.setLand(static_lines[0..if (options.half_land) picked.lines / 2 else picked.lines], static_lines[0..0], static_occ[0..picked.occ]);
+                renderer.setLand(static_lines[0..if (options.half_land) picked.lines / 2 else picked.lines], static_lines[0..0], static_occ[0..picked.occ], static_occ_tags[0..picked.occ]);
                 picked_x = eye[0];
                 picked_z = eye[2];
                 repicked = true;

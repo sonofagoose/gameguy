@@ -14,7 +14,12 @@ pub fn fifthsFrom(home_hz: f32, hz: f32) usize {
 }
 
 pub fn ofNote(home_hz: f32, hz: f32) [3]f32 {
-    const h = hues[fifthsFrom(home_hz, hz)] / 60.0;
+    return ofCell(fifthsFrom(home_hz, hz));
+}
+
+/// The colour of one of the wheel's twelve cells, counted clockwise from the garden's note.
+pub fn ofCell(cell: usize) [3]f32 {
+    const h = hues[cell % 12] / 60.0;
     const x = 1.0 - @abs(@mod(h, 2.0) - 1.0);
     const sector: i32 = @intFromFloat(h);
     const rgb: [3]f32 = switch (sector) {

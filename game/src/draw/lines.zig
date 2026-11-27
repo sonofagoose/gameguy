@@ -13,10 +13,19 @@
 const std = @import("std");
 const plat = @import("../plat/plat.zig");
 const m = @import("../m.zig");
+const feel = @import("../feel.zig");
+const colour = @import("colour.zig");
+const black = @import("black.zig");
 const c = plat.c;
 const gl = plat.gl;
 
-/// One line. 36 bytes.
+pub const no_note = black.no_note;
+pub const tenths = black.tenths;
+/// What a corner of a black shape is to the chord (draw/black.zig).
+pub const OccTag = black.Tag;
+pub const no_tag = black.no_tag;
+
+/// One line. 44 bytes.
 pub const Inst = extern struct {
     a: [3]f32,
     b: [3]f32,
@@ -26,6 +35,22 @@ pub const Inst = extern struct {
     body: f32,
     /// Its colour, and how bright it is at full loudness.
     col: [4]u8,
+    /// How high each end stands above the ground under its own thing, in tenths of a metre: what
+    /// tilts leans by it (law/react.zig).
+    up: [2]u16 = .{ 0, 0 },
+    /// Its note's colour, nought to eleven clockwise from the garden's note, or `no_note`; and how
+    /// much its kind rises and tilts (law/react.zig, `Reacts`, as a byte).
+    cell: u8 = no_note,
+    reacts: u8 = 0,
+    pad: [2]u8 = .{ 0, 0 },
+
+    /// Say what a line is to the chord: its note's colour and its kind's measures. Its ends'
+    /// heights are taken as they stand, so this is called before the ground is added under it.
+    pub fn tag(self: *Inst, cell: u8, reacts: u8) void {
+        self.cell = cell;
+        self.reacts = reacts;
+        self.up = .{ tenths(self.a[1]), tenths(self.b[1]) };
+    }
 };
 
 /// How a body shines this frame (spec/texture.md): how loud it is sounding; how much light falls
@@ -62,16 +87,43 @@ var ground_verts: [ground_tiles_side * ground_tiles_side * (ground_cells + 1) * 
 /// Four details of each tile: its squares a side are ground_cells, then a half, a quarter, an eighth.
 pub const ground_details = 4;
 var ground_index: [ground_tiles_side * ground_tiles_side * ground_cells * ground_cells * 6 * 2]u16 = undefined;
+/// The most corners the black shapes of what moves can have in a frame.
+pub const moving_occ_most = 3000;
 pub const body_cols = 256;
 pub const body_rows = 64;
 pub const max_bodies = body_cols * body_rows;
 
-const line_vs =
+/// How a point answers the chord, for both vertex shaders: the copy of law/react.zig's `moved`.
+/// The one number they share is written in from feel.zig, so the two cannot drift apart.
+const react_glsl = std.fmt.comptimePrint(
+    \\uniform float u_awake[12];
+    \\uniform vec4 u_react;
+    \\// tag: a point's colour, and its kind's measures (rise in the low four bits, tilt in the high).
+    \\// u_react: how far what rises has risen, how far what tilts leans, and where home is.
+    \\vec3 reacted(vec3 p, float up, vec2 tag, out float awake) {{
+    \\    int cell = int(tag.x);
+    \\    awake = 0.0;
+    \\    if (cell >= 12) return p;
+    \\    awake = u_awake[cell];
+    \\    int measures = int(tag.y);
+    \\    float dy = {d:.4} * float(measures & 15) * u_react.x * awake;
+    \\    float lean = float(measures >> 4) * (1.0 / 15.0) * u_react.y * awake * up;
+    \\    vec2 h = u_react.zw - p.xz;
+    \\    float far = length(h);
+    \\    vec2 dir = far > 0.001 ? h / far : vec2(0.0);
+    \\    return vec3(p.x + dir.x * lean, p.y + dy, p.z + dir.y * lean);
+    \\}}
+    \\
+, .{feel.rise_unit});
+
+const line_vs_head =
     \\#version 300 es
     \\layout(location = 0) in vec3 a_a;
     \\layout(location = 1) in vec3 a_b;
     \\layout(location = 2) in vec2 a_wb;
     \\layout(location = 3) in vec4 a_col;
+    \\layout(location = 4) in vec2 a_up;
+    \\layout(location = 5) in vec2 a_tag;
     \\uniform mat4 u_vp;
     \\uniform vec2 u_half;
     \\uniform highp sampler2D u_loud;
@@ -81,16 +133,26 @@ const line_vs =
     \\uniform float u_emit;
     \\uniform vec3 u_eye;
     \\uniform float u_cone;
+    \\uniform vec3 u_hue[12];
+    \\uniform vec3 u_wake;
     \\out vec2 v_uv;
     \\out vec3 v_col;
     \\out highp vec3 v_rel;
+    \\
+;
+
+const line_vs_main =
     \\void main() {
     \\    int id = gl_VertexID;
     \\    float e = (id >= 2) ? 1.0 : 0.0;
     \\    float s = ((id & 1) == 1) ? 1.0 : -1.0;
+    \\    // how the chord has moved each end
+    \\    float awake;
+    \\    vec3 wa = reacted(a_a, a_up.x * 0.1, a_tag, awake);
+    \\    vec3 wb = reacted(a_b, a_up.y * 0.1, a_tag, awake);
     \\    // the hinge: on the page everything lies flat, and it stands up from where it lies
-    \\    vec4 pa = u_vp * vec4(a_a.x, a_a.y * u_stand, a_a.z, 1.0);
-    \\    vec4 pb = u_vp * vec4(a_b.x, a_b.y * u_stand, a_b.z, 1.0);
+    \\    vec4 pa = u_vp * vec4(wa.x, wa.y * u_stand, wa.z, 1.0);
+    \\    vec4 pb = u_vp * vec4(wb.x, wb.y * u_stand, wb.z, 1.0);
     \\    const float nr = 0.05;
     \\    if (pa.w < nr && pb.w < nr) {
     \\        gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
@@ -121,12 +183,22 @@ const line_vs =
     \\    v_uv = vec2(e, s);
     \\    // where it is from the eye, for the cone (line_fs); and within a few metres of the eye
     \\    // everything fades
-    \\    vec3 q = e > 0.5 ? a_b : a_a;
+    \\    vec3 q = e > 0.5 ? wb : wa;
     \\    v_rel = sky ? vec3(0.0, 1.0e6, 0.0) : vec3(q.x, q.y * u_stand, q.z) - u_eye;
     \\    float clear = sky ? 1.0 : 1.0 - u_cone * (1.0 - smoothstep(3.0, 6.0, length(v_rel)));
-    \\    v_col = a_col.rgb * (a_col.a * shine * nearness * clear);
+    \\    // what is in the chord is awake: brighter, and in its note's own colour; what is not rests
+    \\    vec3 tint = a_col.rgb;
+    \\    float gain = 1.0;
+    \\    int cell = int(a_tag.x);
+    \\    if (cell < 12) {
+    \\        gain = mix(u_wake.x, u_wake.y, awake);
+    \\        tint = mix(tint, u_hue[cell], u_wake.z * awake);
+    \\    }
+    \\    v_col = tint * (a_col.a * shine * nearness * clear * gain);
     \\}
 ;
+
+const line_vs = line_vs_head ++ react_glsl ++ line_vs_main;
 
 const line_fs =
     \\#version 300 es
@@ -155,18 +227,28 @@ const line_fs =
     \\}
 ;
 
-const occ_vs =
+const occ_vs_head =
     \\#version 300 es
     \\layout(location = 0) in vec3 a_pos;
+    \\layout(location = 1) in vec4 a_tag;
     \\uniform mat4 u_vp;
     \\uniform float u_stand;
     \\uniform vec3 u_eye;
     \\out highp vec3 v_rel;
+    \\
+;
+
+const occ_vs_main =
     \\void main() {
-    \\    gl_Position = u_vp * vec4(a_pos.x, a_pos.y * u_stand, a_pos.z, 1.0);
-    \\    v_rel = vec3(a_pos.x, a_pos.y * u_stand, a_pos.z) - u_eye;
+    \\    // a black shape is moved by the chord exactly as its thing's lines are
+    \\    float awake;
+    \\    vec3 p = reacted(a_pos, (a_tag.x + a_tag.y * 256.0) * 0.1, a_tag.zw, awake);
+    \\    gl_Position = u_vp * vec4(p.x, p.y * u_stand, p.z, 1.0);
+    \\    v_rel = vec3(p.x, p.y * u_stand, p.z) - u_eye;
     \\}
 ;
+
+const occ_vs = occ_vs_head ++ react_glsl ++ occ_vs_main;
 
 const occ_fs =
     \\#version 300 es
@@ -400,10 +482,22 @@ pub const Renderer = struct {
     dyn_count: u32 = 0,
     occ_vao: c.GLuint = 0,
     occ_vbo: c.GLuint = 0,
+    occ_tag_vbo: c.GLuint = 0,
     /// The black shapes of what moves: Hum, and whatever else is rebuilt each frame.
     moving_occ_vao: c.GLuint = 0,
     moving_occ_vbo: c.GLuint = 0,
+    moving_occ_tag_vbo: c.GLuint = 0,
     moving_occ_verts: u32 = 0,
+    /// How the world answers the chord now (law/react.zig), as the shaders are told it: how awake
+    /// each colour is; how far what rises has risen, how far what tilts leans, and where home is.
+    react_awake: [12]f32 = @splat(0.0),
+    react: [4]f32 = .{ 0.0, 0.0, 0.0, 0.0 },
+    line_u_awake: c.GLint = -1,
+    line_u_react: c.GLint = -1,
+    line_u_hue: c.GLint = -1,
+    line_u_wake: c.GLint = -1,
+    occ_u_awake: c.GLint = -1,
+    occ_u_react: c.GLint = -1,
     empty_vao: c.GLuint = 0,
     loud_tex: c.GLuint = 0,
 
@@ -466,6 +560,19 @@ pub const Renderer = struct {
         self.occ_u_cdir = gl.GetUniformLocation(self.occ_prog, "u_cdir");
         self.occ_u_clen = gl.GetUniformLocation(self.occ_prog, "u_clen");
         self.occ_u_cone = gl.GetUniformLocation(self.occ_prog, "u_cone");
+        self.line_u_awake = gl.GetUniformLocation(self.line_prog, "u_awake");
+        self.line_u_react = gl.GetUniformLocation(self.line_prog, "u_react");
+        self.line_u_hue = gl.GetUniformLocation(self.line_prog, "u_hue");
+        self.line_u_wake = gl.GetUniformLocation(self.line_prog, "u_wake");
+        self.occ_u_awake = gl.GetUniformLocation(self.occ_prog, "u_awake");
+        self.occ_u_react = gl.GetUniformLocation(self.occ_prog, "u_react");
+        // the twelve colours of the wheel, and how bright rest and waking are: told once
+        var hues: [12][3]f32 = undefined;
+        for (&hues, 0..) |*h, cell| h.* = colour.ofCell(cell);
+        gl.UseProgram(self.line_prog);
+        gl.Uniform3fv(self.line_u_hue, 12, @ptrCast(&hues));
+        gl.Uniform3f(self.line_u_wake, feel.rest_bright, feel.wake_bright, feel.wake_hue);
+        gl.UseProgram(0);
         self.ground_prog = plat.linkProgram(ground_vs, ground_fs, "the ground") orelse return false;
         self.ground_u_vp = gl.GetUniformLocation(self.ground_prog, "u_vp");
         self.ground_u_stand = gl.GetUniformLocation(self.ground_prog, "u_stand");
@@ -506,24 +613,41 @@ pub const Renderer = struct {
         gl.EnableVertexAttribArray(3);
         gl.VertexAttribPointer(3, 4, c.GL_UNSIGNED_BYTE, c.GL_TRUE, stride, @ptrFromInt(@offsetOf(Inst, "col")));
         gl.VertexAttribDivisor(3, 1);
+        gl.EnableVertexAttribArray(4);
+        gl.VertexAttribPointer(4, 2, c.GL_UNSIGNED_SHORT, c.GL_FALSE, stride, @ptrFromInt(@offsetOf(Inst, "up")));
+        gl.VertexAttribDivisor(4, 1);
+        gl.EnableVertexAttribArray(5);
+        gl.VertexAttribPointer(5, 2, c.GL_UNSIGNED_BYTE, c.GL_FALSE, stride, @ptrFromInt(@offsetOf(Inst, "cell")));
+        gl.VertexAttribDivisor(5, 1);
         gl.BindVertexArray(0);
 
-        // the black shapes: plain triangles
+        // the black shapes: plain triangles, and beside each corner what it is to the chord
         gl.GenVertexArrays(1, &self.occ_vao);
         gl.GenBuffers(1, &self.occ_vbo);
+        gl.GenBuffers(1, &self.occ_tag_vbo);
         gl.BindVertexArray(self.occ_vao);
         gl.BindBuffer(c.GL_ARRAY_BUFFER, self.occ_vbo);
         gl.EnableVertexAttribArray(0);
         gl.VertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, 12, null);
+        gl.BindBuffer(c.GL_ARRAY_BUFFER, self.occ_tag_vbo);
+        gl.EnableVertexAttribArray(1);
+        gl.VertexAttribPointer(1, 4, c.GL_UNSIGNED_BYTE, c.GL_FALSE, 4, null);
         gl.BindVertexArray(0);
 
-        // and the black shapes of what moves, sent every frame
+        // and the black shapes of what moves, sent every frame. They are built where they are, so
+        // the chord has nothing to move: every corner says it has no note, once
         gl.GenVertexArrays(1, &self.moving_occ_vao);
         gl.GenBuffers(1, &self.moving_occ_vbo);
+        gl.GenBuffers(1, &self.moving_occ_tag_vbo);
         gl.BindVertexArray(self.moving_occ_vao);
         gl.BindBuffer(c.GL_ARRAY_BUFFER, self.moving_occ_vbo);
         gl.EnableVertexAttribArray(0);
         gl.VertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, 12, null);
+        gl.BindBuffer(c.GL_ARRAY_BUFFER, self.moving_occ_tag_vbo);
+        const no_tags: [moving_occ_most]OccTag = @splat(no_tag);
+        gl.BufferData(c.GL_ARRAY_BUFFER, @sizeOf(@TypeOf(no_tags)), &no_tags, c.GL_STATIC_DRAW);
+        gl.EnableVertexAttribArray(1);
+        gl.VertexAttribPointer(1, 4, c.GL_UNSIGNED_BYTE, c.GL_FALSE, 4, null);
         gl.BindVertexArray(0);
 
         // each body's loudness, one byte, sent every frame
@@ -594,8 +718,9 @@ pub const Renderer = struct {
     }
 
     /// Hand the GPU a piece of land: its sounding lines, its lit lines, and its black shapes
-    /// (three points to a triangle).
-    pub fn setLand(self: *Renderer, sounding: []const Inst, lit: []const Inst, occ: []const [3]f32) void {
+    /// (three points to a triangle), with what each of their corners is to the chord.
+    pub fn setLand(self: *Renderer, sounding: []const Inst, lit: []const Inst, occ: []const [3]f32, occ_tags: []const OccTag) void {
+        std.debug.assert(occ_tags.len == occ.len);
         self.sounding = @intCast(sounding.len);
         self.lit = @intCast(lit.len);
         self.occ_verts = @intCast(occ.len);
@@ -606,16 +731,32 @@ pub const Renderer = struct {
         if (lit.len > 0) gl.BufferSubData(c.GL_ARRAY_BUFFER, @intCast(sounding.len * @sizeOf(Inst)), @intCast(lit.len * @sizeOf(Inst)), lit.ptr);
         gl.BindBuffer(c.GL_ARRAY_BUFFER, self.occ_vbo);
         gl.BufferData(c.GL_ARRAY_BUFFER, @intCast(occ.len * 12), if (occ.len > 0) occ.ptr else null, c.GL_STATIC_DRAW);
+        gl.BindBuffer(c.GL_ARRAY_BUFFER, self.occ_tag_vbo);
+        gl.BufferData(c.GL_ARRAY_BUFFER, @intCast(occ_tags.len * 4), if (occ_tags.len > 0) occ_tags.ptr else null, c.GL_STATIC_DRAW);
         gl.BindBuffer(c.GL_ARRAY_BUFFER, 0);
         _ = plat.checkGl("land upload");
     }
 
     /// Hand the GPU this frame's black shapes of what moves (three points to a triangle).
-    pub fn setMovingOcc(self: *Renderer, occ: []const [3]f32) void {
+    pub fn setMovingOcc(self: *Renderer, occ_all: []const [3]f32) void {
+        const occ = occ_all[0..@min(occ_all.len, moving_occ_most)];
         self.moving_occ_verts = @intCast(occ.len);
         gl.BindBuffer(c.GL_ARRAY_BUFFER, self.moving_occ_vbo);
         gl.BufferData(c.GL_ARRAY_BUFFER, @intCast(occ.len * 12), if (occ.len > 0) occ.ptr else null, c.GL_DYNAMIC_DRAW);
         gl.BindBuffer(c.GL_ARRAY_BUFFER, 0);
+    }
+
+    /// Tell the shaders how the world answers the chord now (law/react.zig): how awake each colour
+    /// is, how far what rises has risen, how far what tilts leans, and where home is.
+    pub fn setReact(self: *Renderer, awake: [12]f32, rise: f32, tilt: f32, home: [2]f32) void {
+        self.react_awake = awake;
+        self.react = .{ rise, tilt, home[0], home[1] };
+    }
+
+    fn sendReact(self: *const Renderer, u_awake: c.GLint, u_react: c.GLint) void {
+        gl.Uniform1fv(u_awake, 12, &self.react_awake);
+        // on the page nothing stands, so nothing leans
+        gl.Uniform4f(u_react, self.react[0], self.react[1] * self.stand, self.react[2], self.react[3]);
     }
 
     /// Give the ground its picture: `size` dots on a side (eight tiles of 256), three bytes a dot,
@@ -814,6 +955,7 @@ pub const Renderer = struct {
         gl.Uniform3f(self.occ_u_cdir, self.cone_dir[0], self.cone_dir[1], self.cone_dir[2]);
         gl.Uniform1f(self.occ_u_clen, self.cone_len);
         gl.Uniform1f(self.occ_u_cone, self.cone_on);
+        self.sendReact(self.occ_u_awake, self.occ_u_react);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_TRUE);
@@ -849,6 +991,7 @@ pub const Renderer = struct {
         gl.Uniform1f(self.line_u_cone, self.cone_on);
         gl.Uniform3f(self.line_u_cdir, self.cone_dir[0], self.cone_dir[1], self.cone_dir[2]);
         gl.Uniform1f(self.line_u_clen, self.cone_len);
+        self.sendReact(self.line_u_awake, self.line_u_react);
         gl.Enable(c.GL_DEPTH_TEST);
         gl.DepthFunc(c.GL_LEQUAL);
         gl.DepthMask(c.GL_FALSE);
@@ -863,6 +1006,8 @@ pub const Renderer = struct {
         gl.VertexAttribPointer(1, 3, c.GL_FLOAT, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "b")));
         gl.VertexAttribPointer(2, 2, c.GL_FLOAT, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "half_width")));
         gl.VertexAttribPointer(3, 4, c.GL_UNSIGNED_BYTE, c.GL_TRUE, stride, @ptrFromInt(base + @offsetOf(Inst, "col")));
+        gl.VertexAttribPointer(4, 2, c.GL_UNSIGNED_SHORT, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "up")));
+        gl.VertexAttribPointer(5, 2, c.GL_UNSIGNED_BYTE, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "cell")));
         gl.DrawArraysInstanced(c.GL_TRIANGLE_STRIP, 0, 4, @intCast(count));
         gl.BindVertexArray(0);
         gl.Disable(c.GL_BLEND);
@@ -886,6 +1031,7 @@ pub const Renderer = struct {
         gl.Uniform1f(self.line_u_cone, 0.0);
         gl.Uniform3f(self.line_u_cdir, self.cone_dir[0], self.cone_dir[1], self.cone_dir[2]);
         gl.Uniform1f(self.line_u_clen, self.cone_len);
+        self.sendReact(self.line_u_awake, self.line_u_react);
         gl.Disable(c.GL_DEPTH_TEST);
         gl.DepthMask(c.GL_FALSE);
         gl.Enable(c.GL_BLEND);
@@ -898,6 +1044,8 @@ pub const Renderer = struct {
         gl.VertexAttribPointer(1, 3, c.GL_FLOAT, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "b")));
         gl.VertexAttribPointer(2, 2, c.GL_FLOAT, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "half_width")));
         gl.VertexAttribPointer(3, 4, c.GL_UNSIGNED_BYTE, c.GL_TRUE, stride, @ptrFromInt(base + @offsetOf(Inst, "col")));
+        gl.VertexAttribPointer(4, 2, c.GL_UNSIGNED_SHORT, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "up")));
+        gl.VertexAttribPointer(5, 2, c.GL_UNSIGNED_BYTE, c.GL_FALSE, stride, @ptrFromInt(base + @offsetOf(Inst, "cell")));
         gl.DrawArraysInstanced(c.GL_TRIANGLE_STRIP, 0, 4, @intCast(count));
         gl.BindVertexArray(0);
         gl.Disable(c.GL_BLEND);
