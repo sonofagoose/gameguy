@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # Build the game.
-#   ./build.sh          tests, laptop build, the runs with no screen, the promise book, handheld
-#                       build, the pack for Ports (the full gate)
-#   ./build.sh push     fast iterative build: builds ONLY gameguy-aarch64 and pushes directly to R36S!
-#   ./build.sh handheld fast build: builds ONLY gameguy-aarch64 into dist/ports/
-#   ./build.sh dev      fast build: builds ONLY gameguy-x86_64 for laptop play
-#   ./build.sh laptop   everything up to the handheld build (tests, headless runs, promise book)
+#   ./build.sh          full gate (default KILLS=10): tests, laptop headless runs, same-take,
+#                       ears, beauty, replay/save, handheld build, and Ports pack
+#   ./build.sh release  full gate with KILLS=100 (100-kill persistence endurance check)
+#   ./build.sh test     unit tests only (rules.zig + tools/ears.zig)
+#   ./build.sh check    unit tests + gameguy-x86_64 in parallel
+#   ./build.sh dev      fast build: gameguy-x86_64 only (pass TESTS=1 to run unit tests too)
+#   ./build.sh handheld fast build: gameguy-aarch64 + same-take-aarch64 into dist/ports/
+#   ./build.sh push     handheld + push binaries & build stamp to purple unit (UNIT=164)
+#   ./build.sh laptop   tests + headless runs, same-take, ears, beauty, replay/save (~2 min)
+#   ./build.sh clips    cut tracked design/listen/32..41.wav from build/evening.wav (CLIPS=1 in full)
 # Needs Zig at ../.tools/zig/zig: it is the compiler for both machines and translates the C headers.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -21,6 +25,12 @@ build_gameguy() {
   fi
   "$ZIG" build-exe "$@" -O ReleaseSafe --dep c -Mroot=src/main.zig -Mc="build/c-$name.zig" \
       -lc -ldl -lm -femit-bin="build/gameguy-$name" --cache-dir build/cache
+}
+
+build_same_take() {
+  local name=$1; shift
+  "$ZIG" build-exe "$@" -O ReleaseSafe --dep rules -Mroot=tools/same_take.zig -Mrules=src/rules.zig \
+      -lc -femit-bin="build/same-take-$name" --cache-dir build/cache
 }
 
 build_for() {  # name, then extra zig flags for the target; its programs are built side by side
@@ -44,6 +54,28 @@ build_for() {  # name, then extra zig flags for the target; its programs are bui
   [ "$failed" -eq 0 ] || { echo "a program for $name did not build"; exit 1; }
 }
 
+start_tests() {
+  ( "$ZIG" test src/rules.zig --cache-dir build/cache > build/tests.out 2>&1; echo $? > build/tests.status ) &
+  TESTS=$!
+  ( "$ZIG" test tools/ears.zig -lc --cache-dir build/cache > build/ears-tests.out 2>&1; echo $? > build/ears-tests.status ) &
+  EARS_TESTS=$!
+}
+
+finish_tests() {
+  wait "$TESTS" "$EARS_TESTS"
+  tail -1 build/tests.out
+  tail -1 build/ears-tests.out | sed 's/^/   the ears: /'
+  [ "$(cat build/tests.status)" = 0 ] && [ "$(cat build/ears-tests.status)" = 0 ] || {
+    echo "the tests failed:"
+    grep -E "FAIL|error" build/tests.out build/ears-tests.out | head -20
+    exit 1
+  }
+}
+
+build_stamp() {
+  echo "build $(git -C .. describe --always --dirty 2>/dev/null || echo unknown), $(date +%Y-%m-%d)"
+}
+
 # each phase says how long the one before it took
 LAST=$SECONDS
 phase() {
@@ -55,26 +87,71 @@ phase() {
 
 TARGET=${1:-all}
 case "$TARGET" in
+  test|tests)
+    phase "unit tests (rules + ears)"
+    start_tests
+    finish_tests
+    echo "   ($((SECONDS - LAST)) s; $SECONDS s in all)"
+    exit 0
+    ;;
+  clips)
+    phase "cutting listening clips into design/listen/ (tools/clips.py)"
+    [ -f build/evening.wav ] && [ -f build/evening.out ] || {
+      echo "missing build/evening.wav or build/evening.out: run ./build.sh laptop first"
+      exit 1
+    }
+    python3 -I tools/clips.py > build/clips.out 2>&1 || { echo "the clips could not be cut:"; tail -5 build/clips.out; exit 1; }
+    cat build/clips.out
+    echo "   ($((SECONDS - LAST)) s; $SECONDS s in all)"
+    exit 0
+    ;;
   push|handheld|console)
     phase "handheld fast build (aarch64, Cortex-A35)"
-    build_gameguy aarch64 -target aarch64-linux-gnu.2.30 -mcpu=cortex_a35
-    mkdir -p dist/ports/gameguy
-    cp build/gameguy-aarch64 dist/ports/gameguy/
-    chmod +x dist/ports/gameguy/gameguy-aarch64
-    echo "   built dist/ports/gameguy/gameguy-aarch64"
+    [ "${TESTS:-0}" = 1 ] && start_tests
+    ( build_gameguy aarch64 -target aarch64-linux-gnu.2.30 -mcpu=cortex_a35 ) & PID_GAME=$!
+    ( build_same_take aarch64 -target aarch64-linux-gnu.2.30 -mcpu=cortex_a35 ) & PID_SAME=$!
+    failed=0
+    wait "$PID_GAME" || failed=1
+    wait "$PID_SAME" || failed=1
+    [ "${TESTS:-0}" = 1 ] && finish_tests
+    [ "$failed" -eq 0 ] || { echo "handheld build failed"; exit 1; }
+    mkdir -p dist/ports/gameguy/room
+    cp build/gameguy-aarch64 dist/ports/gameguy/gameguy-aarch64
+    cp build/gameguy-aarch64 dist/ports/gameguy/gameguy-chords-aarch64
+    cp build/same-take-aarch64 dist/ports/gameguy/same-take-aarch64
+    build_stamp > dist/ports/gameguy/room/build.txt
+    chmod +x dist/ports/gameguy/gameguy-aarch64 dist/ports/gameguy/gameguy-chords-aarch64 dist/ports/gameguy/same-take-aarch64
+    echo "   built dist/ports/gameguy/{gameguy-aarch64,gameguy-chords-aarch64,same-take-aarch64}"
     if [ "$TARGET" = push ] || [ "${2:-}" = push ]; then
-      phase "pushing to R36S handheld"
-      ../probe/tools/r36s.sh push dist/ports/gameguy/gameguy-aarch64 /roms/ports/gameguy/gameguy-aarch64
-      echo "   pushed to console! ($((SECONDS - LAST)) s)"
+      UNIT=${UNIT:-164}
+      phase "pushing to R36S handheld unit $UNIT"
+      ../probe/tools/r36s.sh push "$UNIT" dist/ports/gameguy/gameguy-aarch64 /roms/ports/gameguy/gameguy-aarch64
+      ../probe/tools/r36s.sh push "$UNIT" dist/ports/gameguy/gameguy-chords-aarch64 /roms/ports/gameguy/gameguy-chords-aarch64
+      ../probe/tools/r36s.sh push "$UNIT" dist/ports/gameguy/same-take-aarch64 /roms/ports/gameguy/same-take-aarch64
+      ../probe/tools/r36s.sh push "$UNIT" dist/ports/gameguy/room/build.txt /roms/ports/gameguy/room/build.txt
+      echo "   pushed to unit $UNIT! ($((SECONDS - LAST)) s)"
     fi
     echo "   ($((SECONDS - LAST)) s; $SECONDS s in all)"
     exit 0
     ;;
-  dev|quick)
-    phase "laptop quick build (x86_64 only)"
+  check)
+    phase "tests + laptop build (x86_64)"
+    start_tests
     build_gameguy x86_64
+    finish_tests
     echo "   built build/gameguy-x86_64 ($((SECONDS - LAST)) s; $SECONDS s in all)"
     exit 0
+    ;;
+  dev|quick)
+    phase "laptop quick build (x86_64)"
+    [ "${TESTS:-0}" = 1 ] && start_tests
+    build_gameguy x86_64
+    [ "${TESTS:-0}" = 1 ] && finish_tests
+    echo "   built build/gameguy-x86_64 ($((SECONDS - LAST)) s; $SECONDS s in all)"
+    exit 0
+    ;;
+  release)
+    KILLS=${KILLS:-100}
     ;;
 esac
 
@@ -94,15 +171,9 @@ phase "the land's tables from its score (scores/garden.txt, tools/score.py)"
 python3 -I tools/score.py scores/garden.txt src/world/land.zig
 
 phase "tests (the rules, the sound, the arithmetic: nothing that needs a screen), and the laptop's programs (x86_64) beside them"
-( "$ZIG" test src/rules.zig --cache-dir build/cache > build/tests.out 2>&1; echo $? > build/tests.status ) &
-TESTS=$!
-( "$ZIG" test tools/ears.zig -lc --cache-dir build/cache > build/ears-tests.out 2>&1; echo $? > build/ears-tests.status ) &
-EARS_TESTS=$!
+start_tests
 build_for x86_64
-wait "$TESTS" "$EARS_TESTS"
-tail -1 build/tests.out
-tail -1 build/ears-tests.out | sed 's/^/   the ears: /'
-[ "$(cat build/tests.status)" = 0 ] && [ "$(cat build/ears-tests.status)" = 0 ] || { echo "the tests failed:"; grep -E "FAIL|error" build/tests.out build/ears-tests.out | head -20; exit 1; }
+finish_tests
 
 phase "no screen: the lines bench runs and dumps its frames"
 rm -rf build/frames && mkdir -p build/frames
@@ -120,8 +191,10 @@ phase "no screen: the first evening and the asters, played by the scripted playe
 rm -rf build/walks
 quiet_run evening build/gameguy-x86_64 --scene evening --headless --dump build/frames --dump-every 100000 --wav build/evening.wav --walk-starts build/walks
 grep "^the evening:" build/evening.out | tail -1 | sed 's/^/   /'
-# the room's listening clips, cut from this evening's own sound
-python3 -I tools/clips.py > build/clips.out 2>&1 || { echo "the clips could not be cut:"; tail -5 build/clips.out; exit 1; }
+# cutting listening clips overwrites tracked design/listen/*.wav, so only do it when asked (CLIPS=1 or ./build.sh clips)
+if [ "${CLIPS:-0}" = 1 ]; then
+  python3 -I tools/clips.py > build/clips.out 2>&1 || { echo "the clips could not be cut:"; tail -5 build/clips.out; exit 1; }
+fi
 ls build/frames | grep '^promise-' | tr '\n' ' ' | sed 's/^/   /'; echo
 
 phase "no screen: the room opens with its walk and its clips"
@@ -142,7 +215,7 @@ while IFS= read -r line; do
     *) printf '%s\n' "$line" >> build/room/walks.txt ;;
   esac
 done < room/walks.txt
-echo "build $(git -C .. describe --always --dirty 2>/dev/null || echo unknown), $(date +%Y-%m-%d)" > build/room/build.txt
+build_stamp > build/room/build.txt
 python3 -I - > build/room/clips.txt <<'PY'
 import re
 rows = []
@@ -210,8 +283,8 @@ else
 fi
 grep -h "^fact save\." build/same-take-x86_64.txt >> build/facts.txt || true
 
-phase "the card keeps a take through anything: killed a hundred times at random, it goes on from where it was"
-KILLS=${KILLS:-100}
+phase "the card keeps a take through anything: killed at random, it goes on from where it was"
+KILLS=${KILLS:-10}
 if [ "${1:-}" = laptop ]; then
   echo "   (the full build kills it; the last full build's count is used)"
   if [ ! -f build/kill-facts.txt ]; then
@@ -219,9 +292,11 @@ if [ "${1:-}" = laptop ]; then
     echo "fact take.kills_failed 0" >> build/kill-facts.txt
     echo "fact take.kill_most_lost_steps 0" >> build/kill-facts.txt
   fi
-else
+elif [ "$KILLS" -gt 0 ]; then
   tools/kill_test.sh "$KILLS" > build/kill-test.out 2> build/kill-facts.txt
   tail -1 build/kill-test.out | sed 's/^/   /'
+else
+  echo "   (skipped: KILLS=0)"
 fi
 [ -f build/kill-facts.txt ] && cat build/kill-facts.txt >> build/facts.txt
 
@@ -239,12 +314,13 @@ rm -rf dist
 P=dist/ports
 mkdir -p "$P/gameguy"
 cp build/gameguy-aarch64 build/modes-aarch64 build/speaker-aarch64 build/same-take-aarch64 "$P/gameguy/"
-cp port/Gameguy.sh port/GameguyRoom.sh "$P/"
+cp build/gameguy-aarch64 "$P/gameguy/gameguy-chords-aarch64"
+cp port/Gameguy.sh port/GameguyChords.sh port/GameguyRoom.sh "$P/"
 mkdir -p "$P/gameguy/room/clips"
 cp build/room/clips.txt build/room/walks.txt build/room/build.txt "$P/gameguy/room/"
 mkdir -p "$P/gameguy/room/walks"
 cp build/room/walks/*.save "$P/gameguy/room/walks/"
 cp ../design/listen/*.wav "$P/gameguy/room/clips/"
-chmod +x "$P/Gameguy.sh" "$P/GameguyRoom.sh" "$P/gameguy/gameguy-aarch64" "$P/gameguy/modes-aarch64" "$P/gameguy/speaker-aarch64" "$P/gameguy/same-take-aarch64"
+chmod +x "$P/Gameguy.sh" "$P/GameguyChords.sh" "$P/GameguyRoom.sh" "$P/gameguy/gameguy-aarch64" "$P/gameguy/gameguy-chords-aarch64" "$P/gameguy/modes-aarch64" "$P/gameguy/speaker-aarch64" "$P/gameguy/same-take-aarch64"
 find dist -type f -not -name '*.wav' | sort | sed 's/^/   /'; echo "   and $(ls dist/ports/gameguy/room/clips | wc -l) clips"
 echo "   ($((SECONDS - LAST)) s; $SECONDS s in all)"
