@@ -5,9 +5,12 @@
 //! in its own note's colour when it rings.
 const std = @import("std");
 const lines = @import("lines.zig");
+const black = @import("black.zig");
 const colour = @import("colour.zig");
+const feel = @import("../feel.zig");
 const world_mod = @import("../world/world.zig");
 const asters = world_mod.asters;
+const react = world_mod.react_mod;
 const Inst = lines.Inst;
 const V = [3]f32;
 
@@ -33,6 +36,7 @@ const Model = struct {
     far: [far_cap]Inst = undefined,
     far_n: u32 = 0,
     occ: [occ_cap]V = undefined,
+    occ_tags: [occ_cap]lines.OccTag = @splat(lines.no_tag),
     occ_n: u32 = 0,
 };
 
@@ -74,19 +78,25 @@ fn unit(a: V) V {
 const List = struct {
     items: []Inst,
     n: *u32,
+    cell: u8 = lines.no_note,
+    reacts: u8 = 0,
 
     fn line(self: List, a: V, b: V, half_width: f32, body: u32, col: [4]u8) void {
         if (self.n.* >= self.items.len) return;
         self.items[self.n.*] = .{ .a = a, .b = b, .half_width = half_width, .body = @floatFromInt(body), .col = col };
+        self.items[self.n.*].tag(self.cell, self.reacts);
         self.n.* += 1;
     }
 };
 
-fn tri(model: *Model, a: V, b: V, c: V) void {
+fn tri(model: *Model, a: V, b: V, c: V, cell: u8, reacts: u8) void {
     if (model.occ_n + 3 > occ_cap) return;
     model.occ[model.occ_n] = a;
     model.occ[model.occ_n + 1] = b;
     model.occ[model.occ_n + 2] = c;
+    model.occ_tags[model.occ_n] = black.tagOf(a[1], cell, reacts);
+    model.occ_tags[model.occ_n + 1] = black.tagOf(b[1], cell, reacts);
+    model.occ_tags[model.occ_n + 2] = black.tagOf(c[1], cell, reacts);
     model.occ_n += 3;
 }
 
@@ -97,10 +107,11 @@ fn girth(p: *const asters.Plan, h: f32) f32 {
 
 fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
     model.* = .{};
-    const near = List{ .items = &model.near, .n = &model.near_n };
-    const close = List{ .items = &model.close, .n = &model.close_n };
-    const mid = List{ .items = &model.mid, .n = &model.mid_n };
-    const far = List{ .items = &model.far, .n = &model.far_n };
+    const aster_cell: u8 = @intCast(colour.fifthsFrom(world_mod.garden_hz, world_mod.garden_hz * asters.scale[p.degree]));
+    var near = List{ .items = &model.near, .n = &model.near_n, .cell = aster_cell };
+    const close = List{ .items = &model.close, .n = &model.close_n, .cell = aster_cell };
+    var mid = List{ .items = &model.mid, .n = &model.mid_n, .cell = aster_cell };
+    var far = List{ .items = &model.far, .n = &model.far_n, .cell = aster_cell };
     const part = p.tall / @as(f32, asters.segments);
     const stalk_col = col8(stalk, 0.95);
     const leaf_col = col8(stalk, 0.70);
@@ -129,8 +140,8 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
             const b0 = V{ c0[0] + (lo[j][0] - c0[0]) * 0.9, c0[1], c0[2] + (lo[j][2] - c0[2]) * 0.9 };
             const a1 = V{ c1[0] + (hi[i][0] - c1[0]) * 0.9, c1[1], c1[2] + (hi[i][2] - c1[2]) * 0.9 };
             const b1 = V{ c1[0] + (hi[j][0] - c1[0]) * 0.9, c1[1], c1[2] + (hi[j][2] - c1[2]) * 0.9 };
-            tri(model, a0, b0, b1);
-            tri(model, a0, b1, a1);
+            tri(model, a0, b0, b1, aster_cell, 0);
+            tri(model, a0, b1, a1, aster_cell, 0);
         }
         mid.line(c0, c1, 1.5, body, stalk_col);
         if (k % 3 == 1) far.line(p.mast(h0 - part), p.mast(h1 + part), 1.3, body, stalk_col);
@@ -184,10 +195,10 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
         near.line(a1, b1, 1.2, body, leaf_col);
         near.line(b1, tip, 1.2, body, leaf_col);
         near.line(p0, tip, 1.0, body, rib_col);
-        tri(model, p0, a0, a1);
-        tri(model, a0, b0, a1);
-        tri(model, a1, b0, b1);
-        tri(model, b0, tip, b1);
+        tri(model, p0, a0, a1, aster_cell, 0);
+        tri(model, a0, b0, a1, aster_cell, 0);
+        tri(model, a1, b0, b1, aster_cell, 0);
+        tri(model, b0, tip, b1, aster_cell, 0);
         // dew: a drop as wide as Hum is tall would be huge; these are 40 cm
         const drop = add(tip, V{ 0.0, -0.35, 0.0 });
         const dew = col8(.{ 0.85, 0.95, 1.0 }, 0.9);
@@ -209,6 +220,10 @@ fn buildOne(p: *const asters.Plan, first: u32, model: *Model) void {
     }
     for (p.bells[0..p.bell_n], 0..) |bell, j| {
         const body = thing_body + first + asters.segments + @as(u32, @intCast(j));
+        const bell_cell: u8 = @intCast(colour.fifthsFrom(world_mod.garden_hz, bell.hz));
+        near.cell = bell_cell;
+        mid.cell = bell_cell;
+        far.cell = bell_cell;
         const tint = colour.ofNote(world_mod.garden_hz, bell.hz);
         const bright = col8(tint, 1.0);
         const soft = col8(tint, 0.6);
@@ -266,7 +281,8 @@ pub const Picked = struct { lines: usize, occ: usize, near: u32, mid: u32, far: 
 
 /// The lines and black shapes for where the eye is now: each aster at the detail its distance
 /// asks for.
-pub fn pick(eye_x: f32, eye_z: f32, out: []Inst, occ: []V) Picked {
+pub fn pick(eye_x: f32, eye_z: f32, out: []Inst, occ: []V, occ_tags: []lines.OccTag) Picked {
+    std.debug.assert(occ_tags.len == occ.len);
     var got = Picked{ .lines = 0, .occ = 0, .near = 0, .mid = 0, .far = 0 };
     for (plans[0..count], 0..) |*p, t| {
         const dx = p.x - eye_x;
@@ -283,6 +299,7 @@ pub fn pick(eye_x: f32, eye_z: f32, out: []Inst, occ: []V) Picked {
             }
             if (got.occ + model.occ_n <= occ.len) {
                 @memcpy(occ[got.occ..][0..model.occ_n], model.occ[0..model.occ_n]);
+                @memcpy(occ_tags[got.occ..][0..model.occ_n], model.occ_tags[0..model.occ_n]);
                 got.occ += model.occ_n;
             }
         } else if (far < mid_within) {
@@ -345,8 +362,8 @@ const covers = world_mod.covers;
 
 /// One blade of grass: a real one is 4 to 9 cm, so here it is a tree 4 to 9 m tall and as wide
 /// as a door, and it hides what is behind it.
-fn blade(b: covers.Body, body: f32, out: []Inst, n: *usize, occ: []V, occ_n: *usize) void {
-    if (n.* + 5 > out.len) return;
+fn blade(b: covers.Body, out: Out) void {
+    if (out.n.* + 5 > out.lines.len) return;
     const tint = col8(.{ 0.36, 0.66, 0.46 }, 0.17);
     const vein = col8(.{ 0.36, 0.66, 0.46 }, 0.08);
     const s = b.s;
@@ -364,16 +381,14 @@ fn blade(b: covers.Body, body: f32, out: []Inst, n: *usize, occ: []V, occ_n: *us
     const b1 = add(base, mul(across, -1.0));
     const k0 = add(knee, across);
     const k1 = add(knee, mul(across, -1.0));
-    out[n.*] = .{ .a = b0, .b = k0, .half_width = 1.2, .body = body, .col = tint };
-    out[n.* + 1] = .{ .a = k0, .b = tip, .half_width = 1.1, .body = body, .col = tint };
-    out[n.* + 2] = .{ .a = b1, .b = k1, .half_width = 1.2, .body = body, .col = tint };
-    out[n.* + 3] = .{ .a = k1, .b = tip, .half_width = 1.1, .body = body, .col = tint };
-    out[n.* + 4] = .{ .a = base, .b = knee, .half_width = 0.9, .body = body, .col = vein };
-    n.* += 5;
-    if (occ_n.* + 9 > occ.len) return;
-    const shapes = [9]V{ b0, b1, k1, b0, k1, k0, k0, k1, tip };
-    @memcpy(occ[occ_n.*..][0..9], &shapes);
-    occ_n.* += 9;
+    out.line(b0, k0, 1.2, tint);
+    out.line(k0, tip, 1.1, tint);
+    out.line(b1, k1, 1.2, tint);
+    out.line(k1, tip, 1.1, tint);
+    out.line(base, knee, 0.9, vein);
+    out.tri(b0, b1, k1);
+    out.tri(b0, k1, k0);
+    out.tri(k0, k1, tip);
 }
 
 /// What the ground wears (spec/world.md, "What the ground wears"). These are four of the
@@ -399,23 +414,27 @@ pub fn coverGives(cover: Cover) f32 {
 const Out = struct {
     lines: []Inst,
     n: *usize,
-    occ: []V,
-    occ_n: *usize,
+    occ: *black.Tris,
     /// The body of the cell of ground being drawn.
     body: f32 = 0.0,
+    cell: u8 = lines.no_note,
+    reacts: u8 = 0,
+
+    fn of(self: *Out, cell: u8, reacts: u8) void {
+        self.cell = cell;
+        self.reacts = reacts;
+        self.occ.of(cell, reacts);
+    }
 
     fn line(self: Out, a: V, b: V, half_width: f32, col: [4]u8) void {
         if (self.n.* >= self.lines.len) return;
         self.lines[self.n.*] = .{ .a = a, .b = b, .half_width = half_width, .body = self.body, .col = col };
+        self.lines[self.n.*].tag(self.cell, self.reacts);
         self.n.* += 1;
     }
 
     fn tri(self: Out, a: V, b: V, c: V) void {
-        if (self.occ_n.* + 3 > self.occ.len) return;
-        self.occ[self.occ_n.*] = a;
-        self.occ[self.occ_n.* + 1] = b;
-        self.occ[self.occ_n.* + 2] = c;
-        self.occ_n.* += 3;
+        self.occ.tri(a, b, c);
     }
 };
 
@@ -524,41 +543,20 @@ fn pebble(x: f32, z: f32, s: u32, out: Out) void {
 /// A fallen leaf: last year's, 5 to 10 m long at one to a hundred, lying curled with its tips up.
 /// One lies in each six metres square of leaf fall, where the world rings it underfoot.
 fn fallenLeaf(cx: i32, cz: i32, out: Out) void {
-    // where it lies and how it is made is the world's (covers.leafAt): the leaf drawn is the leaf
-    // that rings when Hum steps on it
+    // where it lies and how it is made is the world's (covers.leafAt, leafOutline): the leaf drawn
+    // is the leaf that rings when Hum steps on it and the plate it stands on when it rises
     const leaf = covers.leafAt(cx, cz) orelse return;
-    const x = leaf.x;
-    const z = leaf.z;
-    const len = leaf.len;
-    const wide = leaf.wide;
-    const turn = leaf.turn;
-    const along = V{ @cos(turn), 0.0, @sin(turn) };
-    const across = V{ -@sin(turn), 0.0, @cos(turn) };
-    const curl = leaf.curl;
+    var item = out;
+    item.of(covers.leafCell(cx, cz), (react.Reacts{ .rise = feel.leaf_rises }).byte());
     const dry = col8(.{ 0.78, 0.66, 0.48 }, 0.17);
     const rib = col8(.{ 0.78, 0.66, 0.48 }, 0.09);
-    const c = V{ x, 0.05, z };
-    const tip0 = add(add(c, mul(along, -len)), V{ 0.0, curl, 0.0 });
-    const tip1 = add(add(c, mul(along, len)), V{ 0.0, curl * 0.7, 0.0 });
-    const side0 = add(c, mul(across, wide));
-    const side1 = add(c, mul(across, -wide));
-    const q0 = add(add(c, mul(along, -len * 0.5)), mul(across, wide * 0.8));
-    const q1 = add(add(c, mul(along, len * 0.5)), mul(across, wide * 0.8));
-    const q2 = add(add(c, mul(along, len * 0.5)), mul(across, -wide * 0.8));
-    const q3 = add(add(c, mul(along, -len * 0.5)), mul(across, -wide * 0.8));
-    out.line(tip0, q0, 1.1, dry);
-    out.line(q0, side0, 1.1, dry);
-    out.line(side0, q1, 1.1, dry);
-    out.line(q1, tip1, 1.1, dry);
-    out.line(tip1, q2, 1.1, dry);
-    out.line(q2, side1, 1.1, dry);
-    out.line(side1, q3, 1.1, dry);
-    out.line(q3, tip0, 1.1, dry);
-    out.line(tip0, tip1, 0.9, rib);
-    out.tri(tip0, q0, q3);
-    out.tri(q0, q1, q2);
-    out.tri(q0, q2, q3);
-    out.tri(q1, tip1, q2);
+    const p = covers.leafOutline(leaf);
+    for (0..8) |k| item.line(p[k], p[(k + 1) % 8], 1.1, dry);
+    item.line(p[0], p[4], 0.9, rib);
+    item.tri(p[0], p[1], p[7]);
+    item.tri(p[1], p[3], p[5]);
+    item.tri(p[1], p[5], p[7]);
+    item.tri(p[3], p[4], p[5]);
 }
 
 /// One cell of ground, wearing the bodies the world says stand there (world/covers.zig), and on
@@ -566,13 +564,16 @@ fn fallenLeaf(cx: i32, cz: i32, out: Out) void {
 fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
     var bodies: [covers.most_in_patch]covers.Body = undefined;
     const n = covers.patch(ix, iz, size, near, salt, &bodies);
+    const blade_reacts = (react.Reacts{ .tilt = feel.blade_tilts }).byte();
     for (bodies[0..n]) |b| {
+        var item = out;
+        item.of(covers.cellOf(b), if (b.kind == .blade) blade_reacts else 0);
         switch (b.kind) {
-            .blade => blade(b, out.body, out.lines, out.n, out.occ, out.occ_n),
-            .clover => clover(b.x, b.z, b.s, out),
-            .moss => moss(b.x, b.z, b.s, near, out),
-            .crumb => crumb(b.x, b.z, b.s, out),
-            .pebble => pebble(b.x, b.z, b.s, out),
+            .blade => blade(b, item),
+            .clover => clover(b.x, b.z, b.s, item),
+            .moss => moss(b.x, b.z, b.s, near, item),
+            .crumb => crumb(b.x, b.z, b.s, item),
+            .pebble => pebble(b.x, b.z, b.s, item),
         }
     }
     const mid_x = (@as(f32, @floatFromInt(ix)) + 0.5) * size;
@@ -596,11 +597,12 @@ fn patch(ix: i32, iz: i32, size: f32, near: bool, salt: u32, out: Out) void {
 
 /// The ground round Hum, one to a hundred, wearing its covers: lawn, clover, moss and bare soil
 /// in wide patches, thick close by and thinner farther off. The return is how many lines;
-/// `occ_n` grows by the black shapes. `grid` is given the corner cell of the fifteen by fifteen
-/// square of sixteen-metre cells that was drawn, so the caller can light each cell by its body.
-pub fn ground(hum_x: f32, hum_z: f32, lines_out: []Inst, occ: []V, occ_n: *usize, grid: *[2]i32) usize {
+/// `occ` grows by the black shapes and their chord tags. `grid` is given the corner cell of the
+/// fifteen by fifteen square of sixteen-metre cells that was drawn, so the caller can light each
+/// cell by its body.
+pub fn ground(hum_x: f32, hum_z: f32, lines_out: []Inst, occ: *black.Tris, grid: *[2]i32) usize {
     var n: usize = 0;
-    var out = Out{ .lines = lines_out, .n = &n, .occ = occ, .occ_n = occ_n };
+    var out = Out{ .lines = lines_out, .n = &n, .occ = occ };
     const size: f32 = covers.far_size;
     const half: i32 = @divTrunc(cover_side, 2);
     const cx: i32 = @intFromFloat(@floor(hum_x / size));
@@ -655,6 +657,8 @@ pub fn fallen(w: *const world_mod.World, out: []Inst) usize {
         out[made + 1] = .{ .a = q0, .b = under, .half_width = 1.3, .body = body, .col = soft };
         made += 2;
     }
+    const cell: u8 = @intCast(colour.fifthsFrom(world_mod.garden_hz, thing.hz));
+    for (out[0..made]) |*l| l.tag(cell, 0);
     return made;
 }
 

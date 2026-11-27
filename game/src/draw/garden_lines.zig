@@ -11,12 +11,14 @@ const std = @import("std");
 const lines = @import("lines.zig");
 const aster_lines = @import("aster_lines.zig");
 const world_mod = @import("../world/world.zig");
+const feel = @import("../feel.zig");
 const colour = @import("colour.zig");
 const black = @import("black.zig");
 const land = world_mod.land;
 const hose = world_mod.hose;
 const spigot = world_mod.spigot;
 const form = world_mod.form;
+const react = world_mod.react_mod;
 const Inst = lines.Inst;
 const V = [3]f32;
 
@@ -41,29 +43,38 @@ const Model = struct {
     far_n: usize = 0,
     /// Its black shapes, drawn while it is near: made from the same shapes that stop Hum.
     occ: [occ_cap]V = undefined,
+    occ_tags: [occ_cap]lines.OccTag = @splat(lines.no_tag),
     occ_n: usize = 0,
+    cell: u8 = lines.no_note,
+    reacts: u8 = 0,
+
+    fn of(self: *Model, cell: u8, reacts: u8) void {
+        self.cell = cell;
+        self.reacts = reacts;
+    }
 
     /// Give the model the black shapes of what it is made of.
     fn hide(self: *Model, shapes: []const form.Shape) void {
-        var tris = black.Tris{ .out = &self.occ, .n = self.occ_n };
+        var tris = black.Tris{ .out = &self.occ, .n = self.occ_n, .tags = &self.occ_tags, .cell = self.cell, .reacts = self.reacts };
         black.ofAll(shapes, &tris);
         self.occ_n = tris.n;
         lost_black += tris.lost;
     }
 
-    fn add(list: []Inst, n: *usize, a: V, b: V, half: f32, col: [4]u8) void {
+    fn add(list: []Inst, n: *usize, a: V, b: V, half: f32, col: [4]u8, cell: u8, reacts: u8) void {
         if (n.* >= list.len) return;
         list[n.*] = .{ .a = a, .b = b, .half_width = half, .body = aster_lines.day_body, .col = col };
+        list[n.*].tag(cell, reacts);
         n.* += 1;
     }
     fn nearLine(self: *Model, a: V, b: V, half: f32, col: [4]u8) void {
-        add(&self.near, &self.near_n, a, b, half, col);
+        add(&self.near, &self.near_n, a, b, half, col, self.cell, self.reacts);
     }
     fn midLine(self: *Model, a: V, b: V, half: f32, col: [4]u8) void {
-        add(&self.mid, &self.mid_n, a, b, half, col);
+        add(&self.mid, &self.mid_n, a, b, half, col, self.cell, self.reacts);
     }
     fn farLine(self: *Model, a: V, b: V, half: f32, col: [4]u8) void {
-        add(&self.far, &self.far_n, a, b, half, col);
+        add(&self.far, &self.far_n, a, b, half, col, self.cell, self.reacts);
     }
 };
 
@@ -209,6 +220,7 @@ fn buildReeds() void {
     const band = land.pool[3];
     const groups = world_mod.reeds.groups;
     const each = world_mod.reeds.each;
+    const reed_reacts = (react.Reacts{ .tilt = feel.reed_tilts }).byte();
     for (0..groups) |g| {
         const ga = (@as(f32, @floatFromInt(g)) + 0.5) * (2.0 * std.math.pi / @as(f32, groups));
         const m = newModel(px + (r0 + band * 0.5) * @cos(ga), pz + (r0 + band * 0.5) * @sin(ga));
@@ -216,6 +228,8 @@ fn buildReeds() void {
             // where it stands and how it is made is the world's (world/reeds.zig): the stem the
             // world feels is the stem drawn
             const reed = world_mod.reeds.at(g, k) orelse continue;
+            const hz = world_mod.reeds.note(reed.tall, world_mod.garden_hz);
+            m.of(@intCast(colour.fifthsFrom(world_mod.garden_hz, hz)), reed_reacts);
             const s = reed.s;
             const x = reed.x;
             const z = reed.z;
@@ -257,6 +271,7 @@ fn buildReeds() void {
             if (k % 2 == 0) m.farLine(foot, top, 1.3, col8(straw, 0.45));
         }
         // the pool's still edge under this group's reeds: a faint line on the water's rim
+        m.of(lines.no_note, 0);
         const arc = 8;
         for (0..arc) |k| {
             const a0 = (@as(f32, @floatFromInt(g)) + @as(f32, @floatFromInt(k)) / @as(f32, arc)) * (2.0 * std.math.pi / @as(f32, groups));
@@ -299,6 +314,9 @@ pub fn pick(eye_x: f32, eye_z: f32, grid: [2]i32, out: []Inst, occ: *black.Tris)
         const far = @sqrt(dx * dx + dz * dz);
         if (far < near_within and occ.n + m.occ_n <= occ.out.len) {
             @memcpy(occ.out[occ.n..][0..m.occ_n], m.occ[0..m.occ_n]);
+            if (occ.n + m.occ_n <= occ.tags.len) {
+                @memcpy(occ.tags[occ.n..][0..m.occ_n], m.occ_tags[0..m.occ_n]);
+            }
             occ.n += m.occ_n;
         }
         const from: []const Inst = if (far < near_within) m.near[0..m.near_n] else if (far < mid_within) m.mid[0..m.mid_n] else m.far[0..m.far_n];

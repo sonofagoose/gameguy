@@ -1708,6 +1708,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         var cam: world_mod.Camera = undefined;
         var brightest: f32 = 0.0;
         if (options.scene == .dark) {
+            renderer.setReact(@splat(0.0), 0.0, 0.0, .{ 0.0, 0.0 });
             for (world.things[0..world.thing_count], 0..) |thing, i| {
                 brightest = @max(brightest, World.light(thing));
                 loud[i + 1] = shine(thing.loud, thing.lit * 0.55, 1.0, 1.0);
@@ -1775,6 +1776,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             // eye to Hum's middle (spec/engine.md, "What stands between the eye and Hum")
             const hum_at = [3]f32{ world.hum_x, (world.hum_ground + world.hum_y + world_mod.hum_mid) * cam.stand, world.hum_z };
             renderer.setCone(cam.eye, hum_at, cam.stand);
+            renderer.setReact(world.react.awake, world.react.rise, world.react.tilt, world_mod.harmony.home(&world));
             const fx = @sin(world.look_yaw);
             const fz = -@cos(world.look_yaw);
             view = m.lookAt(cam.eye, cam.at, cam.up);
@@ -1803,19 +1805,21 @@ pub fn run(window: plat.Window, options: Options) bool {
             const moved_x = eye[0] - picked_x;
             const moved_z = eye[2] - picked_z;
             if (moved_x * moved_x + moved_z * moved_z > 20.0 * 20.0) {
-                picked = aster_lines.pick(world.hum_x, world.hum_z, static_lines[0..26_000], static_occ[0..24_000]);
+                picked = aster_lines.pick(world.hum_x, world.hum_z, static_lines[0..26_000], static_occ[0..24_000], static_occ_tags[0..24_000]);
                 // the hose, the spigot, the reeds and the pool's edge, each square of ground round
                 // Hum lending its body to what stands in it (garden_lines.zig)
                 const half_side: i32 = @divTrunc(aster_lines.cover_side, 2);
                 const grid_now = [2]i32{ @as(i32, @intFromFloat(@floor(world.hum_x / 16.0))) - half_side, @as(i32, @intFromFloat(@floor(world.hum_z / 16.0))) - half_side };
-                var garden_occ = black_shapes.Tris{ .out = static_occ[picked.occ..] };
+                var garden_occ = black_shapes.Tris{ .out = static_occ[picked.occ..], .tags = static_occ_tags[picked.occ..] };
                 picked.lines += garden_lines.pick(world.hum_x, world.hum_z, grid_now, static_lines[picked.lines..], &garden_occ);
                 picked.occ += garden_occ.n;
                 // what is made afresh for where Hum is stands on the ground as it is made
                 const made_from = picked.lines;
                 const occ_from = picked.occ;
                 picked.lines += aster_lines.fallen(&world, static_lines[picked.lines..]);
-                picked.lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[picked.lines..], &static_occ, &picked.occ, &cover_grid);
+                var ground_occ = black_shapes.Tris{ .out = static_occ[picked.occ..], .tags = static_occ_tags[picked.occ..] };
+                picked.lines += aster_lines.ground(world.hum_x, world.hum_z, static_lines[picked.lines..], &ground_occ, &cover_grid);
+                picked.occ += ground_occ.n;
                 picked.lines += aster_lines.horn(&world, static_lines[picked.lines..]);
                 if (world.in_garden) {
                     lines.lift(static_lines[made_from..picked.lines], &world_mod.ground.heightAt);
