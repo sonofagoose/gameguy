@@ -16,6 +16,39 @@ Where the build stands, so a new session can pick it up. Newest first.
 - **How the engine is shaped:** `docs/engine.md`, written the same day at his asking ("audit and
   design the ultimate engine shape for this endeavor"). Leg 0 of the road builds it.
 - **Steps of the road that are in:**
+  - **0.10 and Leg 1A (steps 1.3–1.5): Touches/Meaning, Roughness Mix Governor, 7-Chord Ring as the
+    Real Game, and Voice-Led Open-Fifth Sound** (2026-11-27): finished Leg 0's final step and opened
+    Leg 1. In: (1) `game/src/law/meaning.zig` — the five canonical `Touch` kinds (`wave`, `knock`,
+    `bow`, `pulse`, `change`) plus distance delay, attenuation, dullness, brightness, and pulse
+    rules; (2) `game/src/law/mix.zig` — 5-stream (`hum`, `beat`, `ground`, `band`, `answer`) active
+    tone table (`max_active = 24`) and Sethares 1993 critical-band roughness governor protecting
+    context axes (`hum`, `beat`) and musical beds (`ground`, `band`, with `observe()` for held
+    hose/puddle drones) while capping/ducking/light-only-muting clashing `.answer` cues; (3)
+    promoted chords to the default real game (`world.chords_tryout = true`), added `Hands.flat`
+    (L1) / `Hands.sharp` (L2), and deleted the legacy L2 camera-recentre swing (`recentre_*`); (4)
+    wired the full 7-chord ring (`F LIFT`, `C HOME`, `G LEAN`, `Dm RUNS`, `Am REMEMBERS`, `Em
+    ACHES`, `B SEAM`) via `music.Ring.step`, 1-beat (`50`-step) auto-fall off `B SEAM`, stray L1
+    take-back on `clap` within `7` steps, and falling-fifth `long_way_chain` full-close launch
+    scaling; (5) added `harmony.chordVoicing()` pure voice-led open-fifth sound (root + fifth only,
+    never the third) folded into the clear speaker octave (`[1.25, 2.55] * day_hz`, `E4..E5`) over a
+    gentle `.tone` ground note (`day_hz * 0.5`), letting common tones float undisturbed off-tick
+    and avoiding `.string`'s 5th-harmonic major thirds; (6) updated Pause Workbench (`STATUS` live
+    `mix N/24 r=X.XX` telemetry, `ARENA` 7-chord cycle) and chord HUD banner (`harmony.chordName`).
+    **Verified (laptop):** 204/204 rules tests (+5 new: `meaning`, 3 `mix`, `harmony`) and 3/3 ears
+    tests pass; full `game/build.sh laptop` passes (`--scene dark` 0.24 ms/frame, `--scene evening`
+    1.08 ms/frame / 29,023 max lines / 7,951 max black tris, `beauty.py`, exact replay & refreshed
+    `389,912`-byte `stood.save` round-trips); `same-take-x86_64` sound hashes stayed bit-identical
+    (`minute 10: world 684490e3650e2fec / sound 62c4bef2bf9441eb`; `evening end: world
+    edb8f4c93dadf73f / sound 06edc2cab21434e4`); `ears` on evening stayed exact (`rough_share
+    0.0481`,
+    `rough_longest_s 1.88 s`, `speaker_share 0.6140`); dedicated 7-chord ring sweep
+    (`ring7_still.wav`,
+    both directions including both Seam pass-throughs) scored `rough_share 0.1523`, `rough_longest_s
+    0.26 s` (0 stretches > 0.5 s), `speaker_share 0.8842`, `peak 0.339` (and walking + rapid 0.4 s
+    chord bursts scored `rough_longest_s 1.11 s`); updated `pause-status.png` visually verified
+    with zero overlap; `game/build.sh handheld` cross-compiled fresh `aarch64` binaries into
+    `game/dist/ports/gameguy/`, ready to push to purple unit 164 when reconnected (black unit 134
+    untouched).
   - **0.1, the music as its own module** (2026-11-26): `game/src/music/`. The note as fifths,
     thirds, sevenths and octaves; the wheel's twenty-four cells; the day, its ring of seven chords,
     the faces of places and every cell's chord tuned against Hum's note; what stays and what moves

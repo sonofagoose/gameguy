@@ -1479,12 +1479,12 @@ pub fn run(window: plat.Window, options: Options) bool {
     prog_state = .{};
     const interactive = !options.headless and !options.bot and options.replay == null and options.walk == null and options.check_take == null and options.pause_dump == null;
     if (interactive) _ = loadProgress();
-    world_mod.chords_tryout = options.chords;
+    world_mod.chords_tryout = true;
     world_mod.tryout = .{};
+    // Chords round the day's ring of seven are the game's core rule (ROADMAP.md, steps 1.3–1.5)
+    world.awake |= @as(u8, 1) << @intFromEnum(world_mod.Mood.drive);
     if (options.chords) {
-        // the lean wakes beside the lift and home; nothing else in the world is changed
-        world.awake |= @as(u8, 1) << @intFromEnum(world_mod.Mood.drive);
-        log("the chords try-out (design/the-game.md): L1 steps the chord flatward and L2 sharpward among the lift (F), home (C) and the lean (G); on the lift Hum is light, on the lean it is fast, and stepping home off the lean throws it forward", .{});
+        log("chords: L1 falls a fifth and L2 rises a fifth round the day's ring of seven (F, C, G, Dm, Am, Em, B seam)", .{});
     }
     if (options.pause_dump) |dir| {
         // Render all four pause/workbench tabs and the corner HUD over a live Garden frame
@@ -1539,6 +1539,8 @@ pub fn run(window: plat.Window, options: Options) bool {
             .black_now = p_occ / 3,
             .black_peak = p_occ / 3,
             .audio_worst_ms = 0.18,
+            .mix_active = 4,
+            .mix_rough = 0.12,
             .hud_on = true,
         };
         // 1. Live corner HUD over the 3D Garden
@@ -2108,15 +2110,11 @@ pub fn run(window: plat.Window, options: Options) bool {
             words.flush();
         }
         if (world_mod.chords_tryout and world.stand >= 1.0 and !world.wheel_open and !menu.open) {
-            // the try-out's one line of words: what the two triggers are until they have been found,
-            // and for two seconds after each change the chord's letter and what it is
+            // One line of words at the top: what the two triggers are until they have been found,
+            // and for two seconds after each change the chord's letter and place on the ring
             const t = world_mod.tryout;
             const since: f32 = if (t.changed_at == world_mod.never) 1.0e9 else @floatFromInt(world.step - t.changed_at);
-            const line: []const u8 = if (since < 120.0) (switch (world.home_k) {
-                -1 => "F  LIFT",
-                1 => "G  LEAN",
-                else => "C  HOME",
-            }) else if (t.steps < 4) "L1 LIFT    L2 LEAN" else "";
+            const line: []const u8 = if (since < 120.0) world_mod.harmony.chordName(world.home_k) else if (options.chords and t.steps < 4) "L1 LIFT    L2 LEAN" else "";
             if (line.len > 0) {
                 const shown: f32 = if (since < 120.0) std.math.clamp((120.0 - since) / 40.0, 0.0, 1.0) else 0.7;
                 const scale: f32 = 2.2;
@@ -2136,6 +2134,10 @@ pub fn run(window: plat.Window, options: Options) bool {
         telemetry.audio_worst_ms = @as(f32, @floatFromInt(@atomicLoad(u32, &audio_slowest_us, .monotonic))) / 1000.0;
         telemetry.refused = refused;
         telemetry.dropped = world.dropped;
+        telemetry.mix_active = world.mix.active_count;
+        telemetry.mix_rough = world.mix.rough_now;
+        telemetry.mix_ducked = world.mix.ducked;
+        telemetry.mix_silenced = world.mix.silenced;
         if (frame > 35 and last_swap > first_swap) {
             const avg_gap = (last_swap - first_swap) / @as(f64, @floatFromInt(frame - 31));
             if (avg_gap > 0.001) telemetry.fps = @floatCast(1.0 / avg_gap);
@@ -2231,13 +2233,9 @@ pub fn run(window: plat.Window, options: Options) bool {
         most_black,
     });
     if (garden_lines.lost_black > 0) log("the garden's models lost {d} black triangles for want of room", .{garden_lines.lost_black});
-    if (world_mod.chords_tryout) {
+    if (world_mod.chords_tryout and world_mod.tryout.steps > 0) {
         const t = world_mod.tryout;
-        log("the chords try-out: {d} steps of the chord, {d} of them on the tick, {d} knocks at the end of what is awake, {d} throws home off the lean; highest {d:.1} m, fastest {d:.1} m/s; ended on {s}", .{ t.steps, t.timed, t.knocks, t.launches, t.highest, t.fastest, switch (world.home_k) {
-            -1 => "the lift",
-            1 => "the lean",
-            else => "home",
-        } });
+        log("chords: {d} steps, {d} on tick, {d} launches off lean; highest {d:.1} m, fastest {d:.1} m/s; ended on {s}; mix active {d}, ducked {d}, muted {d}", .{ t.steps, t.timed, t.launches, t.highest, t.fastest, world_mod.harmony.chordName(world.home_k), world.mix.active_count, world.mix.ducked, world.mix.silenced });
     }
     logBenchDiff("exit");
     if (presses.fd >= 0) {

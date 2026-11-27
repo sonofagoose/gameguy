@@ -58,6 +58,10 @@ pub const Telemetry = struct {
     audio_worst_ms: f32 = 0.0,
     refused: u32 = 0,
     dropped: u32 = 0,
+    mix_active: u8 = 0,
+    mix_rough: f32 = 0.0,
+    mix_ducked: u32 = 0,
+    mix_silenced: u32 = 0,
     hud_on: bool = false,
     without_trail: bool = false,
     without_ground: bool = false,
@@ -343,9 +347,9 @@ pub const State = struct {
                     1 => {
                         if (h_step != 0 or confirm) {
                             const delta: i8 = if (h_step != 0) h_step else 1;
-                            const next_k: i8 = @as(i8, @intCast(@mod(@as(i32, w.home_k + 1) + delta, 3))) - 1;
+                            const next_k = music.Ring.step(w.home_k, delta);
                             w.setChordDirect(next_k);
-                            self.say(now_s, chordLabel(next_k));
+                            self.say(now_s, world_mod.harmony.chordName(next_k));
                         }
                     },
                     2 => {
@@ -519,9 +523,9 @@ fn drawStatus(sk: *songbook.Sketch, words: *room.Type, w: *const World, tel: *co
     y += 24.0;
 
     const aud_f = tel.audio_worst_ms / 2.67;
-    const s_aud = std.fmt.bufPrint(&buf, "AUDIO  {d:>4.2}/2.67ms  ref {d}  drp {d}", .{ tel.audio_worst_ms, tel.refused, tel.dropped }) catch "";
-    putLine(words, lx, y, 0.82, .{ bone[0], bone[1], bone[2], 0.92 }, s_aud);
-    drawGauge(sk, 370.0, y + 5.0, 220.0, 10.0, aud_f, if (aud_f > 0.75) warn_col else green);
+    const s_aud = std.fmt.bufPrint(&buf, "AUDIO  {d:>4.2}ms  ref {d}  mix {d:>2}/24 r={d:.2}", .{ tel.audio_worst_ms, tel.refused, tel.mix_active, tel.mix_rough }) catch "";
+    putLine(words, lx, y, 0.80, .{ bone[0], bone[1], bone[2], 0.92 }, s_aud);
+    drawGauge(sk, 430.0, y + 5.0, 160.0, 10.0, aud_f, if (aud_f > 0.75) warn_col else green);
     y += 30.0;
 
     // Section 2: Harmony & World Reactions
@@ -719,19 +723,11 @@ fn drawArena(self: *const State, sk: *songbook.Sketch, words: *room.Type, w: *co
 }
 
 fn chordLabel(k: i8) []const u8 {
-    return switch (k) {
-        -1 => "F LIFT",
-        1 => "G LEAN",
-        else => "C HOME",
-    };
+    return world_mod.harmony.chordName(k);
 }
 
 fn chordShort(k: i8) []const u8 {
-    return switch (k) {
-        -1 => "F LIFT",
-        1 => "G LEAN",
-        else => "C HOME",
-    };
+    return world_mod.harmony.chordShort(k);
 }
 
 fn daylightLabel(idx: usize) []const u8 {
