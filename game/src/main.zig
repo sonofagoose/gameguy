@@ -417,7 +417,7 @@ pub export fn main(argc: c_int, argv: [*][*:0]u8) c_int {
         return 1;
     }
     defer sdl.Quit();
-    const window = plat.openWindow(.{ .windowed = args.windowed or args.headless, .scale = if (args.headless) 1 else @max(args.scale, 1), .depth_bits = 16 }) orelse return 1;
+    const window = plat.openWindow(.{ .windowed = args.windowed or args.headless, .scale = if (args.headless) 1 else @max(args.scale, 1), .depth_bits = 24 }) orelse return 1;
 
     var ok = true;
     if (args.room) |dir| {

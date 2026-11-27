@@ -21,6 +21,10 @@ test {
     _ = world.knots;
     _ = world.hose;
     _ = world.reeds;
+    _ = world.spigot;
+    _ = world.form;
+    _ = @import("draw/black.zig");
+    _ = @import("draw/hum_figure.zig");
     _ = world.covers;
     _ = world.home;
     _ = world.drip;

@@ -5,6 +5,7 @@
 //! of pieces, and how far along it each piece starts.
 const std = @import("std");
 const land = @import("land.zig");
+const form = @import("../form/shape.zig");
 
 /// How many pieces each stretch between two of the score's points is cut into.
 const per = 48;
@@ -118,6 +119,67 @@ pub fn distance(x: f32, z: f32) f32 {
         best = @min(best, px * px + pz * pz);
     }
     return @sqrt(best);
+}
+
+/// How far the hose reaches from its middle line: half its bore. It lies on the ground, so its
+/// middle line is that high.
+pub const reach: f32 = land.hose_bore * 0.5;
+/// One straight stretch of tube stands for a piece of the curve no longer than this, that turns no
+/// more than this (the cosine of a fifth of a radian). So a long run is few stretches and the coil
+/// is many short ones.
+const stretch_long: f32 = 3.0;
+const stretch_turn: f32 = 0.98;
+/// Each stretch is this much longer than its piece at either end, so that no gap opens on the
+/// outside of a bend.
+const stretch_laps: f32 = reach * 0.12;
+
+fn heading(i: usize) [2]f32 {
+    const dx = path[i + 1][0] - path[i][0];
+    const dz = path[i + 1][1] - path[i][1];
+    const l = @max(@sqrt(dx * dx + dz * dz), 1e-6);
+    return .{ dx / l, dz / l };
+}
+
+/// The hose as shapes, between two of its curve's points: stretches of tube. What stops Hum and
+/// what hides are both made from these.
+pub fn shapes(first: usize, last: usize, sink: *form.Sink) void {
+    const end = @min(last, count - 1);
+    var from = first;
+    while (from < end) {
+        const way = heading(from);
+        var to = from + 1;
+        while (to < end and along[to] - along[from] < stretch_long) {
+            const next = heading(to);
+            if (way[0] * next[0] + way[1] * next[1] < stretch_turn) break;
+            to += 1;
+        }
+        const dx = path[to][0] - path[from][0];
+        const dz = path[to][1] - path[from][1];
+        const l = @max(@sqrt(dx * dx + dz * dz), 1e-6);
+        const lx = dx / l * stretch_laps;
+        const lz = dz / l * stretch_laps;
+        sink.stalk(.{ path[from][0] - lx, reach, path[from][1] - lz }, .{ path[to][0] + lx, reach, path[to][1] + lz }, reach, reach);
+        from = to;
+    }
+}
+
+test "the hose's shapes follow its curve from end to end, a bore across" {
+    var room: [1200]form.Shape = undefined;
+    var sink = form.Sink{ .out = &room };
+    shapes(0, count - 1, &sink);
+    try std.testing.expectEqual(@as(usize, 0), sink.lost);
+    try std.testing.expect(sink.n > 300 and sink.n < 1100);
+    var covered: f32 = 0.0;
+    for (sink.slice()) |shape| {
+        const s = shape.stalk;
+        try std.testing.expectEqual(reach, s.ra);
+        // each stretch lies along the curve: both its ends are on it, give or take what it laps
+        try std.testing.expect(distance(s.a[0], s.a[2]) < 0.3);
+        try std.testing.expect(distance(s.b[0], s.b[2]) < 0.3);
+        covered += form.length(form.sub(s.b, s.a)) - 2.0 * stretch_laps;
+    }
+    // together they are as long as the hose, less what the chords cut off its bends
+    try std.testing.expect(covered > length * 0.99 and covered <= length + 0.01);
 }
 
 test "the hose runs from the spigot to its end in the reeds, at least a kilometre and a half" {

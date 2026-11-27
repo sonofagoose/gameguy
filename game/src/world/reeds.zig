@@ -7,6 +7,7 @@ const std = @import("std");
 const land = @import("land.zig");
 const ground = @import("ground.zig");
 const hose = @import("hose.zig");
+const form = @import("../form/shape.zig");
 
 /// Grouped by where round the pool they stand.
 pub const groups = 24;
@@ -56,6 +57,24 @@ pub fn at(g: usize, k: usize) ?Reed {
         .lean = tall * (0.03 + 0.06 * ground.unit01(s *% 362437)),
         .s = s,
     };
+}
+
+/// A reed's line: its foot, its middle and its top, leaning the way it leans. The picture draws
+/// its stem along this, and its shapes follow it.
+pub fn spine(reed: Reed) [3]form.V3 {
+    const cx = @cos(reed.lean_a) * reed.lean;
+    const sz = @sin(reed.lean_a) * reed.lean;
+    const foot = form.V3{ reed.x, 0.0, reed.z };
+    const top = form.V3{ reed.x + cx, reed.tall, reed.z + sz };
+    const mid = form.V3{ (foot[0] + top[0]) * 0.5 + cx * 0.15, reed.tall * 0.5, (foot[2] + top[2]) * 0.5 + sz * 0.15 };
+    return .{ foot, mid, top };
+}
+
+/// A reed as shapes: its stem, in two stretches, thinner toward the top.
+pub fn shapes(reed: Reed, sink: *form.Sink) void {
+    const s = spine(reed);
+    sink.stalk(s[0], s[1], reed.stem, reed.stem * 0.7);
+    sink.stalk(s[1], s[2], reed.stem * 0.7, reed.stem * 0.35);
 }
 
 /// Its note: an open pipe as long as the reed is at its real size (a hundredth of what is seen),

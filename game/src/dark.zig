@@ -16,6 +16,8 @@ const png = @import("plat/png.zig");
 const lines = @import("draw/lines.zig");
 const aster_lines = @import("draw/aster_lines.zig");
 const garden_lines = @import("draw/garden_lines.zig");
+const hum_figure = @import("draw/hum_figure.zig");
+const black_shapes = @import("draw/black.zig");
 const colour = @import("draw/colour.zig");
 const drip_lines = @import("draw/drip_lines.zig");
 const m = @import("m.zig");
@@ -781,45 +783,12 @@ fn movingLines(w: *const World, cam_stand: f32, eye: m.V3, out: []lines.Inst) us
         n += 1;
     } else {
         // stood beside: one metre of bone-white, hatched so it reads as the one solid thing. Singing
-        // after the lock it swells a little more each bar (the swell, SPEC.md 9)
-        const swell = w.humSwell();
-        const rx = @cos(w.look_yaw);
-        const rz = @sin(w.look_yaw);
-        // landing, it squashes a little and springs back (spec/engine.md, Hum's legs)
-        var squash: f32 = 1.0;
-        if (w.landed_at > 0 and w.step >= w.landed_at) {
-            const since = @as(f32, @floatFromInt(w.step - w.landed_at));
-            if (since < 6.0) squash = 0.85 else if (since < 15.0) squash = 0.85 + 0.15 * (since - 6.0) / 9.0;
-        }
-        const wide = world_mod.hum_body * swell * (2.0 - squash);
-        const high = world_mod.hum_half_high * swell * squash;
-        // it stands facing the eye: seen from above, its upright leans away from the eye as much
-        // as the eye looks down on it, so it stays a figure and never a sliver
-        const ex = w.hum_x - eye[0];
-        const ey = (w.hum_ground + w.hum_y + 0.52) - eye[1];
-        const ez = w.hum_z - eye[2];
-        const el = @max(@sqrt(ex * ex + ey * ey + ez * ez), 0.001);
-        const down = -ey / el;
-        const flat = @max(@sqrt(ex * ex + ez * ez), 0.001);
-        const back_x = ex / flat * down;
-        const back_z = ez / flat * down;
-        const upright = @sqrt(@max(1.0 - down * down, 0.0));
-        const parts = 14;
-        // its stride: a small lift each step, as fast as it goes; and its lean into a turn, the top
-        // swung toward the inside, as seen from the eye
-        const going = std.math.clamp(@sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz) / world_mod.run_speed, 0.0, 1.0);
-        const lift = w.hum_y + (if (w.airborne) 0.0 else 0.06 * going * @abs(@sin(w.stride * (std.math.pi / 0.9))));
-        const tip = w.lean_x * rx + w.lean_z * rz;
-        for (0..parts) |k| {
-            const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / @as(f32, parts));
-            const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / @as(f32, parts));
-            out[n] = .{
-                .a = .{ w.hum_x + rx * (wide * @cos(a0) + tip * (1.0 + @sin(a0))) + back_x * high * @sin(a0), world_mod.hum_middle + lift + high * @sin(a0) * upright, w.hum_z + rz * (wide * @cos(a0) + tip * (1.0 + @sin(a0))) + back_z * high * @sin(a0) },
-                .b = .{ w.hum_x + rx * (wide * @cos(a1) + tip * (1.0 + @sin(a1))) + back_x * high * @sin(a1), world_mod.hum_middle + lift + high * @sin(a1) * upright, w.hum_z + rz * (wide * @cos(a1) + tip * (1.0 + @sin(a1))) + back_z * high * @sin(a1) },
-                .half_width = 1.9,
-                .body = 0.0,
-                .col = hum_tint,
-            };
+        // after the lock it swells a little more each bar. Its outline is hum_figure's, which its
+        // black shape is made from too.
+        const oval = hum_figure.Oval.of(w, eye);
+        const rim = oval.outline();
+        for (rim, 0..) |a, k| {
+            out[n] = .{ .a = a, .b = rim[(k + 1) % rim.len], .half_width = 1.9, .body = 0.0, .col = hum_tint };
             n += 1;
         }
         // home, always shown: a ring of light at Hum's feet in home's colour, faint while Hum is
@@ -855,15 +824,8 @@ fn movingLines(w: *const World, cam_stand: f32, eye: m.V3, out: []lines.Inst) us
             const f = (@as(f32, @floatFromInt(k)) + 0.5) / @as(f32, @floatFromInt(most)) * 1.7 - 0.85;
             const lit = std.math.clamp(w.breath - @as(f32, @floatFromInt(k)), 0.0, 1.0);
             const fill = col8(bone, (0.40 + 0.60 * w.hum_light) * (0.18 + 0.82 * lit) * pant);
-            const across = wide * @sqrt(1.0 - f * f);
-            const sway = tip * (1.0 + f);
-            out[n] = .{
-                .a = .{ w.hum_x + rx * (sway - across), world_mod.hum_middle + lift + high * f, w.hum_z + rz * (sway - across) },
-                .b = .{ w.hum_x + rx * (sway + across), world_mod.hum_middle + lift + high * f, w.hum_z + rz * (sway + across) },
-                .half_width = 2.2,
-                .body = 0.0,
-                .col = fill,
-            };
+            const breath = oval.across(f);
+            out[n] = .{ .a = breath[0], .b = breath[1], .half_width = 2.2, .body = 0.0, .col = fill };
             n += 1;
         }
     }
@@ -1118,7 +1080,10 @@ fn byte(v: f32) u8 {
 fn shine(sounding: f32, lit: f32, share: f32, gives: f32) lines.Shine {
     return .{ .sounding = byte(sounding), .lit = byte(lit), .spread = byte(share), .gives = byte(gives) };
 }
-var static_occ: [40_000][3]f32 = undefined;
+/// The land's black shapes: twenty thousand triangles, which the purple draws in 2.2 ms.
+var static_occ: [60_000][3]f32 = undefined;
+/// And those of what moves, rebuilt each frame.
+var moving_occ: [1_500][3]f32 = undefined;
 var moving: [16_000]lines.Inst = undefined;
 /// A person's hands, as they play: room for an hour of a thumb that never rests.
 var take_bytes: [take.header_size + 216_000 * take.change_size]u8 = undefined;
@@ -1534,6 +1499,7 @@ pub fn run(window: plat.Window, options: Options) bool {
     var picked = aster_lines.Picked{ .lines = 0, .occ = 0, .near = 0, .mid = 0, .far = 0 };
     var cover_grid = [2]i32{ 0, 0 };
     var most_lines: usize = 0;
+    var most_black: usize = 0;
     var worst_at: u32 = 0;
     var worst_step: u64 = 0;
     var worst_why: []const u8 = "";
@@ -1840,7 +1806,9 @@ pub fn run(window: plat.Window, options: Options) bool {
                 // Hum lending its body to what stands in it (garden_lines.zig)
                 const half_side: i32 = @divTrunc(aster_lines.cover_side, 2);
                 const grid_now = [2]i32{ @as(i32, @intFromFloat(@floor(world.hum_x / 16.0))) - half_side, @as(i32, @intFromFloat(@floor(world.hum_z / 16.0))) - half_side };
-                picked.lines += garden_lines.pick(world.hum_x, world.hum_z, grid_now, static_lines[picked.lines..]);
+                var garden_occ = black_shapes.Tris{ .out = static_occ[picked.occ..] };
+                picked.lines += garden_lines.pick(world.hum_x, world.hum_z, grid_now, static_lines[picked.lines..], &garden_occ);
+                picked.occ += garden_occ.n;
                 // what is made afresh for where Hum is stands on the ground as it is made
                 const made_from = picked.lines;
                 const occ_from = picked.occ;
@@ -1922,6 +1890,16 @@ pub fn run(window: plat.Window, options: Options) bool {
         most_lines = @max(most_lines, picked.lines + moving_n);
         parts[2] = (plat.now() - began) * 1000.0;
         renderer.setDynamic(moving[0..moving_n]);
+        // what moves hides too: Hum's own figure, from the outline its lines are drawn on
+        var moving_tris = black_shapes.Tris{ .out = &moving_occ };
+        if (options.scene != .dark and world.view == .place and cam.stand >= 0.5) {
+            const oval = hum_figure.Oval.of(&world, cam.eye);
+            const rim = oval.outline();
+            black_shapes.facing(oval.middle(), &rim, &moving_tris);
+        }
+        if (world.in_garden) lines.liftPoints(moving_occ[0..moving_tris.n], &world_mod.ground.heightAt);
+        renderer.setMovingOcc(moving_tris.slice());
+        most_black = @max(most_black, picked.occ / 3 + moving_tris.count());
         if (options.scene != .dark) sendGround();
         const vp = m.mul(proj, view);
         parts[3] = (plat.now() - began) * 1000.0;
@@ -2029,7 +2007,7 @@ pub fn run(window: plat.Window, options: Options) bool {
             last_visit.stayed_s = @as(f32, @floatFromInt(seen.held)) / 60.0;
         }
     }
-    log("the {s}: {d} frames, {d} late, {d:.2} ms of work a frame (worst {d:.2}); {d} steps, {d} frames ran two; {d} calls, {d} answers; cues late {d}, refused {d}; slowest sound buffer {d:.2} ms; real-time sound {s}; most lines in a frame {d}", .{
+    log("the {s}: {d} frames, {d} late, {d:.2} ms of work a frame (worst {d:.2}); {d} steps, {d} frames ran two; {d} calls, {d} answers; cues late {d}, refused {d}; slowest sound buffer {d:.2} ms; real-time sound {s}; most lines in a frame {d}, most black triangles {d}", .{
         name,
         frame,
         late,
@@ -2044,7 +2022,9 @@ pub fn run(window: plat.Window, options: Options) bool {
         @as(f64, @floatFromInt(@atomicLoad(u32, &audio_slowest_us, .monotonic))) / 1000.0,
         if (@atomicLoad(i32, &audio_realtime, .monotonic) == 1) "yes" else "no",
         most_lines,
+        most_black,
     });
+    if (garden_lines.lost_black > 0) log("the garden's models lost {d} black triangles for want of room", .{garden_lines.lost_black});
     if (options.chords) {
         const t = world_mod.tryout;
         log("the chords try-out: {d} steps of the chord, {d} of them on the tick, {d} knocks at the end of what is awake, {d} throws home off the lean; highest {d:.1} m, fastest {d:.1} m/s; ended on {s}", .{ t.steps, t.timed, t.knocks, t.launches, t.highest, t.fastest, switch (world.home_k) {

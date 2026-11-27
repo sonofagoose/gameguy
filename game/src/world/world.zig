@@ -24,6 +24,8 @@ pub const land = @import("land.zig");
 /// The hose's curve, worked out from the score when the game is built.
 pub const hose = @import("hose.zig");
 pub const reeds = @import("reeds.zig");
+pub const spigot = @import("spigot.zig");
+pub const form = @import("../form/shape.zig");
 pub const covers = @import("covers.zig");
 pub const home = @import("home.zig");
 pub const drip = @import("drip.zig");
@@ -206,7 +208,7 @@ pub const hum_half_high: f32 = 0.5;
 pub const hum_middle: f32 = 0.52;
 pub const stalk_foot: f32 = 0.54;
 /// How wide the spigot's brass body is from its middle.
-pub const spigot_body: f32 = 0.9;
+pub const spigot_body: f32 = spigot.riser;
 /// What Hum steps up onto without a jump: a third of its height (on Gentle, half as much again).
 pub const step_up: f32 = 0.3;
 /// Going into a stalk faster than this rings it; at a full run it rings as hard as a brush can.

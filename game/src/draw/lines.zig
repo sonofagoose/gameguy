@@ -400,6 +400,10 @@ pub const Renderer = struct {
     dyn_count: u32 = 0,
     occ_vao: c.GLuint = 0,
     occ_vbo: c.GLuint = 0,
+    /// The black shapes of what moves: Hum, and whatever else is rebuilt each frame.
+    moving_occ_vao: c.GLuint = 0,
+    moving_occ_vbo: c.GLuint = 0,
+    moving_occ_verts: u32 = 0,
     empty_vao: c.GLuint = 0,
     loud_tex: c.GLuint = 0,
 
@@ -513,6 +517,15 @@ pub const Renderer = struct {
         gl.VertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, 12, null);
         gl.BindVertexArray(0);
 
+        // and the black shapes of what moves, sent every frame
+        gl.GenVertexArrays(1, &self.moving_occ_vao);
+        gl.GenBuffers(1, &self.moving_occ_vbo);
+        gl.BindVertexArray(self.moving_occ_vao);
+        gl.BindBuffer(c.GL_ARRAY_BUFFER, self.moving_occ_vbo);
+        gl.EnableVertexAttribArray(0);
+        gl.VertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, 12, null);
+        gl.BindVertexArray(0);
+
         // each body's loudness, one byte, sent every frame
         gl.GenTextures(1, &self.loud_tex);
         gl.BindTexture(c.GL_TEXTURE_2D, self.loud_tex);
@@ -528,7 +541,8 @@ pub const Renderer = struct {
         if (!target(fb_w, fb_h, false, &self.cur_fbo, &self.cur_tex)) return false;
         gl.GenRenderbuffers(1, &self.cur_depth);
         gl.BindRenderbuffer(c.GL_RENDERBUFFER, self.cur_depth);
-        gl.RenderbufferStorage(c.GL_RENDERBUFFER, c.GL_DEPTH_COMPONENT16, fb_w, fb_h);
+        // 24 bits: with 16, over 0.4 m to 9 km, two surfaces 38 cm apart are one at a hundred metres
+        gl.RenderbufferStorage(c.GL_RENDERBUFFER, c.GL_DEPTH_COMPONENT24, fb_w, fb_h);
         gl.BindFramebuffer(c.GL_FRAMEBUFFER, self.cur_fbo);
         gl.FramebufferRenderbuffer(c.GL_FRAMEBUFFER, c.GL_DEPTH_ATTACHMENT, c.GL_RENDERBUFFER, self.cur_depth);
         if (gl.CheckFramebufferStatus(c.GL_FRAMEBUFFER) != c.GL_FRAMEBUFFER_COMPLETE) return false;
@@ -594,6 +608,14 @@ pub const Renderer = struct {
         gl.BufferData(c.GL_ARRAY_BUFFER, @intCast(occ.len * 12), if (occ.len > 0) occ.ptr else null, c.GL_STATIC_DRAW);
         gl.BindBuffer(c.GL_ARRAY_BUFFER, 0);
         _ = plat.checkGl("land upload");
+    }
+
+    /// Hand the GPU this frame's black shapes of what moves (three points to a triangle).
+    pub fn setMovingOcc(self: *Renderer, occ: []const [3]f32) void {
+        self.moving_occ_verts = @intCast(occ.len);
+        gl.BindBuffer(c.GL_ARRAY_BUFFER, self.moving_occ_vbo);
+        gl.BufferData(c.GL_ARRAY_BUFFER, @intCast(occ.len * 12), if (occ.len > 0) occ.ptr else null, c.GL_DYNAMIC_DRAW);
+        gl.BindBuffer(c.GL_ARRAY_BUFFER, 0);
     }
 
     /// Give the ground its picture: `size` dots on a side (eight tiles of 256), three bytes a dot,
@@ -784,7 +806,7 @@ pub const Renderer = struct {
     }
 
     fn drawOcc(self: *Renderer, vp: *const m.M4) void {
-        if (self.occ_verts == 0) return;
+        if (self.occ_verts == 0 and self.moving_occ_verts == 0) return;
         gl.UseProgram(self.occ_prog);
         gl.UniformMatrix4fv(self.occ_u_vp, 1, c.GL_FALSE, vp);
         gl.Uniform1f(self.occ_u_stand, self.stand);
@@ -798,8 +820,15 @@ pub const Renderer = struct {
         gl.ColorMask(c.GL_FALSE, c.GL_FALSE, c.GL_FALSE, c.GL_FALSE);
         gl.Enable(c.GL_POLYGON_OFFSET_FILL);
         gl.PolygonOffset(1.0, 1.0);
-        gl.BindVertexArray(self.occ_vao);
-        gl.DrawArrays(c.GL_TRIANGLES, 0, @intCast(self.occ_verts));
+        if (self.occ_verts > 0) {
+            gl.BindVertexArray(self.occ_vao);
+            gl.DrawArrays(c.GL_TRIANGLES, 0, @intCast(self.occ_verts));
+        }
+        if (self.moving_occ_verts > 0) {
+            gl.BindVertexArray(self.moving_occ_vao);
+            gl.DrawArrays(c.GL_TRIANGLES, 0, @intCast(self.moving_occ_verts));
+        }
+        gl.BindVertexArray(0);
         gl.Disable(c.GL_POLYGON_OFFSET_FILL);
         gl.ColorMask(c.GL_TRUE, c.GL_TRUE, c.GL_TRUE, c.GL_TRUE);
     }

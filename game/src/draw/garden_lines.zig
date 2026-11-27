@@ -12,8 +12,11 @@ const lines = @import("lines.zig");
 const aster_lines = @import("aster_lines.zig");
 const world_mod = @import("../world/world.zig");
 const colour = @import("colour.zig");
+const black = @import("black.zig");
 const land = world_mod.land;
 const hose = world_mod.hose;
+const spigot = world_mod.spigot;
+const form = world_mod.form;
 const Inst = lines.Inst;
 const V = [3]f32;
 
@@ -24,6 +27,8 @@ const max_models = 96;
 const near_cap = 900;
 const mid_cap = 260;
 const far_cap = 80;
+/// The points of a model's black shapes, three to a triangle.
+const occ_cap = 1300;
 
 const Model = struct {
     x: f32 = 0.0,
@@ -34,6 +39,17 @@ const Model = struct {
     mid_n: usize = 0,
     far: [far_cap]Inst = undefined,
     far_n: usize = 0,
+    /// Its black shapes, drawn while it is near: made from the same shapes that stop Hum.
+    occ: [occ_cap]V = undefined,
+    occ_n: usize = 0,
+
+    /// Give the model the black shapes of what it is made of.
+    fn hide(self: *Model, shapes: []const form.Shape) void {
+        var tris = black.Tris{ .out = &self.occ, .n = self.occ_n };
+        black.ofAll(shapes, &tris);
+        self.occ_n = tris.n;
+        lost_black += tris.lost;
+    }
 
     fn add(list: []Inst, n: *usize, a: V, b: V, half: f32, col: [4]u8) void {
         if (n.* >= list.len) return;
@@ -53,6 +69,8 @@ const Model = struct {
 
 var models: [max_models]Model = undefined;
 var model_n: usize = 0;
+/// Black triangles that found no room in their model. Always nought (see the test).
+pub var lost_black: usize = 0;
 
 const col8 = colour.col8;
 
@@ -121,59 +139,64 @@ fn buildHose() void {
                 m.farLine(top_a, .{ hose.path[r][0], 2.0 * rb, hose.path[r][1] }, 1.3, col8(green, 0.45));
             }
         }
+        var room: [64]form.Shape = undefined;
+        var sink = form.Sink{ .out = &room };
+        hose.shapes(start, end, &sink);
+        m.hide(sink.slice());
     }
 }
 
 /// The spigot: a riser of brass from the ground, its body, a handle like a wheel on top, and a spout
 /// bent down to where the hose is screwed on.
 fn buildSpigot() void {
-    const x = land.spigot[0];
-    const z = land.spigot[1];
-    const tall = land.spigot[2];
+    const x = spigot.x;
+    const z = spigot.z;
+    const tall = spigot.tall;
     const m = newModel(x, z);
-    const rr: f32 = world_mod.spigot_body;
+    const rr: f32 = spigot.riser;
     const sides = 8;
     // the riser, a pipe
     for (0..sides) |k| {
         const a0 = @as(f32, @floatFromInt(k)) * (2.0 * std.math.pi / @as(f32, sides));
         const a1 = @as(f32, @floatFromInt(k + 1)) * (2.0 * std.math.pi / @as(f32, sides));
         const p = V{ x + rr * @cos(a0), 0.0, z + rr * @sin(a0) };
-        m.nearLine(p, .{ p[0], tall * 0.7, p[2] }, 1.2, col8(brass, 0.7));
-        for ([_]f32{ 0.0, tall * 0.35, tall * 0.7 }) |y| m.nearLine(.{ x + rr * @cos(a0), y, z + rr * @sin(a0) }, .{ x + rr * @cos(a1), y, z + rr * @sin(a1) }, 1.0, col8(brass, 0.55));
+        m.nearLine(p, .{ p[0], tall * spigot.riser_to, p[2] }, 1.2, col8(brass, 0.7));
+        for ([_]f32{ 0.0, tall * spigot.riser_to * 0.5, tall * spigot.riser_to }) |y| m.nearLine(.{ x + rr * @cos(a0), y, z + rr * @sin(a0) }, .{ x + rr * @cos(a1), y, z + rr * @sin(a1) }, 1.0, col8(brass, 0.55));
     }
     // the body, wider
-    const rb2: f32 = 1.7;
+    const rb2: f32 = spigot.body;
     for (0..sides) |k| {
         const a0 = @as(f32, @floatFromInt(k)) * (2.0 * std.math.pi / @as(f32, sides));
         const a1 = @as(f32, @floatFromInt(k + 1)) * (2.0 * std.math.pi / @as(f32, sides));
-        for ([_]f32{ tall * 0.7, tall * 0.86 }) |y| m.nearLine(.{ x + rb2 * @cos(a0), y, z + rb2 * @sin(a0) }, .{ x + rb2 * @cos(a1), y, z + rb2 * @sin(a1) }, 1.3, col8(brass, 0.85));
-        m.nearLine(.{ x + rb2 * @cos(a0), tall * 0.7, z + rb2 * @sin(a0) }, .{ x + rb2 * @cos(a0), tall * 0.86, z + rb2 * @sin(a0) }, 1.1, col8(brass, 0.7));
+        for ([_]f32{ tall * spigot.riser_to, tall * spigot.body_to }) |y| m.nearLine(.{ x + rb2 * @cos(a0), y, z + rb2 * @sin(a0) }, .{ x + rb2 * @cos(a1), y, z + rb2 * @sin(a1) }, 1.3, col8(brass, 0.85));
+        m.nearLine(.{ x + rb2 * @cos(a0), tall * spigot.riser_to, z + rb2 * @sin(a0) }, .{ x + rb2 * @cos(a0), tall * spigot.body_to, z + rb2 * @sin(a0) }, 1.1, col8(brass, 0.7));
     }
     // the handle: a wheel with four spokes, on a stem
-    m.nearLine(.{ x, tall * 0.86, z }, .{ x, tall * 0.95, z }, 1.3, col8(brass, 0.9));
-    const rh: f32 = 1.6;
+    m.nearLine(.{ x, tall * spigot.body_to, z }, .{ x, tall * spigot.stem_to, z }, 1.3, col8(brass, 0.9));
+    const rh: f32 = spigot.wheel;
     for (0..12) |k| {
         const a0 = @as(f32, @floatFromInt(k)) * (2.0 * std.math.pi / 12.0);
         const a1 = @as(f32, @floatFromInt(k + 1)) * (2.0 * std.math.pi / 12.0);
         m.nearLine(.{ x + rh * @cos(a0), tall, z + rh * @sin(a0) }, .{ x + rh * @cos(a1), tall, z + rh * @sin(a1) }, 1.4, col8(brass, 0.95));
-        if (k % 3 == 0) m.nearLine(.{ x, tall * 0.95, z }, .{ x + rh * @cos(a0), tall, z + rh * @sin(a0) }, 1.1, col8(brass, 0.75));
+        if (k % 3 == 0) m.nearLine(.{ x, tall * spigot.stem_to, z }, .{ x + rh * @cos(a0), tall, z + rh * @sin(a0) }, 1.1, col8(brass, 0.75));
     }
     // the spout: out toward the hose's first stretch, then down to where the hose begins
-    const p1 = hose.path[1];
-    const ox = p1[0] - x;
-    const oz = p1[1] - z;
-    const ol = @max(@sqrt(ox * ox + oz * oz), 0.001);
-    const sx = x + ox / ol * 3.0;
-    const sz = z + oz / ol * 3.0;
-    m.nearLine(.{ x, tall * 0.78, z }, .{ sx, tall * 0.78, sz }, 1.5, col8(brass, 0.9));
-    m.nearLine(.{ sx, tall * 0.78, sz }, .{ sx, tall * 0.45, sz }, 1.5, col8(brass, 0.9));
+    const spout_end = spigot.spoutEnd();
+    const sx = spout_end[0];
+    const sz = spout_end[1];
+    m.nearLine(.{ x, tall * spigot.spout_at, z }, .{ sx, tall * spigot.spout_at, sz }, 1.5, col8(brass, 0.9));
+    m.nearLine(.{ sx, tall * spigot.spout_at, sz }, .{ sx, tall * spigot.spout_down, sz }, 1.5, col8(brass, 0.9));
     // the hose from the spout down to the ground
-    m.nearLine(.{ sx, tall * 0.45, sz }, .{ hose.path[2][0], land.hose_bore, hose.path[2][1] }, 1.4, col8(green, 0.85));
+    m.nearLine(.{ sx, tall * spigot.spout_down, sz }, .{ hose.path[2][0], land.hose_bore, hose.path[2][1] }, 1.4, col8(green, 0.85));
     // farther off: the riser, the body and the wheel as a few strokes
     m.midLine(.{ x, 0.0, z }, .{ x, tall, z }, 1.8, col8(brass, 0.9));
     m.midLine(.{ x - rh, tall, z }, .{ x + rh, tall, z }, 1.6, col8(brass, 0.9));
-    m.midLine(.{ x, tall * 0.78, z }, .{ sx, tall * 0.45, sz }, 1.6, col8(brass, 0.85));
+    m.midLine(.{ x, tall * spigot.spout_at, z }, .{ sx, tall * spigot.spout_down, sz }, 1.6, col8(brass, 0.85));
     m.farLine(.{ x, 0.0, z }, .{ x, tall, z }, 2.0, col8(brass, 0.9));
+    var room: [8]form.Shape = undefined;
+    var sink = form.Sink{ .out = &room };
+    spigot.shapes(&sink);
+    m.hide(sink.slice());
 }
 
 /// The reeds round the Mirror Pool, as tall as towers: each a stalk leaning a little, with its
@@ -198,12 +221,22 @@ fn buildReeds() void {
             const z = reed.z;
             const tall = reed.tall;
             const lean_a = reed.lean_a;
-            const lean = reed.lean;
-            const top = V{ x + @cos(lean_a) * lean, tall, z + @sin(lean_a) * lean };
-            const foot = V{ x, 0.0, z };
-            const midp = V{ (foot[0] + top[0]) * 0.5 + @cos(lean_a) * lean * 0.15, tall * 0.5, (foot[2] + top[2]) * 0.5 + @sin(lean_a) * lean * 0.15 };
-            m.nearLine(foot, midp, 1.1, col8(straw, 0.55));
-            m.nearLine(midp, top, 1.0, col8(straw, 0.5));
+            const line = world_mod.reeds.spine(reed);
+            const foot = line[0];
+            const top = line[2];
+            // its stem, near: the edges of the very shapes that stop Hum and hide what is behind,
+            // so the stem's own black shape never covers its lines
+            var room: [2]form.Shape = undefined;
+            var sink = form.Sink{ .out = &room };
+            world_mod.reeds.shapes(reed, &sink);
+            m.hide(sink.slice());
+            for (sink.slice()) |shape| {
+                const stem = shape.stalk;
+                for (0..stem.sides()) |e| {
+                    const ends = stem.edge(e);
+                    m.nearLine(ends[0], ends[1], 1.0, col8(straw, 0.5));
+                }
+            }
             // the plume: seeds hanging from the top
             for (0..5) |f| {
                 const fa = lean_a + (@as(f32, @floatFromInt(f)) - 2.0) * 0.45;
@@ -250,18 +283,24 @@ pub fn liftModels(height: *const fn (f32, f32) f32) void {
         lines.lift(md.near[0..md.near_n], height);
         lines.lift(md.mid[0..md.mid_n], height);
         lines.lift(md.far[0..md.far_n], height);
+        lines.liftPoints(md.occ[0..md.occ_n], height);
     }
 }
 
 /// The Garden's own things for where the eye is now, each at the detail its distance asks for.
 /// What stands within the squares of ground round Hum (`grid`, their corner, from
-/// aster_lines.ground) takes that square's body, so a call's ring lights it as it crosses.
-pub fn pick(eye_x: f32, eye_z: f32, grid: [2]i32, out: []Inst) usize {
+/// aster_lines.ground) takes that square's body, so a call's ring lights it as it crosses. What is
+/// near also gives its black shapes to `occ`.
+pub fn pick(eye_x: f32, eye_z: f32, grid: [2]i32, out: []Inst, occ: *black.Tris) usize {
     var n: usize = 0;
     for (models[0..model_n]) |*m| {
         const dx = m.x - eye_x;
         const dz = m.z - eye_z;
         const far = @sqrt(dx * dx + dz * dz);
+        if (far < near_within and occ.n + m.occ_n <= occ.out.len) {
+            @memcpy(occ.out[occ.n..][0..m.occ_n], m.occ[0..m.occ_n]);
+            occ.n += m.occ_n;
+        }
         const from: []const Inst = if (far < near_within) m.near[0..m.near_n] else if (far < mid_within) m.mid[0..m.mid_n] else m.far[0..m.far_n];
         if (n + from.len > out.len) continue;
         @memcpy(out[n..][0..from.len], from);

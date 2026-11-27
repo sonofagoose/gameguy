@@ -21,6 +21,17 @@ Where the build stands, so a new session can pick it up. Newest first.
     the faces of places and every cell's chord tuned against Hum's note; what stays and what moves
     in a change of chord; the four ways home. `direction.zig` is the arithmetic of the three design
     documents as 26 tests. 52 new tests, 159 in all. Nothing in the game uses it yet.
+  - **0.2 and 0.4, begun** (2026-11-26): shapes, and the first things that hide.
+    `game/src/form/shape.zig` is one description of a solid thing (a stalk, a plate, a ball), and
+    `game/src/draw/black.zig` makes the triangles that hide from it. The hose, the reeds and the
+    spigot each say their shapes once, in their own rules files, and now hide what is behind them;
+    the reeds' stems are drawn along the edges of those same shapes. Hum's figure hides too, from
+    the outline its lines are drawn on (`draw/hum_figure.zig`), through a second list for what
+    moves. Depth is 24 bits. On the scripted run the garden draws 22,633 lines and 6,496 black
+    triangles at most, where it drew 22,063 and under 4,000 (laptop). 168 tests. Not yet: Drip, the
+    bee, the fallen flower head and the knots; the asters' shapes still come from their own code;
+    the rule that fades what is near the eye is still on (it goes with step 0.7); nothing is
+    measured on the purple.
 - **Everything below this section** was built to `SPEC.md` (2026-11-19 to 23), which is history
   now. "Done" in those entries meant done as a work order described it, not reachable by playing.
 
