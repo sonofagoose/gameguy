@@ -47,8 +47,14 @@ Where the build stands, so a new session can pick it up. Newest first.
     0.26 s` (0 stretches > 0.5 s), `speaker_share 0.8842`, `peak 0.339` (and walking + rapid 0.4 s
     chord bursts scored `rough_longest_s 1.11 s`); updated `pause-status.png` visually verified
     with zero overlap; `game/build.sh handheld` cross-compiled fresh `aarch64` binaries into
-    `game/dist/ports/gameguy/`, ready to push to purple unit 164 when reconnected (black unit 134
-    untouched).
+    `game/dist/ports/gameguy/`. **Verified & deployed on purple unit 164 (build `c2e65fa`,
+    2026-11-27):** synced `gameguy-aarch64`, `gameguy-chords-aarch64`, `same-take-aarch64`,
+    `room/build.txt`, refreshed `389,912`-byte `tryout/stood.save`, and `tryout/ring7-check.take`.
+    `same-take-aarch64 10` (`game/results/same-take-aarch64.txt`): **77/77 lines bit-identical** to
+    `same-take-x86_64.txt` (`684490e3650e2fec` / `edb8f4c93dadf73f`). Live 7-chord ring sweep
+    (`game/results/gameguy-chords-20261127-133559.txt`): **1,221 frames, 1 late, 16.69 ms avg
+    cadence (~60 Hz), 5.95 ms avg frame work (1,189 frames under 8 ms), 0.23 ms slowest sound
+    buffer, real-time sound yes, 0 refused cues**, 21,747 max lines, 6,940 max black triangles.
   - **0.1, the music as its own module** (2026-11-26): `game/src/music/`. The note as fifths,
     thirds, sevenths and octaves; the wheel's twenty-four cells; the day, its ring of seven chords,
     the faces of places and every cell's chord tuned against Hum's note; what stays and what moves
