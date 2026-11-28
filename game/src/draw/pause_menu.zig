@@ -118,6 +118,8 @@ const Knob = struct {
 };
 
 const bench_knobs = [_]Knob{
+    .{ .name = "Drip tempo (A/B)", .unit = "bpm", .min = 60.0, .max = 120.0, .step = 2.0, .alt_a = 72.0, .alt_b = 90.0 },
+    .{ .name = "Hum voice (A/B)", .unit = "", .min = 0.10, .max = 0.70, .step = 0.02, .alt_a = 0.34, .alt_b = 0.70 },
     .{ .name = "Lift gravity (A/B)", .unit = "x", .min = 0.25, .max = 1.00, .step = 0.02, .alt_a = 0.55, .alt_b = 2.0 / 3.0 },
     .{ .name = "Lean speed (A/B)", .unit = "x", .min = 1.00, .max = 2.00, .step = 0.02, .alt_a = 1.3, .alt_b = 4.0 / 3.0 },
     .{ .name = "Full-close launch", .unit = "m", .min = 2.0, .max = 14.0, .step = 0.5 },
@@ -138,34 +140,38 @@ const arena_rows_total = 7;
 
 fn knobPtr(index: usize) *f32 {
     return switch (index) {
-        0 => &feel.now.lift_pull,
-        1 => &feel.now.lean_speed,
-        2 => &feel.now.launch_far,
-        3 => &feel.now.run_speed,
-        4 => &feel.now.sprint_speed,
-        5 => &feel.now.jump_height,
-        6 => &feel.now.view_run_ease,
-        7 => &feel.now.wake_ease,
-        8 => &feel.now.rise_ease,
-        9 => &feel.now.settle_ease,
-        10 => &feel.now.tilt_full,
+        0 => &feel.now.bpm,
+        1 => &feel.now.hum_volume,
+        2 => &feel.now.lift_pull,
+        3 => &feel.now.lean_speed,
+        4 => &feel.now.launch_far,
+        5 => &feel.now.run_speed,
+        6 => &feel.now.sprint_speed,
+        7 => &feel.now.jump_height,
+        8 => &feel.now.view_run_ease,
+        9 => &feel.now.wake_ease,
+        10 => &feel.now.rise_ease,
+        11 => &feel.now.settle_ease,
+        12 => &feel.now.tilt_full,
         else => &feel.now.land_kick,
     };
 }
 
 fn knobDefault(index: usize) f32 {
     return switch (index) {
-        0 => feel.defaults.lift_pull,
-        1 => feel.defaults.lean_speed,
-        2 => feel.defaults.launch_far,
-        3 => feel.defaults.run_speed,
-        4 => feel.defaults.sprint_speed,
-        5 => feel.defaults.jump_height,
-        6 => feel.defaults.view_run_ease,
-        7 => feel.defaults.wake_ease,
-        8 => feel.defaults.rise_ease,
-        9 => feel.defaults.settle_ease,
-        10 => feel.defaults.tilt_full,
+        0 => feel.defaults.bpm,
+        1 => feel.defaults.hum_volume,
+        2 => feel.defaults.lift_pull,
+        3 => feel.defaults.lean_speed,
+        4 => feel.defaults.launch_far,
+        5 => feel.defaults.run_speed,
+        6 => feel.defaults.sprint_speed,
+        7 => feel.defaults.jump_height,
+        8 => feel.defaults.view_run_ease,
+        9 => feel.defaults.wake_ease,
+        10 => feel.defaults.rise_ease,
+        11 => feel.defaults.settle_ease,
+        12 => feel.defaults.tilt_full,
         else => feel.defaults.land_kick,
     };
 }
@@ -652,7 +658,10 @@ fn drawBench(self: *const State, sk: *songbook.Sketch, words: *room.Type, tel: *
             sk.seg(def_x, y + 6.0, def_x, y + 22.0, 1.6, bone, 0.65);
 
             var vbuf: [32]u8 = undefined;
-            const vs = std.fmt.bufPrint(&vbuf, "{d:>6.3}{s}", .{ val, k.unit }) catch "";
+            const vs = if (k.step >= 1.0)
+                (std.fmt.bufPrint(&vbuf, "{d:>4.0}{s}", .{ val, k.unit }) catch "")
+            else
+                (std.fmt.bufPrint(&vbuf, "{d:>6.3}{s}", .{ val, k.unit }) catch "");
             const vcol = if (mod) [4]f32{ amber[0], amber[1], amber[2], 1.0 } else [4]f32{ bone[0], bone[1], bone[2], 0.88 };
             putLine(words, 492.0, y + 3.0, 0.82, vcol, vs);
         } else {

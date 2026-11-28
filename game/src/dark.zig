@@ -707,31 +707,39 @@ fn movingLines(w: *const World, cam_stand: f32, eye: m.V3, out: []lines.Inst) us
             };
             n += 1;
         }
-        // the same call, climbing: where its sphere cuts each stalk
+        // the same call, radiating from its true 3D elevation: where its sphere cuts each stalk
         for (w.towers[0..w.tower_count], 0..) |tower, t| {
             const dx = tower.x - ring.x;
             const dz = tower.z - ring.z;
             const flat2 = dx * dx + dz * dz;
             if (flat2 >= reach * reach) continue;
-            const high = @sqrt(reach * reach - flat2);
-            if (high > tower.tall) continue;
             const ex = tower.x - eye[0];
             const ez = tower.z - eye[2];
             if (ex * ex + ez * ez > aster_lines.mid_within * aster_lines.mid_within) continue;
-            if (n + 8 > out.len) break;
-            const at = aster_lines.mastAt(t, high);
+            const tower_ground = w.groundAt(tower.x, tower.z);
+            const origin_h = (ring.ground + ring.y + 0.2) - tower_ground;
+            const dy = @sqrt(reach * reach - flat2);
             const band = col8(bone, 0.95 * @max(fade, 0.35));
-            for (0..8) |k| {
-                const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 8.0);
-                const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 8.0);
-                out[n] = .{
-                    .a = .{ at[0] + 1.9 * @cos(a0), high, at[2] + 1.9 * @sin(a0) },
-                    .b = .{ at[0] + 1.9 * @cos(a1), high, at[2] + 1.9 * @sin(a1) },
-                    .half_width = 1.6,
-                    .body = 0.0,
-                    .col = band,
-                };
-                n += 1;
+            const bands = [2]struct { h: f32, draw: bool }{
+                .{ .h = origin_h + dy, .draw = true },
+                .{ .h = origin_h - dy, .draw = dy > 0.6 },
+            };
+            for (bands) |hb| {
+                if (!hb.draw or hb.h < 0.0 or hb.h > tower.tall) continue;
+                if (n + 8 > out.len) break;
+                const at = aster_lines.mastAt(t, hb.h);
+                for (0..8) |k| {
+                    const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 8.0);
+                    const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 8.0);
+                    out[n] = .{
+                        .a = .{ at[0] + 1.9 * @cos(a0), hb.h, at[2] + 1.9 * @sin(a0) },
+                        .b = .{ at[0] + 1.9 * @cos(a1), hb.h, at[2] + 1.9 * @sin(a1) },
+                        .half_width = 1.6,
+                        .body = 0.0,
+                        .col = band,
+                    };
+                    n += 1;
+                }
             }
         }
     }
@@ -796,25 +804,46 @@ fn movingLines(w: *const World, cam_stand: f32, eye: m.V3, out: []lines.Inst) us
         };
         n += 1;
     } else {
-        // stood beside: one metre of bone-white, hatched so it reads as the one solid thing. Singing
-        // after the lock it swells a little more each bar. Its outline is hum_figure's, which its
-        // black shape is made from too.
+        // stood beside: one metre of bone-white, hatched so it reads as the one solid thing.
+        // Its visual breath, swell, voice shimmer, and chord tint move as one with its sound.
         const oval = hum_figure.Oval.of(w, eye);
-        const rim = oval.outline();
+        const home_col = noteColour(w.home_hz);
+        const moss_dim: f32 = if (w.cover == .moss) 0.55 else 1.0;
+        const voice_amp = std.math.clamp((w.hum_swell_vis - 1.0) * 3.5, 0.0, 1.0);
+        const tint_mix = std.math.clamp(voice_amp * 0.34 + w.hum_chord_vis * 0.28 + w.hum_call_vis * 0.22, 0.0, 0.42);
+        const rim_rgb = [3]f32{
+            bone[0] + (home_col[0] - bone[0]) * tint_mix,
+            bone[1] + (home_col[1] - bone[1]) * tint_mix,
+            bone[2] + (home_col[2] - bone[2]) * tint_mix,
+        };
+        const rim_col = col8(rim_rgb, moss_dim);
+        var rim = oval.outline();
+        if (voice_amp > 0.01) {
+            const phase = @as(f32, @floatFromInt(w.step)) * 0.42;
+            const mid = oval.middle();
+            for (&rim, 0..) |*pt, k| {
+                const wave = 1.0 + 0.022 * voice_amp * @sin(@as(f32, @floatFromInt(k)) * 2.5 + phase);
+                pt[0] = mid[0] + (pt[0] - mid[0]) * wave;
+                pt[1] = mid[1] + (pt[1] - mid[1]) * wave;
+                pt[2] = mid[2] + (pt[2] - mid[2]) * wave;
+            }
+        }
+        const rim_hw: f32 = 1.9 + 0.35 * voice_amp + 0.25 * w.hum_call_vis;
         for (rim, 0..) |a, k| {
-            out[n] = .{ .a = a, .b = rim[(k + 1) % rim.len], .half_width = 1.9, .body = 0.0, .col = hum_tint };
+            out[n] = .{ .a = a, .b = rim[(k + 1) % rim.len], .half_width = rim_hw, .body = 0.0, .col = rim_col };
             n += 1;
         }
-        // home, always shown: a ring of light at Hum's feet in home's colour, faint while Hum is
-        // silent, full while it sings, flaring as it calls (the page draws Hum as a ring too)
+        // home, always shown: a living ring of light at Hum's feet in home's colour, breathing
+        // with the bar, blooming on a call, and expanding smoothly while singing
         {
-            const home_col = noteColour(w.home_hz);
-            const glow: f32 = if (w.singing) 0.9 else 0.22 + 0.6 * w.hum_light;
-            const r: f32 = 0.9;
+            const bar_b = @sin(w.barPhase() * (2.0 * std.math.pi));
+            const glow: f32 = std.math.clamp(0.24 + 0.06 * bar_b + 0.62 * voice_amp + 0.45 * w.hum_light + 0.35 * w.hum_chord_vis + 0.40 * w.hum_call_vis, 0.0, 1.0);
+            const minor_pull: f32 = if (w.home_minor) -0.06 else 0.0;
+            const r: f32 = 0.90 + minor_pull + 0.035 * bar_b + 0.30 * w.hum_call_vis + 0.22 * @max(0.0, w.hum_swell_vis - 1.0) + 0.12 * w.hum_chord_vis;
             for (0..20) |k| {
                 const a0 = @as(f32, @floatFromInt(k)) * (6.2831853 / 20.0);
                 const a1 = @as(f32, @floatFromInt(k + 1)) * (6.2831853 / 20.0);
-                out[n] = .{ .a = .{ w.hum_x + r * @cos(a0), 0.06, w.hum_z + r * @sin(a0) }, .b = .{ w.hum_x + r * @cos(a1), 0.06, w.hum_z + r * @sin(a1) }, .half_width = 1.5, .body = 0.0, .col = col8(home_col, std.math.clamp(glow, 0.0, 1.0)) };
+                out[n] = .{ .a = .{ w.hum_x + r * @cos(a0), 0.06, w.hum_z + r * @sin(a0) }, .b = .{ w.hum_x + r * @cos(a1), 0.06, w.hum_z + r * @sin(a1) }, .half_width = 1.5 + 0.4 * voice_amp, .body = 0.0, .col = col8(home_col, glow) };
                 n += 1;
             }
         }
@@ -829,17 +858,24 @@ fn movingLines(w: *const World, cam_stand: f32, eye: m.V3, out: []lines.Inst) us
                 n += 1;
             }
         }
-        // Hum's own light: it flares when Hum calls and holds while it sings. Its breath is its
-        // lines: one for each home it holds, lit from the bottom as far as it has; winded, they
-        // pant
+        // Hum's own light: it flares when Hum calls, glows with the chord, and holds while it sings.
+        // Its breath is its lines: one for each home it holds, lit from the bottom as far as it has;
+        // winded, they pant
         const most: usize = w.breath_most;
         const pant: f32 = if (w.winded) 0.6 + 0.4 * @abs(@sin(@as(f32, @floatFromInt(w.step)) * (std.math.pi / 40.0))) else 1.0;
+        const rib_mix = std.math.clamp(voice_amp * 0.40 + w.hum_chord_vis * 0.35 + w.hum_light * 0.25, 0.0, 0.55);
+        const rib_rgb = [3]f32{
+            bone[0] + (home_col[0] - bone[0]) * rib_mix,
+            bone[1] + (home_col[1] - bone[1]) * rib_mix,
+            bone[2] + (home_col[2] - bone[2]) * rib_mix,
+        };
         for (0..most) |k| {
             const f = (@as(f32, @floatFromInt(k)) + 0.5) / @as(f32, @floatFromInt(most)) * 1.7 - 0.85;
             const lit = std.math.clamp(w.breath - @as(f32, @floatFromInt(k)), 0.0, 1.0);
-            const fill = col8(bone, (0.40 + 0.60 * w.hum_light) * (0.18 + 0.82 * lit) * pant);
+            const alpha = std.math.clamp((0.40 + 0.60 * @max(w.hum_light, voice_amp * 0.85)) * (0.18 + 0.82 * lit) * pant, 0.0, 1.0);
+            const fill = col8(rib_rgb, alpha);
             const breath = oval.across(f);
-            out[n] = .{ .a = breath[0], .b = breath[1], .half_width = 2.2, .body = 0.0, .col = fill };
+            out[n] = .{ .a = breath[0], .b = breath[1], .half_width = 2.2 + 0.3 * voice_amp, .body = 0.0, .col = fill };
             n += 1;
         }
     }
@@ -1567,7 +1603,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         // 2. All four pause tabs (with Am active on the 24-cell STATUS diagram)
         var pm = pause_menu.State{};
         pm.openAt(&world, 0.0);
-        feel.now.lift_pull = 2.0 / 3.0; // show a live modified knob indicator in BENCH preview
+        feel.now.bpm = 90.0; // show live modified BPM knob indicator in BENCH preview
         for ([_]pause_menu.Tab{ .songbook, .status, .bench, .arena }) |tab| {
             pm.tab = tab;
             renderer.frame(&vp, &dump_loud);
@@ -1575,6 +1611,95 @@ pub fn run(window: plat.Window, options: Options) bool {
             dumpNamed(dir, "pause-{s}", .{@tagName(tab)});
         }
         feel.reset();
+
+        // 3. Phase 1 visual verification shots:
+        //    (a) Full top-down view with R1 24-cell wheel open (zero camera tilt)
+        world.orbit = 1.0;
+        for (0..45) |_| _ = world.stepOnce(.{}, &dump_cues);
+        for (0..35) |_| _ = world.stepOnce(.{ .buttons = world_mod.Hands.call }, &dump_cues);
+        {
+            const td_cam = world.camera();
+            const td_vp = m.mul(m.perspective(td_cam.fov, aspect, 0.4, 9000.0), m.lookAt(td_cam.eye, td_cam.at, td_cam.up));
+            var td_n = movingLines(&world, td_cam.stand, td_cam.eye, moving[0..]);
+            lines.lift(moving[0..td_n], &world_mod.ground.heightAt);
+            const top_start: u32 = @intCast(td_n);
+            td_n += aster_lines.wheelLines(&world, moving[td_n..]);
+            renderer.setTop(top_start, @intCast(td_n - top_start));
+            renderer.setDynamic(moving[0..td_n]);
+            renderer.stand = td_cam.stand;
+            renderer.frame(&td_vp, &dump_loud);
+            dumpNamed(dir, "verify-topdown-r1", .{});
+        }
+        for (0..10) |_| _ = world.stepOnce(.{}, &dump_cues);
+        world.orbit = 0.0;
+
+        //    (b) Elevated R1 beacon hitting Great Aster mid-stalk with twin up/down bands
+        world.warpTo(world_mod.land.great[0], world_mod.land.great[1] + 24.0, 0.0);
+        world.setDaylight(.full_day);
+        for (0..8) |_| _ = world.stepOnce(.{}, &dump_cues);
+        // Rebuild static geometry around the Great Aster so its towering mast is in view
+        {
+            const pk = aster_lines.pick(world.hum_x, world.hum_z, static_lines[0..26_000], static_occ[0..24_000], static_occ_tags[0..24_000]);
+            var pl = pk.lines;
+            var po = pk.occ;
+            const gn = [2]i32{ @as(i32, @intFromFloat(@floor(world.hum_x / 16.0))) - half_side, @as(i32, @intFromFloat(@floor(world.hum_z / 16.0))) - half_side };
+            var go1 = black_shapes.Tris{ .out = static_occ[po..], .tags = static_occ_tags[po..] };
+            pl += garden_lines.pick(world.hum_x, world.hum_z, gn, static_lines[pl..], &go1);
+            po += go1.n;
+            var go2 = black_shapes.Tris{ .out = static_occ[po..], .tags = static_occ_tags[po..] };
+            var dg = [2]i32{ 0, 0 };
+            const mf = pl;
+            const of = po;
+            pl += aster_lines.ground(world.hum_x, world.hum_z, static_lines[pl..], &go2, &dg);
+            po += go2.n;
+            lines.lift(static_lines[mf..pl], &world_mod.ground.heightAt);
+            lines.liftPoints(static_occ[of..po], &world_mod.ground.heightAt);
+            renderer.setLand(static_lines[0..pl], static_lines[0..0], static_occ[0..po], static_occ_tags[0..po]);
+        }
+        world.hum_y = 26.0;
+        world.hum_vy = 0.0;
+        _ = world.stepOnce(.{ .buttons = world_mod.Hands.call }, &dump_cues);
+        for (0..28) |_| {
+            world.hum_y = 26.0;
+            world.hum_vy = 0.0;
+            _ = world.stepOnce(.{}, &dump_cues);
+        }
+        {
+            const el_cam = world.camera();
+            const el_eye = m.V3{ world.hum_x + 28.0, world.hum_ground + 34.0, world.hum_z + 22.0 };
+            const el_at = m.V3{ world_mod.land.great[0], world.groundAt(world_mod.land.great[0], world_mod.land.great[1]) + 26.0, world_mod.land.great[1] };
+            const el_vp = m.mul(m.perspective(58.0, aspect, 0.4, 9000.0), m.lookAt(el_eye, el_at, .{ 0.0, 1.0, 0.0 }));
+            const el_n = movingLines(&world, el_cam.stand, el_eye, moving[0..]);
+            lines.lift(moving[0..el_n], &world_mod.ground.heightAt);
+            renderer.setTop(0, 0);
+            renderer.setDynamic(moving[0..el_n]);
+            renderer.stand = 1.0;
+            renderer.frame(&el_vp, &dump_loud);
+            dumpNamed(dir, "verify-elevated-ring", .{});
+        }
+
+        //    (c) Close-up of Hum mid-singing & breathing (visual-sonic unity)
+        world.hum_y = 0.0;
+        world.setChordDirect(-1, false); // F Lift (warm amber/gold glow)
+        for (0..22) |_| _ = world.stepOnce(.{ .buttons = world_mod.Hands.sing }, &dump_cues);
+        {
+            const h_eye = m.V3{ world.hum_x, world.hum_ground + 2.2, world.hum_z + 5.2 };
+            const h_at = m.V3{ world.hum_x, world.hum_ground + 1.1, world.hum_z };
+            const h_vp = m.mul(m.perspective(46.0, aspect, 0.4, 9000.0), m.lookAt(h_eye, h_at, .{ 0.0, 1.0, 0.0 }));
+            const h_n = movingLines(&world, 1.0, h_eye, moving[0..]);
+            lines.lift(moving[0..h_n], &world_mod.ground.heightAt);
+            var h_occ = black_shapes.Tris{ .out = &moving_occ };
+            const oval = hum_figure.Oval.of(&world, h_eye);
+            const rim = oval.outline();
+            black_shapes.facing(oval.middle(), &rim, &h_occ);
+            lines.liftPoints(moving_occ[0..h_occ.n], &world_mod.ground.heightAt);
+            renderer.setTop(0, 0);
+            renderer.setDynamic(moving[0..h_n]);
+            renderer.setMovingOcc(h_occ.slice());
+            renderer.stand = 1.0;
+            renderer.frame(&h_vp, &dump_loud);
+            dumpNamed(dir, "verify-hum-sing", .{});
+        }
         return true;
     }
     if (options.check_take) |path| {

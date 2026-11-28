@@ -16,6 +16,42 @@ Where the build stands, so a new session can pick it up. Newest first.
 - **How the engine is shaped:** `docs/engine.md`, written the same day at his asking ("audit and
   design the ultimate engine shape for this endeavor"). Leg 0 of the road builds it.
 - **Steps of the road that are in:**
+  - **Mix, Visual-Sonic Feel & Living Rhythm (Phase 1 playtest polish)** (2026-11-28):
+    addressed all six playtest notes from Morgan's purple-unit session on the 24-cell Circle of
+    Fifths build (`b8ca5ef`) while staying aligned with the canonical design docs for Phase 2
+    (Pocket/Groove) and Phase 3 (Spigot / Last-Drip Cinematic Opening). In: (1) `game/src/feel.zig`
+    & `game/src/draw/pause_menu.zig` — added `hum_volume` (default `0.34`, live `BENCH` A/B
+    `0.34 <-> 0.70`) and `bpm` (default `72.0`, live `BENCH` A/B `72 <-> 90 bpm`) right at the top
+    of Pause `BENCH` (auto-persisted in `keep/progress.txt`); (2) `game/src/world/world.zig` —
+    wired `humSound()` to `feel.now.hum_volume` (cutting `R2` hold level `-6.4 dB` to `-27.8 dBFS`
+    over the `-36.2 dBFS` triad bed while cutting nonlinear self-buzz ~12.5 dB and improving
+    Tartini's third-voice ratio from `3.4x -> 3.9x` and `ears.third_note_db_over_quiet` from
+    `20.95 -> 23.81 dB`), fixed elevated `R1` ring 3D vertical propagation
+    (`up = (thing.y + thing.ground) - (ring.ground + ring.y)`), fixed top-down `R1` camera lock
+    (preventing both `wheel_view` tilt and `stand < 1.0` oblique `page_eye`/elevation bob at
+    `dial_fold == 1.0` while preserving 3D lift-and-angle), fixed `warpTo()` setting `locked_at` so
+    `R1` works immediately after Arena warps, added smooth `hum_swell_vis` / `hum_call_vis` /
+    `hum_chord_vis` visual-sonic envelopes & `barPhase()`, enabled any-beat `R2` cadence release
+    and swell nudges (`beatHit`: beat 1 fullest, beats 2-4 crisp/immediate, off-beat none), added
+    live BPM tempo scaling with skip-safe `crossedTick` / `crossedDownbeat` guards (keeping
+    `sound.restretch` time-dilation independent of BPM), and gave Drip musical 4/4 groove dynamics
+    (`1 > 3 > ghost 2/4`) that thin out when stepping chords; (3) `game/src/world/drip.zig` — fixed
+    the head-ride dead-code bug (`far == 0.0` once on Hum's head had permanently blocked `.asleep`
+    and kept `isAudible` always true); (4) `game/src/draw/hum_figure.zig` & `game/src/dark.zig` —
+    true 3D sphere-vs-mast intersection drawing twin upward & downward bands from exact impact
+    height on asters, plus unified Hum visual-sonic outline/silhouette bar-breath, call bloom,
+    Major/Minor posture, voice-shimmer outline tint, living foot halo, and chord-tinted breath ribs.
+    **Verified (laptop):** 209/209 `rules.zig` tests (5 new regression tests + head-ride sleep
+    check) + 3/3 `ears.zig` tests pass; full `game/build.sh laptop` passes (`--scene evening`
+    72,994 frames, `1.20 ms/frame`, `0` late/refused cues, `ears.rough_longest_s 5.03 s` down from
+    `7.00 s`, `beauty.py`, exact replay & `389,936`-byte `stood.save` round-trip); all four
+    headless PNGs (`pause-bench`, `verify-topdown-r1`, `verify-elevated-ring`, `verify-hum-sing`)
+    visually verified. **Verified & deployed on purple unit 164 (2026-11-28):**
+    `same-take-aarch64 10` (`game/results/same-take-aarch64.txt`) matched `same-take-x86_64.txt`
+    **77/77 lines bit-identical** (`minute 10: 8c85dc7b6c919f91 / cd1d0593f5c5f3a2`; `evening end:
+    13eb9843c1617314 / 93cb692ded19cdb1`). Live Mali-G31 KMSDRM replay loading refreshed
+    `tryout/stood.save`: **600 frames, 60 Hz (`16.69 ms` avg cadence), `5.81 ms` avg work (`561`
+    under `8 ms`, `rings and Hum: 0.02 ms`), `0.17 ms` slowest sound buffer, `0` refused cues**.
   - **True 24-Cell Concentric Circle of Fifths Instrument (pre-1.6 interface upgrade)**
     (2026-11-27):
     upgraded the temporary 1D 7-chord snake into the real 2D 24-cell concentric Circle of Fifths

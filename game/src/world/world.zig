@@ -306,17 +306,17 @@ pub const quietest: f32 = 0.004;
 /// How loud a thing rung at full strength is at the ears, and how loud Hum's own voice is.
 pub const answer_level: f32 = 0.22;
 pub const voice_level: f32 = 0.35;
-/// How loud Hum's held hum is, and Drip humming along with it, as parts of the voice's level. Morgan,
-/// 2026-11-21: "the sound that rings whilst holding R2 could be just a bit quieter": both 3 dB down
-/// (from 1.0 and 0.7). The hands' own early start of the hum reads the same number.
-pub const hum_strength: f32 = 0.7;
+/// How loud Hum's held hum is, and Drip humming along with it, as parts of the voice's level.
+/// Balanced warm at 0.34 (cutting harsh nonlinear buzz ~12.5 dB while preserving Tartini's third
+/// difference tone in duets) and tunable live on Pause BENCH via `feel.now.hum_volume`.
+pub const hum_strength: f32 = 0.34;
 /// Hum's call and Hum's hum, as the world tells them: the one recipe for each, which the hands'
 /// own early start on the sound's thread reads too (dark.zig), so the two can't drift apart.
 pub fn callSound(home_hz: f32, cover: ground.Cover) cues_mod.Sound {
     return .{ .kind = .strike, .family = .string, .hz = home_hz, .strength = callStrength(cover), .ring = 0.35 };
 }
 pub fn humSound(home_hz: f32) cues_mod.Sound {
-    return .{ .kind = .hum_on, .hz = home_hz, .strength = hum_strength, .ring = 0.0 };
+    return .{ .kind = .hum_on, .hz = home_hz, .strength = feel.now.hum_volume, .ring = 0.0 };
 }
 /// A sound of the world's as the sound thread hears it, at the voice's level.
 pub fn heardAs(s: cues_mod.Sound, own: u8) sound.Cue {
@@ -471,6 +471,30 @@ pub fn callStrength(cover: ground.Cover) f32 {
 /// The step the tick numbered `k` falls on.
 pub fn tickStep(k: u64) u64 {
     return k * tick_every + (if (k % 2 == 1) @as(u64, tick_swing) else 0);
+}
+
+/// Returns the beat index `k` whose `tickStep(k)` has been reached or crossed on this step
+/// (skip-safe when live BPM > 72 advances `clock` by 2 in a frame, and bit-exact at 72 BPM).
+fn crossedTick(clock: u64, tempo: f32, last_at: u64) ?u64 {
+    const span: u64 = @max(@as(u64, 1), @as(u64, @intFromFloat(@ceil(tempo))));
+    const k = clock / tick_every;
+    const at = tickStep(k);
+    if (clock >= at and clock - at < span and last_at != at) return k;
+    if (k > 0) {
+        const prev = tickStep(k - 1);
+        if (clock >= prev and clock - prev < span and last_at != prev) return k - 1;
+    }
+    return null;
+}
+
+/// Returns the downbeat index `k` (`k % 4 == 0`) whose `tickStep(k)` has been reached or crossed
+/// on this step.
+fn crossedDownbeat(clock: u64, tempo: f32, last_at: u64) ?u64 {
+    const span: u64 = @max(@as(u64, 1), @as(u64, @intFromFloat(@ceil(tempo))));
+    const k = (clock / (4 * tick_every)) * 4;
+    const at = tickStep(k);
+    if (clock >= at and clock - at < span and last_at != at) return k;
+    return null;
 }
 
 /// How many steps from `step` to the nearest tick, before or after.
@@ -1118,9 +1142,14 @@ pub const World = struct {
     /// the same as the step count until time first thickens. Drip's ticks, the downbeats, the bee,
     /// rings on the ground and the water keep it; the sky keeps the sun's.
     tempo: f32 = 1.0,
+    sound_stretch: f32 = 1.0,
     clock: u64 = 0,
     clock_part: f32 = 0.0,
     ticked_at: u64 = never,
+    /// Smooth visual-sonic envelopes so Hum's body breathes, blooms, and resonates with its sound.
+    hum_swell_vis: f32 = 1.0,
+    hum_call_vis: f32 = 0.0,
+    hum_chord_vis: f32 = 0.0,
     /// The swell: where home was when it began, how many bars it has grown, whether the right stick
     /// is still out from a nudge, the last cadence that landed and when, and the last downbeat.
     swell_from: i8 = 0,
@@ -1575,6 +1604,7 @@ pub const World = struct {
             if (r.born < self.rings[oldest].born) oldest = i;
         }
         const y = if (own) self.hum_y else 0.0;
+        if (own) self.hum_call_vis = 1.0;
         self.rings[oldest] = .{ .x = x, .y = y, .z = z, .born = self.step, .live = true, .hz = hz, .own = own, .strength = strength, .ground = self.groundAt(x, z) };
         return oldest;
     }
@@ -1904,11 +1934,13 @@ pub const World = struct {
             // the first time the knots come close, time thickens by itself for a bar, so there is
             // a moment to see them and their pulses before anything is asked
             const meeting = self.step < self.first_meet_until;
-            const pace: f32 = if (self.wheel_open or meeting) thick else if (self.step < self.pocket_until) knots.pocket else 1.0;
-            if (pace != self.tempo) {
-                self.tempo = pace;
+            const base_pace: f32 = std.math.clamp(feel.now.bpm, 40.0, 160.0) / 72.0;
+            const stretch: f32 = if (self.wheel_open or meeting) thick else if (self.step < self.pocket_until) knots.pocket else 1.0;
+            self.tempo = stretch * base_pace;
+            if (stretch != self.sound_stretch) {
+                self.sound_stretch = stretch;
                 // what is ringing stretches into a held chord while time is thick, and lets go after
-                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .tempo, .hz = self.home_hz, .strength = pace, .ring = 0.0 }, .glow));
+                self.tell(.hum, cues_mod.Cue.of(.{ .kind = .tempo, .hz = self.home_hz, .strength = stretch, .ring = 0.0 }, .glow));
             }
             const standing = self.step >= self.stand_from and self.call_held < fold_after;
             if (self.step == self.stand_from and self.dawn_from == never) self.dawn_from = self.step;
@@ -2031,9 +2063,15 @@ pub const World = struct {
                 self.seen.meet(.evening_breathe, self.step);
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = drip_along, .ring = 0.0 }, .swell));
             } else {
-                // let go on a downbeat: where home stands against where the swell began decides
-                // the cadence (SPEC.md 9)
-                if (self.locked_at != never and self.nearDownbeat(self.clock)) self.landCadence();
+                // let go on any beat: beat 1 rings fullest, beats 2-4 land a crisp immediate
+                // cadence; where home stands against where the swell began decides the cadence
+                if (self.locked_at != never) {
+                    switch (self.beatHit(self.clock)) {
+                        .downbeat => self.landCadenceWith(true),
+                        .beat => self.landCadenceWith(false),
+                        .none => {},
+                    }
+                }
                 // let go: Hum's hum ends on the sample it was let go
                 self.own_now = sound.own_hands;
                 self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_off, .hz = self.home_hz, .strength = 0.0, .ring = 0.0 }, .dims));
@@ -2072,6 +2110,14 @@ pub const World = struct {
         if (self.singing) self.hum_light = @max(self.hum_light, 0.8);
         self.hum_light *= 0.94;
         if (self.hum_light < 0.002) self.hum_light = 0.0;
+        const target_swell: f32 = if (self.singing) 1.2 + 0.05 * @as(f32, @floatFromInt(self.swell_bars)) else 1.0;
+        const swell_rate: f32 = if (target_swell > self.hum_swell_vis) 0.14 else 0.09;
+        self.hum_swell_vis += (target_swell - self.hum_swell_vis) * swell_rate;
+        if (@abs(self.hum_swell_vis - target_swell) < 0.0005) self.hum_swell_vis = target_swell;
+        self.hum_call_vis *= 0.86;
+        if (self.hum_call_vis < 0.002) self.hum_call_vis = 0.0;
+        self.hum_chord_vis *= 0.88;
+        if (self.hum_chord_vis < 0.002) self.hum_chord_vis = 0.0;
 
         // rings travel, along the ground and up whatever stands on it; what they pass is lit, and
         // answers as much as its own overtones share with the call
@@ -2122,7 +2168,7 @@ pub const World = struct {
                 for (self.things[0..self.thing_count]) |*thing| {
                     const dx = thing.x - ring.x;
                     const dz = thing.z - ring.z;
-                    const up = thing.y + thing.ground - ring.ground;
+                    const up = (thing.y + thing.ground) - (ring.ground + ring.y);
                     const far = @sqrt(dx * dx + dz * dz + up * up);
                     if (far > before and far <= reach) thing.lit = @max(thing.lit, 0.6);
                 }
@@ -2131,7 +2177,7 @@ pub const World = struct {
             for (self.things[0..self.thing_count], 0..) |*thing, index| {
                 const dx = thing.x - ring.x;
                 const dz = thing.z - ring.z;
-                const up = thing.y + thing.ground - ring.ground;
+                const up = (thing.y + thing.ground) - (ring.ground + ring.y);
                 const far = @sqrt(dx * dx + dz * dz + up * up);
                 if (far <= before or far > reach) continue;
                 thing.lit = 1.0;
@@ -2317,7 +2363,7 @@ pub const World = struct {
         tryout.steps += 1;
         if (timed) tryout.timed += 1;
         tryout.changed_at = self.step;
-        self.drip_state.wake();
+        self.hum_chord_vis = 1.0;
 
         self.soundChord(from_cell, to_cell, timed, false);
 
@@ -2343,7 +2389,6 @@ pub const World = struct {
     /// Inner Ring (Relative Minor / Underground, `minor = true`, D-pad Down) at the same clock hour.
     pub fn setRing(self: *World, minor: bool, stamp: u16) void {
         tryout.changed_at = self.step;
-        self.drip_state.wake();
         if (self.home_minor == minor) {
             // Already on this ring: quiet confirmation ping + compass bloom, zero state toggle!
             self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .tone, .hz = self.home_hz * 2.0, .strength = 0.04, .ring = 0.14 }, .glow));
@@ -2358,6 +2403,7 @@ pub const World = struct {
         const to_cell = self.homeCell();
         self.home_hz = harmony.cellHz(self.day_hz, to_cell);
         self.long_way_chain = 0;
+        self.hum_chord_vis = 1.0;
         tryout.steps += 1;
         if (timed) tryout.timed += 1;
         self.soundChord(from_cell, to_cell, timed, false);
@@ -2369,6 +2415,7 @@ pub const World = struct {
     pub fn stepVoicing(self: *World, dir: i8) void {
         self.voicing = @intCast(@mod(@as(i32, self.voicing) + dir, 3));
         tryout.changed_at = self.step;
+        self.hum_chord_vis = 0.7;
         const cur = self.homeCell();
         self.soundChord(cur, cur, false, true);
     }
@@ -2386,6 +2433,7 @@ pub const World = struct {
         self.long_way_chain = 0;
         tryout.changed_at = self.step;
         if (changed) {
+            self.hum_chord_vis = 1.0;
             tryout.steps += 1;
             self.soundChord(from_cell, to_cell, false, true);
             if (to_k == 1 and !minor) tryout.leaned_from = self.step;
@@ -2448,23 +2496,39 @@ pub const World = struct {
         return 1;
     }
 
-    /// Whether a step is within the window of a downbeat: the first of every four of Drip's ticks.
-    pub fn nearDownbeat(self: *const World, step: u64) bool {
+    pub const BeatHit = enum { none, beat, downbeat };
+
+    /// Whether a step lands within the beat window of any of Drip's ticks, distinguishing beat 1
+    /// (`.downbeat`) from beats 2-4 (`.beat`).
+    pub fn beatHit(self: *const World, step: u64) BeatHit {
         const k = step / tick_every;
         var i: u64 = if (k > 0) k - 1 else 0;
         while (i <= k + 1) : (i += 1) {
-            if (i % 4 != 0) continue;
             const at = tickStep(i);
             const apart = if (at > step) at - step else step - at;
-            if (@as(f64, @floatFromInt(apart)) <= self.widen(@floatFromInt(downbeat_window))) return true;
+            if (@as(f64, @floatFromInt(apart)) <= self.widen(@floatFromInt(downbeat_window))) {
+                return if (i % 4 == 0) .downbeat else .beat;
+            }
         }
-        return false;
+        return .none;
     }
 
-    /// How much bigger than itself Hum is drawn: a little while it sings, and a little more each
-    /// bar of the swell (SPEC.md 9).
+    /// Whether a step is within the window of a downbeat: the first of every four of Drip's ticks.
+    pub fn nearDownbeat(self: *const World, step: u64) bool {
+        return self.beatHit(step) == .downbeat;
+    }
+
+    /// Position in the current 4-beat bar in `[0.0, 1.0)` for continuous visual-sonic breathing.
+    pub fn barPhase(self: *const World) f32 {
+        const bar: f32 = @floatFromInt(4 * tick_every);
+        const pos: f32 = @as(f32, @floatFromInt(self.clock % (4 * tick_every))) + self.clock_part;
+        return @mod(pos / bar, 1.0);
+    }
+
+    /// How much bigger than itself Hum is drawn: eases smoothly as Hum sings and grows each bar
+    /// of the swell (SPEC.md 9).
     pub fn humSwell(self: *const World) f32 {
-        return if (self.singing) 1.2 + 0.05 * @as(f32, @floatFromInt(self.swell_bars)) else 1.0;
+        return self.hum_swell_vis;
     }
 
     /// R2 held after the lock: the swell, when the right stick nudges home and does not look.
@@ -2473,11 +2537,10 @@ pub const World = struct {
     }
 
     /// While R2 is held after the lock: a bar grown at each downbeat, and a tap of L1/L2 (or nudge
-    /// of the right stick) near one walks home a wedge flatward or sharpward, if that mood is awake.
+    /// of the right stick) near any beat walks home a wedge flatward or sharpward, if that mood is awake.
     fn swellStep(self: *World, hands: Hands, pressed: u16) void {
-        const k = self.clock / tick_every;
-        if (k % 4 == 0 and tickStep(k) == self.clock and self.downbeat_beat != self.clock) {
-            self.downbeat_beat = self.clock;
+        if (crossedDownbeat(self.clock, self.tempo, self.downbeat_beat)) |k| {
+            self.downbeat_beat = tickStep(k);
             self.downbeat_at = self.step;
             if (self.swell_bars < swell_most) {
                 self.swell_bars += 1;
@@ -2523,12 +2586,13 @@ pub const World = struct {
         }
         if (self.nudge_out and @abs(rx) < nudge_back) self.nudge_out = false;
         if (step_dir != 0) {
-            if (self.nearDownbeat(self.clock)) {
+            if (self.beatHit(self.clock) != .none) {
                 self.swell_steered = true;
                 const from = self.home_k;
                 const to: i8 = self.home_k + step_dir;
                 if (self.moveHome(to)) {
                     self.walk_homes +|= 1;
+                    self.hum_chord_vis = 1.0;
                     self.spend(step_costs);
                     // walking home the long way: a grey creature whose full close home stood on comes
                     // home in passing as home walks on to the left (design/the-wheel.md, "A pack at dusk")
@@ -2547,14 +2611,22 @@ pub const World = struct {
         }
     }
 
-    /// The cadence lands: home's chord rung from Hum, and a ring on the ground on home's note that
-    /// everything kin to the new home answers (law 1).
+    /// The cadence lands on beat 1 (fullest) or beats 2-4 (crisp, responsive): home's chord rung
+    /// from Hum, and a ring on the ground on home's note that everything kin answers (law 1).
     fn landCadence(self: *World) void {
+        self.landCadenceWith(true);
+    }
+
+    fn landCadenceWith(self: *World, on_one: bool) void {
         const d: i32 = @as(i32, self.home_k) - @as(i32, self.swell_from);
         self.cadence = if (d == -1) .full_close else if (d == 1) .amen else if (d == 0) .turn else .slide;
         self.cadence_at = self.step;
         self.cadences += 1;
-        const fullness: f32 = 0.5 + 0.06 * @as(f32, @floatFromInt(self.swell_bars));
+        self.hum_chord_vis = 1.0;
+        const fullness: f32 = if (on_one)
+            0.55 + 0.06 * @as(f32, @floatFromInt(self.swell_bars))
+        else
+            0.42 + 0.05 * @as(f32, @floatFromInt(self.swell_bars));
         // home's pure triad, sung by Hum and its voices
         const chord = [3]f32{ 1.0, 5.0 / 4.0, 3.0 / 2.0 };
         for (chord, 0..) |ratio, i| {
@@ -3831,9 +3903,8 @@ pub const World = struct {
         // knots' root softly, so where home wants to go is heard before the wheel is opened; and
         // once a knot is grey, before any cadence, it sings home's amen side, where to let go
         if (self.threatened() and (self.wheel_opens == 0 or self.cadences == 0)) {
-            const kb = self.clock / tick_every;
-            if (kb % 4 == 0 and tickStep(kb) == self.clock and self.hint_at != self.clock) {
-                self.hint_at = self.clock;
+            if (crossedDownbeat(self.clock, self.tempo, self.hint_at)) |kb| {
+                self.hint_at = tickStep(kb);
                 var grey = false;
                 for (self.knots[0..self.knot_count]) |kn| {
                     if (!kn.home and kn.colour <= 0.0) grey = true;
@@ -3845,9 +3916,8 @@ pub const World = struct {
         // on each bar's one, while nothing threatens, Drip leads toward the next
         const to = self.leadTo() orelse return;
         if (self.threatened() or self.singing or self.wheel_open) return;
-        const k = self.clock / tick_every;
-        if (k % 4 == 0 and tickStep(k) == self.clock and self.lead_at != self.clock) {
-            self.lead_at = self.clock;
+        if (crossedDownbeat(self.clock, self.tempo, self.lead_at)) |k| {
+            self.lead_at = tickStep(k);
             self.lead_x = to[0];
             self.lead_z = to[1];
             self.lead_step = self.step;
@@ -3869,6 +3939,7 @@ pub const World = struct {
         if (self.drip_met) {
             self.dripShows();
             if (self.drip_out == 0) {
+                if (self.drip_state.mood == .hanging) self.drip_state.mood = .awake;
                 d.x = self.hum_x;
                 d.z = self.hum_z;
                 d.y = 1.25 + self.hum_y;
@@ -3886,32 +3957,36 @@ pub const World = struct {
         if (teaching and self.near_in > 0.9 and self.leaned_first_at == never) self.leaned_first_at = self.step;
         // its upbeat: half a beat before each tick a softer note an octave lower, and its light
         // gathering into the tick, so the moment to let go is seen and heard coming
-        if (teaching and untilTick(self.clock) == tick_every / 2 and self.upbeat_at != self.clock) {
-            self.upbeat_at = self.clock;
+        const until = untilTick(self.clock);
+        if (teaching and until <= tick_every / 2 and until + 2 >= tick_every / 2 and self.upbeat_at != self.clock / tick_every) {
+            self.upbeat_at = self.clock / tick_every;
             self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = self.dripHz(), .strength = 0.12, .ring = 0.08 }, .glow));
         }
         if (teaching) {
-            const coming = 1.0 - @as(f32, @floatFromInt(@min(untilTick(self.clock), tick_every / 2))) / @as(f32, @floatFromInt(tick_every / 2));
+            const coming = 1.0 - @as(f32, @floatFromInt(@min(until, tick_every / 2))) / @as(f32, @floatFromInt(tick_every / 2));
             d.loud = @max(d.loud, 0.5 * coming * coming);
         }
-        // its tick: a soft tone and a flash, softer and dimmer the farther off it is; on the one of
-        // each bar, an octave higher and brighter
-        if (self.ticked_at != self.clock and fromTick(self.clock) == 0 and untilTick(self.clock) == 0) {
-            self.ticked_at = self.clock;
-            const k = self.clock / tick_every;
-            const is_one = (k % 4 == 0);
-            const peaceful = !teaching and far > beside * 1.8 and !self.singing and !self.wheel_open and !self.threatened() and self.step >= self.hold_until and self.drip_met and self.drip_out == 0;
+        // its tick: musical 4/4 groove (1 > 3 > ghost 2/4), thinning out when the player is busy
+        // stepping chords, and sleeping cleanly on Hum's head during peaceful exploration
+        if (crossedTick(self.clock, self.tempo, self.ticked_at)) |k| {
+            self.ticked_at = tickStep(k);
+            const beat_in_bar = k % 4;
+            const is_one = (beat_in_bar == 0);
+            const on_head = self.drip_met and self.drip_out == 0;
+            const peaceful = !teaching and on_head and !self.singing and !self.wheel_open and !self.threatened() and self.step >= self.hold_until;
             self.drip_state.onBeat(is_one, peaceful);
-            const tick: cues_mod.Sound = if (is_one)
-                .{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 4.0, .strength = tick_one_strength, .ring = tick_one_ring }
-            else
-                .{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 2.0, .strength = tick_strength, .ring = tick_ring };
+            const chords_busy = chords_tryout and on_head and !self.singing and !self.wheel_open and !self.threatened() and tryout.changed_at != never and self.step >= tryout.changed_at and (self.step - tryout.changed_at) < 8 * tick_every;
+            const tick: cues_mod.Sound = switch (beat_in_bar) {
+                0 => .{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 4.0, .strength = tick_one_strength * (if (chords_busy) @as(f32, 0.45) else 0.90), .ring = tick_one_ring },
+                2 => .{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 2.0, .strength = tick_strength * 0.65, .ring = tick_ring * 0.85 },
+                else => .{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 2.0, .strength = tick_strength * 0.38, .ring = tick_ring * 0.55 },
+            };
             // Metronome balance: audible via drip_state single source of truth (Piece 5)
-            const audible = (self.step >= 240 or self.drip_met) and self.drip_state.isAudible(self, far);
+            const audible = (self.step >= 240 or self.drip_met) and self.drip_state.isAudible(self, far) and (!chords_busy or is_one);
             if (audible) {
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(tick, .glow));
             } else {
-                // Soft visual pulse on Hum's head cap without audio ear-fatigue while sleeping
+                // Soft visual pulse on Hum's head cap without audio ear-fatigue while sleeping / listening
                 if (is_one) {
                     self.hum_light = @max(self.hum_light, 0.22);
                 }
@@ -3919,11 +3994,11 @@ pub const World = struct {
             // beside a silent Hum, with the view leaned in, it breathes on its own to show how: it
             // hums from a downbeat for three beats and lets go on the fourth tick, then rests
             const showing = teaching and far <= beside and self.near_in > 0.6 and !self.singing and !self.drip_humming;
-            if (showing and k % 4 == 0 and !self.drip_showing and self.clock >= self.drip_rest_until) {
+            if (showing and beat_in_bar == 0 and !self.drip_showing and self.clock >= self.drip_rest_until) {
                 self.drip_showing = true;
                 self.drip_shows += 1;
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = 1, .hz = self.dripHz(), .strength = 0.6, .ring = 0.0 }, .swell));
-            } else if (self.drip_showing and k % 4 == 3) {
+            } else if (self.drip_showing and beat_in_bar == 3) {
                 self.drip_showing = false;
                 self.drip_rest_until = self.clock + 4 * tick_every;
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(.{ .kind = .hum_off, .voice = 1, .hz = self.dripHz(), .strength = 0.0, .ring = 0.0 }, .dims));
@@ -4275,6 +4350,7 @@ pub const World = struct {
         self.view = .place;
         self.stand = 1.0;
         if (self.stand_from == never) self.stand_from = 0;
+        if (self.locked_at == never) self.locked_at = 0;
         self.drip_met = true;
         self.hum_ground = self.groundAt(x, z);
         self.hum_floor = 0.0;
@@ -4433,55 +4509,67 @@ pub const World = struct {
                 dir[i] = dir[i] / dl + (down[i] - dir[i] / dl) * k;
             }
         }
-        if (self.wheel_view > 0.0) {
-            // the wheel open: the view rises behind Hum and looks down on it, over any other view, the wheel spread on
-            // the ground round it
-            const k = self.wheel_view * self.wheel_view * (3.0 - 2.0 * self.wheel_view);
-            const high = [3]f32{ self.hum_x - fx * wheel_back, wheel_up, self.hum_z - fz * wheel_back };
-            const hx = self.hum_x - high[0];
-            const hy = -high[1];
-            const hz = self.hum_z - high[2];
-            const hl = @sqrt(hx * hx + hy * hy + hz * hz);
-            const dl = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
-            const down = [3]f32{ hx / hl, hy / hl, hz / hl };
-            for (0..3) |i| {
-                eye[i] += (high[i] - eye[i]) * k;
-                dir[i] = dir[i] / dl + (down[i] - dir[i] / dl) * k;
-            }
-        }
-        const len = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
-        var at = [3]f32{ eye[0] + dir[0] / len * 10.0, eye[1] + dir[1] / len * 10.0, eye[2] + dir[2] / len * 10.0 };
         // the hinge: the dial fold smoothly lays the world down to the page as u approaches 1.0
         const dial_fold: f32 = blk: {
             if (u <= 0.5) break :blk 0.0;
             const t = (u - 0.5) / 0.5;
             break :blk t * t * (3.0 - 2.0 * t);
         };
+        if (self.wheel_view > 0.0) {
+            // the wheel open: the view rises behind Hum and looks down on it, over any other view,
+            // the wheel spread on the ground round it. When already dialed to full top-down
+            // (`dial_fold == 1.0`), hold the overhead camera angle rock-solid without tilting.
+            const k = self.wheel_view * self.wheel_view * (3.0 - 2.0 * self.wheel_view) * (1.0 - dial_fold);
+            if (k > 0.0) {
+                const high = [3]f32{ self.hum_x - fx * wheel_back, wheel_up, self.hum_z - fz * wheel_back };
+                const hx = self.hum_x - high[0];
+                const hy = -high[1];
+                const hz = self.hum_z - high[2];
+                const hl = @sqrt(hx * hx + hy * hy + hz * hz);
+                const dl = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
+                const down = [3]f32{ hx / hl, hy / hl, hz / hl };
+                for (0..3) |i| {
+                    eye[i] += (high[i] - eye[i]) * k;
+                    dir[i] = dir[i] / dl + (down[i] - dir[i] / dl) * k;
+                }
+            }
+        }
+        const len = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
+        var at = [3]f32{ eye[0] + dir[0] / len * 10.0, eye[1] + dir[1] / len * 10.0, eye[2] + dir[2] / len * 10.0 };
         const stand_smooth = self.stand * self.stand * (3.0 - 2.0 * self.stand);
         var s = stand_smooth * (1.0 - dial_fold);
         if (self.wheel_open) s = @min(s, wheel_stand);
 
         if (self.stand < 1.0) {
-            // beside Drip, standing still, the page comes closer
-            const high = page_up + self.near_in * (12.0 - page_up);
-            const behind = page_back + self.near_in * (5.0 - page_back);
-            const page_eye = [3]f32{ self.hum_x - fx * behind, high, self.hum_z - fz * behind };
-            const page_at = [3]f32{ self.hum_x + fx * 4.0, 0.0, self.hum_z + fz * 4.0 };
-            // the gaze comes up to the horizon sooner than the eye comes down, so that what is
-            // rising is in the frame while it rises, and its top leaves the frame before it stops
-            const sooner = @min(1.0, self.stand * 2.0);
-            const g = sooner * sooner * (3.0 - 2.0 * sooner);
-            for (0..3) |i| {
-                const ahead = eye[i] + (at[i] - eye[i]) * 12.0;
-                at[i] = page_at[i] + (ahead - page_at[i]) * g;
-                eye[i] = page_eye[i] + (eye[i] - page_eye[i]) * s;
+            // beside Drip, standing still, the page comes closer. Once stood in the place, if the
+            // player is dialed toward top-down (`dial_fold > 0`), damp the oblique intro `page_eye`
+            // pull so holding R1 in full top-down keeps the straight overhead view untouched.
+            const page_pull: f32 = if (self.step >= self.stand_from) 1.0 - dial_fold else 1.0;
+            if (page_pull > 0.0) {
+                const high = page_up + self.near_in * (12.0 - page_up);
+                const behind = page_back + self.near_in * (5.0 - page_back);
+                const page_eye = [3]f32{ self.hum_x - fx * behind, high, self.hum_z - fz * behind };
+                const page_at = [3]f32{ self.hum_x + fx * 4.0, 0.0, self.hum_z + fz * 4.0 };
+                // the gaze comes up to the horizon sooner than the eye comes down, so that what is
+                // rising is in the frame while it rises, and its top leaves the frame before it stops
+                const sooner = @min(1.0, self.stand * 2.0);
+                const g = sooner * sooner * (3.0 - 2.0 * sooner);
+                for (0..3) |i| {
+                    const ahead = eye[i] + (at[i] - eye[i]) * 12.0;
+                    const p_at = page_at[i] + (ahead - page_at[i]) * g;
+                    const p_eye = page_eye[i] + (eye[i] - page_eye[i]) * s;
+                    at[i] += (p_at - at[i]) * page_pull;
+                    eye[i] += (p_eye - eye[i]) * page_pull;
+                }
+                const p_fov = page_fov + (fov - page_fov) * s;
+                fov += (p_fov - fov) * page_pull;
             }
-            fov = page_fov + (fov - page_fov) * s;
         }
         // the place stands on the ground: the eye rides with the view's anchor (base_past), as far
-        // as the place stands up
-        eye[1] += self.view_base * stand_smooth;
-        at[1] += self.view_base * stand_smooth;
+        // as the place stands up (keeping full elevation anchor locked in top-down view)
+        const anchor_stand: f32 = if (self.step >= self.stand_from) stand_smooth + (1.0 - stand_smooth) * dial_fold else stand_smooth;
+        eye[1] += self.view_base * anchor_stand;
+        at[1] += self.view_base * anchor_stand;
         // camera up vector: smoothly rotates from {0, 1, 0} at horizon to {fx, 0, fz} when looking straight down
         const cp = @cos(pitch);
         const sp = @sin(pitch);
@@ -7361,4 +7449,155 @@ test "dev arena warp, daylight, chord switch, and live feel bench changes work c
     feel.reset();
     try std.testing.expectEqual(jump_speed, jumpSpeedNow());
     try std.testing.expectEqual(fall_pull, fallPullNow());
+}
+
+test "elevated R1 ring hits mid-stalk things at ring elevation before ground things" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.* = .{};
+    w.view = .place;
+    w.stand = 1.0;
+    w.stand_from = 0;
+    w.ring_reach = 80.0;
+    w.hum_x = 0.0;
+    w.hum_z = 0.0;
+    w.hum_y = 30.0;
+    w.hum_ground = 0.0;
+    // Two identical sounding things at horizontal distance 20 m: one on ground (y=0), one at y=30
+    w.things[0] = .{ .x = 20.0, .y = 0.0, .z = 0.0, .ground = 0.0, .hz = garden_hz, .family = .string, .sounds = true, .carry = 60.0, .ring = 1.0 };
+    w.things[1] = .{ .x = 20.0, .y = 30.0, .z = 0.0, .ground = 0.0, .hz = garden_hz, .family = .string, .sounds = true, .carry = 60.0, .ring = 1.0 };
+    w.thing_count = 2;
+    _ = w.startRing(0.0, 0.0, garden_hz, true, 1.0);
+    var cues: [max_cues]sound.Cue = undefined;
+    // Advance until reach ~ 24 m (> 20 m to elevated thing, < 36.1 m to ground thing)
+    const mid_steps: usize = @intFromFloat(24.0 / (dt * sound_speed));
+    for (0..mid_steps) |_| {
+        w.hum_y = 30.0;
+        w.hum_vy = 0.0;
+        _ = w.stepOnce(.{}, &cues);
+    }
+    try std.testing.expect(w.things[1].lit > 0.5);
+    try std.testing.expectEqual(@as(f32, 0.0), w.things[0].lit);
+    // Advance past 38 m: now the ground thing is reached too
+    const more_steps: usize = @intFromFloat(18.0 / (dt * sound_speed));
+    for (0..more_steps) |_| {
+        w.hum_y = 30.0;
+        w.hum_vy = 0.0;
+        _ = w.stepOnce(.{}, &cues);
+    }
+    try std.testing.expect(w.things[0].lit > 0.2);
+}
+
+test "holding R1 in full top-down view opens wheel without tilting or bobbing the camera" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    w.warpTo(40.0, -40.0, 0.4);
+    w.orbit = 1.0;
+    var cues: [max_cues]sound.Cue = undefined;
+    for (0..70) |_| _ = w.stepOnce(.{}, &cues);
+    const before = w.camera();
+    try std.testing.expectEqual(@as(f32, 0.0), before.stand);
+    // Hold R1 long enough to open the 24-cell wheel and lower stand toward wheel_stand
+    for (0..35) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    try std.testing.expect(w.wheel_open);
+    try std.testing.expectEqual(thick, w.tempo);
+    const during = w.camera();
+    for (0..3) |i| {
+        try std.testing.expectApproxEqAbs(before.eye[i], during.eye[i], 1e-3);
+        try std.testing.expectApproxEqAbs(before.at[i], during.at[i], 1e-3);
+        try std.testing.expectApproxEqAbs(before.up[i], during.up[i], 1e-3);
+    }
+    try std.testing.expectApproxEqAbs(before.fov, during.fov, 1e-3);
+    try std.testing.expectEqual(@as(f32, 0.0), during.stand);
+}
+
+test "R2 release lands a cadence on any beat (fullest on beat 1) and none off-beat" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    // Hold R2 and release on beat 2 (tick 5: 5 % 4 == 1, NOT a downbeat)
+    while (w.clock < tickStep(5) - 18) _ = w.stepOnce(.{}, &cues);
+    while (w.clock < tickStep(5)) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(u32, 1), w.cadences);
+    var beat2_strength: f32 = 0.0;
+    for (w.rings) |r| {
+        if (r.live and r.own and r.born == w.cadence_at) beat2_strength = r.strength;
+    }
+    try std.testing.expect(beat2_strength > 0.35);
+
+    // Hold R2 and release on beat 1 (tick 8: downbeat) -> fuller cadence
+    while (w.clock < tickStep(8) - 18) _ = w.stepOnce(.{}, &cues);
+    while (w.clock < tickStep(8)) _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(u32, 2), w.cadences);
+    var beat1_strength: f32 = 0.0;
+    for (w.rings) |r| {
+        if (r.live and r.own and r.born == w.cadence_at) beat1_strength = r.strength;
+    }
+    try std.testing.expect(beat1_strength > beat2_strength);
+
+    // Hold R2 and release mid-beat -> no cadence
+    while (w.clock < tickStep(10) - 24) _ = w.stepOnce(.{}, &cues);
+    for (0..4) |_| _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(u32, 2), w.cadences);
+}
+
+test "Drip sleeps while riding on Hum's head and never skips beats at 90 BPM" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    defer feel.reset();
+    w.initAsters();
+    try std.testing.expect(w.drip_met);
+    try std.testing.expectEqual(@as(u8, 0), w.drip_out);
+    var cues: [max_cues]sound.Cue = undefined;
+    // 10 beats of peaceful exploration on Hum's head (far == 0): Drip must actually fall asleep
+    for (0..520) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(@TypeOf(w.drip_state.mood), .asleep), w.drip_state.mood);
+    try std.testing.expect(!w.drip_state.isAudible(w, 0.0));
+
+    // Switch live tempo to 90 BPM: every single beat index must fire in order with zero skips
+    feel.now.bpm = 90.0;
+    var last_k: ?u64 = null;
+    var beats_seen: u32 = 0;
+    for (0..420) |_| {
+        _ = w.stepOnce(.{}, &cues);
+        if (w.ticked_at != never) {
+            const k = w.ticked_at / tick_every;
+            if (last_k) |prev| {
+                if (k != prev) {
+                    try std.testing.expectEqual(prev + 1, k);
+                    beats_seen += 1;
+                    last_k = k;
+                }
+            } else {
+                last_k = k;
+            }
+        }
+    }
+    try std.testing.expect(beats_seen >= 9);
+}
+
+test "Hum visual-sonic envelopes ease on R2 singing, bloom on R1 call, and pulse on chord step" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+    try std.testing.expectEqual(@as(f32, 1.0), w.humSwell());
+    // R1 call triggers crisp bloom that decays smoothly
+    _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    try std.testing.expect(w.hum_call_vis > 0.8);
+    for (0..30) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.hum_call_vis < 0.05);
+    // Chord step pulses chord resonance
+    _ = w.stepOnce(.{ .buttons = Hands.guard }, &cues);
+    try std.testing.expect(w.hum_chord_vis > 0.8);
+    // R2 singing eases smoothly rather than jumping straight to 1.2 on step 1
+    _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expect(w.humSwell() > 1.01 and w.humSwell() < 1.10);
+    for (0..35) |_| _ = w.stepOnce(.{ .buttons = Hands.sing }, &cues);
+    try std.testing.expect(w.humSwell() > 1.18);
 }

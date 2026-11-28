@@ -45,11 +45,19 @@ pub const Oval = struct {
         const flat = @max(@sqrt(ex * ex + ez * ez), 0.001);
         // its stride: a small lift each step, as fast as it goes
         const going = std.math.clamp(@sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz) / world_mod.run_speed, 0.0, 1.0);
+        // visual-sonic unity: subtle living bar-breath, call/chord bloom, and harmonic posture
+        const bar_breath = @sin(w.barPhase() * (2.0 * std.math.pi));
+        const breath_w: f32 = 1.0 + 0.032 * bar_breath;
+        const breath_h: f32 = 1.0 + 0.024 * bar_breath;
+        const call_w: f32 = 1.0 + 0.12 * w.hum_call_vis + 0.045 * w.hum_chord_vis;
+        const call_h: f32 = 1.0 + 0.06 * w.hum_call_vis + 0.030 * w.hum_chord_vis;
+        const posture_w: f32 = if (w.home_minor) 1.03 else if (w.home_k == -1) 0.98 else if (w.home_k == 1) 1.02 else 1.0;
+        const posture_h: f32 = if (w.home_minor) 0.97 else if (w.home_k == -1) 1.04 else if (w.home_k == 1) 0.99 else 1.0;
         return .{
             .rx = rx,
             .rz = rz,
-            .wide = world_mod.hum_body * swell * (2.0 - squash),
-            .high = world_mod.hum_half_high * swell * squash,
+            .wide = world_mod.hum_body * swell * (2.0 - squash) * breath_w * call_w * posture_w,
+            .high = world_mod.hum_half_high * swell * squash * breath_h * call_h * posture_h,
             .lift = w.hum_y + (if (w.airborne) 0.0 else 0.06 * going * @abs(@sin(w.stride * (std.math.pi / 0.9)))),
             .tip = w.lean_x * rx + w.lean_z * rz,
             .back_x = ex / flat * down,

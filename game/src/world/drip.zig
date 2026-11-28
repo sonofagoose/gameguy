@@ -35,10 +35,12 @@ pub const DripState = struct {
         if (w.drip_out != 0) return true;
         // While actively singing, wheel is open, threatened/combat, or entraining
         if (w.singing or w.wheel_open or w.threatened() or w.step < w.hold_until) return true;
-        // While waking up or near the faucet
+        // While waking up
         if (self.wake_anim > 0.0) return true;
-        if (far <= 4.0) return true;
-        // In open exploration: silent when asleep
+        // Note: when riding on Hum's head (`w.drip_met and w.drip_out == 0`), `far` is always 0;
+        // only apply proximity audibility when Drip is off Hum's head.
+        if ((!w.drip_met or w.drip_out != 0) and far <= 4.0) return true;
+        // In open exploration on Hum's head: silent when asleep
         return self.mood != .asleep;
     }
 
@@ -53,7 +55,7 @@ pub const DripState = struct {
             self.wake();
         }
 
-        if (self.mood == .awake) {
+        if (self.mood == .awake or self.mood == .waking) {
             // Beat recoil: crisp squash on tick, higher bounce on the one
             self.squash_y = if (is_one) 0.82 else 0.93;
             self.squash_xz = 1.0 / @sqrt(self.squash_y);
@@ -160,9 +162,11 @@ test "drip enters sleep after 2 bars of peaceful exploration" {
     }
 
     // 8th beat completes 2 bars of peaceful exploration: enters sleep & silences metronome
+    // even when riding on Hum's head (`far == 0.0`)
     state.onBeat(false, true);
     try std.testing.expectEqual(DripMood.asleep, state.mood);
     try std.testing.expect(!state.isAudible(w, 20.0));
+    try std.testing.expect(!state.isAudible(w, 0.0));
 }
 
 test "drip wakes immediately on R2 swell or R1 wheel press" {

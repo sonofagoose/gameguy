@@ -80,6 +80,11 @@ pub const Table = struct {
     tilt_full: f32 = tilt_full,
     wind_more: f32 = wind_more,
     land_kick: f32 = land_kick,
+
+    /// Hum's R2 vocal hold level (0.34 warm & balanced vs legacy 0.70).
+    hum_volume: f32 = 0.34,
+    /// Drip & Garden musical tempo in beats per minute (72 default vs 90 snappy A/B).
+    bpm: f32 = 72.0,
 };
 
 pub const defaults = Table{};
