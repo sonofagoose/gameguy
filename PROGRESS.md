@@ -26,6 +26,10 @@ Where the build stands, so a new session can pick it up. Newest first.
     `garden.w04` survive save/load with identical hands. The large laptop cross-save check still
     reports that a witness first-step differs; that witness is diagnostic history and is not part
     of the world fingerprint. Handheld arm64 package rebuilt and pushed to purple unit 164.
+  - **Stale-save startup recovery (2026-11-28)**: commit `21458f6` changes mismatched-save startup
+    so `GameguyChords` continues from the clean evening scene instead of exiting. Fresh purple unit
+    164 log `gameguy-chords-20261128-001034.txt` shows `OtherBuild` for `tryout/stood.save`, then
+    starts the 24-cell chords scene and a new take.
   - **Dynamic rhythm, intimate camera, and readable Drip (playtest pickup)** (2026-11-28):
     continuing Morgan's playtest plan for the 24-cell build. In: live DYNAMIC/FIXED tempo in
     `game/src/feel.zig` and `game/src/world/world.zig` (72 BPM before Drip meets Hum, 70-120 BPM
