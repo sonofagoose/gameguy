@@ -16,6 +16,15 @@ Where the build stands, so a new session can pick it up. Newest first.
 - **How the engine is shaped:** `docs/engine.md`, written the same day at his asking ("audit and
   design the ultimate engine shape for this endeavor"). Leg 0 of the road builds it.
 - **Steps of the road that are in:**
+  - **Strict 16th pocket and dynamic tempo (2026-11-28)**:
+    implemented on top of the Phase 1 playtest pickup in commit `960d6e4`. R2 releases and swell
+    nudges now use `beatAt(hands.stamp)` to classify swung 16th slots, with downbeat, quarter,
+    eighth, and sixteenth tiers and tier-specific strength/ring. Inner Minor cadences use the pure
+    6/5 third; Outer Major cadences use 5/4. The live tempo has opening, fixed, dynamic, frozen
+    R2/R1, and asymmetric accelerando/ritardando states. **Verified:** unit tests and 3/3 ears
+    tests pass; full laptop gate completes; the save-loaded `garden.w04` witness remains reported
+    as a mismatch by the laptop cross-save check. Handheld arm64 package rebuilt and pushed to
+    purple unit 164.
   - **Dynamic rhythm, intimate camera, and readable Drip (playtest pickup)** (2026-11-28):
     continuing Morgan's playtest plan for the 24-cell build. In: live DYNAMIC/FIXED tempo in
     `game/src/feel.zig` and `game/src/world/world.zig` (72 BPM before Drip meets Hum, 70-120 BPM
