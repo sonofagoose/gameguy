@@ -719,10 +719,10 @@ pub const Hands = extern struct {
 
     pub const call: u16 = 1 << 0; // R1
     pub const sing: u16 = 1 << 1; // R2
-    /// L1 steps the chord flatward (falling a fifth inside the day's key); `voice` kept as alias.
+    /// L1 rotates counter-clockwise (-1 fifth) on the active ring; `voice` kept as alias.
     pub const flat: u16 = 1 << 2; // L1
     pub const voice: u16 = flat;
-    /// L2 steps the chord sharpward (rising a fifth inside the day's key); `guard` kept as alias.
+    /// L2 rotates clockwise (+1 fifth) on the active ring; `guard` kept as alias.
     pub const sharp: u16 = 1 << 3; // L2
     pub const guard: u16 = sharp;
     pub const jump: u16 = 1 << 4; // bottom face
@@ -730,10 +730,17 @@ pub const Hands = extern struct {
     pub const strike: u16 = 1 << 6; // left face
     pub const grab: u16 = 1 << 7; // top face
     pub const select: u16 = 1 << 8;
-    /// L1 and R1 together, for the one step the second of them came: found where the presses are
-    /// stamped (plat/keys.zig, Clap), so the sound and the world agree on every clap.
-    pub const clap: u16 = 1 << 10;
     pub const start: u16 = 1 << 9;
+    /// Legacy clap bit (kept for unit tests and future ending gesture; L1+R1 no longer fires it in play).
+    pub const clap: u16 = 1 << 10;
+    /// D-pad Up: switch directly to the Outer Ring (Sky / Major).
+    pub const dpad_up: u16 = 1 << 11;
+    /// D-pad Down: switch directly to the Inner Ring (Underground / Relative Minor).
+    pub const dpad_down: u16 = 1 << 12;
+    /// D-pad Left: cycle chord voicing down (5TH / TRIAD / BASS).
+    pub const dpad_left: u16 = 1 << 13;
+    /// D-pad Right: cycle chord voicing up (5TH / TRIAD / BASS).
+    pub const dpad_right: u16 = 1 << 14;
 
     pub fn held(self: Hands, button: u16) bool {
         return self.buttons & button != 0;
@@ -905,12 +912,14 @@ const bell_gain = [8]f32{ 0.30, 1.0, 0.45, 0.35, 0.55, 0.20, 0.22, 0.10 };
 
 pub const World = struct {
     step: u64 = 0,
-    /// The day's note, the wheel's lit seven round it, and where home is among them: Hum always
-    /// sings home's note (SPEC.md 5, "you never choose a note"). Which moods are awake: on the first
-    /// days in the Garden, wonder and sunny home (design/the-wheel.md).
+    /// The day's note and the active 2D Circle-of-Fifths coordinate (`home_k` in -6..5 clock hours,
+    /// `home_minor` false = Outer Major / Sky, true = Inner Relative Minor / Underground).
     day_hz: f32 = garden_hz,
     home_k: i8 = 0,
+    home_minor: bool = false,
     home_hz: f32 = garden_hz,
+    /// Active voicing mode (0 = Open 5th, 1 = Pure Triad [default], 2 = Low Bass).
+    voicing: u8 = 1,
     awake: u8 = (1 << @intFromEnum(Mood.lift)) | (1 << @intFromEnum(Mood.bind)),
     hum_x: f32 = 0.0,
     hum_z: f32 = 0.0,
@@ -935,21 +944,24 @@ pub const World = struct {
     /// jumps, and when it last landed. Whether the jump button is still held (for variable height).
     hum_y: f32 = 0.0,
     hum_vy: f32 = 0.0,
-    /// How the world is answering the chord (law/react.zig), and where on the day's ring the
+    /// How the world is answering the chord (law/react.zig), and where on the 24-cell Circle the
     /// chord stood when it last answered, so that a change is known for what it was.
     react: react_mod.State = .{},
     react_k: i8 = 0,
+    react_minor: bool = false,
     /// Engine stream & Sethares roughness mix governor (law/mix.zig, step 0.10).
     mix: mix_mod.Mix = .{},
-    /// The seam (ring pos 5) can't be stood on: after one beat (`tick_every`), Hum falls onward in
-    /// `seam_dir` (ROADMAP.md, step 1.4).
-    seam_steps: u16 = 0,
-    seam_dir: i8 = -1,
-    /// Last chord step before a possible L1+R1 clap so a clap takes back a stray L1 step cleanly.
+    /// Last chord coordinate before a clap take-back (kept for legacy clap tests).
     chord_prev_k: i8 = 0,
+    chord_prev_minor: bool = false,
     chord_stepped_at: u64 = never,
-    /// Consecutive falling-fifth steps round the ring toward home (the long way home).
+    /// Consecutive falling-fifth steps toward home (e.g. D -> G -> C or Em -> Am -> Dm).
     long_way_chain: u8 = 0,
+    /// Release-grace memory for the R1 24-cell wheel so letting go of the stick right as R1 rises
+    /// never drops the aimed cell.
+    wheel_last_k: ?i8 = null,
+    wheel_last_minor: bool = false,
+    wheel_last_at: u64 = never,
     /// True while `tell()` is emitting chord/ground-bed sound (protected `Stream.ground`).
     telling_ground: bool = false,
     /// How high above the ground whatever Hum stands on is: nought on the ground itself, more on
@@ -1615,7 +1627,7 @@ pub const World = struct {
     pub fn stepOnce(self: *World, hands: Hands, cues: *[max_cues]sound.Cue) usize {
         const now_sample = self.step * samples_per_step;
         self.mix.step(dt);
-        self.mix.allow_rough = if (self.home_k == music.Ring.seam or self.threatened()) 2.5 else 1.0;
+        self.mix.allow_rough = if (self.home_k == -6 or self.threatened()) 2.0 else 1.0;
         const pressed = hands.buttons & ~self.was;
         const released = self.was & ~hands.buttons;
         self.was = hands.buttons;
@@ -1724,7 +1736,7 @@ pub const World = struct {
         if (size > stick_dead) {
             const push = std.math.clamp((size - stick_dead) / (stick_full - stick_dead), 0.0, 1.0);
             var top: f32 = if (self.sprinting) feel.now.sprint_speed else feel.now.run_speed;
-            if (chords_tryout and self.home_k == 1) top *= feel.now.lean_speed;
+            if (chords_tryout and self.home_k == 1 and !self.home_minor) top *= feel.now.lean_speed;
             var wx = mx;
             var wz = mz;
             if (self.view == .place) {
@@ -1906,8 +1918,10 @@ pub const World = struct {
             } else {
                 self.stand = if (standing) @min(1.0, self.stand + rise_rate) else @max(0.0, self.stand - fold_rate);
             }
-            // L1 falls a fifth and L2 rises a fifth round the day's ring of seven (ROADMAP 1.3–1.5).
-            // Never triggers on the same step as an L1+R1 clap.
+            // True 24-cell Concentric Circle of Fifths:
+            //   L1 / L2          = rotate counter-clockwise / clockwise on current ring (real-time kinetic)
+            //   D-pad Up / Down  = switch directly to Outer (Major/Sky) / Inner (Relative Minor/Underground)
+            //   D-pad Left/Right = cycle chord voicing (5TH / TRIAD / BASS)
             if (chords_tryout and self.stand >= 1.0 and !self.wheel_open and !self.swelling()) {
                 if (pressed & Hands.clap == 0) {
                     var dir: i8 = 0;
@@ -1915,16 +1929,10 @@ pub const World = struct {
                     if (pressed & Hands.sharp != 0) dir = 1;
                     if (dir != 0) self.chordStep(dir, hands.stamp);
                 }
-                // The seam can't be stood on: after one beat, Hum falls onward along the ring
-                if (self.home_k == music.Ring.seam) {
-                    self.seam_steps +|= 1;
-                    if (self.seam_steps >= tick_every) {
-                        self.seam_steps = 0;
-                        self.chordStep(self.seam_dir, 0);
-                    }
-                } else {
-                    self.seam_steps = 0;
-                }
+                if (pressed & Hands.dpad_up != 0) self.setRing(false, hands.stamp);
+                if (pressed & Hands.dpad_down != 0) self.setRing(true, hands.stamp);
+                if (pressed & Hands.dpad_left != 0) self.stepVoicing(-1);
+                if (pressed & Hands.dpad_right != 0) self.stepVoicing(1);
                 tryout.highest = @max(tryout.highest, self.hum_y);
                 tryout.fastest = @max(tryout.fastest, @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz));
             }
@@ -2239,28 +2247,68 @@ pub const World = struct {
         return true;
     }
 
-    /// Step the chord flatward (`-1`, L1) or sharpward (`+1`, L2) round the day's ring of seven
-    /// (ROADMAP.md, steps 1.4 & 1.5; design/the-depths.md, "Your third picture").
-    ///
-    /// Strikes the chord's pure root and fifth (never its third) over the ground's own note,
-    /// voice-led from the previous chord so common tones keep ringing while only the moving voice
-    /// strikes cleanly. Stepping home off the lean triggers the full-close launch.
-    pub fn chordStep(self: *World, dir: i8, stamp: u16) void {
-        const from = self.home_k;
-        const to = music.Ring.step(from, dir);
-        const timed = self.beatAt(stamp).from_beat <= self.widen(strike_window);
-        self.chord_prev_k = from;
-        self.chord_stepped_at = self.step;
-        self.home_k = to;
-        self.home_hz = harmony.ringHz(self.day_hz, to);
-        // Track seam pass-through (one beat max) and falling-fifth long-way chains
-        if (to == music.Ring.seam) {
-            self.seam_steps = 1;
-            self.seam_dir = dir;
-        } else {
-            self.seam_steps = 0;
+    /// Active cell on the true 24-cell concentric Circle of Fifths.
+    pub fn homeCell(self: *const World) music.wheel.Cell {
+        return .{
+            .ring = if (self.home_minor) .inner else .outer,
+            .at = @intCast(@mod(@as(i32, self.home_k), 12)),
+        };
+    }
+
+    /// Major on the outer ring, minor on the inner ring — unambiguous across all 24 cells.
+    pub fn homeQualityNow(self: *const World) Quality {
+        return if (self.home_minor) .minor else .major;
+    }
+
+    /// Emit voice-led pure chord resonators for a transition `from -> to` in the active voicing
+    /// (`5TH` / `TRIAD` / `BASS`), letting shared common tones float undisturbed off-tick.
+    fn soundChord(self: *World, from: music.wheel.Cell, to: music.wheel.Cell, timed: bool, calm: bool) void {
+        const mode = harmony.VoicingMode.fromU8(self.voicing);
+        const full: f32 = if (calm) 0.72 else if (timed) 1.0 else 0.80;
+        const ring_s: f32 = if (calm) 0.75 else 0.68;
+        const v = harmony.chordVoicing(self.day_hz, from, to, mode);
+        self.telling_ground = true;
+        defer self.telling_ground = false;
+        if (v.ground_hz > 0.0) {
+            const g_base: f32 = if (mode == .low_bass) 0.11 else 0.065;
+            const at_g = Place{ .x = self.hum_x, .y = self.hum_y + 0.35, .z = self.hum_z };
+            self.tell(.{ .at = at_g }, cues_mod.Cue.of(.{ .kind = .strike, .family = .tone, .hz = v.ground_hz, .strength = g_base * full, .ring = ring_s * 0.85 }, .glow));
         }
-        const way = music.change.way(from, to);
+        for (0..v.n) |i| {
+            // Common tones keep ringing undisturbed unless softly bloomed on a timed beat or calm leap
+            if (v.kept[i] and !timed and !calm) continue;
+            const role_scale: f32 = if (v.roles[i] == .third) 0.72 else if (v.roles[i] == .fifth) 0.88 else 1.0;
+            const gain = if (v.kept[i]) (0.06 * role_scale) else (0.19 * role_scale * full);
+            const at = Place{ .x = self.hum_x, .y = self.hum_y + 0.65 + 0.30 * @as(f32, @floatFromInt(i)), .z = self.hum_z };
+            self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .tone, .hz = v.notes[i], .strength = gain, .ring = ring_s }, .glow));
+        }
+        if (timed and !calm) {
+            // Timed on Drip's tick: crisp tuning-fork shimmer on the chord's root
+            const at_hi = Place{ .x = self.hum_x, .y = self.hum_y + 1.35, .z = self.hum_z };
+            self.tell(.{ .at = at_hi }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = v.notes[0], .strength = 0.08, .ring = 0.42 }, .glow));
+        }
+        self.telling_ground = false;
+        self.wakeKin(from, full);
+        self.hum_light = @max(self.hum_light, 0.58 * full);
+    }
+
+    /// Rotate counter-clockwise (`-1`, L1) or clockwise (`+1`, L2) by one fifth on the current ring
+    /// of the true 24-cell Circle of Fifths. Real-time kinetic step: rewards Drip's tick and
+    /// unleashes the full-close launch when stepping home off the lean (`G -> C`, scaled by any
+    /// falling-fifth chain such as `D -> G -> C`).
+    pub fn chordStep(self: *World, dir: i8, stamp: u16) void {
+        const from_k = self.home_k;
+        const from_cell = self.homeCell();
+        const to_k = foldWedge(from_k + dir);
+        const timed = self.beatAt(stamp).from_beat <= self.widen(strike_window);
+        self.chord_prev_k = from_k;
+        self.chord_prev_minor = self.home_minor;
+        self.chord_stepped_at = self.step;
+        self.home_k = to_k;
+        const to_cell = self.homeCell();
+        self.home_hz = harmony.cellHz(self.day_hz, to_cell);
+
+        const way = harmony.changeWay(harmony.day(self), from_cell, to_cell);
         if (way == .long_way) {
             self.long_way_chain = @min(self.long_way_chain + 1, 6);
         } else if (way != .full_close) {
@@ -2271,37 +2319,11 @@ pub const World = struct {
         tryout.changed_at = self.step;
         self.drip_state.wake();
 
-        // Step 1.5: voice-led pure root + fifth over the struck ground note (never the third).
-        // Pure `.tone` resonators keep the chord strictly open-fifth (no 5th-harmonic major third
-        // or 7th-harmonic mud on the handheld's mono speaker) while letting common tones float.
-        const full: f32 = if (timed) 1.0 else 0.78;
-        const ring_s: f32 = if (to == music.Ring.seam) 0.40 else 0.65;
-        const v = harmony.chordVoicing(self.day_hz, from, to);
-        self.telling_ground = true;
-        defer self.telling_ground = false;
-        if (v.ground_hz > 0.0 and to != music.Ring.seam) {
-            const at_g = Place{ .x = self.hum_x, .y = self.hum_y + 0.35, .z = self.hum_z };
-            self.tell(.{ .at = at_g }, cues_mod.Cue.of(.{ .kind = .strike, .family = .tone, .hz = v.ground_hz, .strength = 0.07 * full, .ring = ring_s * 0.8 }, .glow));
-        }
-        for (0..v.n) |i| {
-            // Common tones keep ringing undisturbed unless softly bloomed on a timed tick
-            if (v.kept[i] and !timed) continue;
-            const gain = if (v.kept[i]) 0.08 else (0.20 - 0.02 * @as(f32, @floatFromInt(i))) * full;
-            const at = Place{ .x = self.hum_x, .y = self.hum_y + 0.65 + 0.35 * @as(f32, @floatFromInt(i)), .z = self.hum_z };
-            self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .tone, .hz = v.notes[i], .strength = gain, .ring = ring_s }, .glow));
-        }
-        if (timed) {
-            // Timed on Drip's tick: crisp tuning-fork shimmer on the chord's root
-            const at_hi = Place{ .x = self.hum_x, .y = self.hum_y + 1.35, .z = self.hum_z };
-            self.tell(.{ .at = at_hi }, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = v.notes[0], .strength = 0.08, .ring = 0.42 }, .glow));
-        }
-        self.telling_ground = false;
+        self.soundChord(from_cell, to_cell, timed, false);
 
-        if (to != music.Ring.seam) self.wakeKin(from, full);
-        self.hum_light = @max(self.hum_light, 0.6 * full);
-        if (to == music.Ring.lean) tryout.leaned_from = self.step;
-        if (from == music.Ring.lean and to == music.Ring.home) {
-            // the full close: what the lean (and any falling-fifth chain into it) stored lets go
+        if (to_k == 1 and !self.home_minor) tryout.leaned_from = self.step;
+        if (from_k == 1 and to_k == 0 and !self.home_minor) {
+            // The full close (G -> C): what the lean (and any D -> G chain into it) stored lets go
             const leaned: f32 = if (tryout.leaned_from == never) 0.0 else @floatFromInt(@min(self.step - tryout.leaned_from, launch_full_after));
             const wound = @max(leaned / @as(f32, @floatFromInt(launch_full_after)), 1.0 / 3.0);
             const chain_more: f32 = 1.0 + 0.08 * @as(f32, @floatFromInt(@min(self.long_way_chain, 4)));
@@ -2317,10 +2339,63 @@ pub const World = struct {
         }
     }
 
+    /// Switch directly between the Outer Ring (Major / Sky, `minor = false`, D-pad Up) and the
+    /// Inner Ring (Relative Minor / Underground, `minor = true`, D-pad Down) at the same clock hour.
+    pub fn setRing(self: *World, minor: bool, stamp: u16) void {
+        tryout.changed_at = self.step;
+        self.drip_state.wake();
+        if (self.home_minor == minor) {
+            // Already on this ring: quiet confirmation ping + compass bloom, zero state toggle!
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .tone, .hz = self.home_hz * 2.0, .strength = 0.04, .ring = 0.14 }, .glow));
+            return;
+        }
+        const from_cell = self.homeCell();
+        const timed = self.beatAt(stamp).from_beat <= self.widen(strike_window);
+        self.chord_prev_k = self.home_k;
+        self.chord_prev_minor = self.home_minor;
+        self.chord_stepped_at = self.step;
+        self.home_minor = minor;
+        const to_cell = self.homeCell();
+        self.home_hz = harmony.cellHz(self.day_hz, to_cell);
+        self.long_way_chain = 0;
+        tryout.steps += 1;
+        if (timed) tryout.timed += 1;
+        self.soundChord(from_cell, to_cell, timed, false);
+        if (self.home_k == 1 and !self.home_minor) tryout.leaned_from = self.step;
+    }
+
+    /// Cycle chord voicing (`5TH` <-> `TRIAD` <-> `BASS`, D-pad Left / Right) and gently audition
+    /// the current chord in the new voicing.
+    pub fn stepVoicing(self: *World, dir: i8) void {
+        self.voicing = @intCast(@mod(@as(i32, self.voicing) + dir, 3));
+        tryout.changed_at = self.step;
+        const cur = self.homeCell();
+        self.soundChord(cur, cur, false, true);
+    }
+
+    /// Calm direct leap from the R1 24-cell Circle Wheel to any cell `(k, minor)`.
+    /// Voice-led and harmonic, with NO kinetic launch burst, NO beat bonus, and NO breath cost.
+    pub fn chordLeap(self: *World, k: i8, minor: bool) void {
+        const to_k = foldWedge(k);
+        const from_cell = self.homeCell();
+        const changed = to_k != self.home_k or minor != self.home_minor;
+        self.home_k = to_k;
+        self.home_minor = minor;
+        const to_cell = self.homeCell();
+        self.home_hz = harmony.cellHz(self.day_hz, to_cell);
+        self.long_way_chain = 0;
+        tryout.changed_at = self.step;
+        if (changed) {
+            tryout.steps += 1;
+            self.soundChord(from_cell, to_cell, false, true);
+            if (to_k == 1 and !minor) tryout.leaned_from = self.step;
+        }
+    }
+
     /// What is in the chord wakes (design/the-game.md, rule 2): near things whose colour is awake
     /// in the new chord answer softly through `World.mix` so rapid chord steps stay consonant.
-    fn wakeKin(self: *World, from_k: i8, full: f32) void {
-        const all_stand = harmony.standings(self, from_k);
+    fn wakeKin(self: *World, from_cell: music.wheel.Cell, full: f32) void {
+        const all_stand = harmony.standings(self, from_cell);
         var nearest: [chord_kin_sound]u32 = @splat(no_thing);
         var nearest_far: [chord_kin_sound]f32 = @splat(std.math.floatMax(f32));
         var nearest_kin: [chord_kin_sound]f32 = @splat(0.0);
@@ -2714,7 +2789,7 @@ pub const World = struct {
         // The fork's own note: home's chord, one note after another (GameguyPage standard)
         // Strike 1 = root, Strike 2 = third, Strike 3 = fifth, cycling
         const turn = (self.strike_count - 1) % 3;
-        const ratios = chordRatios(homeQuality(self.home_k));
+        const ratios = chordRatios(self.homeQualityNow());
         const fork = self.home_hz * strike_over * ratios[turn % 3];
 
         // timed: its note with its octave and a brighter light, which the hands may already have
@@ -2846,11 +2921,11 @@ pub const World = struct {
             self.calls_taken_back += 1;
             self.called_at = never;
         }
-        // L1 pressed just before R1 to form a clap: take back the stray chord step cleanly
+        // Take back a stray chord step just before a clap (kept for legacy clap tests)
         if (self.chord_stepped_at != never and self.step - self.chord_stepped_at <= clap_takes_back) {
             self.home_k = self.chord_prev_k;
-            self.home_hz = harmony.ringHz(self.day_hz, self.home_k);
-            self.seam_steps = 0;
+            self.home_minor = self.chord_prev_minor;
+            self.home_hz = harmony.cellHz(self.day_hz, self.homeCell());
             self.chord_stepped_at = never;
         }
         self.own_now = sound.own_clap;
@@ -3355,7 +3430,7 @@ pub const World = struct {
     /// In the air: the ground pulls, and the ground is met.
     fn flyStep(self: *World, height_was: f32, roof: f32) void {
         var pull = fallPullNow();
-        if (chords_tryout and self.home_k == -1) pull *= feel.now.lift_pull;
+        if (chords_tryout and self.home_k == -1 and !self.home_minor) pull *= feel.now.lift_pull;
         if (@abs(self.hum_vy) < 2.5) {
             pull *= 0.75; // TotK apex float at peak of arc
         } else if (self.hum_vy < 0.0) {
@@ -3430,10 +3505,7 @@ pub const World = struct {
             spending = true;
             if (self.walk_homes == 0 and self.swell_bars >= hold_free_bars) self.spend(hold_costs / bar_steps);
         }
-        if (self.wheel_open) {
-            spending = true;
-            self.spend(wheel_costs / bar_steps);
-        }
+        // Browsing the 24-cell R1 Circle Lens is free (zero breath drain) so players explore freely.
         if (self.sprinting) {
             spending = true;
             // a body that runs breathes: on every half beat of Drip's tick, a soft breath an octave
@@ -3885,55 +3957,71 @@ pub const World = struct {
     /// The view of the place: the right stick turns and tilts it, and standing still at the foot
     /// of something tall leans it back to take the thing in (SPEC.md 8: "leaning in also happens
     /// by stopping").
-    /// R1 held, once the place has stood up, opens the wheel: the right stick points at a wedge, and
-    /// letting go puts home there if its mood is awake (SPEC.md 9). The call went out on the press.
+    /// R1 held opens the full 24-cell Circle of Fifths Lens (FREE — zero breath cost).
+    /// Deflecting the right stick halfway selects the inner Relative Minor ring; full deflection
+    /// selects the outer Major ring (with radial hysteresis and a short release grace window so
+    /// letting go of the stick right as R1 rises never drops your aim). Releasing R1 leaps calmly
+    /// to any of the 24 cells without triggering kinetic beat-launches.
     fn wheelStep(self: *World, hands: Hands) void {
         const stood = self.stand_from != never and self.step >= self.stand_from + 60 and self.locked_at != never and self.step >= self.hold_until;
         if (!self.wheel_open) {
-            if (stood and self.call_held >= wheel_after and !self.singing and !self.winded) {
+            if (stood and self.call_held >= wheel_after and !self.singing) {
                 self.wheel_open = true;
                 self.drip_state.wake();
                 self.wheel_opens += 1;
                 if (self.first_wheel_at == never) self.first_wheel_at = self.step;
                 self.wheel_point = null;
+                self.wheel_last_k = null;
+                self.wheel_last_at = never;
             }
             return;
         }
+        const point_min: f32 = 0.28;
         if (hands.held(Hands.call)) {
             const rx = @as(f32, @floatFromInt(hands.rx)) * (1.0 / 127.0);
             const ry = @as(f32, @floatFromInt(hands.ry)) * (1.0 / 127.0);
             const r2 = rx * rx + ry * ry;
-            if (r2 >= wheel_point_least * wheel_point_least) {
+            if (r2 >= point_min * point_min) {
                 const r = @sqrt(r2);
-                self.wheel_minor = (r < 0.72);
+                // Hysteresis on the inner/outer radial boundary so holding the inner ring feels rock-solid
+                const next_minor = if (self.wheel_point == null)
+                    (r < 0.74)
+                else if (self.wheel_minor)
+                    (r < 0.79)
+                else
+                    (r < 0.69);
+                self.wheel_minor = next_minor;
                 var k = wedgeAt(rx, ry);
-                // snap and hold: the pointed wedge stays until the stick is well into the next
+                // Snap-and-hold angular hysteresis
                 if (self.wheel_point) |was| {
                     var off = std.math.atan2(rx, -ry) - @as(f32, @floatFromInt(was)) * (std.math.pi / 6.0);
                     while (off > std.math.pi) off -= 2.0 * std.math.pi;
                     while (off < -std.math.pi) off += 2.0 * std.math.pi;
                     if (@abs(off) < std.math.pi / 12.0 + wheel_hold) k = was;
                 }
+                const cell = music.wheel.Cell{
+                    .ring = if (self.wheel_minor) .inner else .outer,
+                    .at = @intCast(@mod(@as(i32, k), 12)),
+                };
+                const cell_hz = harmony.cellHz(self.day_hz, cell);
+                self.wheel_last_k = k;
+                self.wheel_last_minor = self.wheel_minor;
+                self.wheel_last_at = self.step;
                 const changed = (self.wheel_point == null or self.wheel_point.? != k or self.wheel_minor_was != self.wheel_minor);
                 if (changed) {
                     self.wheel_point = k;
                     self.wheel_minor_was = self.wheel_minor;
                     self.wheel_point_since = self.step;
                     self.stopPreview();
-                    const eff_k = if (self.wheel_minor) foldWedge(k + 3) else k;
-                    // entering a wedge: a soft click in its note if its mood is awake, a dull knock
-                    // with no pitch if it sleeps
-                    if (self.isAwake(eff_k)) {
-                        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .fork, .hz = wedgeHz(self.day_hz, eff_k) * 2.0, .strength = 0.05, .ring = 0.12 }, .glow));
-                    } else {
-                        self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .skin, .hz = garden_hz * 0.5, .strength = 0.04, .ring = 0.04 }, .dims));
-                    }
+                    // Soft audition chime in the hovered cell's true pitch (sunlit slightly brighter)
+                    const sunlit = harmony.day(self).face(cell).awake();
+                    self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .tone, .hz = cell_hz * 2.0, .strength = if (sunlit) 0.06 else 0.045, .ring = 0.16 }, .glow));
                 }
-                // resting on an awake wedge that is not home: Hum hums it under its breath
-                const eff_k = if (self.wheel_minor) foldWedge(k + 3) else k;
-                if (self.previewing == null and eff_k != self.home_k and self.isAwake(eff_k) and self.step >= self.wheel_point_since + preview_after) {
-                    self.previewing = eff_k;
-                    self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = preview_voice, .hz = wedgeHz(self.day_hz, eff_k), .strength = preview_strength * hum_strength, .ring = 0.0 }, .swell));
+                // Resting on any cell other than current: Hum whispers its pitch under its breath
+                const same_cur = (k == self.home_k and self.wheel_minor == self.home_minor);
+                if (self.previewing == null and !same_cur and self.step >= self.wheel_point_since + preview_after) {
+                    self.previewing = @intCast(cell.index());
+                    self.tell(.hum, cues_mod.Cue.of(.{ .kind = .hum_on, .voice = preview_voice, .hz = cell_hz, .strength = preview_strength * hum_strength, .ring = 0.0 }, .swell));
                 }
             } else {
                 if (self.wheel_point != null) {
@@ -3946,17 +4034,22 @@ pub const World = struct {
             return;
         }
         self.stopPreview();
-        // let go: home goes where the stick pointed, if that mood is awake
-        // Committing on the inner ring moves home to the relative minor's root wedge, k+3 (Piece 4)
-        if (self.wheel_point) |k| {
-            const eff_k = if (self.wheel_minor) foldWedge(k + 3) else k;
-            const was = self.home_k;
-            if (self.moveHome(eff_k) and eff_k != was) self.spend(step_costs);
+        // Commit on release: use active pointer, or release-grace memory if stick just snapped back
+        var commit_k: ?i8 = self.wheel_point;
+        var commit_minor: bool = self.wheel_minor;
+        if (commit_k == null and self.wheel_last_k != null and self.wheel_last_at != never and self.step - self.wheel_last_at <= 8) {
+            commit_k = self.wheel_last_k;
+            commit_minor = self.wheel_last_minor;
+        }
+        if (commit_k) |k| {
+            self.chordLeap(k, commit_minor);
         }
         self.wheel_open = false;
         self.wheel_point = null;
         self.wheel_minor = false;
         self.wheel_minor_was = false;
+        self.wheel_last_k = null;
+        self.wheel_last_at = never;
     }
 
     /// The preview's breath ends.
@@ -4217,13 +4310,13 @@ pub const World = struct {
         }
     }
 
-    /// Dev arena chord switch: jumps directly to any of the seven ring positions (-1..5).
-    pub fn setChordDirect(self: *World, k: i8) void {
-        const clamped = std.math.clamp(k, music.Ring.least, music.Ring.most);
+    /// Dev arena chord switch: jumps directly to any of the 24 Circle-of-Fifths cells.
+    pub fn setChordDirect(self: *World, k: i8, minor: bool) void {
         self.awake = 0x7f;
-        self.home_k = clamped;
-        self.home_hz = harmony.ringHz(self.day_hz, clamped);
-        self.seam_steps = 0;
+        self.home_k = foldWedge(k);
+        self.home_minor = minor;
+        self.home_hz = harmony.cellHz(self.day_hz, self.homeCell());
+        self.long_way_chain = 0;
         harmony.step(self);
     }
 
@@ -4461,7 +4554,8 @@ pub const World = struct {
         mixIn(&h, @as(u32, @bitCast(self.eye_pull)));
         mixIn(&h, @as(u32, @bitCast(self.view_run)));
         mixIn(&h, @as(u8, @bitCast(self.home_k)));
-        mixIn(&h, self.seam_steps);
+        mixIn(&h, @as(u8, @intFromBool(self.home_minor)));
+        mixIn(&h, self.voicing);
         mixIn(&h, self.mix.admitted);
         mixIn(&h, @as(u32, @bitCast(self.stick_yaw)));
         mixIn(&h, @as(u32, @bitCast(self.lean)));
@@ -5267,11 +5361,12 @@ test "R1 held opens the wheel; the right stick points at a wedge; letting go put
     try std.testing.expect(!w.wheel_open);
     try std.testing.expectEqual(@as(i8, -1), w.home_k);
     try std.testing.expect(@abs(w.home_hz - garden_hz * 4.0 / 3.0) < 0.01);
-    // pointed at an asleep mood (drive, to the right), letting go leaves home where it is
+    // Pointing at ANY cell on the open 24-cell Circle (e.g. G at k=1, or far Ab at k=-4) leaps cleanly
     step = 0;
     while (step < 30) : (step += 1) _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 63, .ry = -110 }, &cues);
     _ = w.stepOnce(.{}, &cues);
-    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expectEqual(@as(i8, 1), w.home_k);
+    try std.testing.expect(!w.home_minor);
 }
 
 test "the swell: a nudge on a downbeat walks home one wedge, and the let-go on the one lands the cadence" {
@@ -5692,102 +5787,97 @@ test "the strike pitch and chord triad are tied to the R1-selected circle of fif
     for (cues[0..n]) |c| if (c.kind == .strike) { f_fork2 = c.hz; };
     try std.testing.expectApproxEqAbs(f_hz * 2.0 * 1.25, f_fork2, 0.1);
 
-    // 4. Now move home via the wheel to D (k = 2, Minor quality)
-    try std.testing.expect(w.moveHome(2));
-    try std.testing.expectEqual(@as(i8, 2), w.home_k);
-    try std.testing.expectEqual(Quality.minor, homeQuality(w.home_k));
-    const d_hz = w.home_hz;
-    try std.testing.expectApproxEqAbs(c_hz * (9.0 / 8.0), d_hz, 0.1);
+    // 4. Now drop under via D-pad Down from F (k = -1, outer) to Dm (k = -1, inner minor!)
+    _ = w.stepOnce(.{ .buttons = Hands.dpad_down }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expect(w.home_minor);
+    try std.testing.expectEqual(Quality.minor, w.homeQualityNow());
+    const dm_hz = w.home_hz;
+    try std.testing.expectApproxEqAbs(c_hz * (10.0 / 9.0), dm_hz, 0.1);
 
-    // Strike 3 on D (turn 2): Fifth of D (d_hz * 2.0 * 1.5)
+    // Strike 3 on Dm (turn 2): Fifth of Dm (dm_hz * 2.0 * 1.5)
     while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
     n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
     var d_fork3: f32 = 0.0;
     for (cues[0..n]) |c| if (c.kind == .strike) { d_fork3 = c.hz; };
-    try std.testing.expectApproxEqAbs(d_hz * 2.0 * 1.5, d_fork3, 0.1);
+    try std.testing.expectApproxEqAbs(dm_hz * 2.0 * 1.5, d_fork3, 0.1);
 
-    // Strike 4 on D (turn 0): Root of D (d_hz * 2.0 * 1.0)
+    // Strike 4 on Dm (turn 0): Root of Dm (dm_hz * 2.0 * 1.0)
     while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
     n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
     var d_fork4: f32 = 0.0;
     for (cues[0..n]) |c| if (c.kind == .strike) { d_fork4 = c.hz; };
-    try std.testing.expectApproxEqAbs(d_hz * 2.0 * 1.0, d_fork4, 0.1);
+    try std.testing.expectApproxEqAbs(dm_hz * 2.0 * 1.0, d_fork4, 0.1);
 
-    // Strike 5 on D (turn 1): MINOR Third of D (d_hz * 2.0 * 1.2 - minor 3rd for minor key!)
+    // Strike 5 on Dm (turn 1): MINOR Third of Dm (dm_hz * 2.0 * 1.2 - minor 3rd on inner ring!)
     while (w.clock % tick_every != 2) _ = w.stepOnce(.{}, &cues);
     n = w.stepOnce(.{ .buttons = Hands.strike }, &cues);
     var d_fork5: f32 = 0.0;
     for (cues[0..n]) |c| if (c.kind == .strike) { d_fork5 = c.hz; };
-    try std.testing.expectApproxEqAbs(d_hz * 2.0 * 1.2, d_fork5, 0.1);
+    try std.testing.expectApproxEqAbs(dm_hz * 2.0 * 1.2, d_fork5, 0.1);
 }
 
-test "Piece 4: circle of fifths wheel cursor deflection, inner relative minor (k+3) and outer major (k) commit" {
+test "Piece 4: 24-cell circle of fifths wheel inner relative minor (home_minor=true) vs outer major commit (free, no launch)" {
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
     w.initAsters();
-    w.awake = 0xff; // all moods awake
+    w.awake = 0xff;
     var cues: [max_cues]sound.Cue = undefined;
     for (0..100) |_| _ = w.stepOnce(.{}, &cues);
     w.stand = 1.0;
     w.hold_until = 0;
     w.locked_at = 1;
+    const breath_before = w.breath;
 
-    // 1. Open wheel with R1
+    // 1. Open wheel with R1 (free: zero breath spent)
     for (0..25) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
     try std.testing.expect(w.wheel_open);
+    try std.testing.expectApproxEqAbs(breath_before, w.breath, 0.001);
 
-    // 2. Half deflection (r ~ 0.63, 0.55 <= r < 0.72) pointing north (k = 0, C / Am):
-    // selects inner relative minor ring!
+    // 2. Half deflection (r ~ 0.63) pointing north (k = 0): selects inner relative minor Am (0, true)!
     for (0..5) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 0, .ry = -80 }, &cues);
     try std.testing.expectEqual(@as(i8, 0), w.wheel_point.?);
     try std.testing.expect(w.wheel_minor);
 
-    // Wait for preview to start
+    // Wait for preview to start (Am is cell index 12)
     for (0..15) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 0, .ry = -80 }, &cues);
-    // Relative minor of C (k=0) is A minor (k=3)
-    try std.testing.expectEqual(@as(i8, 3), w.previewing.?);
+    try std.testing.expectEqual(@as(i8, 12), w.previewing.?);
 
-    // 3. Release R1: commits to relative minor root wedge k+3 = 3 (A minor)
-    _ = w.stepOnce(.{}, &cues);
-    try std.testing.expect(!w.wheel_open);
-    try std.testing.expectEqual(@as(i8, 3), w.home_k);
-    try std.testing.expectEqual(Quality.minor, homeQuality(w.home_k));
-    try std.testing.expectApproxEqAbs(wedgeHz(w.day_hz, 3), w.home_hz, 0.1);
-
-    // 4. Open wheel again and use FULL deflection (r ~ 0.94, r >= 0.72) pointing north (k = 0, C):
-    // selects outer major ring!
-    for (0..25) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
-    try std.testing.expect(w.wheel_open);
-    for (0..5) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 0, .ry = -120 }, &cues);
-    try std.testing.expectEqual(@as(i8, 0), w.wheel_point.?);
-    try std.testing.expect(!w.wheel_minor);
-
-    // Wait for preview
-    for (0..15) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 0, .ry = -120 }, &cues);
-    // Major key preview is C (k=0)
-    try std.testing.expectEqual(@as(i8, 0), w.previewing.?);
-
-    // 5. Release R1: commits to major key k = 0 (C major)
+    // 3. Release R1: commits cleanly to Am (home_k=0, home_minor=true), distinct from A major (3, false)!
     _ = w.stepOnce(.{}, &cues);
     try std.testing.expect(!w.wheel_open);
     try std.testing.expectEqual(@as(i8, 0), w.home_k);
-    try std.testing.expectEqual(Quality.major, homeQuality(w.home_k));
-    try std.testing.expectApproxEqAbs(wedgeHz(w.day_hz, 0), w.home_hz, 0.1);
+    try std.testing.expect(w.home_minor);
+    try std.testing.expectEqual(Quality.minor, w.homeQualityNow());
+    try std.testing.expectApproxEqAbs(harmony.cellHz(w.day_hz, .{ .ring = .inner, .at = 0 }), w.home_hz, 0.1);
 
-    // 6. Test flatward wedge: point at F (k = -1), half deflection (relative minor D minor k = 2):
+    // 4. Open wheel and leap with FULL deflection pointing at G (k = 1, outer), then calm-leap back to C:
+    //    must NOT fire a kinetic launch burst (launches belong strictly to L1/L2 in real time!)
     for (0..25) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
-    try std.testing.expect(w.wheel_open);
-    // rx = -40, ry = -70 gives r = sqrt(1600+4900)/127 ~ 80.6/127 ~ 0.63 (half deflection)
+    for (0..5) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 63, .ry = -110 }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(i8, 1), w.home_k);
+    try std.testing.expect(!w.home_minor);
+    for (0..25) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
+    for (0..5) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 0, .ry = -120 }, &cues);
+    _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    try std.testing.expect(!w.home_minor);
+    try std.testing.expectEqual(@as(u32, 0), w.burst_left);
+
+    // 5. Flatward inner cell Dm (k = -1, half deflection) + release-grace when stick snaps to center just before R1 lifts
+    for (0..25) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
     for (0..5) |_| _ = w.stepOnce(.{ .buttons = Hands.call, .rx = -40, .ry = -70 }, &cues);
     try std.testing.expectEqual(@as(i8, -1), w.wheel_point.?);
     try std.testing.expect(w.wheel_minor);
-
-    // Release R1: commits to D minor (k = foldWedge(-1 + 3) = 2)
+    // Stick returns to center 2 steps before R1 releases -> grace window preserves Dm!
+    _ = w.stepOnce(.{ .buttons = Hands.call, .rx = 0, .ry = 0 }, &cues);
     _ = w.stepOnce(.{}, &cues);
     try std.testing.expect(!w.wheel_open);
-    try std.testing.expectEqual(@as(i8, 2), w.home_k);
-    try std.testing.expectEqual(Quality.minor, homeQuality(w.home_k));
-    try std.testing.expectApproxEqAbs(wedgeHz(w.day_hz, 2), w.home_hz, 0.1);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expect(w.home_minor);
+    try std.testing.expectEqual(Quality.minor, w.homeQualityNow());
+    try std.testing.expectApproxEqAbs(harmony.cellHz(w.day_hz, .{ .ring = .inner, .at = 11 }), w.home_hz, 0.1);
 }
 
 test "strike forward cone only hits targets in front, not behind, and auto-aims nearest target" {
@@ -6747,30 +6837,31 @@ test "the wheel told: a call of up to nineteen steps never opens it; entering a 
     }
     for (0..wheel_after + 2) |_| _ = w.stepOnce(.{ .buttons = Hands.call }, &cues);
     try std.testing.expect(w.wheel_open);
-    // pointing at wonder: a click as the wedge is entered, then its note hummed under Hum's breath
+    // pointing at F (outer cell 11): a soft audition chime as the cell is entered, then its note hummed
     var clicked = false;
     var previewed = false;
     for (0..30) |_| {
         const n = w.stepOnce(.{ .buttons = Hands.call, .rx = -63, .ry = -110 }, &cues);
         for (cues[0..n]) |c| {
-            if (c.kind == .strike and c.family == .fork) clicked = true;
+            if (c.kind == .strike and c.family == .tone) clicked = true;
             if (c.kind == .hum_on and c.voice == preview_voice) previewed = true;
         }
     }
     try std.testing.expect(clicked);
     try std.testing.expect(previewed);
-    try std.testing.expect(w.previewing.? == -1);
-    // let go: the preview's breath ends, home moves, and Hum sings the new home
+    try std.testing.expectEqual(@as(i8, 11), w.previewing.?);
+    // let go: the preview's breath ends, home leaps calmly to F, and the pure chord sounds
     var sung = false;
     var ended = false;
     for (0..3) |_| {
         const n = w.stepOnce(.{}, &cues);
         for (cues[0..n]) |c| {
-            if (c.kind == .strike and c.family == .fork_octave and @abs(c.hz - w.home_hz) < 0.5) sung = true;
+            if (c.kind == .strike and c.family == .tone) sung = true;
             if (c.kind == .hum_off and c.voice == preview_voice) ended = true;
         }
     }
     try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expect(!w.home_minor);
     try std.testing.expect(sung);
     try std.testing.expect(ended);
 }
@@ -6848,51 +6939,73 @@ test "a strike's note carries: a knot twenty metres off is struck as the wave re
     try std.testing.expect(steps >= 15 and steps <= 25);
 }
 
-test "the day's ring of seven: L1 falls and L2 rises round all seven chords, the seam falls onward after a beat, and a clap takes back a stray L1 step" {
+test "true 24-cell Circle of Fifths: L1/L2 rotate all 12 fifths, D-pad Up/Down flips Outer/Inner with zero toggle ambiguity, D-pad Left/Right cycles voicing, and D->G->C launches" {
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
     afterTheLock(w);
     var cues: [max_cues]sound.Cue = undefined;
     tryout = .{};
-    // Chords are the real rule by default (chords_tryout == true)
     try std.testing.expect(chords_tryout);
 
-    // Rising a fifth seven times with L2 walks: lean, runs, remembers, aches, seam, lift, home
-    const up = [7]i8{ music.Ring.lean, music.Ring.runs, music.Ring.remembers, music.Ring.aches, music.Ring.seam, music.Ring.lift, music.Ring.home };
-    for (up) |want| {
+    // 1. L2 rotates all 12 clockwise fifths on the Outer ring and wraps cleanly back to C
+    const outer_cw = [12]i8{ 1, 2, 3, 4, 5, -6, -5, -4, -3, -2, -1, 0 };
+    for (outer_cw) |want| {
         _ = w.stepOnce(.{ .buttons = Hands.sharp }, &cues);
         try std.testing.expectEqual(want, w.home_k);
-        try std.testing.expectApproxEqAbs(harmony.ringHz(w.day_hz, want), w.home_hz, 0.01);
+        try std.testing.expect(!w.home_minor);
+        try std.testing.expectApproxEqAbs(harmony.cellHz(w.day_hz, w.homeCell()), w.home_hz, 0.01);
         _ = w.stepOnce(.{}, &cues);
     }
 
-    // Falling a fifth from home to lift, then onto the seam: after one beat Hum falls onward to aches (Em)
-    _ = w.stepOnce(.{ .buttons = Hands.flat }, &cues);
-    try std.testing.expectEqual(music.Ring.lift, w.home_k);
+    // 2. D-pad Down goes straight to Inner ring (C -> Am), pressing Down again stays on Inner (zero toggle ambiguity!)
+    _ = w.stepOnce(.{ .buttons = Hands.dpad_down }, &cues);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    try std.testing.expect(w.home_minor);
+    _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.dpad_down }, &cues);
+    try std.testing.expect(w.home_minor); // still Am!
+    _ = w.stepOnce(.{}, &cues);
+
+    // 3. L1/L2 stay on the Inner ring (Am -> Em -> Am -> Dm)
+    _ = w.stepOnce(.{ .buttons = Hands.sharp }, &cues);
+    try std.testing.expectEqual(@as(i8, 1), w.home_k);
+    try std.testing.expect(w.home_minor); // Em
     _ = w.stepOnce(.{}, &cues);
     _ = w.stepOnce(.{ .buttons = Hands.flat }, &cues);
-    try std.testing.expectEqual(music.Ring.seam, w.home_k);
-    for (0..tick_every + 2) |_| _ = w.stepOnce(.{}, &cues);
-    try std.testing.expectEqual(music.Ring.aches, w.home_k);
+    _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.flat }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expect(w.home_minor); // Dm
+    _ = w.stepOnce(.{}, &cues);
 
-    // Walk falling fifths home the long way (aches -> remembers -> runs -> lean -> home): launches off lean
-    const down_home = [4]i8{ music.Ring.remembers, music.Ring.runs, music.Ring.lean, music.Ring.home };
-    for (down_home) |want| {
-        _ = w.stepOnce(.{ .buttons = Hands.flat }, &cues);
-        try std.testing.expectEqual(want, w.home_k);
-        _ = w.stepOnce(.{}, &cues);
-    }
+    // 4. D-pad Up rises cleanly back to Outer ring (Dm -> F)
+    _ = w.stepOnce(.{ .buttons = Hands.dpad_up }, &cues);
+    try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expect(!w.home_minor); // F
+    _ = w.stepOnce(.{}, &cues);
+
+    // 5. D-pad Left/Right cycles voicing (default 1=TRIAD -> 2=BASS -> 0=5TH -> 1=TRIAD)
+    try std.testing.expectEqual(@as(u8, 1), w.voicing);
+    _ = w.stepOnce(.{ .buttons = Hands.dpad_right }, &cues);
+    try std.testing.expectEqual(@as(u8, 2), w.voicing);
+    _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.dpad_right }, &cues);
+    try std.testing.expectEqual(@as(u8, 0), w.voicing);
+    _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.dpad_right }, &cues);
+    try std.testing.expectEqual(@as(u8, 1), w.voicing);
+    _ = w.stepOnce(.{}, &cues);
+
+    // 6. Borrowed secondary dominant chain D -> G -> C on L1 triggers full-close kinetic launch!
+    w.setChordDirect(2, false); // D major (outside)
+    _ = w.stepOnce(.{ .buttons = Hands.flat }, &cues); // D -> G
+    try std.testing.expectEqual(@as(i8, 1), w.home_k);
+    try std.testing.expectEqual(@as(u8, 1), w.long_way_chain);
+    _ = w.stepOnce(.{}, &cues);
+    _ = w.stepOnce(.{ .buttons = Hands.flat }, &cues); // G -> C (full close!)
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
     try std.testing.expect(tryout.launches >= 1);
     try std.testing.expect(w.burst_left > 0);
-
-    // L1 pressed 2 steps before a clap completes: the clap takes back the stray L1 chord step
-    for (0..20) |_| _ = w.stepOnce(.{}, &cues);
-    try std.testing.expectEqual(music.Ring.home, w.home_k);
-    _ = w.stepOnce(.{ .buttons = Hands.flat }, &cues);
-    try std.testing.expectEqual(music.Ring.lift, w.home_k);
-    _ = w.stepOnce(.{}, &cues);
-    _ = w.stepOnce(.{ .buttons = Hands.clap }, &cues);
-    try std.testing.expectEqual(music.Ring.home, w.home_k);
 }
 
 test "the chords try-out: on the lift a held jump goes higher; on the lean Hum runs faster" {
@@ -7233,9 +7346,13 @@ test "dev arena warp, daylight, chord switch, and live feel bench changes work c
     w.setDaylight(.dark);
     try std.testing.expectEqual(@as(f32, 0.0), w.dawn);
 
-    w.setChordDirect(-1);
+    w.setChordDirect(-1, false);
     try std.testing.expectEqual(@as(i8, -1), w.home_k);
+    try std.testing.expect(!w.home_minor);
     try std.testing.expect(w.react.rise > 0.0);
+    w.setChordDirect(0, true);
+    try std.testing.expectEqual(@as(i8, 0), w.home_k);
+    try std.testing.expect(w.home_minor);
 
     // Live bench knob changes jump launch velocity and resets cleanly
     const base_v = jumpSpeedNow();

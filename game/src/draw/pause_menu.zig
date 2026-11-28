@@ -13,6 +13,7 @@
 const std = @import("std");
 const colour = @import("colour.zig");
 const songbook = @import("songbook.zig");
+const circle_hud = @import("circle_hud.zig");
 const room = @import("../room.zig");
 const feel = @import("../feel.zig");
 const world_mod = @import("../world/world.zig");
@@ -347,9 +348,12 @@ pub const State = struct {
                     1 => {
                         if (h_step != 0 or confirm) {
                             const delta: i8 = if (h_step != 0) h_step else 1;
-                            const next_k = music.Ring.step(w.home_k, delta);
-                            w.setChordDirect(next_k);
-                            self.say(now_s, world_mod.harmony.chordName(next_k));
+                            const cur_idx: i32 = @intCast(w.homeCell().index());
+                            const next_idx: u5 = @intCast(@mod(cur_idx + delta, 24));
+                            const next_cell = music.wheel.Cell.fromIndex(next_idx);
+                            const next_k: i8 = world_mod.foldWedge(@intCast(next_cell.at));
+                            w.setChordDirect(next_k, next_cell.ring == .inner);
+                            self.say(now_s, world_mod.harmony.cellName(next_cell));
                         }
                     },
                     2 => {
@@ -446,13 +450,16 @@ pub const State = struct {
 /// Optional live 1-line Corner Telemetry HUD during play (off by default).
 pub fn drawHud(sk: *songbook.Sketch, words: *room.Type, w: *const World, tel: *const Telemetry) void {
     const sp = @sqrt(w.hum_vx * w.hum_vx + w.hum_vz * w.hum_vz);
+    const cur = w.homeCell();
+    const vm = world_mod.harmony.VoicingMode.fromU8(w.voicing);
     var buf: [128]u8 = undefined;
-    const text = std.fmt.bufPrint(&buf, "{d:>4.1}fps {d:>4.1}ms | {d:>4.1}k/24k L {d:>3.1}k/12k T | {s} | {d:>4.1}m/s", .{
+    const text = std.fmt.bufPrint(&buf, "{d:>4.1}fps {d:>4.1}ms | {d:>4.1}k/24k L {d:>3.1}k/12k T | {s} {s} | {d:>4.1}m/s", .{
         tel.fps,
         tel.avg_ms,
         @as(f32, @floatFromInt(tel.lines_now)) / 1000.0,
         @as(f32, @floatFromInt(tel.black_now)) / 1000.0,
-        chordShort(w.home_k),
+        world_mod.harmony.cellShort(cur),
+        vm.label(),
         sp,
     }) catch return;
     sk.rect(6.0, 5.0, sk.w - 12.0, 22.0, .{ 0.0, 0.0, 0.0 }, 0.58);
@@ -528,39 +535,40 @@ fn drawStatus(sk: *songbook.Sketch, words: *room.Type, w: *const World, tel: *co
     drawGauge(sk, 430.0, y + 5.0, 160.0, 10.0, aud_f, if (aud_f > 0.75) warn_col else green);
     y += 30.0;
 
-    // Section 2: Harmony & World Reactions
-    putLine(words, lx, y, 0.86, .{ amber[0], amber[1], amber[2], 0.95 }, "HARMONY & WORLD REACTIONS");
+    // Section 2: Harmony & True 24-Cell Circle of Fifths (left telemetry + right 24-cell circle)
+    putLine(words, lx, y, 0.86, .{ amber[0], amber[1], amber[2], 0.95 }, "HARMONY & CIRCLE OF FIFTHS");
+    const circle_cy: f32 = y + 74.0;
+    circle_hud.drawCircle(sk, words, w, 536.0, circle_cy, 64.0, 1.0, true);
     y += 26.0;
 
-    const s_harm = std.fmt.bufPrint(&buf, "DAY C  |  {s} (k={d})  |  {s}  |  chords:{s}", .{
-        chordLabel(w.home_k),
-        w.home_k,
-        if (w.in_garden) "GARDEN" else "DARK",
-        if (world_mod.chords_tryout) "ON" else "OFF",
+    const cur = w.homeCell();
+    const vm = world_mod.harmony.VoicingMode.fromU8(w.voicing);
+    const s_harm = std.fmt.bufPrint(&buf, "DAY C  |  {s}  |  {s}", .{
+        world_mod.harmony.cellName(cur),
+        vm.label(),
     }) catch "";
     putLine(words, lx, y, 0.82, .{ lit_col[0], lit_col[1], lit_col[2], 0.95 }, s_harm);
     y += 24.0;
 
-    // 12-cell Circle-of-Fifths colour strip showing live `world.react.awake[0..12]`
-    const names = [12][]const u8{ "C", "G", "D", "A", "E", "B", "F#", "Db", "Ab", "Eb", "Bb", "F" };
-    for (0..12) |cell| {
-        const cx = lx + @as(f32, @floatFromInt(cell)) * 47.0;
-        const awake = w.react.awake[cell];
-        const rgb = colour.ofCell(cell);
-        sk.rect(cx, y, 42.0, 20.0, rgb, 0.16 + 0.78 * awake);
-        putLine(words, cx + 8.0, y + 1.0, 0.72, .{ 0.04, 0.04, 0.05, if (awake > 0.4) 0.95 else 0.0 }, names[cell]);
-        if (awake <= 0.4) putLine(words, cx + 8.0, y + 1.0, 0.72, .{ bone[0], bone[1], bone[2], 0.72 }, names[cell]);
-    }
-    y += 28.0;
+    const s_ring = std.fmt.bufPrint(&buf, "RING {s}  (k={d})  chords:{s}", .{
+        if (w.home_minor) "INNER MINOR" else "OUTER MAJOR",
+        w.home_k,
+        if (world_mod.chords_tryout) "ON" else "OFF",
+    }) catch "";
+    putLine(words, lx, y, 0.78, .{ teal[0], teal[1], teal[2], 0.92 }, s_ring);
+    y += 24.0;
 
-    const s_react = std.fmt.bufPrint(&buf, "RISE {d:.2}   TILT {d:.3}   WOUND {d:.2}   BENCH {d} mod", .{
+    const s_react = std.fmt.bufPrint(&buf, "RISE {d:.2}  TILT {d:.3}  WND {d:.2}  MOD:{d}", .{
         w.react.rise,
         w.react.tilt,
         w.react.wound,
         feel.diffCount(feel.now),
     }) catch "";
-    putLine(words, lx, y, 0.82, .{ bone[0], bone[1], bone[2], 0.90 }, s_react);
-    y += 30.0;
+    putLine(words, lx, y, 0.78, .{ bone[0], bone[1], bone[2], 0.90 }, s_react);
+    y += 24.0;
+
+    putLine(words, lx, y, 0.72, .{ bone[0], bone[1], bone[2], 0.65 }, "L1/L2 FIFTHS  UP/DN RING  L/R VOICE  R1 LENS");
+    y += 58.0;
 
     // Section 3: Hum & Camera Physics
     putLine(words, lx, y, 0.86, .{ amber[0], amber[1], amber[2], 0.95 }, "HUM & CAMERA");
@@ -701,7 +709,7 @@ fn drawArena(self: *const State, sk: *songbook.Sketch, words: *room.Type, w: *co
 
         const val_s: []const u8 = switch (idx) {
             0 => std.fmt.bufPrint(&buf, "< {s} >", .{landmarks[self.arena_warp].name}) catch "",
-            1 => std.fmt.bufPrint(&buf, "< {s} >", .{chordLabel(w.home_k)}) catch "",
+            1 => std.fmt.bufPrint(&buf, "< {s} >", .{world_mod.harmony.cellName(w.homeCell())}) catch "",
             2 => std.fmt.bufPrint(&buf, "< {s} >", .{daylightLabel(self.arena_day)}) catch "",
             3 => "[ B TO RESET ]",
             4 => if (tel.without_trail) "[ OFF ]" else "[ ON  ]",
@@ -720,14 +728,6 @@ fn drawArena(self: *const State, sk: *songbook.Sketch, words: *room.Type, w: *co
     const lm = landmarks[self.arena_warp];
     const info = std.fmt.bufPrint(&buf, "Selected warp target: ({d:.0}, {d:.0})  |  press B to jump & resume", .{ lm.x, lm.z }) catch "";
     putLine(words, lx, 412.0, 0.78, .{ bone[0], bone[1], bone[2], 0.72 }, info);
-}
-
-fn chordLabel(k: i8) []const u8 {
-    return world_mod.harmony.chordName(k);
-}
-
-fn chordShort(k: i8) []const u8 {
-    return world_mod.harmony.chordShort(k);
 }
 
 fn daylightLabel(idx: usize) []const u8 {

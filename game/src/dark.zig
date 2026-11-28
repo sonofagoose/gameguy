@@ -20,6 +20,7 @@ const hum_figure = @import("draw/hum_figure.zig");
 const black_shapes = @import("draw/black.zig");
 const colour = @import("draw/colour.zig");
 const drip_lines = @import("draw/drip_lines.zig");
+const circle_hud = @import("draw/circle_hud.zig");
 const m = @import("m.zig");
 const world_mod = @import("world/world.zig");
 const sound_mod = @import("sound/sound.zig");
@@ -191,13 +192,13 @@ fn followJack(step: u64) void {
 
 /// The world's beat as the main thread last left it, for the sound's thread to tell a timed strike
 /// from one the game will place: two copies, the one not being written is the one to read.
-const Beat = struct { clock: u64 = 0, part: f32 = 0.0, tempo: f32 = 1.0, at_sample: u64 = 0, can_strike: bool = false, window: f64 = world_mod.strike_window, home_k: i8 = 0, strike_count: u32 = 0 };
+const Beat = struct { clock: u64 = 0, part: f32 = 0.0, tempo: f32 = 1.0, at_sample: u64 = 0, can_strike: bool = false, window: f64 = world_mod.strike_window, home_minor: bool = false, strike_count: u32 = 0 };
 var beats: [2]Beat = .{ .{}, .{} };
 var beat_now: u32 = 0;
 
 fn publishBeat(w: *const World) void {
     const next = (@atomicLoad(u32, &beat_now, .monotonic) + 1) % 2;
-    beats[next] = .{ .clock = w.clock, .part = w.clock_part, .tempo = w.tempo, .at_sample = w.step * world_mod.samples_per_step, .can_strike = w.canStrike(), .window = w.widen(world_mod.strike_window), .home_k = w.home_k, .strike_count = w.strike_count };
+    beats[next] = .{ .clock = w.clock, .part = w.clock_part, .tempo = w.tempo, .at_sample = w.step * world_mod.samples_per_step, .can_strike = w.canStrike(), .window = w.widen(world_mod.strike_window), .home_minor = w.home_minor, .strike_count = w.strike_count };
     @atomicStore(u32, &beat_now, next, .release);
 }
 
@@ -238,8 +239,8 @@ fn noteStrike(cue: sound_mod.Cue) void {
 }
 
 /// Hum's timed strike as the hands start it: the same sound the world tells for it.
-fn strikeCue(home: f32, count: u32, home_k: i8, timed: bool) sound_mod.Cue {
-    const ratios = world_mod.chordRatios(world_mod.homeQuality(home_k));
+fn strikeCue(home: f32, count: u32, home_minor: bool, timed: bool) sound_mod.Cue {
+    const ratios = world_mod.chordRatios(if (home_minor) .minor else .major);
     const fork = home * world_mod.strike_over * ratios[count % 3];
     return .{
         .at = 0,
@@ -277,28 +278,11 @@ fn handsNow() void {
     if (@atomicLoad(u8, &ready_paused, .monotonic) != 0) return;
     const now_s = plat.now();
     const home: f32 = @bitCast(@atomicLoad(u32, &ready_home, .monotonic));
-    for (edges[0..n], 0..) |e, i| {
-        // L1 and R1 within the clap's window, whichever second, is the clap (SPEC.md 8)
-        var clapped = false;
+    for (edges[0..n]) |e| {
+        // L1 (flat fifth) and R1 (call) are completely independent in live play — no L1+R1 clap collision
         const at: u64 = switch (e.what) {
-            .call_down => blk: {
-                if (clap_rule.press(false, e.at_s)) {
-                    clapped = true;
-                    break :blk snd.ownNow(clapCue(home));
-                }
-                // L1 in this same look, near enough to make this a clap: no call to start
-                for (edges[i + 1 .. n]) |later| {
-                    if (later.what == .voice_down and clap_rule.wouldClap(true, later.at_s)) break :blk snd.sample;
-                }
-                break :blk snd.ownNow(world_mod.heardAs(world_mod.callSound(home, @enumFromInt(@atomicLoad(u8, &ready_cover, .monotonic))), sound_mod.own_hands));
-            },
-            .voice_down => blk: {
-                if (clap_rule.press(true, e.at_s)) {
-                    clapped = true;
-                    break :blk snd.ownNow(clapCue(home));
-                }
-                break :blk snd.sample;
-            },
+            .call_down => snd.ownNow(world_mod.heardAs(world_mod.callSound(home, @enumFromInt(@atomicLoad(u8, &ready_cover, .monotonic))), sound_mod.own_hands)),
+            .voice_down => snd.sample,
             .sing_down => blk: {
                 if (@atomicLoad(u8, &ready_winded, .monotonic) != 0) break :blk snd.sample;
                 const began = snd.ownNow(world_mod.heardAs(world_mod.humSound(home), sound_mod.own_hands));
@@ -314,18 +298,16 @@ fn handsNow() void {
                 const strike_idx = @atomicLoad(u32, &hands_strikes, .monotonic);
                 @atomicStore(u32, &hands_strikes, strike_idx + 1, .monotonic);
                 const timed = timedNow(snd.sample);
-                break :blk snd.ownNow(strikeCue(home, strike_idx, b.home_k, timed));
+                break :blk snd.ownNow(strikeCue(home, strike_idx, b.home_minor, timed));
             },
             else => snd.sample,
         };
         const late_us: u32 = @intFromFloat(std.math.clamp((now_s - e.at_s) * 1e6, 0.0, 4e9));
-        if (e.what == .call_down or e.what == .sing_down or clapped) {
+        if (e.what == .call_down or e.what == .sing_down) {
             @atomicStore(u32, &hands_started, hands_started + 1, .monotonic);
             if (late_us > hands_most_us) @atomicStore(u32, &hands_most_us, late_us, .monotonic);
         }
-        if (clapped) @atomicStore(u32, &hands_claps, hands_claps + 1, .monotonic);
         queueStarted(.{ .what = e.what, .sample = at, .late_us = late_us });
-        if (clapped) queueStarted(.{ .what = .clap, .sample = at, .late_us = late_us });
     }
 }
 
@@ -609,6 +591,10 @@ const Pad = struct {
             .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_LEFTSHOULDER, .bit = Hands.voice },
             .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_BACK, .bit = Hands.select },
             .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_START, .bit = Hands.start },
+            .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_DPAD_UP, .bit = Hands.dpad_up },
+            .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_DPAD_DOWN, .bit = Hands.dpad_down },
+            .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_DPAD_LEFT, .bit = Hands.dpad_left },
+            .{ .sdl_button = c.SDL_CONTROLLER_BUTTON_DPAD_RIGHT, .bit = Hands.dpad_right },
         };
         for (map) |entry| {
             if (sdl.GameControllerGetButton(handle, entry.sdl_button) != 0) h.buttons |= entry.bit;
@@ -1359,6 +1345,10 @@ fn withKeys(pad_hands: Hands) Hands {
         .{ .code = c.SDL_SCANCODE_TAB, .bit = Hands.start },
         .{ .code = c.SDL_SCANCODE_BACKSPACE, .bit = Hands.select },
         .{ .code = c.SDL_SCANCODE_ESCAPE, .bit = Hands.select | Hands.start },
+        .{ .code = c.SDL_SCANCODE_1, .bit = Hands.dpad_up },
+        .{ .code = c.SDL_SCANCODE_2, .bit = Hands.dpad_down },
+        .{ .code = c.SDL_SCANCODE_3, .bit = Hands.dpad_left },
+        .{ .code = c.SDL_SCANCODE_4, .bit = Hands.dpad_right },
     };
     for (map) |m_| {
         if (down(keys, m_.code)) h.buttons |= m_.bit;
@@ -1481,10 +1471,10 @@ pub fn run(window: plat.Window, options: Options) bool {
     if (interactive) _ = loadProgress();
     world_mod.chords_tryout = true;
     world_mod.tryout = .{};
-    // Chords round the day's ring of seven are the game's core rule (ROADMAP.md, steps 1.3–1.5)
+    // True 24-cell concentric Circle of Fifths is the game's core rule
     world.awake |= @as(u8, 1) << @intFromEnum(world_mod.Mood.drive);
     if (options.chords) {
-        log("chords: L1 falls a fifth and L2 rises a fifth round the day's ring of seven (F, C, G, Dm, Am, Em, B seam)", .{});
+        log("chords: 24-cell Circle of Fifths (L1/L2 fifths, D-pad Up/Down Outer Major / Inner Minor, D-pad L/R voicing, R1 hold 24-cell lens)", .{});
     }
     if (options.pause_dump) |dir| {
         // Render all four pause/workbench tabs and the corner HUD over a live Garden frame
@@ -1498,7 +1488,7 @@ pub fn run(window: plat.Window, options: Options) bool {
         world.warpTo(world_mod.land.wake[0], world_mod.land.wake[1], 0.0);
         world.setDaylight(.full_day);
         world_mod.chords_tryout = true;
-        world.setChordDirect(-1);
+        world.setChordDirect(-1, false);
         var dump_cues: [world_mod.max_cues]sound_mod.Cue = undefined;
         for (0..35) |_| _ = world.stepOnce(.{}, &dump_cues);
 
@@ -1543,11 +1533,38 @@ pub fn run(window: plat.Window, options: Options) bool {
             .mix_rough = 0.12,
             .hud_on = true,
         };
-        // 1. Live corner HUD over the 3D Garden
+        world.setChordDirect(0, true); // Am REMEMBERS (inner minor) for rich 24-cell preview
+        world_mod.tryout.changed_at = world.step;
+        // 1. Live corner HUD + always-on Mini Circle Compass over the 3D Garden
         renderer.frame(&vp, &dump_loud);
+        circle_hud.drawLiveCompass(&sketch, &words, &world, true);
         pause_menu.drawHud(&sketch, &words, &world, &sample_tel);
         dumpNamed(dir, "pause-hud", .{});
-        // 2. All four pause tabs
+        // 1b. Smart-fade Mini Circle Compass alone (HUD off, blooming cleanly in top-right)
+        renderer.frame(&vp, &dump_loud);
+        circle_hud.drawLiveCompass(&sketch, &words, &world, false);
+        dumpNamed(dir, "pause-compass", .{});
+        // 1c. 12-o'clock-aligned 24-letter 3D R1 Wheel hovering on Em (inner 1 o'clock)
+        world.wheel_open = true;
+        world.wheel_view = 1.0;
+        world.wheel_point = 1;
+        world.wheel_minor = true;
+        const w_cam = world.camera();
+        const w_vp = m.mul(m.perspective(w_cam.fov, aspect, 0.4, 9000.0), m.lookAt(w_cam.eye, w_cam.at, w_cam.up));
+        const wheel_n = aster_lines.wheelLines(&world, moving[0..]);
+        renderer.setTop(0, @intCast(wheel_n));
+        renderer.setDynamic(moving[0..wheel_n]);
+        renderer.stand = w_cam.stand;
+        renderer.frame(&w_vp, &dump_loud);
+        dumpNamed(dir, "pause-wheel", .{});
+        world.wheel_open = false;
+        world.wheel_view = 0.0;
+        world.wheel_point = null;
+        world.wheel_minor = false;
+        renderer.setTop(0, 0);
+        renderer.setDynamic(moving[0..0]);
+        renderer.stand = cam.stand;
+        // 2. All four pause tabs (with Am active on the 24-cell STATUS diagram)
         var pm = pause_menu.State{};
         pm.openAt(&world, 0.0);
         feel.now.lift_pull = 2.0 / 3.0; // show a live modified knob indicator in BENCH preview
@@ -1816,7 +1833,6 @@ pub fn run(window: plat.Window, options: Options) bool {
                 pose_before = Pose.of(&world);
                 var hands = if (replay) |*r| r.hands(world.step) else if (!scripted) held else if (options.scene != .dark) walker.hands(&world) else script.hands(world.step);
                 if (!scripted and replay == null and presses.fd >= 0) kernelHands(&hands, world.step);
-                if (!scripted and replay == null and presses.fd < 0) clapOfSteps(&hands, world.step);
                 if (keeping) card.note(world.step, hands);
                 if (replay) |*r| {
                     if (r.done(world.step + 1)) running = false;
@@ -2110,19 +2126,8 @@ pub fn run(window: plat.Window, options: Options) bool {
             words.flush();
         }
         if (world_mod.chords_tryout and world.stand >= 1.0 and !world.wheel_open and !menu.open) {
-            // One line of words at the top: what the two triggers are until they have been found,
-            // and for two seconds after each change the chord's letter and place on the ring
-            const t = world_mod.tryout;
-            const since: f32 = if (t.changed_at == world_mod.never) 1.0e9 else @floatFromInt(world.step - t.changed_at);
-            const line: []const u8 = if (since < 120.0) world_mod.harmony.chordName(world.home_k) else if (options.chords and t.steps < 4) "L1 LIFT    L2 LEAN" else "";
-            if (line.len > 0) {
-                const shown: f32 = if (since < 120.0) std.math.clamp((120.0 - since) / 40.0, 0.0, 1.0) else 0.7;
-                const scale: f32 = 2.2;
-                const wide = @as(f32, @floatFromInt(line.len)) * 9.6 * scale;
-                // at the top: Hum stands in the lower third
-                words.line((@as(f32, @floatFromInt(window.width)) - wide) * 0.5, @as(f32, @floatFromInt(window.height)) * 0.06, scale, .{ 0.886 * shown, 0.839 * shown, 0.784 * shown, shown }, line);
-                words.flush();
-            }
+            // Smart-fade Mini Circle-of-Fifths Compass (always-on when Corner HUD is enabled)
+            circle_hud.drawLiveCompass(&sketch, &words, &world, telemetry.hud_on);
         }
         telemetry.lines_now = picked.lines + moving_n;
         telemetry.lines_peak = most_lines;
@@ -2235,7 +2240,8 @@ pub fn run(window: plat.Window, options: Options) bool {
     if (garden_lines.lost_black > 0) log("the garden's models lost {d} black triangles for want of room", .{garden_lines.lost_black});
     if (world_mod.chords_tryout and world_mod.tryout.steps > 0) {
         const t = world_mod.tryout;
-        log("chords: {d} steps, {d} on tick, {d} launches off lean; highest {d:.1} m, fastest {d:.1} m/s; ended on {s}; mix active {d}, ducked {d}, muted {d}", .{ t.steps, t.timed, t.launches, t.highest, t.fastest, world_mod.harmony.chordName(world.home_k), world.mix.active_count, world.mix.ducked, world.mix.silenced });
+        const vm = world_mod.harmony.VoicingMode.fromU8(world.voicing);
+        log("chords: {d} steps, {d} on tick, {d} launches off lean; highest {d:.1} m, fastest {d:.1} m/s; ended on {s} [{s}]; mix active {d}, ducked {d}, muted {d}", .{ t.steps, t.timed, t.launches, t.highest, t.fastest, world_mod.harmony.cellName(world.homeCell()), vm.label(), world.mix.active_count, world.mix.ducked, world.mix.silenced });
     }
     logBenchDiff("exit");
     if (presses.fd >= 0) {

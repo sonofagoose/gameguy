@@ -16,6 +16,40 @@ Where the build stands, so a new session can pick it up. Newest first.
 - **How the engine is shaped:** `docs/engine.md`, written the same day at his asking ("audit and
   design the ultimate engine shape for this endeavor"). Leg 0 of the road builds it.
 - **Steps of the road that are in:**
+  - **True 24-Cell Concentric Circle of Fifths Instrument (pre-1.6 interface upgrade)**
+    (2026-11-27):
+    upgraded the temporary 1D 7-chord snake into the real 2D 24-cell concentric Circle of Fifths
+    (`12` outer Major + `12` inner Relative Minor, `C`/`Am` at 12 o'clock) with zero control
+    redundancy across the R36S. In: (1) `game/src/world/harmony.zig` — `VoicingMode` (`5TH` /
+    `TRIAD` [default] / `BASS`), 24-cell `cellHz`/`cellName`/`cellShort`/`cellFace`, and voice-led
+    pure just triads (`5/4` major, `6/5` minor) in `.tone` resonators (`E4..E5`) so `C <-> Am`
+    keeps BOTH `C` and `E` floating while gliding `G <-> A`, omitting the C ground anchor on
+    outside keys so all 24 cells sound crystal-clean; (2) `game/src/world/world.zig` &
+    `game/src/dark.zig` — true 2D `(home_k, home_minor)` + `voicing` state (separating `A` outer
+    from `Am` inner), `Hands.dpad_up/down/left/right` on free bits `11..14` (preserving `.take` v2
+    format), zero-redundancy controls (`L1`/`L2` rotate counter-clockwise/clockwise all 12 fifths
+    on current ring with `G -> C` / `D -> G -> C` kinetic launch; `D-pad Up/Down` = THE direct
+    Outer Major / Inner Minor switch; `D-pad Left/Right` = Voicing; `R1` tap = Call with legacy
+    `L1+R1` Clap collision disabled in live play; `R1` hold = FREE 24-cell Circle Lens + calm leap
+    with radial hysteresis & 8-step release grace, no kinetic launch, no premature Day-Key bypass);
+    (3) `game/src/draw/wheel_lines.zig` — fixed 15-degree angular offset so `C`/`Am` sit
+    dead-center at 12 o'clock, showing sunlit 6, readable tinted night 18, gold active rim, and
+    bright white hovered cursor on all 24 cells; (4) `game/src/draw/circle_hud.zig` + `songbook.zig`
+    (`Sketch.quad`) + `pause_menu.zig` — smart-fade top-right Mini Circle Compass during live play
+    (always-on when Corner HUD is on) with exact glyph-metric centering, 24-cell Circle diagram on
+    Pause `STATUS`, and 24-cell cycling on Pause `ARENA`. **Verified (laptop):** 204/204 rules
+    tests + 3/3 ears tests pass; full `game/build.sh laptop` passes (`--scene evening` 1.20
+    ms/frame, `ears` evening `rough_share 0.0495` / `rough_longest_s 1.79 s`, `beauty.py`, exact
+    replay & `389,920`-byte `stood.save` round-trips); 30.5 s 24-cell triad/bass/5th/R1-leap WAV
+    (`circle24.wav`) scored `rough_share 0.1713`, `rough_longest_s 0.43 s` (0 stretches > 0.5 s),
+    `speaker_share 0.8043`; all 5 640x480 visual renders (`compass`, `wheel`, `status`, `hud`,
+    `arena`) verified spotless. **Verified & deployed on purple unit 164 (2026-11-27):**
+    `same-take-aarch64 10` (`game/results/same-take-aarch64.txt`) matched `same-take-x86_64.txt`
+    **77/77 lines bit-identical** (`minute 10: 8c85dc7b6c919f91 / 62c4bef2bf9441eb`; `evening end:
+    435a3ae4c601ef65 / 2c45cd06b797fdf7`). Live 24-cell Circle + `R1` wheel replay
+    (`game/results/gameguy-chords-20261127-191240.txt`): **1,102 frames, 1 late (1,069 frames under
+    8 ms), 16.68 ms avg cadence (60.0 Hz), 6.06 ms avg / 16.12 ms worst frame work, 0.21 ms slowest
+    sound buffer, real-time sound yes, 0 refused cues**, 23,432 max lines, 6,940 max black tris.
   - **0.10 and Leg 1A (steps 1.3–1.5): Touches/Meaning, Roughness Mix Governor, 7-Chord Ring as the
     Real Game, and Voice-Led Open-Fifth Sound** (2026-11-27): finished Leg 0's final step and opened
     Leg 1. In: (1) `game/src/law/meaning.zig` — the five canonical `Touch` kinds (`wave`, `knock`,

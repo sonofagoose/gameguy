@@ -141,6 +141,18 @@ pub const Sketch = struct {
         self.vert(x, y + h, 0.0, col);
     }
 
+    /// A solid convex quad (p0 -> p1 -> p2 -> p3) in screen pixels, for annular Circle wedges.
+    pub fn quad(self: *Sketch, x0: f32, y0: f32, x1: f32, y1: f32, x2: f32, y2: f32, x3: f32, y3: f32, rgb: [3]f32, alpha: f32) void {
+        if (self.used + 6 * 7 > self.verts.len or alpha <= 0.0) return;
+        const col = [4]f32{ rgb[0], rgb[1], rgb[2], alpha };
+        self.vert(x0, y0, 0.0, col);
+        self.vert(x1, y1, 0.0, col);
+        self.vert(x2, y2, 0.0, col);
+        self.vert(x0, y0, 0.0, col);
+        self.vert(x2, y2, 0.0, col);
+        self.vert(x3, y3, 0.0, col);
+    }
+
     pub fn flush(self: *Sketch) void {
         if (self.used == 0) return;
         gl.UseProgram(self.prog);
