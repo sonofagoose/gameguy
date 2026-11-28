@@ -272,8 +272,8 @@ else
   echo "fact take.file_replays_same 0" >> build/facts.txt
 fi
 
-end_live=$(grep -o "^witness garden.w04 first=[0-9]*" build/same-take-x86_64.txt | tail -1)
-end_back=$(grep -o "^witness garden.w04 first=[0-9]*" build/loaded.out | tail -1)
+end_live=$(grep -o "^witness garden.w04 first=[0-9]*" build/same-take-x86_64.txt | tail -1 || true)
+end_back=$(grep -o "^witness garden.w04 first=[0-9]*" build/loaded.out | tail -1 || true)
 if [ -n "$end_live" ] && [ "$end_live" = "$end_back" ]; then
   echo "   the same crossing on the same step: $end_back ($(stat -c %s build/middle.save) bytes)"
   echo "fact save.file_opens_same 1" >> build/facts.txt

@@ -572,6 +572,13 @@ fn drawStatus(sk: *songbook.Sketch, words: *room.Type, w: *const World, tel: *co
     putLine(words, lx, y, 0.82, .{ lit_col[0], lit_col[1], lit_col[2], 0.95 }, s_harm);
     y += 24.0;
 
+    const s_tempo = if (feel.now.tempo_dynamic >= 0.5)
+        (std.fmt.bufPrint(&buf, "TEMPO  {d:.0} bpm  (DYN {d:.0}-{d:.0})", .{ w.live_bpm, feel.now.bpm_calm, feel.now.bpm_peak }) catch "")
+    else
+        (std.fmt.bufPrint(&buf, "TEMPO  {d:.0} bpm  (FIXED)", .{ w.live_bpm }) catch "");
+    putLine(words, lx, y, 0.78, .{ teal[0], teal[1], teal[2], 0.92 }, s_tempo);
+    y += 24.0;
+
     const s_ring = std.fmt.bufPrint(&buf, "RING {s}  (k={d})  {d:.0}bpm {s}", .{
         if (w.home_minor) "INNER MINOR" else "OUTER MAJOR",
         w.home_k,

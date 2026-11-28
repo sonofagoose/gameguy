@@ -473,12 +473,12 @@ pub fn tickStep(k: u64) u64 {
     return k * tick_every + (if (k % 2 == 1) @as(u64, tick_swing) else 0);
 }
 
-fn pocketWindowSteps(live_bpm: f32, gentle: bool) f64 {
-    const bpm = std.math.clamp(live_bpm, 70.0, 120.0);
-    const normal_ms: f32 = 60.0 - (bpm - 70.0) * (25.0 / 50.0);
-    const gentle_ms: f32 = if (gentle) normal_ms * 1.17 else normal_ms;
-    return @as(f64, gentle_ms) / 16.67;
-}
+pub const SubHit = enum(u8) { none, downbeat, quarter, eighth, sixteenth };
+pub const SubResult = struct {
+    hit: SubHit = .none,
+    slot: u8 = 0,
+    accuracy: f32 = 0.0,
+};
 
 /// Returns the beat index `k` whose `tickStep(k)` has been reached or crossed on this step
 /// (skip-safe when live BPM > 72 advances `clock` by 2 in a frame, and bit-exact at 72 BPM).
@@ -1159,6 +1159,9 @@ pub const World = struct {
     hum_chord_vis: f32 = 0.0,
     /// The live Drip clock used by the 16th-note pocket and visible 4/4 pulse.
     live_bpm: f32 = 72.0,
+    /// The latest R2 release or swell landing in the 16 subdivisions of a 4/4 bar.
+    last_cadence_sub: SubHit = .none,
+    last_cadence_slot: u8 = 0,
     /// The swell: where home was when it began, how many bars it has grown, whether the right stick
     /// is still out from a nudge, the last cadence that landed and when, and the last downbeat.
     swell_from: i8 = 0,
@@ -1661,6 +1664,41 @@ pub const World = struct {
         self.dropped += 1;
     }
 
+    fn stepTempo(self: *World) f32 {
+        if (!self.drip_met) {
+            self.live_bpm = 72.0;
+        } else if (feel.now.tempo_dynamic < 0.5) {
+            self.live_bpm = std.math.clamp(feel.now.bpm, 40.0, 160.0);
+        } else if (!self.singing and !self.wheel_open and self.step >= self.hold_until) {
+            const speed = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
+            var energy: f32 = 0.0;
+            if (speed <= 3.0) {
+                energy = speed * (0.08 / 3.0);
+            } else if (speed <= 12.0) {
+                energy = 0.08 + (speed - 3.0) * (0.36 / 9.0);
+            } else if (speed <= 20.0) {
+                energy = 0.44 + (speed - 12.0) * (0.44 / 8.0);
+            } else {
+                energy = @min(1.0, 0.88 + (speed - 20.0) * (0.12 / 4.0));
+            }
+            if (self.airborne) energy = @min(1.0, energy + 0.20);
+            if (self.burst_left > 0) energy = @max(energy, 0.95);
+            if (self.threatened()) energy = @max(energy, 0.52);
+            if (speed > 1.5) energy = @min(1.0, energy + 0.08 * self.hum_chord_vis);
+
+            const calm = std.math.clamp(feel.now.bpm_calm, 50.0, 120.0);
+            const peak = std.math.clamp(@max(feel.now.bpm_peak, calm), calm, 160.0);
+            const target = calm + (peak - calm) * std.math.clamp(energy, 0.0, 1.0);
+            if (target > self.live_bpm) {
+                self.live_bpm += (target - self.live_bpm) * 0.0045;
+            } else {
+                self.live_bpm += (target - self.live_bpm) * 0.0018;
+            }
+        }
+        self.live_bpm = std.math.clamp(self.live_bpm, 40.0, 160.0);
+        return std.math.clamp(self.live_bpm, 40.0, 160.0) / 72.0;
+    }
+
     /// One sixtieth of a second. `cues` gets the sounds that are due before the next step ends,
     /// in the order they are due; the return is how many.
     pub fn stepOnce(self: *World, hands: Hands, cues: *[max_cues]sound.Cue) usize {
@@ -1943,19 +1981,7 @@ pub const World = struct {
             // the first time the knots come close, time thickens by itself for a bar, so there is
             // a moment to see them and their pulses before anything is asked
             const meeting = self.step < self.first_meet_until;
-            const target_bpm: f32 = if (!self.drip_met) 72.0 else if (feel.now.tempo_dynamic >= 0.5) blk: {
-                const speed = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
-                const speed_run = std.math.clamp(speed / run_speed, 0.0, 1.0);
-                const jump = if (self.airborne) @as(f32, 0.55) else 0.0;
-                const launch = if (self.airborne and @abs(self.hum_vy) > 4.0) @as(f32, 0.25) else 0.0;
-                const fight = if (self.threatened()) @as(f32, 0.85) else 0.0;
-                const sing = if (self.singing or self.wheel_open) @as(f32, 0.45) else 0.0;
-                const energy = std.math.clamp(@max(speed_run, @max(jump + launch, @max(fight, sing))), 0.0, 1.0);
-                break :blk feel.now.bpm_calm + (feel.now.bpm_peak - feel.now.bpm_calm) * energy;
-            } else feel.now.bpm;
-            self.live_bpm += (target_bpm - self.live_bpm) * 0.035;
-            self.live_bpm = std.math.clamp(self.live_bpm, 40.0, 160.0);
-            const base_pace: f32 = std.math.clamp(self.live_bpm, 40.0, 160.0) / 72.0;
+            const base_pace = self.stepTempo();
             const stretch: f32 = if (self.wheel_open or meeting) thick else if (self.step < self.pocket_until) knots.pocket else 1.0;
             self.tempo = stretch * base_pace;
             if (stretch != self.sound_stretch) {
@@ -2087,11 +2113,8 @@ pub const World = struct {
                 // let go on any beat: beat 1 rings fullest, beats 2-4 land a crisp immediate
                 // cadence; where home stands against where the swell began decides the cadence
                 if (self.locked_at != never) {
-                    switch (self.beatHit(self.clock)) {
-                        .downbeat => self.landCadenceWith(true),
-                        .beat => self.landCadenceWith(false),
-                        .none => {},
-                    }
+                    const sub = self.subHitAt(self.beatAt(hands.stamp).pos);
+                    if (sub.hit != .none) self.landCadenceSub(sub);
                 }
                 // let go: Hum's hum ends on the sample it was let go
                 self.own_now = sound.own_hands;
@@ -2527,12 +2550,45 @@ pub const World = struct {
         while (i <= k + 1) : (i += 1) {
             const at = tickStep(i);
             const apart = if (at > step) at - step else step - at;
-            const radius = pocketWindowSteps(self.live_bpm, !self.fierce);
-            if (@as(f64, @floatFromInt(apart)) <= radius) {
+            if (@as(f64, @floatFromInt(apart)) <= self.widen(@floatFromInt(downbeat_window))) {
                 return if (i % 4 == 0) .downbeat else .beat;
             }
         }
         return .none;
+    }
+
+    /// Find the nearest of the 16 swung 16th-note slots in the current bar. The bracket is based
+    /// on Drip's actual tick span, including the alternate 4-step swing, not an assumed grid.
+    pub fn subHitAt(self: *const World, pos: f64) SubResult {
+        const k64: i64 = @intFromFloat(@floor(pos));
+        if (k64 < 0) return .{};
+        const k: u64 = @intCast(k64);
+        const t0 = @as(f64, @floatFromInt(tickStep(k)));
+        const t1 = @as(f64, @floatFromInt(tickStep(k + 1)));
+        const span = t1 - t0;
+        if (span <= 0.0) return .{};
+        const u = std.math.clamp((pos - t0) / span * 4.0, 0.0, 4.0);
+        const q64: i64 = @intFromFloat(@round(u));
+        const q: u8 = @intCast(if (q64 >= 4) @as(i64, 3) else q64);
+        const err = @abs(u - @as(f64, @floatFromInt(if (q64 >= 4) @as(i64, 3) else q64)));
+        const hit: SubHit = if (q == 0)
+            (if (k % 4 == 0) SubHit.downbeat else SubHit.quarter)
+        else if (q == 2)
+            SubHit.eighth
+        else
+            SubHit.sixteenth;
+        const win: f64 = switch (hit) {
+            .downbeat => 0.34,
+            .quarter => 0.33,
+            .eighth => 0.31,
+            .sixteenth => 0.28,
+            .none => 0.0,
+        };
+        const gentle_win = win * (if (self.fierce) @as(f64, 1.0) else 1.15);
+        if (err > gentle_win) return .{};
+        const slot = @as(u8, @intCast((k % 4) * 4 + q));
+        const accuracy: f32 = @floatCast(std.math.clamp(1.0 - err / gentle_win, 0.0, 1.0));
+        return .{ .hit = hit, .slot = slot, .accuracy = accuracy };
     }
 
     /// Whether a step is within the window of a downbeat: the first of every four of Drip's ticks.
@@ -2608,7 +2664,7 @@ pub const World = struct {
         }
         if (self.nudge_out and @abs(rx) < nudge_back) self.nudge_out = false;
         if (step_dir != 0) {
-            if (self.beatHit(self.clock) != .none) {
+            if (self.subHitAt(self.beatAt(hands.stamp).pos).hit != .none) {
                 self.swell_steered = true;
                 const from = self.home_k;
                 const to: i8 = self.home_k + step_dir;
@@ -2640,20 +2696,48 @@ pub const World = struct {
     }
 
     fn landCadenceWith(self: *World, on_one: bool) void {
+        self.landCadenceSub(.{
+            .hit = if (on_one) SubHit.downbeat else SubHit.quarter,
+            .slot = @intCast(@mod(self.clock / tick_every, 16)),
+            .accuracy = 1.0,
+        });
+    }
+
+    pub fn cadenceThird(self: *const World) f32 {
+        return if (self.home_minor) 6.0 / 5.0 else 5.0 / 4.0;
+    }
+
+    pub fn landCadenceSub(self: *World, sub: SubResult) void {
         const d: i32 = @as(i32, self.home_k) - @as(i32, self.swell_from);
         self.cadence = if (d == -1) .full_close else if (d == 1) .amen else if (d == 0) .turn else .slide;
         self.cadence_at = self.step;
         self.cadences += 1;
         self.hum_chord_vis = 1.0;
-        const fullness: f32 = if (on_one)
-            0.55 + 0.06 * @as(f32, @floatFromInt(self.swell_bars))
-        else
-            0.42 + 0.05 * @as(f32, @floatFromInt(self.swell_bars));
-        // home's pure triad, sung by Hum and its voices
-        const chord = [3]f32{ 1.0, 5.0 / 4.0, 3.0 / 2.0 };
+        self.last_cadence_sub = sub.hit;
+        self.last_cadence_slot = sub.slot;
+        const base_fullness: f32 = switch (sub.hit) {
+            .downbeat => 0.58,
+            .quarter => 0.48,
+            .eighth => 0.40,
+            .sixteenth => 0.34,
+            .none => 0.0,
+        };
+        const ring: f32 = switch (sub.hit) {
+            .downbeat => 1.75,
+            .quarter => 1.40,
+            .eighth => 1.05,
+            .sixteenth => 0.72,
+            .none => 0.0,
+        };
+        const fullness = base_fullness * (0.88 + 0.12 * sub.accuracy);
+        // home's pure triad: major 5/4 on the outer ring, minor 6/5 on the inner ring.
+        const chord = [3]f32{ 1.0, self.cadenceThird(), 3.0 / 2.0 };
         for (chord, 0..) |ratio, i| {
             const at = Place{ .x = self.hum_x, .y = 1.2 + 0.4 * @as(f32, @floatFromInt(i)), .z = self.hum_z };
-            self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * ratio, .strength = fullness * 0.6, .ring = 1.6 }, .glow));
+            self.tell(.{ .at = at }, cues_mod.Cue.of(.{ .kind = .strike, .family = .string, .hz = self.home_hz * ratio, .strength = fullness * 0.60, .ring = ring }, .glow));
+        }
+        if (sub.hit == .eighth) {
+            self.tell(.hum, cues_mod.Cue.of(.{ .kind = .strike, .family = .bell, .hz = self.home_hz * 2.0, .strength = fullness * 0.18, .ring = ring * 0.55 }, .glow));
         }
         _ = self.startRing(self.hum_x, self.hum_z, self.home_hz, true, fullness);
         self.swell_bars = 0;
@@ -7576,12 +7660,36 @@ test "R2 release lands a cadence on any beat (fullest on beat 1) and none off-be
     try std.testing.expectEqual(@as(u32, 2), w.cadences);
 }
 
-test "dynamic tempo stays calm before Drip meets Hum and tightens the 16th pocket at 120 BPM" {
+test "16th R2 pocket, minor triads, dynamic tempo, and sacred tempo guards" {
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
     defer feel.reset();
     w.initAsters();
     var cues: [max_cues]sound.Cue = undefined;
+
+    // The swung grid brackets each of 1, e, &, a inside its actual quarter-note span.
+    try std.testing.expectEqual(SubHit.downbeat, w.subHitAt(0.0).hit);
+    try std.testing.expectEqual(SubHit.sixteenth, w.subHitAt(13.5).hit);
+    try std.testing.expectEqual(SubHit.eighth, w.subHitAt(27.0).hit);
+    try std.testing.expectEqual(SubHit.sixteenth, w.subHitAt(40.5).hit);
+    try std.testing.expectEqual(SubHit.quarter, w.subHitAt(@as(f64, @floatFromInt(tickStep(1)))).hit);
+
+    // A true mid-gap release is none.
+    try std.testing.expectEqual(SubHit.none, w.subHitAt(20.25).hit);
+
+    w.home_minor = false;
+    try std.testing.expectApproxEqAbs(5.0 / 4.0, w.cadenceThird(), 0.0001);
+    w.home_minor = true;
+    try std.testing.expectApproxEqAbs(6.0 / 5.0, w.cadenceThird(), 0.0001);
+
+    w.home_minor = false;
+    w.swell_from = 0;
+    w.landCadenceSub(.{ .hit = .downbeat, .slot = 0, .accuracy = 1.0 });
+    w.landCadenceSub(.{ .hit = .quarter, .slot = 4, .accuracy = 1.0 });
+    w.landCadenceSub(.{ .hit = .eighth, .slot = 2, .accuracy = 1.0 });
+    w.landCadenceSub(.{ .hit = .sixteenth, .slot = 1, .accuracy = 1.0 });
+    try std.testing.expectEqual(SubHit.sixteenth, w.last_cadence_sub);
+    try std.testing.expectEqual(@as(u8, 1), w.last_cadence_slot);
 
     w.drip_met = false;
     w.live_bpm = 72.0;
@@ -7592,16 +7700,25 @@ test "dynamic tempo stays calm before Drip meets Hum and tightens the 16th pocke
     feel.now.tempo_dynamic = 1.0;
     feel.now.bpm_calm = 70.0;
     feel.now.bpm_peak = 120.0;
-    w.hum_vx = run_speed;
+    w.hum_vx = 20.0;
     w.hum_vz = 0.0;
     for (0..240) |_| _ = w.stepOnce(.{}, &cues);
     try std.testing.expect(w.live_bpm > 119.0);
 
-    const at120 = pocketWindowSteps(120.0, false);
-    const at70 = pocketWindowSteps(70.0, false);
-    try std.testing.expect(at120 < at70);
-    try std.testing.expect(at120 < 2.2);
-    try std.testing.expect(pocketWindowSteps(120.0, true) > at120);
+    w.singing = true;
+    const frozen = w.live_bpm;
+    w.hum_vx = 0.0;
+    for (0..60) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectApproxEqAbs(frozen, w.live_bpm, 0.0001);
+
+    w.singing = false;
+    w.hold_until = w.step;
+    w.wheel_open = false;
+    feel.now.tempo_dynamic = 0.0;
+    feel.now.bpm = 90.0;
+    w.live_bpm = 120.0;
+    for (0..60) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expectApproxEqAbs(90.0, w.live_bpm, 0.0001);
 }
 
 test "Drip sleeps while riding on Hum's head and never skips beats at 90 BPM" {
