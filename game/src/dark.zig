@@ -1499,7 +1499,9 @@ pub fn run(window: plat.Window, options: Options) bool {
         },
     }
     if (options.load) |path| {
-        if (!openSave(path)) return false;
+        // An older save is not a reason to stop the game: scene initialization has already
+        // established a clean world, and opening a layout-mismatched save simply leaves it there.
+        _ = openSave(path);
     }
     feel.reset();
     prog_state = .{};
