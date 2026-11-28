@@ -4541,8 +4541,8 @@ pub const World = struct {
         if (dial_fold < 0.01 and self.wheel_view <= 0.001) {
             const shoulder = std.math.clamp(feel.now.cam_shoulder, 0.0, 1.0);
             const shoulder_k = std.math.clamp(self.stand, 0.0, 1.0);
-            eye[0] += fz * shoulder * shoulder_k;
-            eye[2] -= fx * shoulder * shoulder_k;
+            eye[0] -= fz * shoulder * shoulder_k;
+            eye[2] += fx * shoulder * shoulder_k;
         }
         if (self.wheel_view > 0.0) {
             // the wheel open: the view rises behind Hum and looks down on it, over any other view,
@@ -4561,6 +4561,7 @@ pub const World = struct {
                     eye[i] += (high[i] - eye[i]) * k;
                     dir[i] = dir[i] / dl + (down[i] - dir[i] / dl) * k;
                 }
+                fov = fov + (wheel_fov - fov) * k;
             }
         }
         const len = @sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
