@@ -83,8 +83,18 @@ pub const Table = struct {
 
     /// Hum's R2 vocal hold level (0.34 warm & balanced vs legacy 0.70).
     hum_volume: f32 = 0.34,
-    /// Drip & Garden musical tempo in beats per minute (72 default vs 90 snappy A/B).
+    /// Dynamic musical tempo mode: 1.0 = DYNAMIC (calm->peak energy arc), 0.0 = FIXED (`bpm`).
+    tempo_dynamic: f32 = 1.0,
+    /// Fixed tempo in BPM when `tempo_dynamic < 0.5` (72 default vs 90 snappy A/B).
     bpm: f32 = 72.0,
+    /// Calm resting floor in BPM for DYNAMIC tempo mode.
+    bpm_calm: f32 = 70.0,
+    /// Peak sprint/jump/launch/combat ceiling in BPM for DYNAMIC tempo mode.
+    bpm_peak: f32 = 120.0,
+    /// Walking camera distance multiplier around the intimate TotK framing (1.0x vs 1.69x classic).
+    cam_zoom: f32 = 1.0,
+    /// Subtle right-shoulder camera offset in metres during 3D walking (0.42m TotK vs 0.0m center).
+    cam_shoulder: f32 = 0.42,
 };
 
 pub const defaults = Table{};

@@ -25,6 +25,10 @@ pub const DripState = struct {
     tilt_x: f32 = 0.0,
     tilt_z: f32 = 0.0,
     bob_phase: f32 = 0.0,
+    /// Expanding crown halo pulse (1.0 -> 0.0) and beat weight (1.0 on 1, 0.58 on 3, 0.34 on 2/4)
+    /// so Drip's active ticking reads unmistakably at a glance on the 3.5" handheld screen.
+    beat_pulse: f32 = 0.0,
+    beat_accent: f32 = 0.0,
 
     /// Whether Drip's metronome tick should sound audibly.
     /// Single source of truth for auditory balance.
@@ -44,8 +48,14 @@ pub const DripState = struct {
         return self.mood != .asleep;
     }
 
-    /// Called on each metronome beat.
+    /// Called on each metronome beat (legacy convenience wrapper).
     pub fn onBeat(self: *DripState, is_one: bool, peaceful: bool) void {
+        self.onBeatDetail(if (is_one) 0 else 1, peaceful, true);
+    }
+
+    /// Called on each metronome beat with exact 4/4 beat index (`0..3`) and whether the tick sounded.
+    pub fn onBeatDetail(self: *DripState, beat_in_bar: u64, peaceful: bool, audible: bool) void {
+        const is_one = (beat_in_bar == 0);
         if (peaceful) {
             self.peaceful_beats += 1;
             if (self.peaceful_beats >= self.sleep_after_bars * 4) {
@@ -56,25 +66,39 @@ pub const DripState = struct {
         }
 
         if (self.mood == .awake or self.mood == .waking) {
-            // Beat recoil: crisp squash on tick, higher bounce on the one
-            self.squash_y = if (is_one) 0.82 else 0.93;
+            // Crisp beat recoil: deep punch on beat 1, warm bounce on 3, nimble tap on 2/4
+            self.squash_y = switch (beat_in_bar) {
+                0 => 0.68,
+                2 => 0.80,
+                else => 0.88,
+            };
             self.squash_xz = 1.0 / @sqrt(self.squash_y);
+            if (audible) {
+                self.beat_pulse = 1.0;
+                self.beat_accent = switch (beat_in_bar) {
+                    0 => 1.0,
+                    2 => 0.58,
+                    else => 0.34,
+                };
+            }
         } else if (self.mood == .asleep) {
-            // Gentle sleep breathing on the one
+            // Gentle flat sleep breathing on beat 1 only (no bright pulse ring)
             if (is_one) {
-                self.squash_y = 0.95;
-                self.squash_xz = 1.02;
+                self.squash_y = 0.54;
+                self.squash_xz = 1.0 / @sqrt(self.squash_y);
             }
         }
     }
 
-    /// Wake Drip up immediately with a springy stretch.
+    /// Wake Drip up immediately with a joyful springy vertical pop.
     pub fn wake(self: *DripState) void {
         if (self.mood == .asleep) {
             self.mood = .waking;
             self.wake_anim = 1.0;
-            self.squash_y = 1.35; // springy vertical stretch
-            self.squash_xz = 0.86;
+            self.squash_y = 1.45; // joyful springy vertical pop
+            self.squash_xz = 0.83;
+            self.beat_pulse = 1.0;
+            self.beat_accent = 0.85;
         } else if (self.mood != .waking and self.mood != .hanging and self.mood != .entraining and self.mood != .hopping and self.mood != .waiting) {
             self.mood = .awake;
         }
@@ -85,13 +109,15 @@ pub const DripState = struct {
     pub fn stepPhysics(self: *DripState, w: anytype) void {
         const dt: f32 = 1.0 / 60.0;
 
-        // Wake animation decay
+        // Wake animation & crown beat-halo decay
         if (self.wake_anim > 0.0) {
             self.wake_anim = @max(0.0, self.wake_anim - 3.0 * dt);
             if (self.wake_anim <= 0.0 and self.mood == .waking) {
                 self.mood = .awake;
             }
         }
+        self.beat_pulse *= 0.82;
+        if (self.beat_pulse < 0.01) self.beat_pulse = 0.0;
 
         // Airborne jumping dynamics
         if (w.airborne) {
@@ -111,8 +137,9 @@ pub const DripState = struct {
             self.squash_y = 0.68;
             self.squash_xz = 1.25;
         } else {
-            // Elastic spring recovery towards target rest scale
-            const target_y: f32 = if (self.mood == .asleep) 0.75 else 1.0;
+            // Elastic spring recovery: unmistakable low cozy resting cap (0.48) when asleep vs
+            // lively upright droplet (1.08) when awake
+            const target_y: f32 = if (self.mood == .asleep) 0.48 else 1.08;
             self.squash_y += (target_y - self.squash_y) * 0.18;
         }
         self.squash_xz = 1.0 / @sqrt(@max(0.1, self.squash_y));

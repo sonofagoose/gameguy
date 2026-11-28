@@ -118,8 +118,13 @@ const Knob = struct {
 };
 
 const bench_knobs = [_]Knob{
-    .{ .name = "Drip tempo (A/B)", .unit = "bpm", .min = 60.0, .max = 120.0, .step = 2.0, .alt_a = 72.0, .alt_b = 90.0 },
+    .{ .name = "Tempo mode (A/B)", .unit = "mode", .min = 0.0, .max = 1.0, .step = 1.0, .alt_a = 1.0, .alt_b = 0.0 },
+    .{ .name = "Fixed BPM (A/B)", .unit = "bpm", .min = 60.0, .max = 120.0, .step = 2.0, .alt_a = 72.0, .alt_b = 90.0 },
+    .{ .name = "Calm BPM (dyn)", .unit = "bpm", .min = 60.0, .max = 90.0, .step = 2.0 },
+    .{ .name = "Peak BPM (A/B)", .unit = "bpm", .min = 90.0, .max = 136.0, .step = 2.0, .alt_a = 120.0, .alt_b = 96.0 },
     .{ .name = "Hum voice (A/B)", .unit = "", .min = 0.10, .max = 0.70, .step = 0.02, .alt_a = 0.34, .alt_b = 0.70 },
+    .{ .name = "Cam zoom (A/B)", .unit = "x", .min = 0.65, .max = 1.80, .step = 0.05, .alt_a = 1.00, .alt_b = 1.69 },
+    .{ .name = "Cam shoulder (A/B)", .unit = "m", .min = 0.00, .max = 1.00, .step = 0.04, .alt_a = 0.42, .alt_b = 0.00 },
     .{ .name = "Lift gravity (A/B)", .unit = "x", .min = 0.25, .max = 1.00, .step = 0.02, .alt_a = 0.55, .alt_b = 2.0 / 3.0 },
     .{ .name = "Lean speed (A/B)", .unit = "x", .min = 1.00, .max = 2.00, .step = 0.02, .alt_a = 1.3, .alt_b = 4.0 / 3.0 },
     .{ .name = "Full-close launch", .unit = "m", .min = 2.0, .max = 14.0, .step = 0.5 },
@@ -140,38 +145,48 @@ const arena_rows_total = 7;
 
 fn knobPtr(index: usize) *f32 {
     return switch (index) {
-        0 => &feel.now.bpm,
-        1 => &feel.now.hum_volume,
-        2 => &feel.now.lift_pull,
-        3 => &feel.now.lean_speed,
-        4 => &feel.now.launch_far,
-        5 => &feel.now.run_speed,
-        6 => &feel.now.sprint_speed,
-        7 => &feel.now.jump_height,
-        8 => &feel.now.view_run_ease,
-        9 => &feel.now.wake_ease,
-        10 => &feel.now.rise_ease,
-        11 => &feel.now.settle_ease,
-        12 => &feel.now.tilt_full,
+        0 => &feel.now.tempo_dynamic,
+        1 => &feel.now.bpm,
+        2 => &feel.now.bpm_calm,
+        3 => &feel.now.bpm_peak,
+        4 => &feel.now.hum_volume,
+        5 => &feel.now.cam_zoom,
+        6 => &feel.now.cam_shoulder,
+        7 => &feel.now.lift_pull,
+        8 => &feel.now.lean_speed,
+        9 => &feel.now.launch_far,
+        10 => &feel.now.run_speed,
+        11 => &feel.now.sprint_speed,
+        12 => &feel.now.jump_height,
+        13 => &feel.now.view_run_ease,
+        14 => &feel.now.wake_ease,
+        15 => &feel.now.rise_ease,
+        16 => &feel.now.settle_ease,
+        17 => &feel.now.tilt_full,
         else => &feel.now.land_kick,
     };
 }
 
 fn knobDefault(index: usize) f32 {
     return switch (index) {
-        0 => feel.defaults.bpm,
-        1 => feel.defaults.hum_volume,
-        2 => feel.defaults.lift_pull,
-        3 => feel.defaults.lean_speed,
-        4 => feel.defaults.launch_far,
-        5 => feel.defaults.run_speed,
-        6 => feel.defaults.sprint_speed,
-        7 => feel.defaults.jump_height,
-        8 => feel.defaults.view_run_ease,
-        9 => feel.defaults.wake_ease,
-        10 => feel.defaults.rise_ease,
-        11 => feel.defaults.settle_ease,
-        12 => feel.defaults.tilt_full,
+        0 => feel.defaults.tempo_dynamic,
+        1 => feel.defaults.bpm,
+        2 => feel.defaults.bpm_calm,
+        3 => feel.defaults.bpm_peak,
+        4 => feel.defaults.hum_volume,
+        5 => feel.defaults.cam_zoom,
+        6 => feel.defaults.cam_shoulder,
+        7 => feel.defaults.lift_pull,
+        8 => feel.defaults.lean_speed,
+        9 => feel.defaults.launch_far,
+        10 => feel.defaults.run_speed,
+        11 => feel.defaults.sprint_speed,
+        12 => feel.defaults.jump_height,
+        13 => feel.defaults.view_run_ease,
+        14 => feel.defaults.wake_ease,
+        15 => feel.defaults.rise_ease,
+        16 => feel.defaults.settle_ease,
+        17 => feel.defaults.tilt_full,
         else => feel.defaults.land_kick,
     };
 }
@@ -459,13 +474,14 @@ pub fn drawHud(sk: *songbook.Sketch, words: *room.Type, w: *const World, tel: *c
     const cur = w.homeCell();
     const vm = world_mod.harmony.VoicingMode.fromU8(w.voicing);
     var buf: [128]u8 = undefined;
-    const text = std.fmt.bufPrint(&buf, "{d:>4.1}fps {d:>4.1}ms | {d:>4.1}k/24k L {d:>3.1}k/12k T | {s} {s} | {d:>4.1}m/s", .{
+    const text = std.fmt.bufPrint(&buf, "{d:>4.1}fps {d:>4.1}ms | {d:>4.1}kL {d:>3.1}kT | {s} {s} | {d:>3.0}bpm {d:>4.1}m/s", .{
         tel.fps,
         tel.avg_ms,
         @as(f32, @floatFromInt(tel.lines_now)) / 1000.0,
         @as(f32, @floatFromInt(tel.black_now)) / 1000.0,
         world_mod.harmony.cellShort(cur),
         vm.label(),
+        w.live_bpm,
         sp,
     }) catch return;
     sk.rect(6.0, 5.0, sk.w - 12.0, 22.0, .{ 0.0, 0.0, 0.0 }, 0.58);
@@ -556,10 +572,11 @@ fn drawStatus(sk: *songbook.Sketch, words: *room.Type, w: *const World, tel: *co
     putLine(words, lx, y, 0.82, .{ lit_col[0], lit_col[1], lit_col[2], 0.95 }, s_harm);
     y += 24.0;
 
-    const s_ring = std.fmt.bufPrint(&buf, "RING {s}  (k={d})  chords:{s}", .{
+    const s_ring = std.fmt.bufPrint(&buf, "RING {s}  (k={d})  {d:.0}bpm {s}", .{
         if (w.home_minor) "INNER MINOR" else "OUTER MAJOR",
         w.home_k,
-        if (world_mod.chords_tryout) "ON" else "OFF",
+        w.live_bpm,
+        if (feel.now.tempo_dynamic >= 0.5) "DYN" else "FIX",
     }) catch "";
     putLine(words, lx, y, 0.78, .{ teal[0], teal[1], teal[2], 0.92 }, s_ring);
     y += 24.0;
@@ -658,11 +675,19 @@ fn drawBench(self: *const State, sk: *songbook.Sketch, words: *room.Type, tel: *
             sk.seg(def_x, y + 6.0, def_x, y + 22.0, 1.6, bone, 0.65);
 
             var vbuf: [32]u8 = undefined;
-            const vs = if (k.step >= 1.0)
+            const is_mode = std.mem.eql(u8, k.unit, "mode");
+            const vs = if (is_mode)
+                (if (val >= 0.5) "[ DYN ]" else "[FIXED]")
+            else if (k.step >= 1.0)
                 (std.fmt.bufPrint(&vbuf, "{d:>4.0}{s}", .{ val, k.unit }) catch "")
             else
                 (std.fmt.bufPrint(&vbuf, "{d:>6.3}{s}", .{ val, k.unit }) catch "");
-            const vcol = if (mod) [4]f32{ amber[0], amber[1], amber[2], 1.0 } else [4]f32{ bone[0], bone[1], bone[2], 0.88 };
+            const vcol = if (is_mode)
+                (if (val >= 0.5) [4]f32{ green[0], green[1], green[2], 1.0 } else [4]f32{ amber[0], amber[1], amber[2], 1.0 })
+            else if (mod)
+                [4]f32{ amber[0], amber[1], amber[2], 1.0 }
+            else
+                [4]f32{ bone[0], bone[1], bone[2], 0.88 };
             putLine(words, 492.0, y + 3.0, 0.82, vcol, vs);
         } else {
             const extra = idx - bench_knobs.len;

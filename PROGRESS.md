@@ -16,6 +16,16 @@ Where the build stands, so a new session can pick it up. Newest first.
 - **How the engine is shaped:** `docs/engine.md`, written the same day at his asking ("audit and
   design the ultimate engine shape for this endeavor"). Leg 0 of the road builds it.
 - **Steps of the road that are in:**
+  - **Dynamic rhythm, intimate camera, and readable Drip (playtest pickup)** (2026-11-28):
+    continuing Morgan's playtest plan for the 24-cell build. In: live DYNAMIC/FIXED tempo in
+    `game/src/feel.zig` and `game/src/world/world.zig` (72 BPM before Drip meets Hum, 70-120 BPM
+    after meeting with a smooth calm-to-peak arc), exact 4/4 Drip beat-detail pulses,
+    non-overlapping tight 16th-note pocket windows, a closer TotK-like walking camera with live
+    zoom and shoulder controls, and a flatter twilight-sleep / brighter awake Drip silhouette.
+    **Verified:** unit tests and 3/3 ears tests pass; full `game/build.sh laptop` passes, with
+    73,052 scripted evening frames and 17 laptop-only late frames, 0 late cues, 0 refused cues,
+    and refreshed take/save round trips. Handheld re-measurement remains required for the final
+    same-take comparison.
   - **Mix, Visual-Sonic Feel & Living Rhythm (Phase 1 playtest polish)** (2026-11-28):
     addressed all six playtest notes from Morgan's purple-unit session on the 24-cell Circle of
     Fifths build (`b8ca5ef`) while staying aligned with the canonical design docs for Phase 2

@@ -179,6 +179,27 @@ pub fn drawCircle(sk: *songbook.Sketch, words: *room.Type, w: *const World, cx: 
             putCentered(words, cx + dx * r_in_lbl, cy + dy * r_in_lbl, in_scale, i_col, inner_cell.name());
         }
     }
+
+    // Subtle 4/4 tempo heartbeat pulse inside the center hub (calm teal 70 BPM -> warm amber 120 BPM)
+    {
+        const bp = w.barPhase();
+        const beat_frac = @mod(bp * 4.0, 1.0);
+        const is_one = bp < 0.25;
+        const pulse = std.math.pow(f32, 1.0 - beat_frac, 3.0);
+        const e_vis = std.math.clamp((w.live_bpm - 70.0) / 50.0, 0.0, 1.0);
+        const p_rgb = [3]f32{
+            0.14 + (amber[0] - 0.14) * e_vis,
+            0.76 + (amber[1] - 0.76) * e_vis,
+            0.68 + (amber[2] - 0.68) * e_vis,
+        };
+        const r_dot = r_in * (0.28 + (if (is_one) @as(f32, 0.56) else 0.36) * pulse);
+        const p_alpha = (0.30 + (if (is_one) @as(f32, 0.65) else 0.42) * pulse) * alpha;
+        for (0..8) |k| {
+            const a0 = @as(f32, @floatFromInt(k)) * (std.math.pi / 4.0);
+            const a1 = a0 + (std.math.pi / 4.0);
+            drawArcLine(sk, cx, cy, r_dot, a0, a1, if (is_one) 1.8 else 1.2, p_rgb, p_alpha);
+        }
+    }
 }
 
 /// Smart-fade Mini Circle Compass in the top-right corner during live play.
@@ -200,15 +221,16 @@ pub fn drawLiveCompass(sk: *songbook.Sketch, words: *room.Type, w: *const World,
 
     drawCircle(sk, words, w, cx, cy, r_out, alpha, false);
 
-    // Compact label pill directly below the Mini Circle Compass, clamped cleanly inside the right screen edge
+    // Compact label pill directly below the Mini Circle Compass (includes live BPM), clamped inside right edge
     const cur = w.homeCell();
     const d_day = world_mod.harmony.day(w);
     const vmode = world_mod.harmony.VoicingMode.fromU8(w.voicing);
     var buf: [48]u8 = undefined;
-    const pill = std.fmt.bufPrint(&buf, "{s} {s} [{s}]", .{
+    const pill = std.fmt.bufPrint(&buf, "{s} {s} [{s}] {d:.0}", .{
         world_mod.harmony.cellShort(cur),
         world_mod.harmony.cellFace(d_day, cur),
         vmode.label(),
+        w.live_bpm,
     }) catch "";
     const p_scale: f32 = 0.52;
     const text_w: f32 = if (pill.len > 0) @as(f32, @floatFromInt(pill.len - 1)) * (14.0 * p_scale) + 11.0 * p_scale else 0.0;

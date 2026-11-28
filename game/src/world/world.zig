@@ -473,6 +473,13 @@ pub fn tickStep(k: u64) u64 {
     return k * tick_every + (if (k % 2 == 1) @as(u64, tick_swing) else 0);
 }
 
+fn pocketWindowSteps(live_bpm: f32, gentle: bool) f64 {
+    const bpm = std.math.clamp(live_bpm, 70.0, 120.0);
+    const normal_ms: f32 = 60.0 - (bpm - 70.0) * (25.0 / 50.0);
+    const gentle_ms: f32 = if (gentle) normal_ms * 1.17 else normal_ms;
+    return @as(f64, gentle_ms) / 16.67;
+}
+
 /// Returns the beat index `k` whose `tickStep(k)` has been reached or crossed on this step
 /// (skip-safe when live BPM > 72 advances `clock` by 2 in a frame, and bit-exact at 72 BPM).
 fn crossedTick(clock: u64, tempo: f32, last_at: u64) ?u64 {
@@ -552,9 +559,9 @@ pub const dew_every: f32 = 0.9;
 /// view does not fit the thing to the screen: the gaze climbs it at the speed of sound, narrowing
 /// as it goes, so the ground is lost and the height is paid for in time. A call made there is
 /// ridden up: the gaze follows the band of light.
-pub const cam_back: f32 = 11.0;
-pub const cam_up: f32 = 2.2;
-pub const walk_pitch: f32 = 0.24;
+pub const cam_back: f32 = 6.5;
+pub const cam_up: f32 = 1.95;
+pub const walk_pitch: f32 = 0.02;
 pub const place_fov: f32 = 55.0;
 pub const lean_back: f32 = 14.0;
 pub const lean_up: f32 = 1.0;
@@ -567,16 +574,14 @@ pub const hum_mid: f32 = 0.5;
 /// The walking view's height round Hum's middle, as seen from it.
 pub const walk_rise: f32 = std.math.atan2(cam_up - hum_mid, cam_back);
 /// The view's dial, the right stick up and down (spec/engine.md, "The view goes round Hum"): from
-/// low at Hum's feet looking up (-1), through the walking view (0, exactly the eye cam_back behind
-/// and cam_up high, looking up walk_pitch), to high over Hum looking down on it (+1). At each key,
-/// as seen from Hum's middle: how high round it the eye stands (radians), how far away it is, how
-/// wide the view is (degrees, top to bottom), and how far above Hum the middle of the frame looks
-/// (radians). Between keys the dial goes on one smooth curve that never turns back.
+/// low at Hum's feet looking up (-1), through the walking view (0, intimate TotK-inspired framing
+/// so Hum's breathing and Drip's state read clearly on the 3.5" screen), to high over Hum looking
+/// down on it (+1). Between keys the dial goes on one smooth curve that never turns back.
 pub const orbit_keys = [_][5]f32{
-    .{ -1.0, -0.01396, 9.5, 62.0, 0.4503 },
+    .{ -1.0, -0.01396, 5.4, 58.0, 0.34 },
     .{ 0.0, walk_rise, @sqrt(cam_back * cam_back + (cam_up - hum_mid) * (cam_up - hum_mid)), place_fov, walk_pitch + walk_rise },
-    .{ 0.4, 0.4712, 18.5, 53.0, 0.2321 },
-    .{ 0.7, 1.1868, 33.0, 50.0, 0.0698 },
+    .{ 0.4, 0.4712, 16.0, 53.0, 0.16 },
+    .{ 0.7, 1.1868, 33.0, 50.0, 0.05 },
     .{ 1.0, std.math.pi / 2.0, 52.0, 45.0, 0.0 },
 };
 /// The curve's slope at each key, made so that it never overshoots a key (Fritsch and Carlson).
@@ -712,9 +717,11 @@ pub const swell_most: u8 = 8;
 /// cadence: a fifth down is the full close, a fifth up the amen, nowhere the turn, further the slide.
 pub const Cadence = enum(u8) { none, full_close, amen, turn, slide };
 
-/// While the wheel is open the view rises this high, this far behind Hum, and looks down at it.
-pub const wheel_up: f32 = 32.0;
-pub const wheel_back: f32 = 30.0;
+/// While the wheel is open the view rises high enough behind Hum that all 24 cells (including F#
+/// at 6 o'clock) sit cleanly inside the frame with generous margin on all four edges.
+pub const wheel_up: f32 = 48.0;
+pub const wheel_back: f32 = 26.0;
+pub const wheel_fov: f32 = 58.0;
 /// The pointed wedge is kept until the stick is this far into the next (radians), so a wedge snaps
 /// and holds; resting on an awake wedge this many steps, Hum hums its note under its breath, on a
 /// voice of its own, a part of its hum's strength, spending no breath: the preview.
@@ -1150,6 +1157,8 @@ pub const World = struct {
     hum_swell_vis: f32 = 1.0,
     hum_call_vis: f32 = 0.0,
     hum_chord_vis: f32 = 0.0,
+    /// The live Drip clock used by the 16th-note pocket and visible 4/4 pulse.
+    live_bpm: f32 = 72.0,
     /// The swell: where home was when it began, how many bars it has grown, whether the right stick
     /// is still out from a nudge, the last cadence that landed and when, and the last downbeat.
     swell_from: i8 = 0,
@@ -1934,7 +1943,19 @@ pub const World = struct {
             // the first time the knots come close, time thickens by itself for a bar, so there is
             // a moment to see them and their pulses before anything is asked
             const meeting = self.step < self.first_meet_until;
-            const base_pace: f32 = std.math.clamp(feel.now.bpm, 40.0, 160.0) / 72.0;
+            const target_bpm: f32 = if (!self.drip_met) 72.0 else if (feel.now.tempo_dynamic >= 0.5) blk: {
+                const speed = @sqrt(self.hum_vx * self.hum_vx + self.hum_vz * self.hum_vz);
+                const speed_run = std.math.clamp(speed / run_speed, 0.0, 1.0);
+                const jump = if (self.airborne) @as(f32, 0.55) else 0.0;
+                const launch = if (self.airborne and @abs(self.hum_vy) > 4.0) @as(f32, 0.25) else 0.0;
+                const fight = if (self.threatened()) @as(f32, 0.85) else 0.0;
+                const sing = if (self.singing or self.wheel_open) @as(f32, 0.45) else 0.0;
+                const energy = std.math.clamp(@max(speed_run, @max(jump + launch, @max(fight, sing))), 0.0, 1.0);
+                break :blk feel.now.bpm_calm + (feel.now.bpm_peak - feel.now.bpm_calm) * energy;
+            } else feel.now.bpm;
+            self.live_bpm += (target_bpm - self.live_bpm) * 0.035;
+            self.live_bpm = std.math.clamp(self.live_bpm, 40.0, 160.0);
+            const base_pace: f32 = std.math.clamp(self.live_bpm, 40.0, 160.0) / 72.0;
             const stretch: f32 = if (self.wheel_open or meeting) thick else if (self.step < self.pocket_until) knots.pocket else 1.0;
             self.tempo = stretch * base_pace;
             if (stretch != self.sound_stretch) {
@@ -2506,7 +2527,8 @@ pub const World = struct {
         while (i <= k + 1) : (i += 1) {
             const at = tickStep(i);
             const apart = if (at > step) at - step else step - at;
-            if (@as(f64, @floatFromInt(apart)) <= self.widen(@floatFromInt(downbeat_window))) {
+            const radius = pocketWindowSteps(self.live_bpm, !self.fierce);
+            if (@as(f64, @floatFromInt(apart)) <= radius) {
                 return if (i % 4 == 0) .downbeat else .beat;
             }
         }
@@ -3974,7 +3996,6 @@ pub const World = struct {
             const is_one = (beat_in_bar == 0);
             const on_head = self.drip_met and self.drip_out == 0;
             const peaceful = !teaching and on_head and !self.singing and !self.wheel_open and !self.threatened() and self.step >= self.hold_until;
-            self.drip_state.onBeat(is_one, peaceful);
             const chords_busy = chords_tryout and on_head and !self.singing and !self.wheel_open and !self.threatened() and tryout.changed_at != never and self.step >= tryout.changed_at and (self.step - tryout.changed_at) < 8 * tick_every;
             const tick: cues_mod.Sound = switch (beat_in_bar) {
                 0 => .{ .kind = .strike, .family = .fork, .hz = self.dripHz() * 4.0, .strength = tick_one_strength * (if (chords_busy) @as(f32, 0.45) else 0.90), .ring = tick_one_ring },
@@ -3983,6 +4004,7 @@ pub const World = struct {
             };
             // Metronome balance: audible via drip_state single source of truth (Piece 5)
             const audible = (self.step >= 240 or self.drip_met) and self.drip_state.isAudible(self, far) and (!chords_busy or is_one);
+            self.drip_state.onBeatDetail(beat_in_bar, peaceful, audible);
             if (audible) {
                 self.tell(.{ .thing = self.drip }, cues_mod.Cue.of(tick, .glow));
             } else {
@@ -4313,8 +4335,9 @@ pub const World = struct {
         const wv = self.water_view * self.water_view * (3.0 - 2.0 * self.water_view);
         const d = orbitAt(u, 2) + wv * water_further;
         const run = self.view_run;
-        var back = d * @cos(phi) + run * run_back;
-        var up = d * @sin(phi) + run * run_up;
+        const zoom = std.math.clamp(feel.now.cam_zoom, 0.65, 1.80);
+        var back = (d * @cos(phi) + run * run_back) / zoom;
+        var up = (d * @sin(phi) + run * run_up) / zoom;
         back += self.lean * (lean_back - back);
         up += self.lean * ((lean_up - hum_mid) - up);
         return .{ .back = back, .up = up, .pitch = orbitAt(u, 4) - phi, .fov = orbitAt(u, 3) + run * run_wider };
@@ -4515,6 +4538,12 @@ pub const World = struct {
             const t = (u - 0.5) / 0.5;
             break :blk t * t * (3.0 - 2.0 * t);
         };
+        if (dial_fold < 0.01 and self.wheel_view <= 0.001) {
+            const shoulder = std.math.clamp(feel.now.cam_shoulder, 0.0, 1.0);
+            const shoulder_k = std.math.clamp(self.stand, 0.0, 1.0);
+            eye[0] += fz * shoulder * shoulder_k;
+            eye[2] -= fx * shoulder * shoulder_k;
+        }
         if (self.wheel_view > 0.0) {
             // the wheel open: the view rises behind Hum and looks down on it, over any other view,
             // the wheel spread on the ground round it. When already dialed to full top-down
@@ -7546,6 +7575,34 @@ test "R2 release lands a cadence on any beat (fullest on beat 1) and none off-be
     try std.testing.expectEqual(@as(u32, 2), w.cadences);
 }
 
+test "dynamic tempo stays calm before Drip meets Hum and tightens the 16th pocket at 120 BPM" {
+    const w = try std.testing.allocator.create(World);
+    defer std.testing.allocator.destroy(w);
+    defer feel.reset();
+    w.initAsters();
+    var cues: [max_cues]sound.Cue = undefined;
+
+    w.drip_met = false;
+    w.live_bpm = 72.0;
+    for (0..120) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.live_bpm > 71.8 and w.live_bpm < 72.2);
+
+    w.drip_met = true;
+    feel.now.tempo_dynamic = 1.0;
+    feel.now.bpm_calm = 70.0;
+    feel.now.bpm_peak = 120.0;
+    w.hum_vx = run_speed;
+    w.hum_vz = 0.0;
+    for (0..240) |_| _ = w.stepOnce(.{}, &cues);
+    try std.testing.expect(w.live_bpm > 119.0);
+
+    const at120 = pocketWindowSteps(120.0, false);
+    const at70 = pocketWindowSteps(70.0, false);
+    try std.testing.expect(at120 < at70);
+    try std.testing.expect(at120 < 2.2);
+    try std.testing.expect(pocketWindowSteps(120.0, true) > at120);
+}
+
 test "Drip sleeps while riding on Hum's head and never skips beats at 90 BPM" {
     const w = try std.testing.allocator.create(World);
     defer std.testing.allocator.destroy(w);
@@ -7560,6 +7617,7 @@ test "Drip sleeps while riding on Hum's head and never skips beats at 90 BPM" {
     try std.testing.expect(!w.drip_state.isAudible(w, 0.0));
 
     // Switch live tempo to 90 BPM: every single beat index must fire in order with zero skips
+    feel.now.tempo_dynamic = 0.0;
     feel.now.bpm = 90.0;
     var last_k: ?u64 = null;
     var beats_seen: u32 = 0;
