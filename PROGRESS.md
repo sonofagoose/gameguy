@@ -22,9 +22,10 @@ Where the build stands, so a new session can pick it up. Newest first.
     eighth, and sixteenth tiers and tier-specific strength/ring. Inner Minor cadences use the pure
     6/5 third; Outer Major cadences use 5/4. The live tempo has opening, fixed, dynamic, frozen
     R2/R1, and asymmetric accelerando/ritardando states. **Verified:** unit tests and 3/3 ears
-    tests pass; full laptop gate completes; the save-loaded `garden.w04` witness remains reported
-    as a mismatch by the laptop cross-save check. Handheld arm64 package rebuilt and pushed to
-    purple unit 164.
+    tests pass; full laptop gate completes. A focused save test proves pool-crossing state and
+    `garden.w04` survive save/load with identical hands. The large laptop cross-save check still
+    reports that a witness first-step differs; that witness is diagnostic history and is not part
+    of the world fingerprint. Handheld arm64 package rebuilt and pushed to purple unit 164.
   - **Dynamic rhythm, intimate camera, and readable Drip (playtest pickup)** (2026-11-28):
     continuing Morgan's playtest plan for the 24-cell build. In: live DYNAMIC/FIXED tempo in
     `game/src/feel.zig` and `game/src/world/world.zig` (72 BPM before Drip meets Hum, 70-120 BPM

@@ -116,6 +116,45 @@ const walker = @import("../bot/walker.zig");
 const take = @import("take.zig");
 const sound = @import("../sound/sound.zig");
 
+test "a save keeps the pool-crossing witness and crossing state" {
+   const a = std.testing.allocator;
+   const w = try a.create(World);
+   defer a.destroy(w);
+   const back = try a.create(World);
+   defer a.destroy(back);
+   const bytes = try a.alloc(u8, size);
+   defer a.free(bytes);
+   var cues: [world_mod.max_cues]sound.Cue = undefined;
+
+   w.initEvening();
+   const r = w.pools[0].r;
+   w.hum_x = -(r + 1.0) * 0.7071;
+   w.hum_z = -(r + 1.0) * 0.7071;
+
+   var entered = false;
+   var step: u64 = 0;
+   while (step < 60 * 50 and w.crossed == 0) : (step += 1) {
+       _ = w.stepOnce(.{ .lx = 78, .ly = 78, .buttons = world_mod.Hands.sing }, &cues);
+       if (!entered and w.on_pool != 0) {
+           entered = true;
+           _ = write(w, bytes);
+       }
+   }
+   try std.testing.expect(entered);
+   try std.testing.expect(!w.seen.get(.garden_w04).met);
+
+   try read(bytes, back);
+   try std.testing.expectEqual(w.on_pool, back.on_pool);
+   try std.testing.expectApproxEqAbs(w.hum_x, back.hum_x, 0.001);
+   try std.testing.expectApproxEqAbs(w.hum_z, back.hum_z, 0.001);
+
+   while (back.crossed == 0 and back.step < step + 60 * 50) {
+       _ = back.stepOnce(.{ .lx = 78, .ly = 78, .buttons = world_mod.Hands.sing }, &cues);
+   }
+   try std.testing.expectEqual(w.crossed, back.crossed);
+   try std.testing.expectEqual(w.seen.get(.garden_w04).met, back.seen.get(.garden_w04).met);
+}
+
 test "a save made in the middle of the evening and loaded again reaches the same end" {
     const a = std.testing.allocator;
     const w = try a.create(World);
